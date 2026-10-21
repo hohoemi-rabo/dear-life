@@ -36,6 +36,37 @@ npm run lint    # ESLint（next/core-web-vitals + next/typescript）
 - ドット絵はコードで生成して PNG に書き出し、静的ファイルとして配信。`image-rendering: pixelated` で整数倍表示。背景 160×90 ドット、共通16色程度（要件 8.1）
 - PWA対応（ホーム画面追加・オフライン表示）。プッシュ通知はしない（要件 8.2）
 
+## Next.js 15 App Router のベストプラクティス
+
+公式ドキュメント（v15.1）をもとに、このプロジェクトの構成（静的書き出し）に関係するものだけをまとめる。
+
+### 静的書き出し（`output: "export"`）の制約
+
+ビルド時に計算できないものは使えない。次のものは使わない。
+
+- Server Actions、Cookies、`next.config` の rewrites / redirects / headers、Middleware、ISR、Draft Mode、Intercepting Routes
+- `request` を読む Route Handler（`GET` だけで、ビルド時に静的ファイルになるものは使える）
+- 動的ルートで `generateStaticParams()` がないもの、または `dynamicParams: true`。地区ページなどを動的ルートにするときは、4地区分を `generateStaticParams()` で必ず列挙する
+- `next/image` の標準の画像最適化。`images.unoptimized: true` にするか、独自の loader を使う。ドット絵は最適化すると崩れるので、どちらにしても元の PNG をそのまま出す
+
+### Server Components と Client Components
+
+- 既定は Server Component。`"use client"` は、状態・イベント・ブラウザAPIが必要な末端の部品だけに付け、境界をできるだけ下に置く
+- 秘密情報や Worker 側の処理を含むモジュールには `import "server-only"` を書き、Client Component から読み込めないようにする
+- Client Component に渡す props はシリアライズできる値に限る
+
+### params / searchParams（v15 で非同期になった）
+
+- `params` と `searchParams` は Promise。Server Component では `await params`、Client Component では React の `use(params)` で取り出す。型も `Promise<{ ... }>` で書く
+- **静的書き出しでは、ページの `searchParams` はビルド時に値がない**。選んだ条件（URLパラメータ、F-02）は Client Component で `useSearchParams()` を使って読む
+- `useSearchParams()` を使う Client Component は、必ず `<Suspense>` で囲む。囲まないと、いちばん近い Suspense 境界までがクライアント側の描画になる（境界がないとビルドエラーになる）。fallback には画面の骨組みを出す
+
+### そのほか
+
+- 読み込み中は `loading.tsx`、エラーは `error.tsx`（Client Component にする必要がある）でルートごとに扱う
+- `<title>` などは `metadata` / `generateMetadata` で設定する。`<head>` を直接書かない
+- フォントは `next/font` で読み込む（今の `layout.tsx` は Geist を使っている）
+
 ## 実装上の決まりごと
 
 - 点数化・ランキング・「おすすめ地区」判定は一切しない
