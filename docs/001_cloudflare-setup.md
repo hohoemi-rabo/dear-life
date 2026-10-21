@@ -41,14 +41,33 @@ npm run typecheck      # 画面と Worker の型チェック
 - [×] `npm run build`・lint・typecheck、両 Worker の `wrangler deploy --dry-run` が通ることを確認
 - [×] 初回デプロイ（`npm run deploy`）して workers.dev で表示を確認する（公開操作なので、まさゆきさんの OK をもらってから）
   - 2026-10-21 公開。`https://dear-life.rabo-hohoemi.workers.dev` で `/` と静的ファイルが 200、存在しないパスが 404（`404.html`）になることを確認
-- [ ] （まさゆきさん）Cloudflare ダッシュボードで、アカウント全体の Cron の数を確認する（無料プランは5個まで。10.2）
-- [ ] （まさゆきさん）Secret を登録する。値はチャット・コードに書かない
-  - `npx wrangler secret put REINFOLIB_API_KEY --config workers/ingest/wrangler.jsonc`
-  - `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config workers/ingest/wrangler.jsonc`
-- [ ] 定期取得 Worker の初回デプロイ（005 で中身ができてから）
-- [ ] Git 連携の自動デプロイ（Workers Builds）にするか決める。する場合はビルド環境変数を設定する
+- [×] （まさゆきさん）Cloudflare ダッシュボードで、アカウント全体の Cron の数を確認する（無料プランは5個まで。10.2）
+  - 2026-10-21 Cloudflare API で確認。Worker 12個のうち Cron を使っているものは0個。`dear-life-ingest` を足しても1個。まさゆきさんの了承を得て完了
+- [×] Git 連携の自動デプロイ（Workers Builds）にするか決める → **する**（2026-10-21 まさゆきさんが決定）
+- [×] ビルド環境の Node の版を `.node-version`（22）で固定する
+- [×] GitHub（`hohoemi-rabo/dear-life`、公開リポジトリ）に push する（公開のままでよいことをまさゆきさんに確認済み）
+- [ ] （まさゆきさん）ダッシュボードで `dear-life` Worker にリポジトリをつなぎ、ビルド環境変数を登録する（手順は下の「Git 連携の設定」）
+- [ ] main への push で自動デプロイされ、workers.dev の表示が変わらないことを確認する
+
+## Git 連携の設定（Workers Builds）
+
+Workers & Pages → `dear-life` → Settings → Builds → Connect で、GitHub の `hohoemi-rabo/dear-life` をつなぐ。
+
+| 項目 | 値 |
+| --- | --- |
+| Production branch | `main` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy`（既定のまま） |
+| Non-production branch deploy command | `npx wrangler versions upload`（既定のまま） |
+| Root directory | `/`（既定のまま） |
+| Build variables | `NEXT_PUBLIC_SUPABASE_URL`・`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`（`.env.local` と同じ値。公開してよい値なので Secret でなくてよい） |
+
+- 定期取得 Worker（`dear-life-ingest`）は別の Worker なので、つなぐなら別に設定する。中身ができる 005 で扱う
+- `workers/ingest/` だけの変更でも画面が作り直されるが、無料枠の範囲で問題ないので Build watch paths は設定しない
 
 ## メモ
+
+- 001 から移した Todo：Secret の登録（`SUPABASE_SERVICE_ROLE_KEY` は 005、`REINFOLIB_API_KEY` は 006。必要になる直前にお願いする）、定期取得 Worker の初回デプロイ（005）
 
 - `npm audit` で next 15 / tailwindcss 3 系に由来する指摘が出ている。どちらも意図的にこの版に固定しているため（CLAUDE.md）、修正は版を上げられるときに合わせて行う。新しく追加する依存では指摘を増やさない
 - `wrangler whoami` で「k2.read / k2.write のスコープがない」という警告が出るが、このプロジェクトでは使わない機能なので無視してよい

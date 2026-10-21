@@ -43,7 +43,8 @@
 チケットの中で「（まさゆきさん）」と書いた Todo。開発はこれらを待たずに進められる形にしてある。
 
 - `iida_district_map.csv`・`aggregate_iida.py`・`iida_district_summary.csv` をリポジトリに置く（004・007）
-- 不動産情報ライブラリの API キーを Cloudflare Secret に登録（001）
+- 不動産情報ライブラリの API キー（006）と Supabase の service_role key（005）を Cloudflare Secret に登録
+- Git 連携の自動デプロイの設定（ダッシュボードでリポジトリをつなぐ。001）
 - ドット絵の絵柄の確認と、4地区の目印の決定（013）
 - 地区の行事の収集（012）、場面のひな形の確認（017）
 - 独自ドメインを使うか（025）

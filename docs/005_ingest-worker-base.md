@@ -21,11 +21,14 @@
 
 - [ ] 実行する処理の振り分け（その日に何をやるか）を作る
 - [ ] 外部呼び出しの共通処理（1.5 秒以上の間隔・タイムアウト・リトライ・呼び出し回数の上限管理）を作り、テストを書く
+- [ ] （まさゆきさん）`SUPABASE_SERVICE_ROLE_KEY` を Secret に登録する（書き込みを作る直前にお願いする。値はチャット・コードに書かない）
+  - `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config workers/ingest/wrangler.jsonc`
 - [ ] Supabase への書き込みの共通処理を作る
 - [ ] `ingest_runs` への記録（開始・終了・件数・エラー）を作る
 - [ ] 管理者への通知方法を決めて作る（候補：Cloudflare Email Sending でまさゆきさんにメール／Supabase に記録して画面のない確認手順にする）
 - [ ] `npm run ingest:dev` と `/__scheduled` でローカル実行できることを確認する
-- [ ] Worker をデプロイし、Cron が動くこと・ログに出ることを確認する
+- [ ] Worker をデプロイし、Cron が動くこと・ログに出ることを確認する（初回デプロイ。001 から移した）
+- [ ] Git 連携の自動デプロイを `dear-life-ingest` にも設定するか決める（Deploy command は `npx wrangler deploy --config workers/ingest/wrangler.jsonc`）
 
 ## 完了条件
 

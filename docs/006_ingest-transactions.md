@@ -18,6 +18,8 @@
 
 ## Todo
 
+- [ ] （まさゆきさん）`REINFOLIB_API_KEY` を Secret に登録する（API を呼ぶ直前にお願いする。値はチャット・コードに書かない）
+  - `npx wrangler secret put REINFOLIB_API_KEY --config workers/ingest/wrangler.jsonc`
 - [ ] XIT001 のリクエスト・レスポンスの型を作る（利用約款と API 仕様を確認）
 - [ ] 四半期ごとの取得と、新しい四半期が出たかの判定を作る
 - [ ] 地区の振り分けと除外フラグの付与を作り、テストを書く
