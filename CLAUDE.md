@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 DearLife（飯田移住カルテ）は、飯田市への移住を考える家族向けの登録不要Webサービス。対象は上郷・鼎・伊賀良・中心市街地の4地区のみ。仕様の一次情報は `REQUIREMENTS.md`（要件定義書 v2.0）で、実装判断に迷ったらまずここを確認する。デザインイメージは `docs/design/`（PC版・スマホ版）にある。
 
-現状は create-next-app 直後の雛形で、アプリのコードはまだない。
+現状は create-next-app の雛形に Cloudflare の設定（チケット 001）を足した段階で、アプリのコードはまだない。作業は `docs/` のチケットに沿って進める（下の「チケットとTodoの管理」）。
 
 ## コマンド
 
@@ -14,6 +14,11 @@ DearLife（飯田移住カルテ）は、飯田市への移住を考える家族
 npm run dev     # 開発サーバー（Turbopack）http://localhost:3000
 npm run build   # 本番ビルド（Turbopack）
 npm run lint    # ESLint（next/core-web-vitals + next/typescript）
+npm run typecheck      # 画面と定期取得 Worker の型チェック
+npm run preview        # 静的書き出し → wrangler dev で本番と同じ配信を確認
+npm run deploy         # 静的書き出し → 画面の Worker（dear-life）を公開
+npm run ingest:dev     # 定期取得 Worker をローカル起動（/__scheduled で Cron を手動発火）
+npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 ```
 
 テストランナーはまだ導入していない。
@@ -22,8 +27,9 @@ npm run lint    # ESLint（next/core-web-vitals + next/typescript）
 
 - Next.js 15（App Router）、React 19、TypeScript（strict）、`src/` 配下。パスエイリアス `@/*` → `src/*`
 - Tailwind CSS は **v3.4 系に固定**（意図的に v4 から下げている。v4 の書き方を使わない）
-- 公開先は **Cloudflare（Next.js の静的書き出し）**。Vercel は無料プランで商用利用できないため不採用（要件 9.1）。`next.config.ts` の `output: "export"` はまだ未設定
-- データは Supabase（未決：Cloudflare D1 の可能性あり。要件 11.1）。外部APIの取得は Cloudflare Workers Cron の定期取得だけで行う
+- 公開先は **Cloudflare（Next.js の静的書き出し）**。Vercel は無料プランで商用利用できないため不採用（要件 9.1）。`next.config.ts` は `output: "export"`・`images.unoptimized: true`。`out/` をルートの `wrangler.jsonc`（Worker 名 `dear-life`）が Workers の静的アセットとして配信する
+- 定期取得の Worker は `workers/ingest/`（Worker 名 `dear-life-ingest`、Cron 1個・毎日 03:00 JST）。ルートの `tsconfig.json` からは除外し、`workers/ingest/tsconfig.json` で型チェックする
+- データは **Supabase に決定**（プロジェクト `dear-life`、ref `ywugkkofnqkpnzkmucyv`、Tokyo。Supabase MCP が使える）。画面には URL と publishable key だけを `.env.local`（雛形は `.env.example`）で渡す。外部APIの取得は Cloudflare Workers Cron の定期取得だけで行う
 
 ## アーキテクチャ（予定）
 
@@ -35,6 +41,13 @@ npm run lint    # ESLint（next/core-web-vitals + next/typescript）
 - くらしの場面は **テンプレート方式**：季節×条件ごとのひな形にデータを差し込む。文は「データ／地区の情報／想定」の3種類で、見た目を区別する（要件 6章）。AI生成・ランダム選択はしない
 - ドット絵はコードで生成して PNG に書き出し、静的ファイルとして配信。`image-rendering: pixelated` で整数倍表示。背景 160×90 ドット、共通16色程度（要件 8.1）
 - PWA対応（ホーム画面追加・オフライン表示）。プッシュ通知はしない（要件 8.2）
+
+## チケットとTodoの管理
+
+- 作業は `docs/` 配下の連番チケット（`docs/000_index.md` が一覧）で管理する。着手前に該当チケットと `REQUIREMENTS.md` の関連章を読む
+- 各チケットの Todo は未完了を `- [ ]`、終わったら `- [×]` に書きかえる。作業を終えたら、同じコミットでチケットの Todo も更新する
+- 作業中に増えた作業・決めたことは、該当チケットの Todo やメモに書き足す。新しいチケットが必要なら次の連番で作り、`000_index.md` に追加する
+- 「（まさゆきさん）」と付いた Todo はまさゆきさんの作業・判断。Claude は勝手に完了にしない
 
 ## Next.js 15 App Router のベストプラクティス
 
