@@ -24,10 +24,16 @@
 | 鼎 | 96件 | 2.4万円 | 1.7万〜3.0万円 | 12件・3,350万円 | 38件・625万円 |
 | 伊賀良 | 90件 | 1.25万円 | 0.46万〜1.98万円 | 11件・2,500万円 | 34件・650万円 |
 
+## 参照ファイル
+
+- `data/aggregate_iida.py`：集計方法の基準（pandas）。入力は取引 CSV（cp932）だが、本番では API から取った `real_estate_transactions` を使う
+- `data/iida_district_summary.csv`：集計結果の正解データ。対象4地区以外の地区と「戸建て（築年数を問わない）」の列も入っている。検証では4地区の行を使う
+- 築年数の境目：築年数 ≤ 20 が「築20年以内」、それより大きいと「築21年以上」（取引年・建築年は年だけで計算）
+
 ## Todo
 
-- [ ] （まさゆきさん）`aggregate_iida.py` と `iida_district_summary.csv` をリポジトリに置く
-- [ ] 中央値・四分位の計算方法を `aggregate_iida.py` に合わせる（`percentile_cont` か `percentile_disc` か）
+- [×] （まさゆきさん）`aggregate_iida.py` と `iida_district_summary.csv` をリポジトリ（`data/`）に置く
+- [×] 中央値・四分位の計算方法を `aggregate_iida.py` に合わせる → pandas の `median()`・`quantile()` は既定で線形補間なので、SQL では `percentile_cont` を使う
 - [ ] 集計の SQL 関数を作る（マイグレーションで。`market_stats` への書き込みは service_role のみ）
 - [ ] 件数ラベルの判定を1か所にまとめる（SQL か TypeScript の共通関数）。11〜29件のラベルを提案する
 - [ ] 集計結果が 5.1 の表と一致することを確かめるテスト（または検証 SQL）を作る
