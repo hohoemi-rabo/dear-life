@@ -1,0 +1,14 @@
+// 画面（Next.js の静的書き出し）を配信する Worker。コードは持たず、out/ を静的アセットとして配信するだけ。
+// 定期取得の Worker は workers/ingest/wrangler.jsonc で別に管理する。
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dear-life",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

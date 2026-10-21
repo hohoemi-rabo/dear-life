@@ -1,0 +1,21 @@
+// 定期取得の Worker（要件 9章・9.3）。Cron はアカウント全体で5個までなので、このサービスでは1個だけ使い、
+// 中でやることを切り替える。秘密情報は `wrangler secret put` で登録し、このファイルには書かない。
+//   npx wrangler secret put REINFOLIB_API_KEY --config workers/ingest/wrangler.jsonc
+//   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config workers/ingest/wrangler.jsonc
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "dear-life-ingest",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "triggers": {
+    // 毎日 03:00 JST（UTC 18:00）
+    "crons": ["0 18 * * *"]
+  },
+  "vars": {
+    "SUPABASE_URL": "https://ywugkkofnqkpnzkmucyv.supabase.co"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
