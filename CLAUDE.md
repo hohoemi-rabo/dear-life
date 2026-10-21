@@ -16,7 +16,7 @@ npm run build   # 本番ビルド（Turbopack）
 npm run lint    # ESLint（next/core-web-vitals + next/typescript）
 npm run typecheck      # 画面と定期取得 Worker の型チェック
 npm run preview        # 静的書き出し → wrangler dev で本番と同じ配信を確認
-npm run deploy         # 静的書き出し → 画面の Worker（dear-life）を公開
+npm run deploy         # 静的書き出し → 画面の Worker（dear-life）を公開（ふだんは main への push で Workers Builds が自動で公開する）
 npm run ingest:dev     # 定期取得 Worker をローカル起動（/__scheduled で Cron を手動発火）
 npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 ```
