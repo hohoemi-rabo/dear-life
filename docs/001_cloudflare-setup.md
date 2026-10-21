@@ -15,7 +15,7 @@
 | 定期取得 | `workers/ingest/wrangler.jsonc`（Worker 名 `dear-life-ingest`） | Cron 1個（毎日 03:00 JST）。`workers_dev: false` で外から呼べないようにする |
 
 - `next.config.ts`：`output: "export"`、`images.unoptimized: true`
-- 公開アドレスは当面 `dear-life.<アカウント>.workers.dev`。独自ドメインは 025 で決める
+- 公開アドレスは当面 `https://dear-life.rabo-hohoemi.workers.dev`。独自ドメインは 025 で決める
 - 秘密情報（`REINFOLIB_API_KEY`・`SUPABASE_SERVICE_ROLE_KEY`）は ingest Worker の Secret にだけ置く。画面側には Supabase の URL と publishable key（公開してよい値）だけを `.env.local` で渡す
 - 画面側の `NEXT_PUBLIC_*` はビルド時に埋め込まれる。ローカルから `npm run deploy` する限り `.env.local` が使われる。Workers Builds（Git 連携）にする場合はビルド環境変数にも同じ値を入れる
 
@@ -39,7 +39,8 @@ npm run typecheck      # 画面と Worker の型チェック
 - [×] `.env.example` を作り、`.env.local` に Supabase の URL と publishable key を入れる（`.gitignore` で `.env.example` だけ追跡）
 - [×] `.wrangler/` を `.gitignore`・ESLint の対象外に追加
 - [×] `npm run build`・lint・typecheck、両 Worker の `wrangler deploy --dry-run` が通ることを確認
-- [ ] 初回デプロイ（`npm run deploy`）して workers.dev で表示を確認する（公開操作なので、まさゆきさんの OK をもらってから）
+- [×] 初回デプロイ（`npm run deploy`）して workers.dev で表示を確認する（公開操作なので、まさゆきさんの OK をもらってから）
+  - 2026-10-21 公開。`https://dear-life.rabo-hohoemi.workers.dev` で `/` と静的ファイルが 200、存在しないパスが 404（`404.html`）になることを確認
 - [ ] （まさゆきさん）Cloudflare ダッシュボードで、アカウント全体の Cron の数を確認する（無料プランは5個まで。10.2）
 - [ ] （まさゆきさん）Secret を登録する。値はチャット・コードに書かない
   - `npx wrangler secret put REINFOLIB_API_KEY --config workers/ingest/wrangler.jsonc`
