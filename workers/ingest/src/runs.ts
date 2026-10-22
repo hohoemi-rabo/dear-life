@@ -19,6 +19,7 @@ export async function startRun(db: SupabaseRest, job: string, sourceId: string |
   return row.id;
 }
 
+// 終了日時はデータベースのトリガーが付ける（開始日時と同じ時計にそろえるため）
 export async function finishRun(db: SupabaseRest, runId: number, outcome: RunOutcome): Promise<void> {
   const patch =
     outcome.status === "succeeded"
@@ -26,7 +27,6 @@ export async function finishRun(db: SupabaseRest, runId: number, outcome: RunOut
       : { error_message: outcome.errorMessage.slice(0, MAX_ERROR_LENGTH) };
   await db.update("ingest_runs", `id=eq.${runId}`, {
     status: outcome.status,
-    finished_at: new Date().toISOString(),
     external_calls: outcome.externalCalls,
     ...patch,
   });
@@ -49,7 +49,6 @@ export async function closeStaleRuns(db: SupabaseRest, now: number): Promise<{ i
     `status=eq.running&started_at=lt.${encodeURIComponent(before)}`,
     {
       status: "failed",
-      finished_at: new Date(now).toISOString(),
       error_message: "実行が途中で止まった（CPU 時間の上限などで Worker が止められた可能性がある）",
     },
     { returning: true },

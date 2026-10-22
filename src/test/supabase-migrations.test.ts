@@ -239,6 +239,16 @@ describe("入力の制約", () => {
     ).rejects.toThrow(/ingest_runs_finished_iff_done/);
   });
 
+  it("取得の記録を終えると、終了日時をデータベースの時計で付ける（Worker が送った値は使わない）", async () => {
+    const rows = await run<{ status: string; ordered: boolean }>(
+      "service_role",
+      "insert into ingest_runs (job, started_at) values ('heartbeat', now() - interval '1 minute')",
+      `update ingest_runs set status = 'succeeded', finished_at = '2000-01-01T00:00:00Z'
+       where job = 'heartbeat' returning status, finished_at >= started_at as ordered`,
+    );
+    expect(rows).toEqual([{ status: "succeeded", ordered: true }]);
+  });
+
   it("更新すると updated_at が新しくなる", async () => {
     const rows = await run<{ touched: boolean }>(
       "service_role",

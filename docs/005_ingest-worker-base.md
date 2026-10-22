@@ -32,7 +32,9 @@
   - 2026-10-22 2つとも登録済み（`wrangler secret list` で確認）
 - [×] 町名→地区の振り分けの共通処理を作る（004 の引き継ぎ）：実行の最初に `town_district_map` を Supabase から読み、`src/lib/town-district/resolve.ts` の `createTownResolver` に渡す（Worker からは相対パスで import する。`@/` は使えない）。当たらなかった住所は `townNameForRecord` で町名にし、1回の取得の最後に `rpc/record_unmapped_towns` でまとめて記録する
 - [×] 未反映の `unmapped_towns`（`resolved_at is null`）も管理者への通知に含める（要件 5章-2・10章）
-- [ ] `npm run ingest:dev` と `/__scheduled` でローカル実行できることを確認する
+- [×] `npm run ingest:dev` と `/__scheduled` でローカル実行できることを確認する
+  - 2026-10-22 確認。`heartbeat` が `ingest_runs` に `succeeded` で記録され、Discord の Webhook へのテスト投稿も届いた（HTTP 204）
+  - 終了日時を Worker の時計で付けると開始日時（データベースの時計）より前になることがあったので、トリガーで付けるようにした（`20261022100559_ingest_runs_finished_at.sql`）
 - [ ] Worker をデプロイし、Cron が動くこと・ログに出ることを確認する（初回デプロイ。001 から移した）
   - 2026-10-22 初回デプロイ済み（Cron `0 18 * * *` を登録）。Cron の動作の確認が残り
 - [ ] Git 連携の自動デプロイを `dear-life-ingest` にも設定するか決める（Deploy command は `npx wrangler deploy --config workers/ingest/wrangler.jsonc`）
