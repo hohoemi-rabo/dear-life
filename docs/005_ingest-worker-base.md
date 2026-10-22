@@ -37,7 +37,9 @@
   - 終了日時を Worker の時計で付けると開始日時（データベースの時計）より前になることがあったので、トリガーで付けるようにした（`20261022100559_ingest_runs_finished_at.sql`）
 - [ ] Worker をデプロイし、Cron が動くこと・ログに出ることを確認する（初回デプロイ。001 から移した）
   - 2026-10-22 初回デプロイ済み（Cron `0 18 * * *` を登録）。Cron の動作の確認が残り
-- [ ] Git 連携の自動デプロイを `dear-life-ingest` にも設定するか決める（Deploy command は `npx wrangler deploy --config workers/ingest/wrangler.jsonc`）
+- [×] Git 連携の自動デプロイを `dear-life-ingest` にも設定するか決める（Deploy command は `npx wrangler deploy --config workers/ingest/wrangler.jsonc`）
+  - 2026-10-22 設定する（まさゆきさんが決定・接続済み）。ビルドコマンドは空、デプロイコマンドは上のもの、プレビューコマンド（本番以外のブランチ）は `npx wrangler versions upload --config workers/ingest/wrangler.jsonc`、ルートは `/`
+  - 接続後の画面に「リポジトリ内の wrangler.jsonc の name を dear-life-ingest に更新する。ビルド後に修正の PR を自動生成する」という注意が出る。これはルートの `wrangler.jsonc`（画面の Worker `dear-life`）を見ての注意で、`--config` で `workers/ingest/wrangler.jsonc` を使うので直す必要はない。**その PR が来てもマージしない**（画面の Worker の名前が変わってしまう）
 
 ## 作ったもの（2026-10-22）
 
