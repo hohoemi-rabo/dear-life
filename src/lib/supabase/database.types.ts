@@ -688,7 +688,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      record_unmapped_towns: {
+        Args: { p_source_id: string; p_town_names: string[] }
+        Returns: undefined
+      }
     }
     Enums: {
       car_choice: "車なし" | "車あり・未選択"

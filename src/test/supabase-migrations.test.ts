@@ -248,3 +248,60 @@ describe("入力の制約", () => {
     expect(rows).toEqual([{ touched: true }]);
   });
 });
+
+describe("町名→地区の対応表（004）", () => {
+  const latestTownMapSql = () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_town_district_map.sql")).sort().at(-1)!;
+    return readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+  };
+
+  it("CSV の90町名が入り、4地区それぞれに町名がある", async () => {
+    const rows = await run<{ district_id: string | null; count: number }>(
+      "anon",
+      "select district_id, count(*)::int as count from town_district_map group by district_id order by district_id",
+    );
+    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(90);
+    expect(rows.map((r) => r.district_id)).toEqual(["chushin", "igara", "kamisato", "kanae", null]);
+  });
+
+  it("対応表にない町名は1行にまとめて回数を足し、空の町名は無視する。反映済みでもまた出たら未反映に戻す", async () => {
+    const rows = await run<{ town_name: string; occurrences: number; resolved: boolean }>(
+      "service_role",
+      "select public.record_unmapped_towns('published_src', array['南信濃須沢', '南信濃須沢', '', ' '])",
+      "update unmapped_towns set resolved_at = now()",
+      "select public.record_unmapped_towns('published_src', array[' 南信濃須沢'])",
+      "select town_name, occurrences, resolved_at is not null as resolved from unmapped_towns",
+    );
+    expect(rows).toEqual([{ town_name: "南信濃須沢", occurrences: 3, resolved: false }]);
+  });
+
+  it("anon・authenticated は対応表にない町名を記録できない", async () => {
+    for (const role of ["anon", "authenticated"] as const) {
+      await expect(
+        run(role, "select public.record_unmapped_towns('published_src', array['x'])"),
+      ).rejects.toThrow(/permission denied/);
+    }
+  });
+
+  it("対応表を当て直すと、CSV にない町名を消し、対応表の町名で始まる記録を反映済みにする", async () => {
+    await db.exec("begin");
+    try {
+      await db.exec(`
+        insert into town_district_map (town_name, city_district, certainty) values ('架空町', '架空', '確実');
+        insert into unmapped_towns (town_name, source_id) values ('鼎中平', 'published_src'), ('南信濃須沢', 'published_src');
+      `);
+      await db.exec(latestTownMapSql());
+      const extra = await db.query("select 1 from town_district_map where town_name = '架空町'");
+      const unmapped = await db.query<{ town_name: string; resolved: boolean }>(
+        "select town_name, resolved_at is not null as resolved from unmapped_towns order by town_name",
+      );
+      expect(extra.rows).toEqual([]);
+      expect(unmapped.rows).toEqual([
+        { town_name: "南信濃須沢", resolved: false },
+        { town_name: "鼎中平", resolved: true },
+      ]);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+});

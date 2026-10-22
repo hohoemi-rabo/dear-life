@@ -19,11 +19,31 @@
 ## Todo
 
 - [×] （まさゆきさん）`iida_district_map.csv` をリポジトリ（`data/`）に置く
-- [ ] CSV を `town_district_map` に取り込む手順（スクリプトかシード SQL）を作る
-- [ ] 住所文字列から町名を取り出して地区を返す関数を作り、テストを書く（表記ゆれ：丁目・番地・全角半角）
-- [ ] 対応表にない町名を見つけたときの記録処理を作る
-- [ ] 町名を追加したときの反映手順を README か本チケットに書く（10章「対応表にない町名の対応」）
+- [×] CSV を `town_district_map` に取り込む手順（スクリプトかシード SQL）を作る → `npm run town-map:sql` で CSV からマイグレーションを作って当てる（下の「作ったもの」）。2026-10-22 に90町名を適用済み
+- [×] 住所文字列から町名を取り出して地区を返す関数を作り、テストを書く（表記ゆれ：丁目・番地・全角半角）
+- [×] 対応表にない町名を見つけたときの記録処理を作る → SQL 関数 `record_unmapped_towns`。管理者への通知は 005
+- [×] 町名を追加したときの反映手順を README か本チケットに書く（10章「対応表にない町名の対応」）→ 下の「町名を足すとき」
 
 ## 完了条件
 
 - 4地区の町名がすべて `town_district_map` に入り、住所→地区の関数がテストで確かめられている
+
+## 作ったもの
+
+- `src/lib/town-district/csv.ts`：CSV の読み込み（見出し・列数・必須・重複・引用符を確かめ、おかしければ止める）と、対応表をそろえる SQL の生成。地区名→`district_id`（上郷 `kamisato`・鼎 `kanae`・伊賀良 `igara`・中心市街地 `chushin`、ほかは null）、メモが元の地区名1つ（「東野」「橋北エリア」）のときだけ `chushin_area` に入れる
+- `scripts/build-town-district-map-sql.mjs`（`npm run town-map:sql`）：CSV から `supabase/migrations/<版番号>_town_district_map.sql` を書き出す。いちばん新しいものと中身が同じなら何もしない。生成した SQL は何度当てても同じ結果になり、CSV にない町名は消し、変わっていない行は更新しない
+- `src/lib/town-district/resolve.ts`：住所（または町名）→ 対応表の行。Worker からも読み込めるよう、外部に依存しない純粋な関数にした（Worker は `town_district_map` を Supabase から読んで `createTownResolver` に渡す想定。005・006・008・009 で使う）
+  - 〒・長野県・飯田市・大字・空白を外し、NFKC で全角英数字をそろえる
+  - **住所の先頭と一致するいちばん長い町名**を選ぶ。対応表の「鼎」は鼎中平・鼎一色などをまとめているので、町名の区切りを推測しない（「松尾町」は「松尾」より先に当たる、「松尾代田」は「松尾」に当たる）
+  - 比べるときだけ「ノ／の」「龍／竜」「嶋／島」「通り／通」をそろえる
+  - 当たらなければ null。記録用の町名は `townNameForRecord`（番地・丁目・枝番より前）
+- `public.record_unmapped_towns(p_source_id, p_town_names[])`：対応表にない町名を1回の取得でまとめて記録する（同じ町名は回数を足す、空は無視、反映済みがまた出たら未反映に戻す）。`service_role` だけが実行できる
+- テスト：`src/lib/town-district/*.test.ts`（本物の CSV で振り分け・表記ゆれ・最新のマイグレーションが CSV と一致するか）、`src/test/supabase-migrations.test.ts`（90町名が入る・記録関数・権限・当て直し）
+
+## 町名を足すとき（要件 10章「対応表にない町名の対応」）
+
+1. `unmapped_towns` の未反映（`resolved_at is null`）の町名を見て、どの地区か調べる（まさゆきさん）
+2. `data/iida_district_map.csv` に行を足す（列は `町名,地区,確度,メモ`。値にカンマ・引用符は使えない）
+3. `npm run town-map:sql` で新しいマイグレーションを作り、`npm test` を通す
+4. Supabase MCP の `apply_migration` で当て、`list_migrations` の版番号にファイル名を合わせる
+5. 当てると、足した町名で始まる `unmapped_towns` の記録が反映済みになる。取引・施設の振り分けは次の定期取得で直る（すぐ直したいときは該当の取得を手動で動かす）

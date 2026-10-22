@@ -13,7 +13,8 @@
     "ingest:deploy": "wrangler deploy --config workers/ingest/wrangler.jsonc",
     "typecheck": "tsc --noEmit && tsc --noEmit -p workers/ingest",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "town-map:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-town-district-map-sql.mjs"
   },
   "dependencies": {
     "next": "15.5.28",
