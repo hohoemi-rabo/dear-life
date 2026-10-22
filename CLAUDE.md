@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 DearLife（飯田移住カルテ）は、飯田市への移住を考える家族向けの登録不要Webサービス。対象は上郷・鼎・伊賀良・中心市街地の4地区のみ。仕様の一次情報は `REQUIREMENTS.md`（要件定義書 v2.0）で、実装判断に迷ったらまずここを確認する。デザインイメージは `docs/design/`（PC版・スマホ版）にある。
 
-現状は create-next-app の雛形に Cloudflare の設定（チケット 001）を足した段階で、アプリのコードはまだない。作業は `docs/` のチケットに沿って進める（下の「チケットとTodoの管理」）。
+現状は Cloudflare の設定（001）とアプリの土台（002：テーマ・共通レイアウト・共通部品・テスト）までできた段階で、画面はまだない。作業は `docs/` のチケットに沿って進める（下の「チケットとTodoの管理」）。
 
 2026-10-21 に決めた大きな方針（詳しくは要件 1章・1.1・6.3・8.1）：
 
@@ -21,6 +21,7 @@ DearLife（飯田移住カルテ）は、飯田市への移住を考える家族
 npm run dev     # 開発サーバー（Turbopack）http://localhost:3000
 npm run build   # 本番ビルド（Turbopack）
 npm run lint    # ESLint（next/core-web-vitals + next/typescript）
+npm test               # テスト（Vitest + Testing Library、jsdom）。npm run test:watch で監視実行
 npm run typecheck      # 画面と定期取得 Worker の型チェック
 npm run preview        # 静的書き出し → wrangler dev で本番と同じ配信を確認
 npm run deploy         # 静的書き出し → 画面の Worker（dear-life）を公開（ふだんは main への push で Workers Builds が自動で公開する）
@@ -28,7 +29,7 @@ npm run ingest:dev     # 定期取得 Worker をローカル起動（/__schedule
 npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 ```
 
-テストランナーはまだ導入していない。
+テストは `src/**/*.test.{ts,tsx}` に置く（設定は `vitest.config.mts`）。
 
 ## 技術スタック
 
@@ -87,7 +88,7 @@ npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 
 - 読み込み中は `loading.tsx`、エラーは `error.tsx`（Client Component にする必要がある）でルートごとに扱う
 - `<title>` などは `metadata` / `generateMetadata` で設定する。`<head>` を直接書かない
-- フォントは `next/font` で読み込む（今の `layout.tsx` は Geist を使っている）
+- フォントは `next/font` で読み込む（`layout.tsx` で Noto Sans JP を読み込み、Tailwind の `font-sans` に当てている）
 
 ## 実装上の決まりごと
 
@@ -95,6 +96,7 @@ npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 - 「中央値」は画面では「真ん中の値」と書く。相場には件数と件数ラベル、「過去の取引の参考値」の注意書きを必ず付ける（要件 5章）
 - すべての情報に出典・対象時点・確認日を表示する。「該当なし」と「データ未取得」は区別する
 - 未収集の行事は「この季節の行事は準備中です」と出し、作り話で埋めない
+- 色・角丸・タップ領域は `tailwind.config.ts` のテーマ、共通部品は `src/components/ui/`・`src/components/layout/` を使う（002 のメモ）。季節の色はドット絵の側だけで使い、実データの側は基本色だけにする
 - 本文・数字・ボタンはドット風フォントにしない。タップ領域は 44px 以上。スマホ（幅375px前後）基準
 - 国土交通省・飯田市の名称やマークをサイト名・ロゴに使わない
 

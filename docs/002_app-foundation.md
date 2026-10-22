@@ -21,14 +21,28 @@
 
 ## Todo
 
-- [ ] Tailwind v3.4 のテーマに色（基本色・季節の色・文の種類の色）、角丸、影を定義する
-- [ ] `next/font` で日本語フォントを読み込み、Geist を外す
-- [ ] `layout.tsx` を `lang="ja"` にし、`metadata` を設定する（title テンプレート `%s | DearLife 飯田移住カルテ`）
-- [ ] 共通部品：ヘッダー（ロゴ・ステップ表示）、フッター（対象地区・作成者の表記・データの説明リンク）
-- [ ] 共通部品：ボタン（主・副）、カード、件数ラベル、出典表示、注意書き
-- [ ] create-next-app の雛形（`page.tsx` のサンプル、`public/` の不要な svg）を削除する
-- [ ] テストランナー（Vitest + Testing Library）を入れ、`npm test` を追加。CLAUDE.md のコマンド欄を更新する
-- [ ] スマホ（375px）と PC で共通レイアウトが崩れないことを確認する
+- [×] Tailwind v3.4 のテーマに色（基本色・季節の色・文の種類の色）、角丸、影を定義する
+- [×] `next/font` で日本語フォントを読み込み、Geist を外す
+- [×] `layout.tsx` を `lang="ja"` にし、`metadata` を設定する（title テンプレート `%s | DearLife 飯田移住カルテ`）
+- [×] 共通部品：ヘッダー（ロゴ・ステップ表示）、フッター（対象地区・作成者の表記・データの説明リンク）
+- [×] 共通部品：ボタン（主・副）、カード、件数ラベル、出典表示、注意書き
+- [×] create-next-app の雛形（`page.tsx` のサンプル、`public/` の不要な svg）を削除する
+- [×] テストランナー（Vitest + Testing Library）を入れ、`npm test` を追加。CLAUDE.md のコマンド欄を更新する
+- [×] スマホ（375px）と PC で共通レイアウトが崩れないことを確認する
+
+## メモ（実装で決めたこと）
+
+- 色は `tailwind.config.ts` に定義。基本色（`kinari` 生成り・`surface`・`ink` 墨・`line`・`primary` 深緑）、季節の色（`spring`・`summer`・`autumn`・`winter`、それぞれ `soft` 付き）、文の種類の色（`kind-data` データ・`kind-local` 地区の情報・`kind-assumed` 想定）。季節の色はドット絵の側だけで使い、実データの側は基本色だけにする
+- 角丸は `rounded-card`・`rounded-button`、影は `shadow-card`。タップ領域は `min-h-tap`・`min-w-tap`（44px）
+- ドット絵の側の部品：`globals.css` の `.pixel-frame`（角を欠いたドット風の枠）と `.pixelated`（`image-rendering: pixelated`）。会話ウィンドウ風の枠は 013・018 で場面と一緒に作る
+- 共通部品は `src/components/ui/`（`Button`・`ButtonLink`・`Card`・`CountBadge`・`SourceNote`・`Notice`）、ヘッダー・フッターは `src/components/layout/`。サイト名・ステップ・対象地区の表記は `src/lib/site.ts`、注意書きの文言は `src/lib/notices.ts` で1か所にまとめる
+- ステップ表示は、条件を URL パラメータで持つため（F-02）リンクにせず、`usePathname()` で今のステップだけを示す。ルートは `/erabu`・`/kurashi`・`/karte`（016・018・019 で作る）
+- 件数ラベルの 11〜29件は、要件 5章-6 の案「参考になる件数」を仮に使っている（`src/lib/count-label.ts`）
+- [ ] （まさゆきさん）件数ラベル 11〜29件の文言「参考になる件数」でよいか確認する（007 で値を出すときでよい）
+- ヘッダー・フッターのリンク先が 404 にならないよう、`/about-data` に「準備中」のページを置いた。中身は 022 で作る
+- テストは Vitest + Testing Library（jsdom）。`npm test`（1回）・`npm run test:watch`。テストファイルは `src/**/*.test.{ts,tsx}`
+- Vitest 5 が `@types/node` 22 以上を求めるため、`.node-version`（22）に合わせて `@types/node` を ^22 に上げた
+- `npm audit` で high 8件・moderate 3件が出る（2026-10-22）。すべて next 15・tailwindcss 3.4・eslint-config-next 15 の依存で、直すには next 16・tailwind 4 への大きな更新が要る（tailwind 3.4 は意図的に固定）。今回入れたテスト用の依存からは出ていない。025 の公開前チェックで扱いを決める
 
 ## 完了条件
 
