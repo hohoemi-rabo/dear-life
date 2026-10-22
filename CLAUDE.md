@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 DearLife（飯田移住カルテ）は、飯田市への移住を考える家族向けの登録不要Webサービス。対象は上郷・鼎・伊賀良・中心市街地の4地区のみ。仕様の一次情報は `REQUIREMENTS.md`（要件定義書 v2.0）で、実装判断に迷ったらまずここを確認する。デザインイメージは `docs/design/`（PC版・スマホ版）にある。
 
-現状は Cloudflare の設定（001）とアプリの土台（002：テーマ・共通レイアウト・共通部品・テスト）までできた段階で、画面はまだない。作業は `docs/` のチケットに沿って進める（下の「チケットとTodoの管理」）。
+現状は Cloudflare の設定（001）、アプリの土台（002：テーマ・共通レイアウト・共通部品・テスト）、Supabase のテーブル（003）までできた段階で、画面はまだない。作業は `docs/` のチケットに沿って進める（下の「チケットとTodoの管理」）。
 
 2026-10-21 に決めた大きな方針（詳しくは要件 1章・1.1・6.3・8.1）：
 
@@ -101,6 +101,8 @@ npm run ingest:deploy  # 定期取得 Worker（dear-life-ingest）を公開
 - 国土交通省・飯田市の名称やマークをサイト名・ロゴに使わない
 
 ## Supabase
+
+マイグレーションは `supabase/migrations/` に置き、Supabase MCP の `apply_migration` で当てる（手順は `docs/003_supabase-schema.md`。当てる前に `npm test` で権限のテストを通す）。003 で Supabase の既定の権限付与を外したので、新しいテーブル・関数は GRANT を書かないと画面（anon）からも Worker（service_role）からも使えない。
 
 テーブルを作るマイグレーションには、RLS有効化・GRANT・ポリシーを必ず一緒に書く（2026-10-30以降、public スキーマの新テーブルに自動で権限が付かないため）。`anon` は `select` のみ、`service_role` は `select, insert, update, delete`、`authenticated` には何も与えない（要件 9.4）。
 
