@@ -21,18 +21,20 @@
 
 - [×] 実行する処理の振り分け（その日に何をやるか）を作る
 - [×] 外部呼び出しの共通処理（1.5 秒以上の間隔・タイムアウト・リトライ・呼び出し回数の上限管理）を作り、テストを書く
-- [ ] （まさゆきさん）`SUPABASE_SERVICE_ROLE_KEY` を Secret に登録する（書き込みを作る直前にお願いする。値はチャット・コードに書かない）
+- [×] （まさゆきさん）`SUPABASE_SERVICE_ROLE_KEY` を Secret に登録する（書き込みを作る直前にお願いする。値はチャット・コードに書かない）
   - `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config workers/ingest/wrangler.jsonc`
 - [×] Supabase への書き込みの共通処理を作る
 - [×] `ingest_runs` への記録（開始・終了・件数・エラー）を作る
 - [×] 管理者への通知方法を決めて作る（候補：Cloudflare Email Sending でまさゆきさんにメール／Supabase に記録して画面のない確認手順にする）
   - 2026-10-22 まさゆきさんの判断で Discord の Webhook に決定
-- [ ] （まさゆきさん）Discord で通知用のチャンネルの Webhook を作り、URL を Secret に登録する（値はチャット・コードに書かない）
+- [×] （まさゆきさん）Discord で通知用のチャンネルの Webhook を作り、URL を Secret に登録する（値はチャット・コードに書かない）
   - `npx wrangler secret put DISCORD_WEBHOOK_URL --config workers/ingest/wrangler.jsonc`
+  - 2026-10-22 2つとも登録済み（`wrangler secret list` で確認）
 - [×] 町名→地区の振り分けの共通処理を作る（004 の引き継ぎ）：実行の最初に `town_district_map` を Supabase から読み、`src/lib/town-district/resolve.ts` の `createTownResolver` に渡す（Worker からは相対パスで import する。`@/` は使えない）。当たらなかった住所は `townNameForRecord` で町名にし、1回の取得の最後に `rpc/record_unmapped_towns` でまとめて記録する
 - [×] 未反映の `unmapped_towns`（`resolved_at is null`）も管理者への通知に含める（要件 5章-2・10章）
 - [ ] `npm run ingest:dev` と `/__scheduled` でローカル実行できることを確認する
 - [ ] Worker をデプロイし、Cron が動くこと・ログに出ることを確認する（初回デプロイ。001 から移した）
+  - 2026-10-22 初回デプロイ済み（Cron `0 18 * * *` を登録）。Cron の動作の確認が残り
 - [ ] Git 連携の自動デプロイを `dear-life-ingest` にも設定するか決める（Deploy command は `npx wrangler deploy --config workers/ingest/wrangler.jsonc`）
 
 ## 作ったもの（2026-10-22）
