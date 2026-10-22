@@ -65,7 +65,7 @@
 - [×] マイグレーションを作成して適用する（RLS・GRANT・ポリシー込み）
 - [×] `districts` に4地区を入れる
 - [×] Supabase の advisors（security / performance）で警告がないことを確認する → WARN は0件。INFO は2種類で、どちらも想定どおり（非公開の3表に「ポリシーがない」＝service_role だけが使う／「使われていないインデックス」＝データが空）
-- [ ] （まさゆきさん）Data API の設定画面で、公開されているテーブルが想定どおりか確かめる（9.4）。anon が読めるのは上の表で「anon」が「なし」以外の11表
+- [×] （まさゆきさん）Data API の設定画面で、公開されているテーブルが想定どおりか確かめる（9.4）→ 2026-10-22 まさゆきさんが確認済み。anon が読めるのは上の表で「anon」が「なし」以外の11表
 - [×] `anon` で書き込めないこと、非公開の表が読めないことを確認する → 本番の REST に publishable key でアクセスして確認（書き込み・非公開の3表・`rpc/rls_auto_enable` はすべて 401）。同じことを `npm test` でも毎回確かめる
 - [×] TypeScript の型を生成してリポジトリに置く（`src/lib/supabase/database.types.ts`）
 
