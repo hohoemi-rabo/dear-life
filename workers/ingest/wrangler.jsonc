@@ -2,6 +2,8 @@
 // 中でやることを切り替える。秘密情報は `wrangler secret put` で登録し、このファイルには書かない。
 //   npx wrangler secret put REINFOLIB_API_KEY --config workers/ingest/wrangler.jsonc
 //   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config workers/ingest/wrangler.jsonc
+//   npx wrangler secret put DISCORD_WEBHOOK_URL --config workers/ingest/wrangler.jsonc（失敗などの通知先）
+// ローカル実行（npm run ingest:dev）では workers/ingest/.dev.vars に書く（雛形は .dev.vars.example）
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "dear-life-ingest",

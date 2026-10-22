@@ -1,0 +1,5 @@
+# npm run ingest:dev で使う秘密情報。このファイルを .dev.vars にコピーして値を入れる（.dev.vars は Git に入れない）
+# 本番の値は wrangler secret put で Cloudflare に登録する（wrangler.jsonc の先頭のコメント）
+SUPABASE_SERVICE_ROLE_KEY=
+# 空のままなら、通知は Discord に送らずログに出す
+DISCORD_WEBHOOK_URL=
