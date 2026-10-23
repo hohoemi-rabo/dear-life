@@ -3,3 +3,5 @@
 SUPABASE_SERVICE_ROLE_KEY=
 # 空のままなら、通知は Discord に送らずログに出す
 DISCORD_WEBHOOK_URL=
+# 不動産情報ライブラリの API キー（006 の取引価格の取得）
+REINFOLIB_API_KEY=

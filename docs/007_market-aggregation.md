@@ -24,6 +24,15 @@
 | 鼎 | 96件 | 2.4万円 | 1.7万〜3.0万円 | 12件・3,350万円 | 38件・625万円 |
 | 伊賀良 | 90件 | 1.25万円 | 0.46万〜1.98万円 | 11件・2,500万円 | 34件・650万円 |
 
+## 006 からの引き継ぎ（2026-10-23）
+
+- 取引は `real_estate_transactions` に入っている（2021〜2026年、1,313件）。種類は `property_type`、㎡単価は `unit_price_per_sqm`（空は null）、面積は `area_sqm`、建築年は `building_year`（「戦前」・空は null）、用途は `use`（空は null）、除外は `is_excluded`、地区は `district_id`（対象外・対応表にない町名は null）
+- **成約価格（6件）も含めて集計する**。`price_category` で区別できるが、5.1 の値は両方を含めたときに一致する
+- 保存した行から `percentile_cont` で計算し直すと、2021年第1四半期〜2026年第1四半期で 5.1 の4地区の全項目が一致した（006 の確認で使った SQL の形：除外と地区なしを外し、土地は `coalesce(unit_price_per_sqm, trade_price / area_sqm)`、戸建ては `use is null or use like '%住宅%'`、築年数は `trade_year - building_year`）
+- **対象期間の四半期の数を決める必要がある**。要件 5章-1 は「直近20四半期」だが、5.1 の期間（2021年第1四半期〜2026年第1四半期）は両端を含めて21四半期ある。20四半期（2021年第2四半期から）にすると 5.1 の値とずれる。着手するときにまさゆきさんに確認する
+- `data_sources.period_label` は今、取り込みの範囲（最新から20四半期前まで＝21四半期）を書いている。集計の期間を決めたら、それに合わせる
+- 集計は、取り込みで行が書かれた日（`transactions` の `rowsWritten > 0`）に呼べばよい
+
 ## 参照ファイル
 
 - `data/aggregate_iida.py`：集計方法の基準（pandas）。入力は取引 CSV（cp932）だが、本番では API から取った `real_estate_transactions` を使う

@@ -315,3 +315,74 @@ describe("町名→地区の対応表（004）", () => {
     }
   });
 });
+
+describe("不動産取引の取り込み（006）", () => {
+  const row = (year: number, quarter: number, town = "鼎") => ({
+    trade_year: year,
+    trade_quarter: quarter,
+    price_category: "不動産取引価格情報",
+    property_type: "宅地(土地)",
+    town_name: town,
+    district_code: "202050190",
+    district_id: "kanae",
+    trade_price: 5000000,
+    unit_price_per_sqm: 24000,
+    area_sqm: 200,
+    building_year: null,
+    use: null,
+    circumstances: null,
+    is_excluded: false,
+    raw: { DistrictName: town },
+  });
+  const replace = (year: number, rows: unknown[]) =>
+    `select public.replace_real_estate_transactions(${year}::smallint, '${JSON.stringify(rows)}'::jsonb) as inserted`;
+
+  it("年ごとに消して入れ直すので、同じ年を2回取り込んでも二重にならない。ほかの年は残す", async () => {
+    const rows = await run<{ trade_year: number; trade_quarter: number; row_count: number }>(
+      "service_role",
+      replace(2025, [row(2025, 4)]),
+      replace(2026, [row(2026, 1), row(2026, 1, "大瀬木")]),
+      replace(2026, [row(2026, 1), row(2026, 2)]),
+      "select * from public.real_estate_transaction_quarters()",
+    );
+    expect(rows).toEqual([
+      { trade_year: 2025, trade_quarter: 4, row_count: 1 },
+      { trade_year: 2026, trade_quarter: 1, row_count: 1 },
+      { trade_year: 2026, trade_quarter: 2, row_count: 1 },
+    ]);
+  });
+
+  it("入れた件数を返す", async () => {
+    const rows = await run<{ inserted: number }>("service_role", replace(2026, [row(2026, 1), row(2026, 2)]));
+    expect(rows).toEqual([{ inserted: 2 }]);
+  });
+
+  it("別の年の行が混ざっていたら、消さずに失敗する", async () => {
+    await expect(run("service_role", replace(2026, [row(2026, 1), row(2025, 4)]))).rejects.toThrow(
+      /2026 年以外の取引が含まれている/,
+    );
+  });
+
+  it("anon・authenticated は取り込みの関数を呼べない", async () => {
+    for (const role of ["anon", "authenticated"] as const) {
+      await expect(run(role, replace(2026, []))).rejects.toThrow(/permission denied/);
+      await expect(run(role, "select * from public.real_estate_transaction_quarters()")).rejects.toThrow(
+        /permission denied/,
+      );
+    }
+  });
+
+  it("出典にクレジットが入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ credit_text: string; is_published: boolean }>(
+      "postgres",
+      "select credit_text, is_published from data_sources where id = 'reinfolib_xit001'",
+    );
+    expect(rows).toEqual([
+      {
+        credit_text:
+          "このサービスは、国土交通省の不動産情報ライブラリのAPI機能を使用していますが、提供情報の最新性、正確性、完全性等が保証されたものではありません",
+        is_published: false,
+      },
+    ]);
+  });
+});

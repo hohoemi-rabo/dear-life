@@ -383,6 +383,7 @@ export type Database = {
           fetched_at: string
           id: number
           is_excluded: boolean
+          price_category: string
           property_type: string
           raw: Json
           town_name: string
@@ -401,6 +402,7 @@ export type Database = {
           fetched_at?: string
           id?: never
           is_excluded?: boolean
+          price_category: string
           property_type: string
           raw: Json
           town_name: string
@@ -419,6 +421,7 @@ export type Database = {
           fetched_at?: string
           id?: never
           is_excluded?: boolean
+          price_category?: string
           property_type?: string
           raw?: Json
           town_name?: string
@@ -688,9 +691,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      real_estate_transaction_quarters: {
+        Args: never
+        Returns: {
+          row_count: number
+          trade_quarter: number
+          trade_year: number
+        }[]
+      }
       record_unmapped_towns: {
         Args: { p_source_id: string; p_town_names: string[] }
         Returns: undefined
+      }
+      replace_real_estate_transactions: {
+        Args: { p_rows: Json; p_year: number }
+        Returns: number
       }
     }
     Enums: {
