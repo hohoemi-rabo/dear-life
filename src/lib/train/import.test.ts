@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { StopTown } from "../gtfs/import";
 import type { TownMapEntry } from "../town-district/resolve";
 import { buildDepartures, buildStations, buildTrainSql, parseStationsCsv, type SenaStation } from "./import";
+import { buildTrainOutings, parseTrainOutingsCsv } from "./outing";
 import { departuresAt, parseTimetableCsv } from "./timetable";
 
 const ROOT = join(__dirname, "../../..");
@@ -59,17 +60,28 @@ describe("SQL", () => {
   const timetable = parseTimetableCsv(["駅,T1", "種別,普通", "鼎,6:00", "飯田,6:10"].join("\n"), "上り");
   const stations = buildStations([station("鼎", "長野県飯田市", 35.5)], new Map([["35.5,137.82", { muniCode: "20205", townName: "鼎" }]]), resolveTown).rows;
 
-  it("駅と発車時刻を、出典ごとに消して入れ直す", () => {
-    const sql = buildTrainSql({ stations, departures: buildDepartures(stations, [timetable]), importedOn: "2026-10-23" });
+  const back = parseTimetableCsv(["駅,T2", "種別,普通", "飯田,12:00", "鼎,12:10"].join("\n"), "下り");
+  const outings = buildTrainOutings(
+    [timetable, back],
+    parseTrainOutingsCsv("地区,並び順,乗る駅,行き先,行きの時刻以降,帰りの時刻以降\n鼎,1,鼎,飯田,05:00,11:00\n"),
+  );
+
+  it("駅・発車時刻・おでかけを、出典ごとに消して入れ直す", () => {
+    const sql = buildTrainSql({ stations, departures: buildDepartures(stations, [timetable]), outings, importedOn: "2026-10-23" });
     expect(sql).toContain("delete from public.facilities where source_id = 'sena_iida_line_stations';");
     expect(sql).toContain("('train_station'::public.facility_kind, '鼎', '鼎', 'kanae', 35.5, 137.82, 'sena_iida_line_stations', '鼎',");
     expect(sql).toContain("delete from public.train_departures where source_id = 'iida_jr_timetable';");
     expect(sql).toContain("  ('kanae', '鼎', '上り', '06:00', '普通', 'T1', 'iida_jr_timetable');");
     expect(sql).toContain("period_label = '2026年3月14日改正のダイヤ'");
+    expect(sql).toContain("delete from public.train_outings where source_id = 'iida_jr_timetable';");
+    expect(sql).toContain(
+      "  ('kanae', 1, '鼎', '飯田', '05:00', '11:00', 'available', '06:00', '06:10', '普通', '12:00', '12:10', '普通', null, null, null, 1, 1, 1, 'iida_jr_timetable');",
+    );
   });
 
   it("中身が空なら、今あるデータを消さないよう SQL を作らない", () => {
-    expect(() => buildTrainSql({ stations, departures: [], importedOn: "2026-10-23" })).toThrow("空");
+    expect(() => buildTrainSql({ stations, departures: [], outings, importedOn: "2026-10-23" })).toThrow("空");
+    expect(() => buildTrainSql({ stations, departures: buildDepartures(stations, [timetable]), outings: [], importedOn: "2026-10-23" })).toThrow("空");
   });
 });
 
@@ -90,5 +102,17 @@ describe("リポジトリのマイグレーション", () => {
       timetables.flatMap((timetable) => departuresAt(timetable, name).map((d) => `${name} ${d.direction} ${d.departure}`)),
     );
     expect(rows.sort()).toEqual(expected.sort());
+  });
+
+  it("いちばん新しい *_train_data.sql に、train_outings.csv のおでかけがすべて入っている", () => {
+    const dir = join(ROOT, "supabase/migrations");
+    const latest = readdirSync(dir).filter((file) => file.endsWith("_train_data.sql")).sort().at(-1);
+    const sql = readFileSync(join(dir, latest!), "utf8");
+    const configs = parseTrainOutingsCsv(readFileSync(join(ROOT, "data/train_outings.csv"), "utf8"));
+    for (const config of configs) {
+      const prefix = `  ('${config.districtId}', ${config.sortOrder}, '${config.origin}', '${config.destination}', '${config.departAfter}', '${config.returnAfter}', `;
+      expect(sql.split("\n").some((row) => row.startsWith(prefix)), `${config.districtId} ${config.sortOrder}`).toBe(true);
+    }
+    expect(sql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(configs.length);
   });
 });

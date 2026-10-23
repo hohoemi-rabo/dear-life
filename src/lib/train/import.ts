@@ -1,8 +1,10 @@
-// SENA の駅の CSV と JR飯田線の時刻の CSV から、4地区の駅（facilities）と発車時刻（train_departures）の行を作り、
+// SENA の駅の CSV と JR飯田線の時刻の CSV から、4地区の駅（facilities）・発車時刻（train_departures）・おでかけ（train_outings）の行を作り、
 // そろえる SQL を書く（026）。通信やファイルの読み書きは scripts/build-train-sql.mjs が受け持つ
 import { parseCsv } from "../gtfs/csv.ts";
 import { IIDA_MUNI_CODE, coordinateKey, type StopTown } from "../gtfs/import.ts";
 import type { DistrictId, TownMapEntry } from "../town-district/resolve.ts";
+import { formatGtfsTime } from "../gtfs/feed.ts";
+import type { TrainOutingRow, TrainTrip } from "./outing.ts";
 import { departuresAt, type Departure, type Timetable } from "./timetable.ts";
 
 export const STATION_SOURCE_ID = "sena_iida_line_stations";
@@ -106,14 +108,23 @@ export function buildTimetableCreditText(): string {
 export type TrainSqlInput = {
   stations: readonly StationRow[];
   departures: readonly DepartureRow[];
+  outings: readonly TrainOutingRow[];
   // 取り込んだ日（YYYY-MM-DD）
   importedOn: string;
 };
 
 // 駅・発車時刻・出典を、この取り込みの中身にそろえる SQL。何度当てても同じ結果になる
-export function buildTrainSql({ stations, departures, importedOn }: TrainSqlInput): string {
+function tripColumns(trip: TrainTrip | null): string[] {
+  return trip === null
+    ? ["null", "null", "null"]
+    : [sqlLiteral(formatGtfsTime(trip.departure)), sqlLiteral(formatGtfsTime(trip.arrival)), sqlLiteral(trip.trainType)];
+}
+
+export function buildTrainSql({ stations, departures, outings, importedOn }: TrainSqlInput): string {
   // 空のまま当てると、今ある駅や時刻を消してしまうので止める
-  if (stations.length === 0 || departures.length === 0) throw new Error("駅か発車時刻が空で、SQL を作れない");
+  if (stations.length === 0 || departures.length === 0 || outings.length === 0) {
+    throw new Error("駅・発車時刻・おでかけのどれかが空で、SQL を作れない");
+  }
   const stationSource = sqlLiteral(STATION_SOURCE_ID);
   const timetableSource = sqlLiteral(TIMETABLE_SOURCE_ID);
 
@@ -149,6 +160,28 @@ export function buildTrainSql({ stations, departures, importedOn }: TrainSqlInpu
     .map((tuple) => `  (${tuple})`)
     .join(",\n");
 
+  const outingValues = outings
+    .map((outing) =>
+      [
+        sqlLiteral(outing.districtId),
+        String(outing.sortOrder),
+        sqlLiteral(outing.origin),
+        sqlLiteral(outing.destination),
+        sqlLiteral(outing.departAfter),
+        sqlLiteral(outing.returnAfter),
+        sqlLiteral(outing.status),
+        ...tripColumns(outing.outbound),
+        ...tripColumns(outing.return),
+        ...tripColumns(outing.nextReturn),
+        String(outing.outboundTripsPerDay),
+        String(outing.returnTripsPerDay),
+        String(outing.originDeparturesPerDay),
+        timetableSource,
+      ].join(", "),
+    )
+    .map((tuple) => `  (${tuple})`)
+    .join(",\n");
+
   const [year, month, day] = TIMETABLE_REVISION.revisedOn.split("-").map(Number);
   return `-- 026 電車（JR飯田線）の駅と発車時刻を、data/jr_iida_line_*.csv と SENA の駅の CSV にそろえる。
 -- このファイルは npm run train:sql で作る。手で編集しない（手順は docs/026_train-stations-timetable.md）
@@ -171,5 +204,15 @@ ${stationValues};
 delete from public.train_departures where source_id = ${timetableSource};
 insert into public.train_departures (district_id, station_name, direction, departure, train_type, train_id, source_id) values
 ${departureValues};
+
+delete from public.train_outings where source_id = ${timetableSource};
+insert into public.train_outings (
+  district_id, sort_order, origin_station_name, destination_station_name, depart_after, return_after, status,
+  outbound_departure, outbound_arrival, outbound_train_type,
+  return_departure, return_arrival, return_train_type,
+  next_return_departure, next_return_arrival, next_return_train_type,
+  outbound_trips_per_day, return_trips_per_day, origin_departures_per_day, source_id
+) values
+${outingValues};
 `;
 }

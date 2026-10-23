@@ -101,11 +101,17 @@ export type OutingRequest = {
 
 export type OutingStatus = "available" | "no_outbound" | "no_return";
 
-export type OutingPlan = {
+// 時刻だけを見て便を選ぶ部分は、電車（026）とも共通にする
+type TimedTrip = { departure: number; arrival: number };
+
+export type OutingChoice<T extends TimedTrip> = {
   status: OutingStatus;
-  outbound: DirectTrip | null;
-  return: DirectTrip | null;
-  nextReturn: DirectTrip | null;
+  outbound: T | null;
+  return: T | null;
+  nextReturn: T | null;
+};
+
+export type OutingPlan = OutingChoice<DirectTrip> & {
   // その日の、乗り場から行き先への直通便の数と、行き先から乗り場への直通便の数
   outboundTripsPerDay: number;
   returnTripsPerDay: number;
@@ -116,7 +122,7 @@ export type OutingPlan = {
 // 同じ時刻か後に出て、同じ時刻か先に着く便がある便を除く（循環線を遠回りする便など）。
 // 残った便は、発車の順と到着の順が同じになる。発車も到着も同じ便が2本あれば、並びの後ろの方を残す。
 // 1日の直通便は多くても数十本なので、すべての組を比べる
-export function withoutOvertakenTrips(trips: readonly DirectTrip[]): DirectTrip[] {
+export function withoutOvertakenTrips<T extends TimedTrip>(trips: readonly T[]): T[] {
   return trips.filter((trip, index) =>
     trips.every((other, otherIndex) => {
       if (otherIndex === index || other.departure < trip.departure || other.arrival > trip.arrival) return true;
@@ -126,18 +132,31 @@ export function withoutOvertakenTrips(trips: readonly DirectTrip[]): DirectTrip[
   );
 }
 
-export function planOuting(feeds: readonly GtfsFeed[], request: OutingRequest): OutingPlan {
-  const outboundTrips = findDirectTrips(feeds, request.origin, request.destination, request.date);
-  const returnTrips = findDirectTrips(feeds, request.destination, request.origin, request.date);
-  const outbound = withoutOvertakenTrips(outboundTrips).find((trip) => trip.departure >= request.departAfter) ?? null;
+// 行きは departAfter 以降に出る最初の便、帰りは returnAfter 以降（かつ行きの到着より後）に出る最初の便とその次の便。
+// 追い越される便は選ばない
+export function chooseOutingTrips<T extends TimedTrip>(
+  outboundTrips: readonly T[],
+  returnTrips: readonly T[],
+  departAfter: number,
+  returnAfter: number,
+): OutingChoice<T> {
+  const outbound = withoutOvertakenTrips(outboundTrips).find((trip) => trip.departure >= departAfter) ?? null;
   const returns = outbound
-    ? withoutOvertakenTrips(returnTrips).filter((trip) => trip.departure >= Math.max(request.returnAfter, outbound.arrival))
+    ? withoutOvertakenTrips(returnTrips).filter((trip) => trip.departure >= Math.max(returnAfter, outbound.arrival))
     : [];
   return {
     status: outbound === null ? "no_outbound" : returns.length === 0 ? "no_return" : "available",
     outbound,
     return: returns[0] ?? null,
     nextReturn: returns[1] ?? null,
+  };
+}
+
+export function planOuting(feeds: readonly GtfsFeed[], request: OutingRequest): OutingPlan {
+  const outboundTrips = findDirectTrips(feeds, request.origin, request.destination, request.date);
+  const returnTrips = findDirectTrips(feeds, request.destination, request.origin, request.date);
+  return {
+    ...chooseOutingTrips(outboundTrips, returnTrips, request.departAfter, request.returnAfter),
     outboundTripsPerDay: outboundTrips.length,
     returnTripsPerDay: returnTrips.length,
     originDeparturesPerDay: countDepartures(feeds, request.origin, request.date),

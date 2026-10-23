@@ -70,6 +70,7 @@ const PUBLIC_TABLES = [
   "scene_sentences",
   "bus_outings",
   "train_departures",
+  "train_outings",
 ];
 const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
@@ -470,6 +471,30 @@ describe("バス（010）", () => {
 });
 
 describe("電車（026）", () => {
+  it("駅のある3地区に並び順1の電車のおでかけがあり、伊賀良にはない", async () => {
+    const rows = await run<{ district_id: string; outings: number }>(
+      "postgres",
+      `select d.id as district_id, (select count(*)::int from train_outings o where o.district_id = d.id and o.sort_order = 1) as outings
+       from districts d order by d.sort_order`,
+    );
+    expect(Object.fromEntries(rows.map((row) => [row.district_id, row.outings]))).toEqual({ kamisato: 1, kanae: 1, igara: 0, chushin: 1 });
+  });
+
+  it("電車のおでかけは、便の有無と状態が食い違う行を入れられない", async () => {
+    const insert = (status: string, returnColumns: string) => `
+      insert into train_outings (
+        district_id, sort_order, origin_station_name, destination_station_name, depart_after, return_after, status,
+        outbound_departure, outbound_arrival, outbound_train_type, return_departure, return_arrival, return_train_type,
+        outbound_trips_per_day, return_trips_per_day, origin_departures_per_day, source_id
+      ) values (
+        'kanae', 99, '鼎', '飯田', '09:00', '12:00', '${status}',
+        '09:00', '09:08', '普通', ${returnColumns}, 1, 1, 1, 'iida_jr_timetable'
+      )`;
+    await expect(run("service_role", insert("available", "null, null, null"))).rejects.toThrow(/train_outings_trips_match_status/);
+    await expect(run("service_role", insert("no_return", "'12:19', '12:25', '普通'"))).rejects.toThrow(/train_outings_trips_match_status/);
+    await expect(run("service_role", insert("available", "'12:19', '12:25', '普通'"))).resolves.toEqual([]);
+  });
+
   it("4地区の駅と発車時刻が入り、伊賀良には駅がない（地区内の駅だけ）", async () => {
     const rows = await run<{ district_id: string; stations: number; departures: number }>(
       "postgres",
@@ -497,6 +522,7 @@ describe("電車（026）", () => {
 
   it("出典を公開するまで、anon には駅も時刻も見えない。駅と時刻は別々に公開できる", async () => {
     expect(await run("anon", "select 1 from train_departures")).toEqual([]);
+    expect(await run("anon", "select 1 from train_outings")).toEqual([]);
     expect(await run("anon", "select 1 from facilities where kind = 'train_station'")).toEqual([]);
     const stationsOnly = await run<{ stations: number; departures: number }>(
       "anon",
@@ -527,7 +553,8 @@ describe("電車（026）", () => {
     const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_train_data.sql")).sort().at(-1);
     if (!file) throw new Error("*_train_data.sql がない");
     const counts = `select (select count(*)::int from facilities where kind = 'train_station') as stations,
-                           (select count(*)::int from train_departures) as departures`;
+                           (select count(*)::int from train_departures) as departures,
+                           (select count(*)::int from train_outings) as outings`;
     await db.exec("begin");
     try {
       const before = (await db.query(counts)).rows;

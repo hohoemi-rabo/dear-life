@@ -3,12 +3,14 @@
 //   1. SENA の駅の CSV を取る（Shift_JIS）
 //   2. 飯田市内の駅の緯度経度を町名にする（国土地理院の逆ジオコーダ。結果は data/station_towns.csv にためて、新しい位置だけ問い合わせる）
 //   3. 町名を data/iida_district_map.csv で地区に振り分ける（対応表にない町名があれば止める）
-//   4. 時刻の CSV から、4地区の駅を発車する列車を取り出す
+//   4. 時刻の CSV から、4地区の駅を発車する列車と、data/train_outings.csv のおでかけの便と本数を出す
 //   5. supabase/migrations/<版番号>_train_data.sql を書き出す。いちばん新しいものと中身が同じなら何もしない
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { STATIONS_CSV_URL, buildDepartures, buildStations, buildTrainSql, parseStationsCsv } from "../src/lib/train/import.ts";
+import { buildTrainOutings, parseTrainOutingsCsv } from "../src/lib/train/outing.ts";
 import { parseTimetableCsv } from "../src/lib/train/timetable.ts";
+import { formatGtfsTime } from "../src/lib/gtfs/feed.ts";
 import { parseTownMapCsv } from "../src/lib/town-district/csv.ts";
 import { createTownResolver } from "../src/lib/town-district/resolve.ts";
 import { fetchWithRetry, geocodeMissing, readTowns } from "./lib/geocode.mjs";
@@ -49,8 +51,19 @@ for (const station of stations.rows) {
   console.log(`  ${station.districtId} ${station.name}（${station.townName}） ${summary.join(" ")}`);
 }
 
+const outings = buildTrainOutings(timetables, parseTrainOutingsCsv(readFileSync(join(root, "data/train_outings.csv"), "utf8")));
+const time = (trip) => (trip ? `${formatGtfsTime(trip.departure)}→${formatGtfsTime(trip.arrival)}（${trip.trainType}）` : "なし");
+console.log("\nおでかけ（特急を除く）：");
+for (const outing of outings) {
+  console.log(
+    `  ${outing.districtId} ${outing.sortOrder} ${outing.origin}→${outing.destination} ${outing.status}` +
+      ` 行き ${time(outing.outbound)} 帰り ${time(outing.return)} 次 ${time(outing.nextReturn)}` +
+      ` 直通 ${outing.outboundTripsPerDay}/${outing.returnTripsPerDay} 乗る駅 ${outing.originDeparturesPerDay}`,
+  );
+}
+
 const importedOn = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
-const sql = buildTrainSql({ stations: stations.rows, departures, importedOn });
+const sql = buildTrainSql({ stations: stations.rows, departures, outings, importedOn });
 
 // 確認日は毎回変わるので、比べるときは外す
 const withoutDates = (text) => text.replace(/checked_on = '[^']*'::date/g, "");
