@@ -14,7 +14,7 @@ export type TownMapRow = TownMapEntry & {
 const HEADER = ["町名", "地区", "確度", "メモ"];
 
 // 地区名 → districts.id。ここにない地区は対象外
-const TARGET_DISTRICT_IDS: Record<string, DistrictId> = {
+export const TARGET_DISTRICT_IDS: Readonly<Record<string, DistrictId>> = {
   上郷: "kamisato",
   鼎: "kanae",
   伊賀良: "igara",

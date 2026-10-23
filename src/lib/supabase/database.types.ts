@@ -15,6 +15,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      bus_outings: {
+        Row: {
+          created_at: string
+          day_type: string
+          depart_after: string
+          destination_stop_name: string
+          district_id: string
+          id: number
+          next_return_arrival: string | null
+          next_return_departure: string | null
+          next_return_route_name: string | null
+          origin_departures_per_day: number
+          origin_stop_name: string
+          outbound_arrival: string | null
+          outbound_departure: string | null
+          outbound_route_name: string | null
+          outbound_trips_per_day: number
+          return_after: string
+          return_arrival: string | null
+          return_departure: string | null
+          return_route_name: string | null
+          return_trips_per_day: number
+          service_date: string
+          sort_order: number
+          source_id: string
+          status: string
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          day_type: string
+          depart_after: string
+          destination_stop_name: string
+          district_id: string
+          id?: never
+          next_return_arrival?: string | null
+          next_return_departure?: string | null
+          next_return_route_name?: string | null
+          origin_departures_per_day: number
+          origin_stop_name: string
+          outbound_arrival?: string | null
+          outbound_departure?: string | null
+          outbound_route_name?: string | null
+          outbound_trips_per_day: number
+          return_after: string
+          return_arrival?: string | null
+          return_departure?: string | null
+          return_route_name?: string | null
+          return_trips_per_day: number
+          service_date: string
+          sort_order: number
+          source_id: string
+          status: string
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          day_type?: string
+          depart_after?: string
+          destination_stop_name?: string
+          district_id?: string
+          id?: never
+          next_return_arrival?: string | null
+          next_return_departure?: string | null
+          next_return_route_name?: string | null
+          origin_departures_per_day?: number
+          origin_stop_name?: string
+          outbound_arrival?: string | null
+          outbound_departure?: string | null
+          outbound_route_name?: string | null
+          outbound_trips_per_day?: number
+          return_after?: string
+          return_arrival?: string | null
+          return_departure?: string | null
+          return_route_name?: string | null
+          return_trips_per_day?: number
+          service_date?: string
+          sort_order?: number
+          source_id?: string
+          status?: string
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_outings_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bus_outings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_sources: {
         Row: {
           checked_on: string | null
@@ -214,6 +316,59 @@ export type Database = {
           },
           {
             foreignKeyName: "facilities_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gtfs_feeds: {
+        Row: {
+          created_at: string
+          feed_id: string
+          feed_name: string
+          feed_version: string | null
+          file_uid: string
+          imported_at: string
+          organization_id: string
+          published_at: string
+          source_id: string
+          updated_at: string
+          valid_from: string
+          valid_to: string
+        }
+        Insert: {
+          created_at?: string
+          feed_id: string
+          feed_name: string
+          feed_version?: string | null
+          file_uid: string
+          imported_at: string
+          organization_id: string
+          published_at: string
+          source_id: string
+          updated_at?: string
+          valid_from: string
+          valid_to: string
+        }
+        Update: {
+          created_at?: string
+          feed_id?: string
+          feed_name?: string
+          feed_version?: string | null
+          file_uid?: string
+          imported_at?: string
+          organization_id?: string
+          published_at?: string
+          source_id?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtfs_feeds_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "data_sources"

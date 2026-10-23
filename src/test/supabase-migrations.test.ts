@@ -68,8 +68,9 @@ const PUBLIC_TABLES = [
   "district_events",
   "scene_templates",
   "scene_sentences",
+  "bus_outings",
 ];
-const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions"];
+const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
 describe("権限（要件 9.4）", () => {
   it("すべてのテーブルで RLS が有効になっている", async () => {
@@ -265,12 +266,12 @@ describe("町名→地区の対応表（004）", () => {
     return readFileSync(join(MIGRATIONS_DIR, file), "utf8");
   };
 
-  it("CSV の90町名が入り、4地区それぞれに町名がある", async () => {
+  it("CSV の94町名が入り、4地区それぞれに町名がある", async () => {
     const rows = await run<{ district_id: string | null; count: number }>(
       "anon",
       "select district_id, count(*)::int as count from town_district_map group by district_id order by district_id",
     );
-    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(90);
+    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(94);
     expect(rows.map((r) => r.district_id)).toEqual(["chushin", "igara", "kamisato", "kanae", null]);
   });
 
@@ -384,5 +385,85 @@ describe("不動産取引の取り込み（006）", () => {
         is_published: false,
       },
     ]);
+  });
+});
+
+describe("バス（010）", () => {
+  const latestBusSql = () => {
+    const file = readdirSync(MIGRATIONS_DIR)
+      .filter((f) => f.endsWith("_bus_gtfs_data.sql"))
+      .sort()
+      .at(-1);
+    if (!file) throw new Error("*_bus_gtfs_data.sql がない");
+    return readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+  };
+  const counts = `
+    select
+      (select count(*)::int from facilities where kind = 'bus_stop') as stops,
+      (select count(*)::int from bus_outings) as outings,
+      (select count(*)::int from gtfs_feeds) as feeds`;
+
+  it("4地区それぞれにバス停と、並び順1のおでかけがある", async () => {
+    const rows = await run<{ district_id: string; stops: number; first_outing: number }>(
+      "postgres",
+      `select d.id as district_id,
+         (select count(*)::int from facilities f where f.kind = 'bus_stop' and f.district_id = d.id) as stops,
+         (select count(*)::int from bus_outings o where o.district_id = d.id and o.sort_order = 1) as first_outing
+       from districts d order by d.sort_order`,
+    );
+    expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      expect(row.stops, row.district_id).toBeGreaterThan(0);
+      expect(row.first_outing, row.district_id).toBe(1);
+    }
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    await db.exec("begin");
+    try {
+      const before = (await db.query(counts)).rows;
+      await db.exec(latestBusSql());
+      expect((await db.query(counts)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
+  it("出典を公開するまで、anon にはバス停もおでかけも見えない。公開すると見える", async () => {
+    expect(await run("anon", "select 1 from bus_outings")).toEqual([]);
+    expect(await run("anon", "select 1 from facilities where kind = 'bus_stop'")).toEqual([]);
+    const published = await run<{ outings: number }>(
+      "anon",
+      "update data_sources set is_published = true where id = 'gtfs_minamishinshu_bus'",
+      "select count(*)::int as outings from bus_outings",
+    );
+    expect(published[0].outings).toBeGreaterThan(0);
+  });
+
+  it("出典にクレジットと期間が入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+      "postgres",
+      "select license, credit_text, period_label, is_published from data_sources where id = 'gtfs_minamishinshu_bus'",
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].license).toBe("CC BY 4.0");
+    expect(rows[0].credit_text).toMatch(/^出典：南信州地域交通問題協議会「.+」（GTFSデータリポジトリ）。CC BY 4.0/);
+    expect(rows[0].period_label).toMatch(/まで有効なダイヤ$/);
+    expect(rows[0].is_published).toBe(false);
+  });
+
+  it("便の有無と状態が食い違う行は入れられない", async () => {
+    const insert = (status: string, returnColumns: string) => `
+      insert into bus_outings (
+        district_id, sort_order, day_type, service_date, origin_stop_name, destination_stop_name, depart_after, return_after, status,
+        outbound_departure, outbound_arrival, outbound_route_name, return_departure, return_arrival, return_route_name,
+        outbound_trips_per_day, return_trips_per_day, origin_departures_per_day, valid_until, source_id
+      ) values (
+        'kanae', 99, '土曜', '2027-01-16', 'A', 'B', '09:00', '12:00', '${status}',
+        '09:30', '09:50', 'R', ${returnColumns}, 1, 1, 1, '2027-03-31', 'gtfs_minamishinshu_bus'
+      )`;
+    await expect(run("service_role", insert("available", "null, null, null"))).rejects.toThrow(/bus_outings_trips_match_status/);
+    await expect(run("service_role", insert("no_return", "'13:00', '13:20', 'R'"))).rejects.toThrow(/bus_outings_trips_match_status/);
+    await expect(run("service_role", insert("available", "'13:00', '13:20', 'R'"))).resolves.toEqual([]);
   });
 });
