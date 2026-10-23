@@ -16,6 +16,15 @@
 - API キーは `REINFOLIB_API_KEY`（Secret）。ブラウザからは呼ばない
 - 集計ロジックは `aggregate_iida.py` と同じにする（007 で検証）
 
+## 005 からの引き継ぎ（2026-10-23）
+
+- 取得処理は `workers/ingest/src/jobs/` に `Job`（`workers/ingest/src/job.ts`）として作り、`jobs/index.ts` の `JOBS` に足す。記録（`ingest_runs`）・通知（Discord）・呼び出し回数の管理は runner が受け持つ。構成と決めたことは `docs/005_ingest-worker-base.md` の「作ったもの」
+- API は `context.external.request(url)` で呼ぶ（1.5 秒以上の間隔・タイムアウト・リトライ付き）。1回の実行で外部 API に使えるのは、全体50回から記録用の8回を引いた42回まで。20四半期の初回取り込みは `JobResult.progress` と `context.previousProgress()` で数日に分ける
+- 地区の振り分けは `await context.townResolver()` で得た関数に住所（町名）を渡す。当たらなければ `context.unmappedTowns.add(住所)` に入れる。処理が成功したら runner が `sourceId` で `record_unmapped_towns` に記録し、新しい町名は Discord に通知される
+- Supabase への保存は `context.db`（PostgREST を直接呼ぶ小さなクライアント）。同じ取引を二重に入れないよう `insert(..., { onConflict })` で upsert する。1回の呼び出しでまとめて送り、呼び出し回数を節約する
+- テストは `workers/ingest/src/*.test.ts`（`// @vitest-environment node`）。`runner.test.ts` の偽の Supabase を参考にする
+- Secret は**別のターミナルで** `wrangler secret put` を実行してもらう（Claude Code の `!` から実行すると値を聞かれず、空の値が登録されてしまう。005 で起きた）。ローカル実行では `workers/ingest/.dev.vars` にも同じ値を入れてもらう
+
 ## Todo
 
 - [ ] （まさゆきさん）`REINFOLIB_API_KEY` を Secret に登録する（API を呼ぶ直前にお願いする。値はチャット・コードに書かない）
