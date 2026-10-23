@@ -63,6 +63,7 @@
 | `src/lib/gtfs/outing.ts` | 直通便の検索、遠回りの便の除外、1日の本数、冬の基準日、おでかけの便の決定 |
 | `src/lib/gtfs/import.ts` | バス停の行・おでかけの行・クレジット・SQL を作る（取り込む3フィードの一覧 `BUS_FEEDS` もここ） |
 | `scripts/build-bus-sql.mjs`（`npm run bus:sql`） | フィードの取得・逆ジオコーダ・対応表での振り分け・マイグレーションの書き出し |
+| `scripts/lib/geocode.mjs` | リトライつきの取得・逆ジオコーダ・結果をためる CSV の読み書き（026 と共通。2026-10-23 に `build-bus-sql.mjs` から移した） |
 | `data/bus_outings.csv` | 地区ごとのおでかけ（地区・並び順・曜日・乗り場・行き先・行き／帰りの時刻以降）。まさゆきさんが決める |
 | `data/bus_stop_towns.csv` | 乗り場の緯度経度 → 市区町村コード・町名（国土地理院の逆ジオコーダの結果をためたもの） |
 | `supabase/migrations/*_bus_gtfs.sql` | `bus_outings`（公開）・`gtfs_feeds`（非公開）・出典の行 |

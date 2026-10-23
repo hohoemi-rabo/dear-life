@@ -69,6 +69,7 @@ const PUBLIC_TABLES = [
   "scene_templates",
   "scene_sentences",
   "bus_outings",
+  "train_departures",
 ];
 const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
@@ -465,5 +466,75 @@ describe("バス（010）", () => {
     await expect(run("service_role", insert("available", "null, null, null"))).rejects.toThrow(/bus_outings_trips_match_status/);
     await expect(run("service_role", insert("no_return", "'13:00', '13:20', 'R'"))).rejects.toThrow(/bus_outings_trips_match_status/);
     await expect(run("service_role", insert("available", "'13:00', '13:20', 'R'"))).resolves.toEqual([]);
+  });
+});
+
+describe("電車（026）", () => {
+  it("4地区の駅と発車時刻が入り、伊賀良には駅がない（地区内の駅だけ）", async () => {
+    const rows = await run<{ district_id: string; stations: number; departures: number }>(
+      "postgres",
+      `select d.id as district_id,
+         (select count(*)::int from facilities f where f.kind = 'train_station' and f.district_id = d.id) as stations,
+         (select count(*)::int from train_departures t where t.district_id = d.id) as departures
+       from districts d order by d.sort_order`,
+    );
+    const byDistrict = Object.fromEntries(rows.map((row) => [row.district_id, row]));
+    for (const id of ["kamisato", "kanae", "chushin"]) {
+      expect(byDistrict[id].stations, id).toBeGreaterThan(0);
+      expect(byDistrict[id].departures, id).toBeGreaterThan(0);
+    }
+    expect(byDistrict.igara).toMatchObject({ stations: 0, departures: 0 });
+  });
+
+  it("発車時刻の駅は、すべて駅の表にある", async () => {
+    const rows = await run(
+      "postgres",
+      `select distinct t.station_name from train_departures t
+       where not exists (select 1 from facilities f where f.kind = 'train_station' and f.name = t.station_name and f.district_id = t.district_id)`,
+    );
+    expect(rows).toEqual([]);
+  });
+
+  it("出典を公開するまで、anon には駅も時刻も見えない。駅と時刻は別々に公開できる", async () => {
+    expect(await run("anon", "select 1 from train_departures")).toEqual([]);
+    expect(await run("anon", "select 1 from facilities where kind = 'train_station'")).toEqual([]);
+    const stationsOnly = await run<{ stations: number; departures: number }>(
+      "anon",
+      "update data_sources set is_published = true where id = 'sena_iida_line_stations'",
+      `select (select count(*)::int from facilities where kind = 'train_station') as stations,
+              (select count(*)::int from train_departures) as departures`,
+    );
+    expect(stationsOnly[0].stations).toBeGreaterThan(0);
+    expect(stationsOnly[0].departures).toBe(0);
+  });
+
+  it("出典にクレジットが入り、時刻は許可を取るまで未公開・ライセンス未記入にしておく", async () => {
+    const rows = await run<{ id: string; license: string | null; credit_text: string; period_label: string | null; is_published: boolean }>(
+      "postgres",
+      "select id, license, credit_text, period_label, is_published from data_sources where id in ('sena_iida_line_stations', 'iida_jr_timetable') order by id",
+    );
+    expect(rows).toHaveLength(2);
+    const [timetable, stations] = rows;
+    expect(stations.license).toBe("CC BY 2.1 JP");
+    expect(stations.credit_text).toMatch(/^出典：三遠南信地域連携ビジョン推進会議（SENA）「JR飯田線の駅\.csv」/);
+    expect(timetable.license).toBeNull();
+    expect(timetable.credit_text).toMatch(/^出典：飯田市「公共交通総合案内」JR飯田線 時刻表/);
+    expect(timetable.period_label).toMatch(/改正のダイヤ$/);
+    expect(rows.every((row) => !row.is_published)).toBe(true);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_train_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_train_data.sql がない");
+    const counts = `select (select count(*)::int from facilities where kind = 'train_station') as stations,
+                           (select count(*)::int from train_departures) as departures`;
+    await db.exec("begin");
+    try {
+      const before = (await db.query(counts)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(counts)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
   });
 });
