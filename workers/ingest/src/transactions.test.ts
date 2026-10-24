@@ -121,6 +121,7 @@ function fakeWorld(options: { published: string[]; stored?: { trade_year: number
   });
 
   const replaced: { p_year: number; p_rows: TransactionRow[] }[] = [];
+  const refreshed: { p_period_from: string; p_period_to: string }[] = [];
   const updates: { table: string; filter: string; patch: Record<string, unknown> }[] = [];
   const db: SupabaseRest = {
     select: async () => [],
@@ -138,6 +139,10 @@ function fakeWorld(options: { published: string[]; stored?: { trade_year: number
         replaced.push(call);
         return call.p_rows.length as T;
       }
+      if (fn === "refresh_market_stats") {
+        refreshed.push(args as { p_period_from: string; p_period_to: string });
+        return 12 as T;
+      }
       throw new Error(`想定していない rpc：${fn}`);
     },
   };
@@ -153,7 +158,7 @@ function fakeWorld(options: { published: string[]; stored?: { trade_year: number
     unmappedTowns,
     previousProgress: async () => null,
   };
-  return { context, apiRequests, apiHeaders, replaced, updates, addSpy };
+  return { context, apiRequests, apiHeaders, replaced, refreshed, updates, addSpy };
 }
 
 const ALL_YEARS = (to: { year: number; quarter: number }) => {
@@ -194,6 +199,8 @@ describe("transactions（初回）", () => {
     ]);
     expect(world.replaced.map((r) => r.p_year)).toEqual([2021, 2022, 2023, 2024, 2025, 2026]);
     expect(result.rowsWritten).toBe(21);
+    // 相場は取り込んだあとに、5.1 と同じ21四半期で集計する
+    expect(world.refreshed).toEqual([{ p_period_from: "2021Q1", p_period_to: "2026Q1" }]);
     expect(world.updates).toEqual([
       {
         table: "data_sources",
@@ -222,17 +229,19 @@ describe("transactions（初回）", () => {
     const world = fakeWorld({ published: [] });
     await expect(transactions.run(world.context)).rejects.toThrow(/1件も返ってこなかった/);
     expect(world.replaced).toEqual([]);
+    expect(world.refreshed).toEqual([]);
   });
 });
 
 describe("transactions（毎日）", () => {
-  it("次の四半期が出ていなければ、確かめる1回だけで何も書かない", async () => {
+  it("次の四半期が出ていなければ、確かめる1回だけで取引は書かない。相場は同じ期間で集計し直す", async () => {
     const world = fakeWorld({ published: PUBLISHED_UNTIL_2026Q1, stored: ALL_YEARS({ year: 2026, quarter: 1 }) });
     const result = await transactions.run(world.context);
 
     expect(world.apiRequests).toEqual([{ year: "2026", quarter: "2", city: "20205", priceClassification: null }]);
     expect(world.replaced).toEqual([]);
     expect(world.updates).toEqual([]);
+    expect(world.refreshed).toEqual([{ p_period_from: "2021Q1", p_period_to: "2026Q1" }]);
     expect(result.rowsWritten).toBe(0);
   });
 
@@ -246,6 +255,7 @@ describe("transactions（毎日）", () => {
     expect(world.apiRequests.map((r) => `${r.year}${r.quarter ? `Q${r.quarter}` : ""}`)).toEqual(["2026Q2", "2026Q3", "2026"]);
     expect(world.replaced.map((r) => [r.p_year, r.p_rows.length])).toEqual([[2026, 2]]);
     expect(world.updates[0].patch).toMatchObject({ period_label: "2021年第2四半期〜2026年第2四半期" });
+    expect(world.refreshed).toEqual([{ p_period_from: "2021Q2", p_period_to: "2026Q2" }]);
   });
 
   it("年が変わって第1四半期が出たら、新しい年だけを取る", async () => {

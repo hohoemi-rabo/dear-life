@@ -5,7 +5,8 @@ export type CountLabel = {
   text: string;
 };
 
-// 件数ラベル（要件 5章-6）。11〜29件の文言は要件の案「参考になる件数」を使っている（まさゆきさんに提案中）
+// 件数ラベル（要件 5章-6）。判定はここだけで行い、相場の件数（market_stats.sample_count）にもこれを当てる。
+// 11〜29件の文言は「参考になる件数」（2026-10-24 にまさゆきさんと決めた）
 export function countLabel(count: number): CountLabel {
   if (!Number.isInteger(count) || count < 0) {
     throw new RangeError(`件数は0以上の整数で渡してください: ${count}`);

@@ -3,15 +3,16 @@
 // 毎日、次の四半期が公開されたかだけを確かめ（呼び出し1回）、出ていたらその年を取り直す
 import { HttpRequestError } from "../http";
 import type { Job, JobContext } from "../job";
-import { addQuarters, compareQuarters, parsePeriod, quarterLabel, quarterOf, type Quarter } from "../quarter";
+import { addQuarters, compareQuarters, parsePeriod, quarterCode, quarterLabel, quarterOf, type Quarter } from "../quarter";
 import type { TownResolver } from "../towns";
 
 export const XIT001_URL = "https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001";
 export const IIDA_CITY_CODE = "20205";
 export const SOURCE_ID = "reinfolib_xit001";
 
-// 最新の四半期から何四半期前までを取り込んでおくか。5.1 の対象期間（2021年第1四半期〜2026年第1四半期）が収まるようにする。
-// 集計に使う期間は 007 の SQL 関数が決める（取り込みは年単位なので、これより古い四半期も同じ年の分は入る）
+// 相場の対象期間：最新の四半期から何四半期前までか（両端を含めて21四半期）。
+// 要件 5章-1 の「直近20四半期」はこの数え方で、5.1 の期間（2021年第1四半期〜2026年第1四半期）と同じ（2026-10-24 にまさゆきさんと確認）。
+// 取り込みも同じ期間で行う（年単位で取るので、これより古い四半期も同じ年の分は入るが、集計では外す）
 export const QUARTERS_KEPT_BEFORE_LATEST = 20;
 
 // 次の四半期を探すときに確かめる最大の数。初回は今の四半期の1つ前からさかのぼる
@@ -177,22 +178,29 @@ export const transactions: Job = {
     for (let year = oldest.year; year <= latest.year; year += 1) {
       if (!storedYears.has(year) || (firstNewYear !== null && year >= firstNewYear)) years.push(year);
     }
-    if (years.length === 0) return { rowsWritten: 0 };
-
-    const resolveTown = await context.townResolver();
     let rowsWritten = 0;
-    for (const year of years) {
-      const rows = (await fetchXit001(context, { year })).map((apiRow) => {
-        const converted = toTransactionRow(apiRow, resolveTown);
-        if (converted.unmapped) context.unmappedTowns.add(converted.row.town_name);
-        return converted.row;
+    if (years.length > 0) {
+      const resolveTown = await context.townResolver();
+      for (const year of years) {
+        const rows = (await fetchXit001(context, { year })).map((apiRow) => {
+          const converted = toTransactionRow(apiRow, resolveTown);
+          if (converted.unmapped) context.unmappedTowns.add(converted.row.town_name);
+          return converted.row;
+        });
+        rowsWritten += await context.db.rpc<number>("replace_real_estate_transactions", { p_year: year, p_rows: rows });
+      }
+
+      await context.db.update("data_sources", `id=eq.${SOURCE_ID}`, {
+        fetched_at: new Date().toISOString(),
+        period_label: `${quarterLabel(oldest)}〜${quarterLabel(latest)}`,
       });
-      rowsWritten += await context.db.rpc<number>("replace_real_estate_transactions", { p_year: year, p_rows: rows });
     }
 
-    await context.db.update("data_sources", `id=eq.${SOURCE_ID}`, {
-      fetched_at: new Date().toISOString(),
-      period_label: `${quarterLabel(oldest)}〜${quarterLabel(latest)}`,
+    // 相場は取り込みがなかった日も集計し直す（007）。計算は Supabase の中で終わり軽いので、
+    // 取り込みのあとに集計だけ失敗した日があっても、次の日に追いつく
+    await context.db.rpc<number>("refresh_market_stats", {
+      p_period_from: quarterCode(oldest),
+      p_period_to: quarterCode(latest),
     });
     return { rowsWritten };
   },

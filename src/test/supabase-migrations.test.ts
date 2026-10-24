@@ -390,6 +390,149 @@ describe("不動産取引の取り込み（006）", () => {
   });
 });
 
+describe("相場の集計（007）", () => {
+  type Trade = {
+    year?: number;
+    quarter?: number;
+    type?: string;
+    district?: string | null;
+    price?: number;
+    unitPrice?: number | null;
+    area?: number | null;
+    builtIn?: number | null;
+    use?: string | null;
+    excluded?: boolean;
+  };
+  const insertTrades = (trades: Trade[]) =>
+    `insert into real_estate_transactions (
+       trade_year, trade_quarter, price_category, property_type, town_name, district_id,
+       trade_price, unit_price_per_sqm, area_sqm, building_year, use, is_excluded, raw
+     ) values ${trades
+       .map((t) => {
+         const sql = (v: string | number | null | undefined) =>
+           v === null || v === undefined ? "null" : typeof v === "number" ? String(v) : `'${v}'`;
+         return `(${t.year ?? 2025}, ${t.quarter ?? 1}, '不動産取引価格情報', ${sql(t.type ?? "宅地(土地)")}, '鼎',
+           ${sql(t.district === undefined ? "kanae" : t.district)}, ${t.price ?? 5000000}, ${sql(t.unitPrice)},
+           ${sql(t.area === undefined ? 200 : t.area)}, ${sql(t.builtIn)}, ${sql(t.use)}, ${t.excluded ?? false}, '{}')`;
+       })
+       .join(", ")}`;
+  const refresh = (from = "2021Q1", to = "2026Q1") => `select public.refresh_market_stats('${from}', '${to}') as written`;
+  type Stat = {
+    district_id: string;
+    category: string;
+    period_from: string;
+    period_to: string;
+    sample_count: number;
+    median_value: string | null;
+    p25_value: string | null;
+    p75_value: string | null;
+  };
+  const stats = (district = "kanae") =>
+    `select district_id, category::text, period_from, period_to, sample_count, median_value::text, p25_value::text, p75_value::text
+     from market_stats where district_id = '${district}' order by market_stats.category`;
+
+  it("土地は㎡単価の真ん中の値と25%・75%を線形補間で出し、㎡単価が空なら総額÷面積で補う", async () => {
+    const rows = await run<Stat>(
+      "service_role",
+      insertTrades([
+        { unitPrice: 10000 },
+        { unitPrice: 20000 },
+        { unitPrice: 30000 },
+        { unitPrice: null, price: 8000000, area: 200 }, // 40,000円/㎡
+      ]),
+      refresh(),
+      stats(),
+    );
+    expect(rows.find((r) => r.category === "land")).toEqual({
+      district_id: "kanae",
+      category: "land",
+      period_from: "2021Q1",
+      period_to: "2026Q1",
+      sample_count: 4,
+      median_value: "25000",
+      p25_value: "17500",
+      p75_value: "32500",
+    });
+  });
+
+  it("中古戸建ては築20年以内と築21年以上に分けて総額の真ん中の値を出す。幅は出さない", async () => {
+    const house = (price: number, builtIn: number | null, use: string | null = "住宅") =>
+      ({ type: "宅地(土地と建物)", year: 2025, price, builtIn, use }) satisfies Trade;
+    const rows = await run<Stat>(
+      "service_role",
+      insertTrades([
+        house(30000000, 2005), // 築20年 → 以内
+        house(20000000, 2010, null), // 用途が空 → 住宅に含める
+        house(9000000, 2004), // 築21年 → 以上
+        house(5000000, null), // 建築年不明 → どちらにも入れない
+        house(70000000, 2020, "事務所"), // 住宅でない
+        house(40000000, 2015, "住宅、店舗"), // 住宅を含む
+      ]),
+      refresh(),
+      stats(),
+    );
+    expect(rows.filter((r) => r.category !== "land")).toEqual([
+      expect.objectContaining({ category: "house_built_within_20y", sample_count: 3, median_value: "30000000", p25_value: null, p75_value: null }),
+      expect.objectContaining({ category: "house_built_over_20y", sample_count: 1, median_value: "9000000", p25_value: null, p75_value: null }),
+    ]);
+  });
+
+  it("除外する取引・地区のない取引・期間の外の取引は数えない。期間は両端の四半期を含む", async () => {
+    const rows = await run<Stat>(
+      "service_role",
+      insertTrades([
+        { year: 2021, quarter: 1, unitPrice: 10000 },
+        { year: 2026, quarter: 1, unitPrice: 20000 },
+        { year: 2020, quarter: 4, unitPrice: 99000 },
+        { year: 2026, quarter: 2, unitPrice: 99000 },
+        { unitPrice: 99000, excluded: true },
+        { unitPrice: 99000, district: null },
+      ]),
+      refresh("2021Q1", "2026Q1"),
+      stats(),
+    );
+    expect(rows.find((r) => r.category === "land")).toMatchObject({ sample_count: 2, median_value: "15000" });
+  });
+
+  it("4地区×3種類の行を必ず作り、取引がなければ件数0・値なし（該当なし）にする", async () => {
+    const rows = await run<Stat & { written: number }>(
+      "service_role",
+      insertTrades([{ unitPrice: 10000 }]),
+      refresh(),
+      `select district_id, category::text, sample_count, median_value::text from market_stats order by district_id, category`,
+    );
+    expect(rows).toHaveLength(12);
+    expect(rows.filter((r) => r.sample_count > 0)).toEqual([
+      { district_id: "kanae", category: "land", sample_count: 1, median_value: "10000" },
+    ]);
+    expect(rows.filter((r) => r.sample_count === 0).every((r) => r.median_value === null)).toBe(true);
+  });
+
+  it("集計し直すと前の値を上書きし、書いた行数を返す", async () => {
+    const rows = await run<{ written: number; sample_count: number; period_from: string }>(
+      "service_role",
+      insertTrades([{ year: 2021, quarter: 1, unitPrice: 10000 }, { year: 2026, quarter: 2, unitPrice: 20000 }]),
+      refresh("2021Q1", "2026Q1"),
+      refresh("2021Q2", "2026Q2"),
+      `select (select count(*)::int from market_stats) as written, sample_count, period_from
+       from market_stats where district_id = 'kanae' and category = 'land'`,
+    );
+    expect(rows).toEqual([{ written: 12, sample_count: 1, period_from: "2021Q2" }]);
+    expect(await run("service_role", refresh())).toEqual([{ written: 12 }]);
+  });
+
+  it("期間の形が違う・始まりが終わりより後なら失敗する", async () => {
+    await expect(run("service_role", refresh("2021-1", "2026Q1"))).rejects.toThrow(/2021Q1 の形で渡す/);
+    await expect(run("service_role", refresh("2026Q2", "2026Q1"))).rejects.toThrow(/終わり（2026Q1）より後/);
+  });
+
+  it("anon・authenticated は集計の関数を呼べない", async () => {
+    for (const role of ["anon", "authenticated"] as const) {
+      await expect(run(role, refresh())).rejects.toThrow(/permission denied/);
+    }
+  });
+});
+
 describe("バス（010）", () => {
   const latestBusSql = () => {
     const file = readdirSync(MIGRATIONS_DIR)
