@@ -708,3 +708,140 @@ describe("電車（026）", () => {
     }
   });
 });
+
+describe("学区・学校・保育施設（008）", () => {
+  // 4地区に1校ずつある学校。学校コードは学区の API の学校コードと同じ
+  const SCHOOLS = [
+    { code: "B1", district: "kamisato", name: "上郷小学校" },
+    { code: "B2", district: "kanae", name: "鼎小学校" },
+    { code: "B3", district: "igara", name: "伊賀良小学校" },
+    { code: "B4", district: "chushin", name: "丸山小学校" },
+  ];
+  const facility = (code: string, district: string, name: string) => ({
+    kind: "school",
+    subkind: "小学校",
+    name: `飯田市立${name}`,
+    address: "長野県飯田市",
+    town_name: "町",
+    district_id: district,
+    latitude: 35.5,
+    longitude: 137.8,
+    source_key: `${code}-00`,
+    attributes: { school_code: code },
+  });
+  const replaceFacilities = (sourceId: string, rows: unknown[]) =>
+    `select public.replace_facilities('${sourceId}', '${JSON.stringify(rows)}'::jsonb) as inserted`;
+  const putSchools = replaceFacilities(
+    "reinfolib_xkt006",
+    SCHOOLS.map((s) => facility(s.code, s.district, s.name)),
+  );
+
+  // 経度 lon・緯度 lat を左下にした 0.01 度四方の Polygon（タイルの切れ端の代わり）
+  const square = (lon: number, lat: number) => ({
+    type: "Polygon",
+    coordinates: [[[lon, lat], [lon + 0.01, lat], [lon + 0.01, lat + 0.01], [lon, lat + 0.01], [lon, lat]]],
+  });
+  const piece = (code: string, name: string, geometry: unknown) => ({
+    type: "Feature",
+    geometry,
+    properties: { A27_003: code, A27_004_ja: name, A27_005: "飯田市" },
+  });
+  const BOUNDS = { west: 137.6, south: 35.3, east: 138.0, north: 35.8 };
+  // 上郷小の学区は2つのタイルにまたがり、松尾小（4地区の外。学校の点がない）も入っている
+  const TILES = [
+    {
+      type: "FeatureCollection",
+      features: [
+        piece("B1", "上郷小学校", square(137.84, 35.51)),
+        piece("B2", "鼎小学校", square(137.82, 35.5)),
+        piece("B9", "松尾小学校", square(137.83, 35.48)),
+      ],
+    },
+    {
+      type: "FeatureCollection",
+      features: [
+        piece("B1", "上郷小学校", { type: "MultiPolygon", coordinates: [square(137.85, 35.51).coordinates, square(137.85, 35.52).coordinates] }),
+        piece("B3", "伊賀良小学校", square(137.79, 35.49)),
+        piece("B4", "丸山小学校", square(137.81, 35.52)),
+      ],
+    },
+  ];
+  const replaceDistricts = (tiles: unknown[], bounds: unknown = BOUNDS) =>
+    `select public.replace_school_districts('elementary', 'reinfolib_xkt004', '${JSON.stringify(tiles)}'::jsonb, '${JSON.stringify(bounds)}'::jsonb) as inserted`;
+
+  it("施設は出典ごとに消して入れ直し、ほかの出典（バス停など）は残す。入れた件数を返す", async () => {
+    const rows = await run<{ source_id: string; count: number }>(
+      "service_role",
+      putSchools,
+      replaceFacilities("reinfolib_xkt006", [facility("B1", "kamisato", "上郷小学校")]),
+      "select source_id, count(*)::int from facilities where kind in ('school', 'bus_stop') group by source_id order by source_id",
+    );
+    expect(rows).toEqual([
+      { source_id: "gtfs_minamishinshu_bus", count: expect.any(Number) },
+      { source_id: "reinfolib_xkt006", count: 1 },
+    ]);
+    expect(await run("service_role", putSchools)).toEqual([{ inserted: 4 }]);
+  });
+
+  it("施設が0件なら、消さずに失敗する", async () => {
+    await expect(run("service_role", replaceFacilities("reinfolib_xkt006", []))).rejects.toThrow(/0件なので、入れ直さない/);
+  });
+
+  it("学区は学校ごとにタイルの切れ端を1つの MultiPolygon にまとめ、学校のある地区を付ける。4地区の外の学校の学区は入れない", async () => {
+    const rows = await run<{ source_key: string; school_name: string; district_id: string; polygons: number; type: string }>(
+      "service_role",
+      putSchools,
+      replaceDistricts(TILES),
+      replaceDistricts(TILES),
+      `select source_key, school_name, district_id, jsonb_array_length(geometry -> 'coordinates') as polygons, geometry ->> 'type' as type
+       from school_districts order by source_key`,
+    );
+    expect(rows).toEqual([
+      { source_key: "B1", school_name: "上郷小学校", district_id: "kamisato", polygons: 3, type: "MultiPolygon" },
+      { source_key: "B2", school_name: "鼎小学校", district_id: "kanae", polygons: 1, type: "MultiPolygon" },
+      { source_key: "B3", school_name: "伊賀良小学校", district_id: "igara", polygons: 1, type: "MultiPolygon" },
+      { source_key: "B4", school_name: "丸山小学校", district_id: "chushin", polygons: 1, type: "MultiPolygon" },
+    ]);
+    expect(await run("service_role", putSchools, replaceDistricts(TILES))).toEqual([{ inserted: 4 }]);
+  });
+
+  it("学区のない地区があれば、入れずに失敗する", async () => {
+    const withoutIgara = TILES.map((tile) => ({
+      ...tile,
+      features: tile.features.filter((f) => f.properties.A27_003 !== "B3"),
+    }));
+    await expect(run("service_role", putSchools, replaceDistricts(withoutIgara))).rejects.toThrow(/学区のない地区がある：伊賀良/);
+  });
+
+  it("学区が取ったタイルの端まで届いていたら（範囲の外で切れている）、入れずに失敗する", async () => {
+    await expect(
+      run("service_role", putSchools, replaceDistricts(TILES, { ...BOUNDS, east: 137.8605 })),
+    ).rejects.toThrow(/端まで届いている学区がある.*上郷小学校/);
+  });
+
+  it("学校の点がまだなければ、入れずに失敗する。面でない形があっても失敗する", async () => {
+    await expect(run("service_role", replaceDistricts(TILES))).rejects.toThrow(/学区が1つもない/);
+    const withPoint = [{ type: "FeatureCollection", features: [piece("B1", "上郷小学校", { type: "Point", coordinates: [137.8, 35.5] })] }];
+    await expect(run("service_role", putSchools, replaceDistricts(withPoint))).rejects.toThrow(/Polygon・MultiPolygon 以外/);
+  });
+
+  it("anon・authenticated は取り込みの関数を呼べない", async () => {
+    for (const role of ["anon", "authenticated"] as const) {
+      await expect(run(role, putSchools)).rejects.toThrow(/permission denied/);
+      await expect(run(role, replaceDistricts(TILES))).rejects.toThrow(/permission denied/);
+    }
+  });
+
+  it("4つの出典にクレジットと対象年度が入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ id: string; credit_text: string; period_label: string; is_published: boolean }>(
+      "postgres",
+      "select id, credit_text, period_label, is_published from data_sources where id like 'reinfolib_xkt%' order by id",
+    );
+    expect(rows.map((row) => row.id)).toEqual(["reinfolib_xkt004", "reinfolib_xkt005", "reinfolib_xkt006", "reinfolib_xkt007"]);
+    for (const row of rows) {
+      expect(row.credit_text).toMatch(/^このサービスは、国土交通省の不動産情報ライブラリのAPI機能を使用していますが/);
+      expect(row.period_label).toBe("令和5年度");
+      expect(row.is_published).toBe(false);
+    }
+  });
+});

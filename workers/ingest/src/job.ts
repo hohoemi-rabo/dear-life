@@ -21,7 +21,7 @@ export type JobContext = {
   db: SupabaseRest;
   // 町名→地区の対応表。1回の実行で最初に使うときだけ読み込む
   townResolver(): Promise<TownResolver>;
-  // 対応表に当たらなかった住所を入れる。取得が成功したら runner が job.sourceId で記録する
+  // 対応表に当たらなかった住所を入れる。取得が成功したら runner が記録する（出典を渡さなければ job.sourceId で）
   unmappedTowns: UnmappedTownCollector;
   // 前回成功した実行の続きの位置（数日に分けて取り込む処理用）
   previousProgress(): Promise<Json | null>;
@@ -36,7 +36,7 @@ export type JobResult = {
 export type Job = {
   // ingest_runs.job に入る名前
   name: string;
-  // data_sources.id。対応表にない町名の記録にも使う
+  // data_sources.id。対応表にない町名の記録にも使う。複数の出典を取り込む処理は null にし、町名ごとに出典を渡す
   sourceId: string | null;
   shouldRun(today: JstDate): boolean;
   run(context: JobContext): Promise<JobResult>;

@@ -117,8 +117,7 @@ export async function runIngest(env: Env, scheduledTime: number, deps: IngestDep
 
     try {
       const result = await job.run(context);
-      if (job.sourceId !== null) await unmappedTowns.flush(db, job.sourceId);
-      else if (unmappedTowns.size > 0) throw new Error("sourceId のない処理が、対応表にない町名を記録しようとした");
+      await unmappedTowns.flush(db, job.sourceId);
       await finishRun(db, runId, {
         status: "succeeded",
         rowsWritten: result.rowsWritten,

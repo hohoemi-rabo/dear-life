@@ -688,6 +688,7 @@ export type Database = {
       school_districts: {
         Row: {
           created_at: string
+          district_id: string
           geometry: Json
           id: number
           level: Database["public"]["Enums"]["school_level"]
@@ -698,6 +699,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          district_id: string
           geometry: Json
           id?: never
           level: Database["public"]["Enums"]["school_level"]
@@ -708,6 +710,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          district_id?: string
           geometry?: Json
           id?: never
           level?: Database["public"]["Enums"]["school_level"]
@@ -717,6 +720,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "school_districts_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "school_districts_source_id_fkey"
             columns: ["source_id"]
@@ -858,8 +868,21 @@ export type Database = {
         Args: { p_source_id: string; p_town_names: string[] }
         Returns: undefined
       }
+      replace_facilities: {
+        Args: { p_rows: Json; p_source_id: string }
+        Returns: number
+      }
       replace_real_estate_transactions: {
         Args: { p_rows: Json; p_year: number }
+        Returns: number
+      }
+      replace_school_districts: {
+        Args: {
+          p_bounds: Json
+          p_level: Database["public"]["Enums"]["school_level"]
+          p_source_id: string
+          p_tiles: Json
+        }
         Returns: number
       }
     }

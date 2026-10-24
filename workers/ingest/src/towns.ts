@@ -17,22 +17,31 @@ export async function loadTownResolver(db: SupabaseRest): Promise<TownResolver> 
   return createTownResolver(entries);
 }
 
-// 対応表に当たらなかった住所を1回の取得の間ためておき、最後にまとめて記録する（呼び出し回数を1回にするため）
+// 対応表に当たらなかった住所を1回の取得の間ためておき、最後にまとめて記録する（出典ごとに呼び出し1回にするため）。
+// 1つの処理が複数の出典を取り込むとき（008 の学校と保育施設など）は、add に出典を渡す
 export class UnmappedTownCollector {
-  private readonly townNames: string[] = [];
+  private readonly entries: { townName: string; sourceId: string | null }[] = [];
 
-  add(address: string): void {
-    this.townNames.push(townNameForRecord(address));
+  add(address: string, sourceId: string | null = null): void {
+    this.entries.push({ townName: townNameForRecord(address), sourceId });
   }
 
   get size(): number {
-    return this.townNames.length;
+    return this.entries.length;
   }
 
-  async flush(db: SupabaseRest, sourceId: string): Promise<void> {
-    if (this.townNames.length === 0) return;
-    await db.rpc("record_unmapped_towns", { p_source_id: sourceId, p_town_names: this.townNames });
-    this.townNames.length = 0;
+  // 出典を渡さずに足した町名は defaultSourceId（処理の sourceId）で記録する
+  async flush(db: SupabaseRest, defaultSourceId: string | null): Promise<void> {
+    const bySource = new Map<string, string[]>();
+    for (const entry of this.entries) {
+      const sourceId = entry.sourceId ?? defaultSourceId;
+      if (sourceId === null) throw new Error(`出典がわからないまま、対応表にない町名を記録しようとした：${entry.townName}`);
+      bySource.set(sourceId, [...(bySource.get(sourceId) ?? []), entry.townName]);
+    }
+    for (const [sourceId, townNames] of bySource) {
+      await db.rpc("record_unmapped_towns", { p_source_id: sourceId, p_town_names: townNames });
+    }
+    this.entries.length = 0;
   }
 }
 

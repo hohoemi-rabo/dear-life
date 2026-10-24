@@ -18,8 +18,14 @@ export type SupabaseRest = {
     patch: Record<string, unknown>,
     options?: { returning?: boolean },
   ): Promise<T[]>;
-  rpc<T = unknown>(fn: string, args: Record<string, unknown>): Promise<T>;
+  // 大きな応答をそのまま渡すときは、Worker で読み直さずに済むよう RawJson で組み立て済みの本文を渡す
+  rpc<T = unknown>(fn: string, args: Record<string, unknown> | RawJson): Promise<T>;
 };
+
+// JSON として組み立て済みの本文。JSON.parse・JSON.stringify をせずにそのまま送る（008 の学区。CPU 時間の上限のため）
+export class RawJson {
+  constructor(readonly text: string) {}
+}
 
 export function createSupabaseRest(config: { url: string; serviceRoleKey: string; http: HttpClient }): SupabaseRest {
   const base = `${config.url.replace(/\/$/, "")}/rest/v1`;
@@ -77,8 +83,8 @@ export function createSupabaseRest(config: { url: string; serviceRoleKey: string
       return result ?? [];
     },
 
-    async rpc<T>(fn: string, args: Record<string, unknown>) {
-      return send<T>(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
+    async rpc<T>(fn: string, args: Record<string, unknown> | RawJson) {
+      return send<T>(`rpc/${fn}`, { method: "POST", body: args instanceof RawJson ? args.text : JSON.stringify(args) });
     },
   };
 }
