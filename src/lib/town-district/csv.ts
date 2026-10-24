@@ -2,6 +2,7 @@
 // CSV が唯一の情報源で、SQL は scripts/build-town-district-map-sql.mjs が作る（手で書かない）。
 // Node から直接読み込むので、相対パスの import は型だけにする
 import type { DistrictId, TownMapEntry } from "./resolve";
+import { sqlLiteral } from "../sql.ts";
 
 export type ChushinArea = "丸山" | "東野" | "橋北" | "橋南";
 
@@ -64,10 +65,6 @@ export function parseTownMapCsv(text: string): TownMapRow[] {
       note,
     };
   });
-}
-
-function sqlLiteral(value: string | null): string {
-  return value === null ? "null" : `'${value.replace(/'/g, "''")}'`;
 }
 
 // 対応表を CSV と同じ中身にそろえる SQL。何度当てても同じ結果になる。

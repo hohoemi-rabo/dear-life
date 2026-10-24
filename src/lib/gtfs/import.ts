@@ -1,5 +1,6 @@
 // 取り込んだ GTFS から、バス停（facilities）とおでかけの便（bus_outings）の行を作り、そろえる SQL を書く（010）。
 // 通信やファイルの読み書きは scripts/build-bus-sql.mjs が受け持ち、ここは決まった入力から決まった出力を作るだけにする
+import { sqlJson, sqlLiteral } from "../sql.ts";
 import { TARGET_DISTRICT_IDS } from "../town-district/csv.ts";
 import type { DistrictId, TownMapEntry } from "../town-district/resolve.ts";
 import { parseCsv } from "./csv.ts";
@@ -244,14 +245,6 @@ export function buildOutings(feeds: readonly LoadedFeed[], configs: readonly Out
 
 // ---------------------------------------------------------------------------
 // SQL
-
-function sqlLiteral(value: string | null): string {
-  return value === null ? "null" : `'${value.replace(/'/g, "''")}'`;
-}
-
-function sqlJson(value: unknown): string {
-  return `${sqlLiteral(JSON.stringify(value))}::jsonb`;
-}
 
 function tripColumns(trip: DirectTrip | null): string[] {
   return trip === null

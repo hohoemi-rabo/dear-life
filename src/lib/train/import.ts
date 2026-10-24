@@ -1,6 +1,7 @@
 // SENA の駅の CSV と JR飯田線の時刻の CSV から、4地区の駅（facilities）・発車時刻（train_departures）・おでかけ（train_outings）の行を作り、
 // そろえる SQL を書く（026）。通信やファイルの読み書きは scripts/build-train-sql.mjs が受け持つ
 import { parseCsv } from "../gtfs/csv.ts";
+import { sqlJson, sqlLiteral } from "../sql.ts";
 import { IIDA_MUNI_CODE, coordinateKey, type StopTown } from "../gtfs/import.ts";
 import type { DistrictId, TownMapEntry } from "../town-district/resolve.ts";
 import { formatGtfsTime } from "../gtfs/feed.ts";
@@ -87,14 +88,6 @@ export function buildDepartures(stations: readonly StationRow[], timetables: rea
 
 // ---------------------------------------------------------------------------
 // SQL
-
-function sqlLiteral(value: string | null): string {
-  return value === null ? "null" : `'${value.replace(/'/g, "''")}'`;
-}
-
-function sqlJson(value: unknown): string {
-  return `${sqlLiteral(JSON.stringify(value))}::jsonb`;
-}
 
 // CC BY 2.1 JP の表示と、SENA の利用規約 第6条の出所（作成者の組織名・リソースの名称・リソースの URL）
 export const STATION_CREDIT_TEXT =
