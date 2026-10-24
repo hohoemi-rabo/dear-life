@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "town-map:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-town-district-map-sql.mjs",
     "bus:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-bus-sql.mjs",
-    "train:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-train-sql.mjs"
+    "train:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-train-sql.mjs",
+    "childcare:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-childcare-sql.mjs"
   },
   "dependencies": {
     "next": "15.5.28",

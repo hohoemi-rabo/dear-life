@@ -845,3 +845,52 @@ describe("学区・学校・保育施設（008）", () => {
     }
   });
 });
+
+describe("市の子育て施設（009）", () => {
+  it("4地区それぞれに保育施設と放課後児童クラブがあり、放課後児童クラブは別の種類になっている", async () => {
+    const rows = await run<{ district_id: string; childcare: number; clubs: number }>(
+      "postgres",
+      `select d.id as district_id,
+         (select count(*)::int from facilities f where f.source_id = 'iida_childcare' and f.district_id = d.id and f.kind = 'childcare') as childcare,
+         (select count(*)::int from facilities f where f.source_id = 'iida_childcare' and f.district_id = d.id and f.kind = 'after_school_club') as clubs
+       from districts d order by d.sort_order`,
+    );
+    expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      expect(row.childcare, row.district_id).toBeGreaterThan(0);
+      expect(row.clubs, row.district_id).toBeGreaterThan(0);
+    }
+    const subkinds = await run<{ subkind: string }>(
+      "postgres",
+      "select distinct subkind from facilities where source_id = 'iida_childcare' and kind = 'after_school_club'",
+    );
+    expect(subkinds).toEqual([{ subkind: "放課後児童クラブ" }]);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_childcare_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_childcare_data.sql がない");
+    const count = "select count(*)::int as n from facilities where source_id = 'iida_childcare'";
+    await db.exec("begin");
+    try {
+      const before = (await db.query(count)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(count)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
+  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null; is_published: boolean }>(
+      "postgres",
+      "select license, credit_text, period_label, checked_on::text, is_published from data_sources where id = 'iida_childcare'",
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].license).toBe("PDL1.0");
+    expect(rows[0].credit_text).toMatch(/^出典：飯田市（https:\/\/www\.city\.iida\.lg\.jp\/soshiki\/168\/opendata\.html）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「子育て施設」（飯田市）/);
+    expect(rows[0].period_label).toMatch(/更新$/);
+    expect(rows[0].checked_on).not.toBeNull();
+    expect(rows[0].is_published).toBe(false);
+  });
+});

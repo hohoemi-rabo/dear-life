@@ -899,6 +899,7 @@ export type Database = {
         | "public_facility"
         | "bus_stop"
         | "train_station"
+        | "after_school_club"
       housing_choice: "買う・新しめ" | "買う・古め" | "借りる"
       ingest_status: "running" | "succeeded" | "failed"
       karte_card:
@@ -1055,6 +1056,7 @@ export const Constants = {
         "public_facility",
         "bus_stop",
         "train_station",
+        "after_school_club",
       ],
       housing_choice: ["買う・新しめ", "買う・古め", "借りる"],
       ingest_status: ["running", "succeeded", "failed"],
