@@ -1,9 +1,10 @@
 // 学区・学校・保育施設の取り込み（008・要件 7章・7.2）。不動産情報ライブラリ API の
-// XKT006（学校）・XKT007（保育園・幼稚園等）の点を住所の町名で4地区に振り分けて facilities に、
-// XKT004（小学校区）・XKT005（中学校区）の範囲を、4地区にある学校の学区だけ school_districts に入れ直す。
+// XKT004（小学校区）・XKT005（中学校区）の範囲を、市全体の学区について school_districts に入れ直す。
+// XKT006（学校）・XKT007（保育園・幼稚園等）の点も市全体を facilities に入れるが、公開しない。画面には市の
+// 「教育機関一覧」「子育て施設」（009、npm run education:sql・childcare:sql）を出し、こちらは市のデータの抜けの確認に使う。
 //
-// どれもタイル単位でしか取れず、全部で36回呼ぶ。1回の実行の呼び出し回数の上限（9.3）に収めるため、
-// 1日に1段階ずつ（学校 → 保育施設 → 学区）進める。学区は学校の点から地区を決めるので、学校のあとにする。
+// 学校と保育施設はタイル単位でしか取れず、市全体で156タイルずつある。API は1.5秒以上あけて呼ぶので1種類4分ほどかかり、
+// Cron の1回の実行を短く保つため、1日に1段階ずつ（学校 → 保育施設 → 学区）進める。
 // 毎年6月1日を過ぎたら、取り直しが要るとみなす（国土数値情報の学校データは 2024年6月に更新された）
 import type { Job, JobContext } from "../job";
 import { RawJson } from "../supabase";
@@ -26,13 +27,12 @@ export const REFRESH_DAY = 1;
 export type TileRange = { z: number; xFrom: number; xTo: number; yFrom: number; yTo: number };
 
 // 学校・保育施設の点を取るタイル（z13 は XKT006・XKT007 で使えるいちばん広い縮尺）。
-// 経度 137.72〜137.90・緯度 35.45〜35.57 で、4地区を余裕をもっておおう（2026-10-24 に、まわりの48タイルを取って、
-// 4地区に振り分けられる点がこの中の3タイルにしかないことを確かめた）
-export const POINT_TILES: TileRange = { z: 13, xFrom: 7230, xTo: 7233, yFrom: 3229, yTo: 3231 };
+// 経度 137.64〜138.16・緯度 35.21〜35.68 で、飯田市全体（学区の範囲から求めた 経度 137.69〜138.15・緯度 35.25〜35.66）をおおう
+export const POINT_TILES: TileRange = { z: 13, xFrom: 7228, xTo: 7239, yFrom: 3226, yTo: 3238 };
 
 // 学区の範囲を取るタイル（z11。市のコードで飯田市の学区だけにしぼって取る）。
-// 4地区にある学校の学区（小6・中5）が、端に届かずに収まる（2026-10-24 に確認。届いたら replace_school_districts が失敗する）
-export const DISTRICT_TILES: TileRange = { z: 11, xFrom: 1807, xTo: 1808, yFrom: 806, yTo: 808 };
+// 市全体の学区（小19・中9）が、端に届かずに収まる（2026-10-24 に確認。届いたら replace_school_districts が失敗する）
+export const DISTRICT_TILES: TileRange = { z: 11, xFrom: 1807, xTo: 1809, yFrom: 806, yTo: 809 };
 
 export type Tile = { z: number; x: number; y: number };
 
@@ -127,26 +127,27 @@ export type FacilityRow = {
   name: string;
   address: string;
   town_name: string;
-  district_id: string;
+  // 4地区の外は null
+  district_id: string | null;
   latitude: number;
   longitude: number;
   source_key: string;
   attributes: Record<string, string | number | string[]>;
 };
 
-// 住所を地区に振り分ける。対応表にない町名は記録し、4地区の外（対応表で地区なし）は入れない
+// 住所を地区に振り分ける（4地区の外は地区なし）。対応表にない町名は記録して、その施設は入れない
 function placeInDistrict(
   address: string,
   resolveTown: TownResolver,
   unmappedTowns: UnmappedTownCollector,
   sourceId: string,
-): { town_name: string; district_id: string } | null {
+): { town_name: string; district_id: string | null } | null {
   const entry = resolveTown(address);
   if (entry === null) {
     unmappedTowns.add(address, sourceId);
     return null;
   }
-  return entry.districtId === null ? null : { town_name: townNameForRecord(address), district_id: entry.districtId };
+  return { town_name: townNameForRecord(address), district_id: entry.districtId };
 }
 
 // 学校（XKT006） --------------------------------------------------------------
@@ -301,6 +302,7 @@ async function ingestPoints<P>(
 }
 
 // 学区の応答は大きい（1タイル 200KB ほど）ので、Worker では読まずに本文をつなげて Supabase に渡す
+// （無料プランの CPU 時間 10ms に収めるための作り。有料にしたいまも、読む必要がないのでこのままにしている）
 async function ingestDistricts(context: JobContext): Promise<number> {
   const bounds = boundsOf(DISTRICT_TILES);
   let written = 0;

@@ -726,13 +726,14 @@ describe("学区・学校・保育施設（008）", () => {
     district_id: district,
     latitude: 35.5,
     longitude: 137.8,
-    source_key: `${code}-00`,
+    source_key: code,
     attributes: { school_code: code },
   });
   const replaceFacilities = (sourceId: string, rows: unknown[]) =>
     `select public.replace_facilities('${sourceId}', '${JSON.stringify(rows)}'::jsonb) as inserted`;
+  // 学区の地区は、教育機関一覧（iida_education）の学校から決める
   const putSchools = replaceFacilities(
-    "reinfolib_xkt006",
+    "iida_education",
     SCHOOLS.map((s) => facility(s.code, s.district, s.name)),
   );
 
@@ -772,9 +773,9 @@ describe("学区・学校・保育施設（008）", () => {
   it("施設は出典ごとに消して入れ直し、ほかの出典（バス停など）は残す。入れた件数を返す", async () => {
     const rows = await run<{ source_id: string; count: number }>(
       "service_role",
-      putSchools,
+      replaceFacilities("reinfolib_xkt006", SCHOOLS.map((s) => facility(s.code, s.district, s.name))),
       replaceFacilities("reinfolib_xkt006", [facility("B1", "kamisato", "上郷小学校")]),
-      "select source_id, count(*)::int from facilities where kind in ('school', 'bus_stop') group by source_id order by source_id",
+      "select source_id, count(*)::int from facilities where source_id in ('reinfolib_xkt006', 'gtfs_minamishinshu_bus') group by source_id order by source_id",
     );
     expect(rows).toEqual([
       { source_id: "gtfs_minamishinshu_bus", count: expect.any(Number) },
@@ -787,8 +788,8 @@ describe("学区・学校・保育施設（008）", () => {
     await expect(run("service_role", replaceFacilities("reinfolib_xkt006", []))).rejects.toThrow(/0件なので、入れ直さない/);
   });
 
-  it("学区は学校ごとにタイルの切れ端を1つの MultiPolygon にまとめ、学校のある地区を付ける。4地区の外の学校の学区は入れない", async () => {
-    const rows = await run<{ source_key: string; school_name: string; district_id: string; polygons: number; type: string }>(
+  it("学区は学校ごとにタイルの切れ端を1つの MultiPolygon にまとめ、学校のある地区を付ける。4地区の外の学校の学区は地区なしで入れる", async () => {
+    const rows = await run<{ source_key: string; school_name: string; district_id: string | null; polygons: number; type: string }>(
       "service_role",
       putSchools,
       replaceDistricts(TILES),
@@ -801,8 +802,9 @@ describe("学区・学校・保育施設（008）", () => {
       { source_key: "B2", school_name: "鼎小学校", district_id: "kanae", polygons: 1, type: "MultiPolygon" },
       { source_key: "B3", school_name: "伊賀良小学校", district_id: "igara", polygons: 1, type: "MultiPolygon" },
       { source_key: "B4", school_name: "丸山小学校", district_id: "chushin", polygons: 1, type: "MultiPolygon" },
+      { source_key: "B9", school_name: "松尾小学校", district_id: null, polygons: 1, type: "MultiPolygon" },
     ]);
-    expect(await run("service_role", putSchools, replaceDistricts(TILES))).toEqual([{ inserted: 4 }]);
+    expect(await run("service_role", putSchools, replaceDistricts(TILES))).toEqual([{ inserted: 5 }]);
   });
 
   it("学区のない地区があれば、入れずに失敗する", async () => {
@@ -819,8 +821,8 @@ describe("学区・学校・保育施設（008）", () => {
     ).rejects.toThrow(/端まで届いている学区がある.*上郷小学校/);
   });
 
-  it("学校の点がまだなければ、入れずに失敗する。面でない形があっても失敗する", async () => {
-    await expect(run("service_role", replaceDistricts(TILES))).rejects.toThrow(/学区が1つもない/);
+  it("学区が1つもない・面でない形があるときは、入れずに失敗する", async () => {
+    await expect(run("service_role", putSchools, replaceDistricts([{ type: "FeatureCollection", features: [] }]))).rejects.toThrow(/学区が1つもない/);
     const withPoint = [{ type: "FeatureCollection", features: [piece("B1", "上郷小学校", { type: "Point", coordinates: [137.8, 35.5] })] }];
     await expect(run("service_role", putSchools, replaceDistricts(withPoint))).rejects.toThrow(/Polygon・MultiPolygon 以外/);
   });
@@ -832,7 +834,7 @@ describe("学区・学校・保育施設（008）", () => {
     }
   });
 
-  it("4つの出典にクレジットと対象年度が入り、画面に出せるまでは未公開にしておく", async () => {
+  it("国の4つの出典にクレジットと対象年度が入り、画面に出せるまでは未公開にしておく", async () => {
     const rows = await run<{ id: string; credit_text: string; period_label: string; is_published: boolean }>(
       "postgres",
       "select id, credit_text, period_label, is_published from data_sources where id like 'reinfolib_xkt%' order by id",
@@ -847,7 +849,7 @@ describe("学区・学校・保育施設（008）", () => {
 });
 
 describe("市の子育て施設（009）", () => {
-  it("4地区それぞれに保育施設と放課後児童クラブがあり、放課後児童クラブは別の種類になっている", async () => {
+  it("4地区それぞれに保育施設と放課後児童クラブがあり、放課後児童クラブは別の種類になっている。4地区の外の施設も地区なしで入っている", async () => {
     const rows = await run<{ district_id: string; childcare: number; clubs: number }>(
       "postgres",
       `select d.id as district_id,
@@ -865,6 +867,8 @@ describe("市の子育て施設（009）", () => {
       "select distinct subkind from facilities where source_id = 'iida_childcare' and kind = 'after_school_club'",
     );
     expect(subkinds).toEqual([{ subkind: "放課後児童クラブ" }]);
+    const outside = await run<{ n: number }>("postgres", "select count(*)::int as n from facilities where source_id = 'iida_childcare' and district_id is null");
+    expect(outside[0].n).toBeGreaterThan(0);
   });
 
   it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
@@ -892,5 +896,57 @@ describe("市の子育て施設（009）", () => {
     expect(rows[0].period_label).toMatch(/更新$/);
     expect(rows[0].checked_on).not.toBeNull();
     expect(rows[0].is_published).toBe(false);
+  });
+});
+
+describe("市の教育機関一覧（009・008）", () => {
+  it("4地区それぞれに小学校と中学校があり、4地区の外の学校も地区なしで入っている。こども園は入れない", async () => {
+    const rows = await run<{ district_id: string; elementary: number; junior_high: number }>(
+      "postgres",
+      `select d.id as district_id,
+         (select count(*)::int from facilities f where f.source_id = 'iida_education' and f.district_id = d.id and f.subkind = '小学校') as elementary,
+         (select count(*)::int from facilities f where f.source_id = 'iida_education' and f.district_id = d.id and f.subkind = '中学校') as junior_high
+       from districts d order by d.sort_order`,
+    );
+    for (const row of rows) {
+      expect(row.elementary, row.district_id).toBeGreaterThan(0);
+      expect(row.junior_high, row.district_id).toBeGreaterThan(0);
+    }
+    const others = await run<{ outside: number; kindergartens: number }>(
+      "postgres",
+      `select (select count(*)::int from facilities where source_id = 'iida_education' and district_id is null) as outside,
+              (select count(*)::int from facilities where source_id = 'iida_education' and (kind <> 'school' or subkind like '%こども園%')) as kindergartens`,
+    );
+    expect(others[0].outside).toBeGreaterThan(0);
+    expect(others[0].kindergartens).toBe(0);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_education_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_education_data.sql がない");
+    const count = "select count(*)::int as n from facilities where source_id = 'iida_education'";
+    await db.exec("begin");
+    try {
+      const before = (await db.query(count)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(count)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
+  it("出典に市の記載例どおりのクレジットが入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+      "postgres",
+      "select license, credit_text, period_label, is_published from data_sources where id = 'iida_education'",
+    );
+    expect(rows).toEqual([
+      {
+        license: "PDL1.0",
+        credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「教育機関一覧」（飯田市）/),
+        period_label: "更新日の記載なし",
+        is_published: false,
+      },
+    ]);
   });
 });

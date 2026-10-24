@@ -1,9 +1,11 @@
 // Worker からの通信（外部 API・Supabase・Discord）の共通処理（要件 7.2・9.3・8章の信頼性）。
-// どの通信も CallBudget から1回分を取ってから送る。Workers 無料プランの「1回の実行で外部への呼び出し50回まで」は
+// どの通信も CallBudget から1回分を取ってから送る。Workers の「1回の実行で外部への呼び出し◯回まで」は
 // 宛先を問わず数えられるので、外部 API と Supabase で同じ予算を分け合う
 
-// 無料プランの上限。リトライも1回と数える
-export const SUBREQUEST_LIMIT = 50;
+// 1回の実行で使う呼び出しの上限。リトライも1回と数える。
+// 2026-10-24 に Workers Paid にした（上限 10,000 回。無料プランは50回だった）。
+// 処理の誤りで呼び続けたときに早く止まるよう、今の使い方（多い日で学校の点の156タイル＋記録）より少し多い程度にしておく
+export const SUBREQUEST_LIMIT = 400;
 
 export class CallBudgetExceededError extends Error {
   constructor(limit: number, keep: number) {

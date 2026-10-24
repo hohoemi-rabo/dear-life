@@ -74,22 +74,22 @@ function nursery(overrides: Partial<ChildcareProperties> = {}): PointFeature<Chi
 }
 
 describe("タイル", () => {
-  it("学校・保育施設は z13 の12タイル、学区は z11 の6タイルを取る", () => {
-    expect(tilesOf(POINT_TILES)).toHaveLength(12);
-    expect(tilesOf(DISTRICT_TILES)).toHaveLength(6);
+  it("学校・保育施設は z13 の156タイル、学区は z11 の12タイルを取る", () => {
+    expect(tilesOf(POINT_TILES)).toHaveLength(156);
+    expect(tilesOf(DISTRICT_TILES)).toHaveLength(12);
     expect(tilesOf(DISTRICT_TILES)[0]).toEqual({ z: 11, x: 1807, y: 806 });
   });
 
-  it("タイルの範囲の経度・緯度を出す。4地区（経度 137.78〜137.86・緯度 35.47〜35.53 あたり）をおおう", () => {
-    const points = boundsOf(POINT_TILES);
-    expect(points.west).toBeCloseTo(137.7246, 3);
-    expect(points.east).toBeCloseTo(137.9004, 3);
-    expect(points.south).toBeCloseTo(35.4607, 3);
-    expect(points.north).toBeCloseTo(35.5679, 3);
-    const districts = boundsOf(DISTRICT_TILES);
-    expect(districts.west).toBeCloseTo(137.6367, 3);
-    expect(districts.north).toBeCloseTo(35.7465, 3);
-    expect(districts.south).toBeCloseTo(35.3174, 3);
+  it("タイルの範囲の経度・緯度を出す。飯田市全体（経度 137.69〜138.15・緯度 35.25〜35.66）をおおう", () => {
+    for (const range of [POINT_TILES, DISTRICT_TILES]) {
+      const bounds = boundsOf(range);
+      expect(bounds.west).toBeLessThan(137.69);
+      expect(bounds.east).toBeGreaterThan(138.15);
+      expect(bounds.south).toBeLessThan(35.25);
+      expect(bounds.north).toBeGreaterThan(35.66);
+    }
+    expect(boundsOf(POINT_TILES).west).toBeCloseTo(137.6367, 3);
+    expect(boundsOf(DISTRICT_TILES).south).toBeCloseTo(35.1738, 3);
   });
 });
 
@@ -143,7 +143,7 @@ describe("toSchoolRows", () => {
     expect(unmapped.size).toBe(0);
   });
 
-  it("ほかの市町村の学校と4地区の外の学校は入れず、対応表にない町名は出典を付けて記録する", async () => {
+  it("ほかの市町村の学校は入れず、4地区の外の学校は地区なしで入れる。対応表にない町名は出典を付けて記録する", async () => {
     const unmapped = new UnmappedTownCollector();
     const rows = toSchoolRows(
       [
@@ -154,7 +154,7 @@ describe("toSchoolRows", () => {
       resolveTown,
       unmapped,
     );
-    expect(rows).toEqual([]);
+    expect(rows).toEqual([expect.objectContaining({ source_key: "B2-00", town_name: "松尾城", district_id: null })]);
     const rpc = vi.fn(async () => null);
     await unmapped.flush({ rpc } as unknown as SupabaseRest, null);
     expect(rpc).toHaveBeenCalledWith("record_unmapped_towns", { p_source_id: "reinfolib_xkt006", p_town_names: ["南信濃和田"] });
@@ -274,11 +274,11 @@ async function runJob(context: JobContext) {
 }
 
 describe("schools", () => {
-  it("初回は学校だけを取り、12タイルの点を4地区に振り分けて入れ直し、取得日時を記録する", async () => {
+  it("初回は学校だけを取り、156タイルの点を地区に振り分けて入れ直し、取得日時を記録する", async () => {
     const world = fakeWorld({ fetched: {}, tileBody: (api, x, y) => (x === 7232 && y === 3230 ? { features: [school()] } : { features: [] }) });
     const result = await runJob(world.context);
 
-    expect(world.requests).toHaveLength(12);
+    expect(world.requests).toHaveLength(156);
     expect(world.requests.every((url) => url.pathname.endsWith("/XKT006") && url.searchParams.get("z") === "13")).toBe(true);
     expect(world.rpcs).toEqual([
       { fn: "replace_facilities", args: { p_source_id: "reinfolib_xkt006", p_rows: [expect.objectContaining({ name: "飯田市立丸山小学校" })] } },
@@ -296,26 +296,20 @@ describe("schools", () => {
     expect(world.rpcs.map((call) => call.fn)).toEqual(["replace_facilities"]);
   });
 
-  it("学区は飯田市にしぼって6タイルずつ取り、応答を読まずにつなげて小学校区・中学校区の順に渡す", async () => {
+  it("学区は飯田市にしぼって12タイルずつ取り、応答を読まずにつなげて小学校区・中学校区の順に渡す", async () => {
     const world = fakeWorld({
       fetched: { reinfolib_xkt006: "2026-10-23T18:00:00Z", reinfolib_xkt007: "2026-10-24T00:00:00Z" },
       tileBody: (api, x, y) => ({ type: "FeatureCollection", name: `${api}-${x}-${y}`, features: [] }),
     });
     const result = await runJob(world.context);
 
-    expect(world.requests).toHaveLength(12);
+    expect(world.requests).toHaveLength(24);
     expect(world.requests.every((url) => url.searchParams.get("administrativeAreaCode") === "20205" && url.searchParams.get("z") === "11")).toBe(true);
     expect(world.rpcs.map((call) => call.fn)).toEqual(["replace_school_districts", "replace_school_districts"]);
     const bodies = world.rpcs.map((call) => JSON.parse((call.args as RawJson).text));
     expect(bodies[0]).toMatchObject({ p_level: "elementary", p_source_id: "reinfolib_xkt004", p_bounds: boundsOf(DISTRICT_TILES) });
-    expect(bodies[0].p_tiles.map((tile: { name: string }) => tile.name)).toEqual([
-      "XKT004-1807-806",
-      "XKT004-1807-807",
-      "XKT004-1807-808",
-      "XKT004-1808-806",
-      "XKT004-1808-807",
-      "XKT004-1808-808",
-    ]);
+    expect(bodies[0].p_tiles).toHaveLength(12);
+    expect(bodies[0].p_tiles.slice(0, 2).map((tile: { name: string }) => tile.name)).toEqual(["XKT004-1807-806", "XKT004-1807-807"]);
     expect(bodies[1]).toMatchObject({ p_level: "junior_high", p_source_id: "reinfolib_xkt005" });
     expect(world.updates).toEqual([
       { table: "data_sources", filter: "id=in.(reinfolib_xkt004,reinfolib_xkt005)", patch: { fetched_at: "2026-10-24T18:00:00.000Z" } },

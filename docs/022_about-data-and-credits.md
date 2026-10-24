@@ -30,8 +30,8 @@
 - [ ] `data_sources` から出典一覧を出す
 - [ ] 除外した取引の件数と集計方法を出す
 - [ ] 画面にクレジットを出せるようになったら、`data_sources` の `reinfolib_xit001` の `is_published` を `true` にする（006 で行を入れ、約款の文言を `credit_text` に入れた。`false` のままだと相場 `market_stats` が anon から読めない）
-- [ ] 同じく `reinfolib_xkt004`〜`reinfolib_xkt006`（学区・学校、008）の `is_published` を `true` にする。クレジットは XIT001 と同じ約款の文言を入れた。国土数値情報としての出典表記が別に要るかを、公開前に確かめる。`reinfolib_xkt007`（保育施設）は公開しない（画面には市の `iida_childcare` を出す。009）
-- [ ] 市の `iida_childcare`（子育て施設、009）の `is_published` を `true` にする。クレジットは市の「PDL1.0に関する重要情報」の記載例どおりに入れた
+- [ ] 同じく `reinfolib_xkt004`・`reinfolib_xkt005`（学区、008）の `is_published` を `true` にする。クレジットは XIT001 と同じ約款の文言を入れた。国土数値情報としての出典表記が別に要るかを、公開前に確かめる。`reinfolib_xkt006`・`reinfolib_xkt007`（学校・保育施設）は公開しない（画面には市の `iida_education`・`iida_childcare` を出す。009）
+- [ ] 市の `iida_education`（教育機関一覧）・`iida_childcare`（子育て施設）の `is_published` を `true` にする（009）。クレジットは市の「PDL1.0に関する重要情報」の記載例どおりに入れた
 - [ ] クレジット文言をまとめて1か所で管理する（画面ごとに書き分けない）
   - 利用上の注意の文言は 002 で `src/lib/notices.ts` にまとめた。クレジットも同じように1か所に置く
 - [ ] 不動産情報ライブラリの約款の文言と一字ずつ照合する

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTownResolver } from "../town-district/resolve";
-import { buildChildcareCreditText, buildChildcareRows, buildChildcareSql, findOpenDataset } from "./childcare";
+import { buildChildcareCreditText, buildChildcareRows, buildChildcareSql } from "./childcare";
 
 const resolveTown = createTownResolver([
   { townName: "今宮町", cityDistrict: "中心市街地", districtId: "chushin" },
@@ -38,35 +38,16 @@ const line = (cells: Record<string, string>) => {
 };
 const csv = (...lines: string[]) => [HEADER, ...lines].join("\r\n");
 
-describe("findOpenDataset", () => {
-  const html = `<table>
-    <tr><th>分類</th><th>データ名</th><th>更新日</th><th>CSV</th></tr>
-    <tr><td>教育</td><td>教育機関一覧</td><td>—</td><td><a href="/uploaded/attachment/72005.csv">CSV（10KB）</a></td></tr>
-    <tr><td>教育</td><td><p>子育て施設</p></td><td>2024年11月5日</td><td><a href="/uploaded/attachment/72372.csv">CSV（30KB）</a></td></tr>
-  </table>`;
-
-  it("データ名の行から CSV の URL と更新日を取る。更新日がなければ null", () => {
-    expect(findOpenDataset(html, "子育て施設", "https://www.city.iida.lg.jp/soshiki/168/opendata.html")).toEqual({
-      csvUrl: "https://www.city.iida.lg.jp/uploaded/attachment/72372.csv",
-      updatedOn: "2024-11-05",
-    });
-    expect(findOpenDataset(html, "教育機関一覧", "https://www.city.iida.lg.jp/x.html").updatedOn).toBeNull();
-  });
-
-  it("行がなければ止める", () => {
-    expect(() => findOpenDataset(html, "避難場所", "https://www.city.iida.lg.jp/")).toThrow(/「避難場所」の行がない/);
-  });
-});
-
 describe("buildChildcareRows", () => {
-  it("4地区の施設を振り分け、年齢や時間などをまとめる。4地区の外は入れず、中身のない行は飛ばす", () => {
+  it("施設を地区に振り分け、年齢や時間などをまとめる。4地区の外は地区なしで入れ、中身のない行は飛ばす", () => {
     const result = buildChildcareRows(
       csv(line({}), line({ ID: "DD2020530002", 名称: "認定こども園座光寺保育園", 所在地_町字: "座光寺", 所在地_連結表記: "長野県飯田市座光寺1716番地" }), ",".repeat(19)),
       resolveTown,
     );
     expect(result.skipped).toBe(1);
     expect(result.unmappedTowns).toEqual([]);
-    expect(result.rows).toEqual([
+    expect(result.rows[1]).toMatchObject({ name: "認定こども園座光寺保育園", districtId: null, townName: "座光寺" });
+    expect(result.rows.slice(0, 1)).toEqual([
       {
         kind: "childcare",
         subkind: "認定こども園（保育所型）",
@@ -132,7 +113,7 @@ describe("buildChildcareSql", () => {
     expect(sql).toContain("'O''Kids'");
     expect(buildChildcareCreditText("2026-10-24")).toBe(
       "出典：飯田市（https://www.city.iida.lg.jp/soshiki/168/opendata.html）、PDL1.0（https://www.digital.go.jp/resources/open_data/public_data_license_v1.0）（2026年10月24日に利用）。" +
-        "「子育て施設」（飯田市）（https://www.city.iida.lg.jp/soshiki/168/opendata.html）を加工して作成（4地区の施設を抜き出し、同じ場所の行をまとめた）",
+        "「子育て施設」（飯田市）（https://www.city.iida.lg.jp/soshiki/168/opendata.html）を加工して作成（同じ場所の行をまとめた）",
     );
   });
 
