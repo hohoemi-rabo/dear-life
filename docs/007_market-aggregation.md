@@ -59,7 +59,8 @@
 - [×] 件数ラベルの判定を1か所にまとめる（SQL か TypeScript の共通関数）。11〜29件のラベルを提案する → `src/lib/count-label.ts` の `countLabel()` に決める。SQL は件数だけを持つ。11〜29件は「参考になる件数」に決定
 - [×] 集計結果が 5.1 の表と一致することを確かめるテスト（または検証 SQL）を作る → 関数の振る舞いは `src/test/supabase-migrations.test.ts`、本番の値は `supabase/verify/market_stats_5_1.sql`
 - [×] Worker の取り込み後に集計を呼ぶ
-- [ ] 本番の Cron（取り込みの次の日の 03:00 JST）で `refresh_market_stats` が呼ばれ、`ingest_runs` が成功になることを確かめる
+- [×] 定期取得 Worker を公開する（2026-10-24 15:42 JST、まさゆきさんが `npm run ingest:deploy`）
+- [ ] 本番の Cron（2026-10-25 03:00 JST）で `refresh_market_stats` が呼ばれ、`ingest_runs` が成功になることを確かめる
 
 ## 完了条件
 
