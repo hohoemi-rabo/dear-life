@@ -268,12 +268,12 @@ describe("町名→地区の対応表（004）", () => {
     return readFileSync(join(MIGRATIONS_DIR, file), "utf8");
   };
 
-  it("CSV の94町名が入り、4地区それぞれに町名がある", async () => {
+  it("CSV の95町名が入り、4地区それぞれに町名がある", async () => {
     const rows = await run<{ district_id: string | null; count: number }>(
       "anon",
       "select district_id, count(*)::int as count from town_district_map group by district_id order by district_id",
     );
-    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(94);
+    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(95);
     expect(rows.map((r) => r.district_id)).toEqual(["chushin", "igara", "kamisato", "kanae", null]);
   });
 
