@@ -42,7 +42,7 @@
 - [×] `data_sources` に出典・対象期間・取得日を記録する
   - 行（`reinfolib_xit001`）はマイグレーションで入れ、取り込んだ日に Worker が `fetched_at` と `period_label` を更新する。`is_published` は画面にクレジットを出せるようになるまで `false`（022 に Todo を足した）
 
-- [ ] 本番の Cron（03:00 JST）で `transactions` が `succeeded`・外部 API 1回で終わることを確かめる（本番の API キーが正しいことの確認を兼ねる。失敗すれば Discord に通知が来る）
+- [×] 本番の Cron（03:00 JST）で `transactions` が `succeeded`・外部 API 1回で終わることを確かめる（本番の API キーが正しいことの確認を兼ねる。失敗すれば Discord に通知が来る） → 2026-10-24 03:01 JST の Cron で `succeeded`・外部 API 1回・0件（新しい四半期なし）を確認（`ingest_runs` id 9）
 
 ## 作ったもの（2026-10-23）
 
