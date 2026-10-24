@@ -45,3 +45,6 @@ next-env.d.ts
 
 # mcp (may contain secrets)
 .mcp.json
+
+# local reference data (not committed; check licenses before use)
+/data/local/
