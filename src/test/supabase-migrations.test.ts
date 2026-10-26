@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { parseScreenData } from "../lib/data/screen-data";
 
 // supabase/migrations の SQL を手元の Postgres（PGlite）に当て、権限（要件 9.4）と入力の制約を確かめる。
 // 本番の Supabase と同じ「新しいテーブルに anon / authenticated の全権限が付く」既定を再現してから当てる
@@ -1055,5 +1056,166 @@ describe("市の公共施設一覧（009）", () => {
         is_published: false,
       },
     ]);
+  });
+});
+
+describe("画面が読むデータ screen_data（015）", () => {
+  type Section = { source_id: string; items: Record<string, unknown>[] };
+  type ScreenData = {
+    sources: { id: string }[];
+    districts: {
+      id: string;
+      market: Section;
+      elementary_school_districts: Section;
+      facilities: Record<string, Section>;
+      train_departures: Section;
+      population: Section;
+      bus_outing: Section;
+      train_outing: Section;
+      events: { season: string; name: string }[];
+    }[];
+    support_programs: { name: string }[];
+    scene_templates: { title: string; sentences: { body: string }[] }[];
+  };
+  const publish = (...ids: string[]) =>
+    `update data_sources set is_published = true where id in (${ids.map((id) => `'${id}'`).join(", ")})`;
+  // テスト用に最初に入れた出典（published_src など）は外し、マイグレーションの出典だけで確かめる
+  const screenData = async (...setup: string[]) =>
+    (
+      await run<{ data: ScreenData }>(
+        "anon",
+        "delete from data_sources where id in ('published_src', 'draft_src')",
+        ...setup,
+        "select public.screen_data() as data",
+      )
+    )[0].data;
+  const district = (data: ScreenData, id: string) => {
+    const found = data.districts.find((d) => d.id === id);
+    if (!found) throw new Error(`${id} がない`);
+    return found;
+  };
+
+  it("anon が実行できる関数は screen_data だけ", async () => {
+    const rows = await run<{ proname: string }>(
+      "postgres",
+      `select proname from pg_proc
+       where pronamespace = 'public'::regnamespace and has_function_privilege('anon', oid, 'execute') order by proname`,
+    );
+    expect(rows.map((r) => r.proname)).toEqual(["screen_data"]);
+    await expect(run("authenticated", "select public.screen_data()")).rejects.toThrow(/permission denied/);
+  });
+
+  it("出典がすべて未公開なら、4地区の欄は出典の id だけを持ち、中身は空（データ未取得）", async () => {
+    const data = await screenData();
+    expect(data.sources).toEqual([]);
+    expect(data.districts.map((d) => d.id)).toEqual(["kamisato", "kanae", "igara", "chushin"]);
+    const kanae = district(data, "kanae");
+    expect(kanae.market).toEqual({ source_id: "reinfolib_xit001", items: [] });
+    expect(Object.keys(kanae.facilities).sort()).toEqual(
+      ["after_school_clubs", "bus_stops", "childcare", "evacuation_sites", "public_facilities", "schools", "train_stations"].sort(),
+    );
+    expect(Object.values(kanae.facilities).every((s) => s.items.length === 0)).toBe(true);
+    expect(kanae.bus_outing).toEqual({ source_id: "gtfs_minamishinshu_bus", items: [] });
+  });
+
+  it("公開した出典のデータだけが入る。学校・保育施設は市のデータを出し、国土数値情報は公開しても入れない", async () => {
+    const data = await screenData(publish("iida_evacuation", "reinfolib_xkt006", "reinfolib_xkt007"));
+    expect(data.sources.map((s) => s.id)).toEqual(["iida_evacuation", "reinfolib_xkt006", "reinfolib_xkt007"]);
+    const kanae = district(data, "kanae");
+    expect(kanae.facilities.evacuation_sites.source_id).toBe("iida_evacuation");
+    expect(kanae.facilities.evacuation_sites.items.length).toBeGreaterThan(0);
+    expect(kanae.facilities.evacuation_sites.items[0]).toEqual({
+      name: expect.any(String),
+      subkind: expect.any(String),
+      address: expect.any(String),
+      hazards: expect.any(Array),
+    });
+    expect(kanae.facilities.schools).toEqual({ source_id: "iida_education", items: [] });
+    expect(kanae.facilities.childcare).toEqual({ source_id: "iida_childcare", items: [] });
+  });
+
+  it("相場・学区・人口・おでかけは、公開すると地区ごとに入る", async () => {
+    const data = await screenData(
+      publish("reinfolib_xit001", "reinfolib_xkt004", "estat_census_small_area", "gtfs_minamishinshu_bus"),
+      `insert into market_stats (district_id, category, period_from, period_to, sample_count, median_value, source_id)
+       values ('kanae', 'land', '2021Q1', '2026Q1', 3, 24000, 'reinfolib_xit001'),
+              ('kanae', 'house_built_within_20y', '2021Q1', '2026Q1', 0, null, 'reinfolib_xit001')`,
+      // 学区は定期取得の Worker が入れるので、マイグレーションには行がない
+      `insert into school_districts (level, school_name, geometry, source_id, source_key, district_id)
+       values ('elementary', '鼎小学校', '{"type": "MultiPolygon", "coordinates": []}', 'reinfolib_xkt004', 'x', 'kanae')`,
+    );
+    const kanae = district(data, "kanae");
+    expect(kanae.market.items).toEqual([
+      expect.objectContaining({ category: "land", sample_count: 3, median_value: 24000 }),
+      expect.objectContaining({ category: "house_built_within_20y", sample_count: 0, median_value: null }),
+    ]);
+    expect(kanae.elementary_school_districts).toEqual({ source_id: "reinfolib_xkt004", items: [{ school_name: "鼎小学校" }] });
+    expect(kanae.population.items).toEqual([expect.objectContaining({ as_of: "2020-10-01", total: expect.any(Number) })]);
+    expect(kanae.bus_outing.items).toEqual([expect.objectContaining({ origin_name: "鼎公民館前", destination_name: "飯田駅前" })]);
+  });
+
+  it("駅の本数は特急を除いて数え、伊賀良は駅も時刻もない（該当なし）", async () => {
+    const data = await screenData(publish("iida_jr_timetable", "sena_iida_line_stations"));
+    const counts = await run<{ district_id: string; station_name: string; direction: string; n: number; first: string; last: string }>(
+      "postgres",
+      `select district_id, station_name, direction, count(*)::int as n, min(departure) as first, max(departure) as last
+       from train_departures where train_type not like '特急%' group by 1, 2, 3`,
+    );
+    for (const id of ["kamisato", "kanae", "chushin"]) {
+      const expected = counts
+        .filter((c) => c.district_id === id)
+        .map((c) => ({ station_name: c.station_name, direction: c.direction, trips_per_day: c.n, first_departure: c.first, last_departure: c.last }));
+      expect(district(data, id).train_departures.items).toEqual(expect.arrayContaining(expected));
+      expect(district(data, id).train_departures.items).toHaveLength(expected.length);
+      expect(district(data, id).train_outing.items).toHaveLength(1);
+    }
+    const igara = district(data, "igara");
+    expect(igara.facilities.train_stations).toEqual({ source_id: "sena_iida_line_stations", items: [] });
+    expect(igara.train_departures).toEqual({ source_id: "iida_jr_timetable", items: [] });
+  });
+
+  it("行事・支援制度・ひな形は公開したものだけが入る", async () => {
+    const data = await screenData(
+      "update district_events set is_published = false",
+      `insert into district_events (district_id, name, season, timing_note, scope, source_note, checked_on, is_published) values
+         ('kanae', '公開の行事', '秋', '例年10月ごろ', '地区全体', 'テスト', '2026-10-22', true),
+         ('kanae', '下書きの行事', '秋', '例年10月ごろ', '地区全体', 'テスト', '2026-10-22', false)`,
+      `insert into scene_templates (season, title, reviewed_on, is_published) values
+         ('春', '公開', '2026-10-22', true), ('夏', '下書き', null, false)`,
+      `insert into scene_sentences (template_id, position, kind, body)
+         select id, 1, 'データ', '{地区名}には{件数}か所あります。' from scene_templates`,
+    );
+    expect(district(data, "kanae").events.map((e) => e.name)).toEqual(["公開の行事"]);
+    expect(district(data, "kamisato").events).toEqual([]);
+    expect(data.scene_templates).toEqual([
+      expect.objectContaining({ title: "公開", sentences: [expect.objectContaining({ body: "{地区名}には{件数}か所あります。" })] }),
+    ]);
+    const programs = await run<{ n: number }>("postgres", "select count(*)::int as n from support_programs where is_published");
+    expect(data.support_programs).toHaveLength(programs[0].n);
+  });
+
+  it("応答は画面の読み込み（parseScreenData）でそのまま読め、公開した出典のデータが地区ごとに入る", async () => {
+    const data = parseScreenData(
+      await screenData(
+        "update data_sources set is_published = true where id not in ('reinfolib_xkt006', 'reinfolib_xkt007')",
+        `insert into market_stats (district_id, category, period_from, period_to, sample_count, median_value, p25_value, p75_value, source_id)
+         values ('igara', 'land', '2021Q1', '2026Q1', 90, 12500, 4600, 19800, 'reinfolib_xit001')`,
+      ),
+      "2026-10-26",
+    );
+    expect(data.districtOrder).toEqual(["kamisato", "kanae", "igara", "chushin"]);
+    const igara = data.districts.igara;
+    expect(igara.market.land).toMatchObject({ status: "available", value: { median: 12500, p25: 4600, p75: 19800, sampleCount: 90 } });
+    expect(igara.market.house_built_over_20y).toEqual({ status: "unavailable" });
+    expect(igara.trainStations.status).toBe("none");
+    expect(igara.trainOuting).toEqual({ status: "unavailable" });
+    for (const id of data.districtOrder) {
+      const d = data.districts[id];
+      for (const state of [d.schools, d.childcare, d.afterSchoolClubs, d.evacuationSites, d.publicFacilities, d.busStops, d.population, d.busOuting]) {
+        expect(state.status, id).toBe("available");
+      }
+    }
+    expect(data.districts.kanae.busOuting).toMatchObject({ value: { originName: "鼎公民館前", dayType: "土曜" } });
+    expect(data.districts.kanae.trainOuting.status).toBe("available");
   });
 });

@@ -688,7 +688,7 @@ export type Database = {
       school_districts: {
         Row: {
           created_at: string
-          district_id: string
+          district_id: string | null
           geometry: Json
           id: number
           level: Database["public"]["Enums"]["school_level"]
@@ -699,7 +699,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          district_id: string
+          district_id: string | null
           geometry: Json
           id?: never
           level: Database["public"]["Enums"]["school_level"]
@@ -710,7 +710,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          district_id?: string
+          district_id?: string | null
           geometry?: Json
           id?: never
           level?: Database["public"]["Enums"]["school_level"]
@@ -816,6 +816,153 @@ export type Database = {
           },
         ]
       }
+      train_departures: {
+        Row: {
+          created_at: string
+          departure: string
+          direction: string
+          district_id: string
+          id: number
+          source_id: string
+          station_name: string
+          train_id: string
+          train_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          departure: string
+          direction: string
+          district_id: string
+          id?: never
+          source_id: string
+          station_name: string
+          train_id: string
+          train_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          departure?: string
+          direction?: string
+          district_id?: string
+          id?: never
+          source_id?: string
+          station_name?: string
+          train_id?: string
+          train_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_departures_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "train_departures_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      train_outings: {
+        Row: {
+          created_at: string
+          depart_after: string
+          destination_station_name: string
+          district_id: string
+          id: number
+          next_return_arrival: string | null
+          next_return_departure: string | null
+          next_return_train_type: string | null
+          origin_departures_per_day: number
+          origin_station_name: string
+          outbound_arrival: string | null
+          outbound_departure: string | null
+          outbound_train_type: string | null
+          outbound_trips_per_day: number
+          return_after: string
+          return_arrival: string | null
+          return_departure: string | null
+          return_train_type: string | null
+          return_trips_per_day: number
+          sort_order: number
+          source_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          depart_after: string
+          destination_station_name: string
+          district_id: string
+          id?: never
+          next_return_arrival?: string | null
+          next_return_departure?: string | null
+          next_return_train_type?: string | null
+          origin_departures_per_day: number
+          origin_station_name: string
+          outbound_arrival?: string | null
+          outbound_departure?: string | null
+          outbound_train_type?: string | null
+          outbound_trips_per_day: number
+          return_after: string
+          return_arrival?: string | null
+          return_departure?: string | null
+          return_train_type?: string | null
+          return_trips_per_day: number
+          sort_order: number
+          source_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          depart_after?: string
+          destination_station_name?: string
+          district_id?: string
+          id?: never
+          next_return_arrival?: string | null
+          next_return_departure?: string | null
+          next_return_train_type?: string | null
+          origin_departures_per_day?: number
+          origin_station_name?: string
+          outbound_arrival?: string | null
+          outbound_departure?: string | null
+          outbound_train_type?: string | null
+          outbound_trips_per_day?: number
+          return_after?: string
+          return_arrival?: string | null
+          return_departure?: string | null
+          return_train_type?: string | null
+          return_trips_per_day?: number
+          sort_order?: number
+          source_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_outings_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "train_outings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unmapped_towns: {
         Row: {
           first_seen_at: string
@@ -868,6 +1015,10 @@ export type Database = {
         Args: { p_source_id: string; p_town_names: string[] }
         Returns: undefined
       }
+      refresh_market_stats: {
+        Args: { p_period_from: string; p_period_to: string }
+        Returns: number
+      }
       replace_facilities: {
         Args: { p_rows: Json; p_source_id: string }
         Returns: number
@@ -885,6 +1036,7 @@ export type Database = {
         }
         Returns: number
       }
+      screen_data: { Args: never; Returns: Json }
     }
     Enums: {
       car_choice: "車なし" | "車あり・未選択"
