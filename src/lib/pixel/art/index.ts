@@ -1,10 +1,33 @@
 // 絵の id ごとの描き方。PNG の書き出し（scripts/build-pixel.mjs）とテストだけが使う
 import type { Canvas } from "../canvas.ts";
 import type { PixelAssetId } from "../assets.ts";
+import { BACKGROUND_HEIGHT, BACKGROUND_WIDTH, DIRT_TOP, seasonBackground } from "./backgrounds.ts";
 import { familyCanvas } from "./family.ts";
-import { springBackground } from "./spring.ts";
+import { bus, car, cultureFestival, festival, heavyRain, noticeBoard, nursery, publicFacility, school, shelter, sportsDay, train } from "./parts.ts";
 
 export const DRAW: Record<PixelAssetId, () => Canvas> = {
-  "bg-spring": springBackground,
+  "bg-spring": () => seasonBackground("spring"),
+  "bg-summer": () => seasonBackground("summer"),
+  "bg-autumn": () => seasonBackground("autumn"),
+  "bg-winter": () => seasonBackground("winter"),
+  "family-a1-c0": () => familyCanvas(1, 0),
+  "family-a1-c1": () => familyCanvas(1, 1),
+  "family-a1-c2": () => familyCanvas(1, 2),
+  "family-a1-c3": () => familyCanvas(1, 3),
+  "family-a2-c0": () => familyCanvas(2, 0),
   "family-a2-c1": () => familyCanvas(2, 1),
+  "family-a2-c2": () => familyCanvas(2, 2),
+  "family-a2-c3": () => familyCanvas(2, 3),
+  "facility-school": school,
+  "facility-nursery": nursery,
+  "facility-public": publicFacility,
+  "facility-shelter": shelter,
+  "event-festival": festival,
+  "event-sports": sportsDay,
+  "event-culture": cultureFestival,
+  "event-other": noticeBoard,
+  "vehicle-car": car,
+  "vehicle-bus": bus,
+  "vehicle-train": train,
+  "overlay-rain": () => heavyRain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT, DIRT_TOP),
 };

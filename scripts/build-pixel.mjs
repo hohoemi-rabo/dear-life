@@ -8,7 +8,7 @@ import { DRAW } from "../src/lib/pixel/art/index.ts";
 import { PIXEL_ASSETS } from "../src/lib/pixel/assets.ts";
 import { composeScene } from "../src/lib/pixel/compose.ts";
 import { encodePng } from "../src/lib/pixel/png.ts";
-import { PROTOTYPE_SPRING_SCENE } from "../src/lib/pixel/scenes.ts";
+import { placeInSlot } from "../src/lib/pixel/scenes.ts";
 
 const root = join(import.meta.dirname, "..");
 const outDir = join(root, "public/pixel");
@@ -35,5 +35,18 @@ for (const file of readdirSync(outDir)) {
   }
 }
 
-writeFileSync(join(previewDir, "scene-spring-prototype.png"), encodePng(composeScene(PROTOTYPE_SPRING_SCENE, DRAW), 4));
-console.log("確認用：.pixel-preview/scene-spring-prototype.png（4倍）");
+// 確認用の場面。実際の組み合わせは場面のひな形（017）が決める
+const previewScenes = {
+  "spring-children": [["bg-spring", "full"], ["event-festival", "fieldLeft"], ["facility-school", "fieldRight"], ["family-a2-c1", "family"]],
+  "spring-no-children": [["bg-spring", "full"], ["facility-nursery", "fieldLeft"], ["facility-public", "fieldRight"], ["family-a2-c0", "family"]],
+  "summer-rain": [["bg-summer", "full"], ["facility-shelter", "fieldRight"], ["family-a2-c3", "family"], ["overlay-rain", "full"]],
+  "autumn-events": [["bg-autumn", "full"], ["event-sports", "fieldLeft"], ["event-culture", "fieldRight"], ["family-a1-c2", "family"]],
+  "autumn-other": [["bg-autumn", "full"], ["event-other", "fieldLeft"], ["family-a1-c0", "family"]],
+  "winter-car": [["bg-winter", "full"], ["family-a2-c2", "family"], ["vehicle-car", "roadRight"]],
+  "winter-no-car": [["bg-winter", "full"], ["vehicle-train", "fieldRight"], ["family-a2-c3", "family"], ["vehicle-bus", "roadRight"]],
+};
+for (const [name, parts] of Object.entries(previewScenes)) {
+  const layers = parts.map(([asset, slot]) => placeInSlot(asset, slot));
+  writeFileSync(join(previewDir, `scene-${name}.png`), encodePng(composeScene(layers, DRAW), 4));
+}
+console.log(`確認用：.pixel-preview/ に部品（8倍）と場面${Object.keys(previewScenes).length}枚（4倍）`);
