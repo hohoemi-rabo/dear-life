@@ -34,7 +34,7 @@
   - [×] 子育て施設を取り込む → 2026-10-24。名前と種類を市に合わせ、市にだけある施設も載せる（まさゆきさんの判断）。「子育て施設の取り込み」
 - [×] PDL1.0 の出典表記を `data_sources` に入れる → 4つとも入れた（`iida_childcare`・`iida_education`・`iida_evacuation`・`iida_public_facilities`。公開フラグは 022 で立てる）
   - 子育て施設（`iida_childcare`）は入れた。書き方は市の「PDL1.0に関する重要情報」（`/uploaded/attachment/78773.pdf`）の記載例どおり：「出典：飯田市（ページの URL）、PDL1.0（規約の URL）（○年○月○日に利用）」と、「「データ名」（飯田市）（ページの URL）を加工して作成」。避難場所・公共施設も同じ形にする
-- [ ] （まさゆきさん）4地区の避難場所・公共施設の一覧と数を確かめる（Supabase の SQL エディタで `facilities` の `source_id` が `iida_evacuation`・`iida_public_facilities` の行。数は下の「取り込んだ結果」）
+- [×] （まさゆきさん）4地区の避難場所・公共施設の一覧と数を確かめる（Supabase の SQL エディタで `facilities` の `source_id` が `iida_evacuation`・`iida_public_facilities` の行。数は下の「取り込んだ結果」）→ 2026-10-26 まさゆきさんが確認し、問題なし。009 完了
 - [×] 自動取得か手動取り込みかを決め、年1回の手順を書く
   - 市の CSV は更新のたびに URL（`/uploaded/attachment/番号.csv`）が変わるので、4つとも手元のスクリプトにした。手順は下の2つの節
 
