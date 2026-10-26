@@ -48,3 +48,6 @@ next-env.d.ts
 
 # local reference data (not committed; check licenses before use)
 /data/local/
+
+# pixel art preview (npm run pixel)
+/.pixel-preview/
