@@ -268,12 +268,12 @@ describe("町名→地区の対応表（004）", () => {
     return readFileSync(join(MIGRATIONS_DIR, file), "utf8");
   };
 
-  it("CSV の95町名が入り、4地区それぞれに町名がある", async () => {
+  it("CSV の96町名が入り、4地区それぞれに町名がある", async () => {
     const rows = await run<{ district_id: string | null; count: number }>(
       "anon",
       "select district_id, count(*)::int as count from town_district_map group by district_id order by district_id",
     );
-    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(95);
+    expect(rows.reduce((sum, r) => sum + r.count, 0)).toBe(96);
     expect(rows.map((r) => r.district_id)).toEqual(["chushin", "igara", "kamisato", "kanae", null]);
   });
 
@@ -945,6 +945,113 @@ describe("市の教育機関一覧（009・008）", () => {
         license: "PDL1.0",
         credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「教育機関一覧」（飯田市）/),
         period_label: "更新日の記載なし",
+        is_published: false,
+      },
+    ]);
+  });
+});
+
+describe("市の指定緊急避難場所一覧（009）", () => {
+  it("4地区それぞれに避難場所があり、洪水・土砂災害の避難場所もある。4地区の外の避難場所も地区なしで入っている", async () => {
+    const rows = await run<{ district_id: string; sites: number; flood: number; landslide: number }>(
+      "postgres",
+      `select d.id as district_id,
+         count(f.id)::int as sites,
+         count(f.id) filter (where f.attributes->'hazards' ? 'flood')::int as flood,
+         count(f.id) filter (where f.attributes->'hazards' ? 'landslide')::int as landslide
+       from districts d
+       left join facilities f on f.district_id = d.id and f.source_id = 'iida_evacuation' and f.kind = 'evacuation_site'
+       group by d.id, d.sort_order order by d.sort_order`,
+    );
+    expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      expect(row.sites, row.district_id).toBeGreaterThan(0);
+      expect(row.flood, row.district_id).toBeGreaterThan(0);
+      expect(row.landslide, row.district_id).toBeGreaterThan(0);
+    }
+    const outside = await run<{ n: number }>("postgres", "select count(*)::int as n from facilities where source_id = 'iida_evacuation' and district_id is null");
+    expect(outside[0].n).toBeGreaterThan(0);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_evacuation_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_evacuation_data.sql がない");
+    const count = "select count(*)::int as n from facilities where source_id = 'iida_evacuation'";
+    await db.exec("begin");
+    try {
+      const before = (await db.query(count)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(count)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
+  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null; is_published: boolean }>(
+      "postgres",
+      "select license, credit_text, period_label, checked_on::text, is_published from data_sources where id = 'iida_evacuation'",
+    );
+    expect(rows).toEqual([
+      {
+        license: "PDL1.0",
+        credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「指定緊急避難場所一覧」（飯田市）/),
+        period_label: expect.stringMatching(/更新$/),
+        checked_on: expect.any(String),
+        is_published: false,
+      },
+    ]);
+  });
+});
+
+describe("市の公共施設一覧（009）", () => {
+  it("4地区それぞれに市役所・支所、公民館、図書館があり、市営住宅などの載せない種類は入っていない", async () => {
+    const rows = await run<{ district_id: string; offices: number; halls: number; libraries: number }>(
+      "postgres",
+      `select d.id as district_id,
+         (select count(*)::int from facilities f where f.source_id = 'iida_public_facilities' and f.district_id = d.id and f.subkind = '市役所・支所') as offices,
+         (select count(*)::int from facilities f where f.source_id = 'iida_public_facilities' and f.district_id = d.id and f.subkind = '公民館') as halls,
+         (select count(*)::int from facilities f where f.source_id = 'iida_public_facilities' and f.district_id = d.id and f.subkind = '図書館') as libraries
+       from districts d order by d.sort_order`,
+    );
+    expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      expect(row.offices, row.district_id).toBeGreaterThan(0);
+      expect(row.halls, row.district_id).toBeGreaterThan(0);
+      expect(row.libraries, row.district_id).toBeGreaterThan(0);
+    }
+    const others = await run<{ excluded: number; kinds: number }>(
+      "postgres",
+      `select (select count(*)::int from facilities where source_id = 'iida_public_facilities' and name ~ '市営住宅|調理場|給食センター|斎苑|最終処分場|^産業経済部') as excluded,
+              (select count(distinct kind)::int from facilities where source_id = 'iida_public_facilities') as kinds`,
+    );
+    expect(others[0]).toEqual({ excluded: 0, kinds: 1 });
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_public_facilities_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_public_facilities_data.sql がない");
+    const count = "select count(*)::int as n from facilities where source_id = 'iida_public_facilities'";
+    await db.exec("begin");
+    try {
+      const before = (await db.query(count)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(count)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+
+  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+      "postgres",
+      "select license, credit_text, period_label, is_published from data_sources where id = 'iida_public_facilities'",
+    );
+    expect(rows).toEqual([
+      {
+        license: "PDL1.0",
+        credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「公共施設一覧」（飯田市）/),
+        period_label: "2025年6月23日更新",
         is_published: false,
       },
     ]);

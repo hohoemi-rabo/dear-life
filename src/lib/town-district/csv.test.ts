@@ -12,8 +12,8 @@ function row(townName: string) {
 }
 
 describe("parseTownMapCsv（data/iida_district_map.csv）", () => {
-  it("95町名をすべて読み、4地区それぞれに町名がある", () => {
-    expect(rows).toHaveLength(95);
+  it("96町名をすべて読み、4地区それぞれに町名がある", () => {
+    expect(rows).toHaveLength(96);
     const ids = new Set(rows.map((r) => r.districtId));
     expect(ids).toEqual(new Set(["kamisato", "kanae", "igara", "chushin", null]));
   });
