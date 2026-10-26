@@ -2,7 +2,8 @@ import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { DRAW } from "./art";
 import { familyCanvas } from "./art/family";
-import { EVENT_ART_ASSET, PIXEL_ASSETS, familyAssetId, pixelAssetSrc, type PixelAssetId } from "./assets";
+import { withSnow } from "./art/landmarks";
+import { EVENT_ART_ASSET, PIXEL_ASSETS, landmarkAssetId, familyAssetId, pixelAssetSrc, type PixelAssetId } from "./assets";
 import { createCanvas, ditherRect, parseSprite, ridge, stamp, toRows } from "./canvas";
 import { composeScene } from "./compose";
 import { PALETTE } from "./palette";
@@ -122,6 +123,19 @@ describe("絵の一覧", () => {
     }
   });
 
+  it("4地区それぞれに、季節ごとの目印がある（冬は雪の積もった絵）", () => {
+    for (const district of ["kamisato", "kanae", "igara", "chushin"] as const) {
+      expect(landmarkAssetId(district, "spring")).toBe(`landmark-${district}`);
+      expect(landmarkAssetId(district, "winter")).toBe(`landmark-${district}-winter`);
+      for (const season of ["spring", "summer", "autumn", "winter"] as const) expect(PIXEL_ASSETS[landmarkAssetId(district, season)]).toBeDefined();
+    }
+  });
+
+  it("雪を載せると、上を向いた面が白くなり、透明なところは変わらない", () => {
+    const snowy = withSnow(parseSprite(["..g..", ".ggg.", "rgggk"]));
+    expect(toRows(snowy)).toEqual(["..w..", ".www.", "wwgww"]);
+  });
+
   it("行事の絵の種類（district_events.art）ごとに絵がある", () => {
     expect(Object.keys(EVENT_ART_ASSET)).toEqual(["祭り", "運動会", "文化祭", "その他"]);
     for (const id of Object.values(EVENT_ART_ASSET)) expect(PIXEL_ASSETS[id]).toBeDefined();
@@ -144,6 +158,7 @@ describe("場面", () => {
   // 置き場所ごとに置く部品
   const SLOT_ASSETS: Record<SceneSlot, (id: PixelAssetId) => boolean> = {
     full: (id) => id.startsWith("bg-") || id.startsWith("overlay-"),
+    landmark: (id) => id.startsWith("landmark-"),
     fieldLeft: (id) => id.startsWith("event-") || id.startsWith("facility-"),
     fieldRight: (id) => id.startsWith("event-") || id.startsWith("facility-") || id === "vehicle-train",
     family: (id) => id.startsWith("family-"),

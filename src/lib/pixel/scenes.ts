@@ -12,6 +12,8 @@ export const SCENE_HEIGHT = 90;
 export const SCENE_SLOTS = {
   // 背景・大雨など、場面全体に重ねるもの
   full: { centerX: 80, bottom: 90 },
+  // 奥の真ん中、家並みのあたり（地区の目印）。田畑の部品より先に重ねる
+  landmark: { centerX: 80, bottom: 60 },
   // 田畑の左（行事など）
   fieldLeft: { centerX: 44, bottom: 75 },
   // 田畑の右（施設・電車など）

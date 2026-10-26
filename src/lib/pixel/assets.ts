@@ -1,5 +1,7 @@
 // ドット絵の一覧。画面はここから大きさと代替テキストを読み、PNG は public/pixel/<id>.png にある（npm run pixel で書き出す）。
 // 描き方は art/index.ts。大きさが描いた絵と合っていることはテストで確かめる
+import type { DistrictId } from "../town-district/resolve.ts";
+
 export const PIXEL_DIR = "/pixel";
 
 export const PIXEL_ASSETS = {
@@ -31,6 +33,15 @@ export const PIXEL_ASSETS = {
   "vehicle-car": { width: 26, height: 14, alt: "屋根に雪の積もった車" },
   "vehicle-bus": { width: 42, height: 20, alt: "屋根に雪の積もった路線バス" },
   "vehicle-train": { width: 52, height: 22, alt: "線路を走る電車" },
+  // 地区の目印
+  "landmark-chushin": { width: 48, height: 20, alt: "赤い実の付いたりんご並木" },
+  "landmark-kanae": { width: 44, height: 20, alt: "すべり台とぶらんこのある公園" },
+  "landmark-igara": { width: 24, height: 26, alt: "風景画を載せた画架" },
+  "landmark-kamisato": { width: 60, height: 26, alt: "家並みの手前に見える緑の山" },
+  "landmark-chushin-winter": { width: 48, height: 20, alt: "雪の積もったりんご並木" },
+  "landmark-kanae-winter": { width: 44, height: 20, alt: "雪の積もったすべり台とぶらんこのある公園" },
+  "landmark-igara-winter": { width: 24, height: 26, alt: "雪の積もった、風景画を載せた画架" },
+  "landmark-kamisato-winter": { width: 60, height: 26, alt: "家並みの手前に見える、雪をかぶった山" },
   // 場面全体に重ねるもの
   "overlay-rain": { width: 160, height: 90, alt: "暗い雲と大雨、道の水たまり" },
 } as const satisfies Record<string, { width: number; height: number; alt: string }>;
@@ -44,6 +55,13 @@ export function pixelAssetSrc(id: PixelAssetId): string {
 // 家族の絵の id。人数の範囲は えらぶ画面の選択肢（014）に合わせる
 export function familyAssetId(adults: 1 | 2, children: 0 | 1 | 2 | 3): PixelAssetId {
   return `family-a${adults}-c${children}` as const;
+}
+
+export type Season = "spring" | "summer" | "autumn" | "winter";
+
+// 地区 → 目印（2026-10-26 にまさゆきさんが決めた）。冬は雪の積もった絵にする
+export function landmarkAssetId(district: DistrictId, season: Season): PixelAssetId {
+  return season === "winter" ? (`landmark-${district}-winter` as const) : (`landmark-${district}` as const);
 }
 
 // 行事の絵の種類（district_events.art）→ 絵

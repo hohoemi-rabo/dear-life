@@ -2,6 +2,7 @@
 // 4枚とも同じ地形・同じ並びで、季節ごとに色と木の種類だけを変える（場面の部品をどの季節でも同じ座標に置けるようにするため）。
 // 道（DIRT_TOP〜DIRT_BOTTOM）と、その上の田畑の真ん中は家族・行事・施設の部品を置く場所なので、木で埋めない
 import { createCanvas, ditherRect, fillBelow, fillCircle, fillRect, parseSprite, ridge, setPixel, stamp, type Canvas } from "../canvas.ts";
+import type { Season } from "../assets.ts";
 import type { ColorKey } from "../palette.ts";
 import { sequence } from "./sequence.ts";
 
@@ -10,7 +11,6 @@ export const BACKGROUND_HEIGHT = 90;
 export const DIRT_TOP = 76;
 export const DIRT_BOTTOM = 86;
 
-export type Season = "spring" | "summer" | "autumn" | "winter";
 
 const CLOUD = parseSprite([
   "....wwww......",

@@ -3,6 +3,7 @@ import type { Canvas } from "../canvas.ts";
 import type { PixelAssetId } from "../assets.ts";
 import { BACKGROUND_HEIGHT, BACKGROUND_WIDTH, DIRT_TOP, seasonBackground } from "./backgrounds.ts";
 import { familyCanvas } from "./family.ts";
+import { appleAvenue, easel, mountain, park, withSnow } from "./landmarks.ts";
 import { bus, car, cultureFestival, festival, heavyRain, noticeBoard, nursery, publicFacility, school, shelter, sportsDay, train } from "./parts.ts";
 
 export const DRAW: Record<PixelAssetId, () => Canvas> = {
@@ -29,5 +30,13 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   "vehicle-car": car,
   "vehicle-bus": bus,
   "vehicle-train": train,
+  "landmark-chushin": appleAvenue,
+  "landmark-kanae": park,
+  "landmark-igara": easel,
+  "landmark-kamisato": mountain,
+  "landmark-chushin-winter": () => withSnow(appleAvenue()),
+  "landmark-kanae-winter": () => withSnow(park()),
+  "landmark-igara-winter": () => withSnow(easel()),
+  "landmark-kamisato-winter": () => withSnow(mountain()),
   "overlay-rain": () => heavyRain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT, DIRT_TOP),
 };
