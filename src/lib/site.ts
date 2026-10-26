@@ -6,6 +6,9 @@ export const SITE_CATCHPHRASE = "家族に合わせて、飯田の暮らしを�
 export const TARGET_DISTRICTS_LABEL = "上郷・鼎・伊賀良・中心市街地";
 
 export const ABOUT_DATA_PATH = "/about-data";
+export const ERABU_PATH = "/erabu";
+export const KURASHI_PATH = "/kurashi";
+export const KARTE_PATH = "/karte";
 
 export type Step = {
   number: string;
@@ -15,7 +18,7 @@ export type Step = {
 
 // 基本の流れ「01 えらぶ → 02 くらしを見る → 03 カルテ」（要件 3章）
 export const STEPS: readonly Step[] = [
-  { number: "01", label: "えらぶ", path: "/erabu" },
-  { number: "02", label: "くらしを見る", path: "/kurashi" },
-  { number: "03", label: "カルテ", path: "/karte" },
+  { number: "01", label: "えらぶ", path: ERABU_PATH },
+  { number: "02", label: "くらしを見る", path: KURASHI_PATH },
+  { number: "03", label: "カルテ", path: KARTE_PATH },
 ];

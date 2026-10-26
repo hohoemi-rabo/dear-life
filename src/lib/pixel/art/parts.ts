@@ -5,13 +5,13 @@ import type { ColorKey } from "../palette.ts";
 import { sequence } from "./sequence.ts";
 
 // 墨の輪郭つきの四角
-function box(canvas: Canvas, x: number, y: number, width: number, height: number, fill: ColorKey): void {
+export function box(canvas: Canvas, x: number, y: number, width: number, height: number, fill: ColorKey): void {
   fillRect(canvas, x, y, width, height, "k");
   fillRect(canvas, x + 1, y + 1, width - 2, height - 2, fill);
 }
 
 // 窓を横に並べる
-function windows(canvas: Canvas, x: number, y: number, count: number, gap: number, glass: ColorKey = "s"): void {
+export function windows(canvas: Canvas, x: number, y: number, count: number, gap: number, glass: ColorKey = "s"): void {
   for (let i = 0; i < count; i++) {
     fillRect(canvas, x + i * gap, y, 3, 2, glass);
     setPixel(canvas, x + i * gap, y, "w");
@@ -19,7 +19,7 @@ function windows(canvas: Canvas, x: number, y: number, count: number, gap: numbe
 }
 
 // 三角屋根（上の頂点から左右に1ドットずつ広げる）
-function gableRoof(canvas: Canvas, cx: number, top: number, rows: number, fill: ColorKey): void {
+export function gableRoof(canvas: Canvas, cx: number, top: number, rows: number, fill: ColorKey): void {
   for (let i = 0; i < rows; i++) {
     fillRect(canvas, cx - i - 1, top + i, (i + 1) * 2, 1, fill);
     setPixel(canvas, cx - i - 1, top + i, "k");

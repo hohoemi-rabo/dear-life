@@ -1,11 +1,19 @@
-import { SITE_CATCHPHRASE, TARGET_DISTRICTS_LABEL } from "@/lib/site";
+import { ButtonLink } from "@/components/ui/Button";
+import { ERABU_PATH, SITE_CATCHPHRASE, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
-// 入口（01 えらぶ）は 016 で作る。それまでは共通レイアウトだけを出す
+// 入口。暮らし方を選ぶ「01 えらぶ」へつなぐ
 export default function Home() {
   return (
-    <section className="space-y-2">
+    <section className="mx-auto flex max-w-xl flex-col gap-4">
       <h1 className="text-2xl font-bold">{SITE_CATCHPHRASE}</h1>
-      <p className="text-ink-muted">{TARGET_DISTRICTS_LABEL}の4地区の暮らしを、準備しています。</p>
+      <p>
+        家族・地区・家・車を選ぶと、その条件で過ごす飯田の春夏秋冬をのぞけます。数字は公開データの本物を、出典つきで出します。登録はいりません。
+      </p>
+      <p className="text-sm font-bold">対象地区：{TARGET_DISTRICTS_LABEL}</p>
+      <ButtonLink href={ERABU_PATH} className="self-start">
+        暮らし方をえらぶ
+        <span aria-hidden="true">→</span>
+      </ButtonLink>
     </section>
   );
 }

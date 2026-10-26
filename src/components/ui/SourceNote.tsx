@@ -4,7 +4,8 @@ type SourceNoteProps = {
   source: string;
   // 対象時点（例：「2021年1Q〜2026年1Q」）
   period: string;
-  date: string;
+  // 出典の行に日付がないとき（データの不備）は、日付の行を出さない
+  date?: string | null;
   // 自動で取ったデータは取得日、手で確かめたデータは確認日（要件 7.2）
   dateKind?: "取得日" | "確認日";
 };
@@ -17,10 +18,14 @@ export function SourceNote({ source, period, date, dateKind = "確認日" }: Sou
       <dd>{source}</dd>
       <dt>対象</dt>
       <dd>{period}</dd>
-      <dt>{dateKind}</dt>
-      <dd>
-        <time dateTime={date}>{formatJaDate(date)}</time>
-      </dd>
+      {date && (
+        <>
+          <dt>{dateKind}</dt>
+          <dd>
+            <time dateTime={date}>{formatJaDate(date)}</time>
+          </dd>
+        </>
+      )}
     </dl>
   );
 }

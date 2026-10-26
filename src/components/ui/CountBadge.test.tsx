@@ -14,3 +14,11 @@ describe("CountBadge", () => {
     expect(screen.getByText("件数少なめ・参考程度")).toBeInTheDocument();
   });
 });
+
+describe("CountBadge（alwaysFew）", () => {
+  it("件数が多くても「件数少なめ・参考程度」にする", () => {
+    render(<CountBadge count={12} alwaysFew />);
+    expect(screen.getByText("12件")).toBeInTheDocument();
+    expect(screen.getByText("件数少なめ・参考程度")).toBeInTheDocument();
+  });
+});

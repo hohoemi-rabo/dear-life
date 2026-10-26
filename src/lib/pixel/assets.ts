@@ -33,6 +33,10 @@ export const PIXEL_ASSETS = {
   "vehicle-car": { width: 26, height: 14, alt: "屋根に雪の積もった車" },
   "vehicle-bus": { width: 42, height: 20, alt: "屋根に雪の積もった路線バス" },
   "vehicle-train": { width: 52, height: 22, alt: "線路を走る電車" },
+  // 家の種類（えらぶ画面の「家」の選択肢）
+  "house-new": { width: 32, height: 24, alt: "白い壁と大きな窓の、片流れ屋根の2階建ての家" },
+  "house-old": { width: 32, height: 24, alt: "瓦屋根と障子の窓の、木造の平屋" },
+  "house-rent": { width: 32, height: 24, alt: "外に階段のある3階建てのアパート" },
   // 地区の目印
   "landmark-chushin": { width: 48, height: 20, alt: "赤い実の付いたりんご並木" },
   "landmark-kanae": { width: 44, height: 20, alt: "すべり台とぶらんこのある公園" },
