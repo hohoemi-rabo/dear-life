@@ -3,9 +3,8 @@
 // 不動産情報ライブラリの XKT006（008）は公開せず、市のデータの抜けを確かめるのに使う。
 // 学区（school_districts）は、学区の学校コードをここで入れた学校に当てて地区を決める（2026-10-24 まさゆきさんと決定）
 import { parseCsv } from "../gtfs/csv.ts";
-import { sqlJson, sqlLiteral } from "../sql.ts";
 import { townNameForRecord, type DistrictId, type TownMapEntry } from "../town-district/resolve.ts";
-import { buildCityCreditText, buildPeriodLabel } from "./open-data.ts";
+import { buildCityCreditText, buildCityFacilitiesSql, type CityFacilitiesSqlInput } from "./open-data.ts";
 
 export const EDUCATION_SOURCE_ID = "iida_education";
 export const EDUCATION_DATASET_NAME = "教育機関一覧";
@@ -101,48 +100,16 @@ export function buildEducationCreditText(usedOn: string): string {
   return buildCityCreditText(EDUCATION_DATASET_NAME, usedOn, "幼保連携型認定こども園を除いた");
 }
 
-export type EducationSqlInput = {
-  rows: readonly SchoolRow[];
-  csvUrl: string;
-  updatedOn: string | null;
-  usedOn: string;
-};
+export type EducationSqlInput = Pick<CityFacilitiesSqlInput<SchoolRow>, "rows" | "csvUrl" | "updatedOn" | "usedOn">;
 
-// 学校と出典を、この取り込みの中身にそろえる SQL。何度当てても同じ結果になる
-export function buildEducationSql({ rows, csvUrl, updatedOn, usedOn }: EducationSqlInput): string {
-  if (rows.length === 0) throw new Error("学校が0件で、SQL を作れない");
-  const source = sqlLiteral(EDUCATION_SOURCE_ID);
-  const values = rows
-    .map((row) =>
-      [
-        "'school'::public.facility_kind",
-        sqlLiteral(row.subkind),
-        sqlLiteral(row.name),
-        sqlLiteral(row.address),
-        sqlLiteral(row.townName),
-        sqlLiteral(row.districtId),
-        String(row.lat),
-        String(row.lon),
-        source,
-        sqlLiteral(row.sourceKey),
-        sqlJson(row.attributes),
-      ].join(", "),
-    )
-    .map((tuple) => `  (${tuple})`)
-    .join(",\n");
-
-  return `-- 009 飯田市オープンデータ「${EDUCATION_DATASET_NAME}」の学校を、市の CSV にそろえる。
--- このファイルは npm run education:sql で作る。手で編集しない（手順は docs/009_ingest-city-opendata.md）
--- CSV：${csvUrl}
-
-update public.data_sources set
-  credit_text = ${sqlLiteral(buildEducationCreditText(usedOn))},
-  period_label = ${sqlLiteral(buildPeriodLabel(updatedOn))},
-  checked_on = ${sqlLiteral(usedOn)}::date
-where id = ${source};
-
-delete from public.facilities where source_id = ${source};
-insert into public.facilities (kind, subkind, name, address, town_name, district_id, latitude, longitude, source_id, source_key, attributes) values
-${values};
-`;
+export function buildEducationSql(input: EducationSqlInput): string {
+  return buildCityFacilitiesSql({
+    sourceId: EDUCATION_SOURCE_ID,
+    datasetName: EDUCATION_DATASET_NAME,
+    noun: "学校",
+    command: "education:sql",
+    creditText: buildEducationCreditText(input.usedOn),
+    kindOf: () => "school",
+    ...input,
+  });
 }

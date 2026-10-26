@@ -2,9 +2,8 @@
 // 市全体の保育施設・放課後児童クラブなどを facilities に入れる（4地区の外は地区なし）。画面にはこちらを出し、
 // 不動産情報ライブラリの XKT007（008）は公開せず、市のデータの抜けを確かめるのに使う（2026-10-24 まさゆきさんと決定）
 import { parseCsv, type CsvRecord } from "../gtfs/csv.ts";
-import { sqlJson, sqlLiteral } from "../sql.ts";
 import { townNameForRecord, type DistrictId, type TownMapEntry } from "../town-district/resolve.ts";
-import { IIDA_LG_CODE, buildCityCreditText, buildPeriodLabel } from "./open-data.ts";
+import { IIDA_LG_CODE, buildCityCreditText, buildCityFacilitiesSql, type CityFacilitiesSqlInput } from "./open-data.ts";
 
 export const CHILDCARE_SOURCE_ID = "iida_childcare";
 export const CHILDCARE_DATASET_NAME = "子育て施設";
@@ -127,51 +126,16 @@ export function buildChildcareCreditText(usedOn: string): string {
   return buildCityCreditText(CHILDCARE_DATASET_NAME, usedOn, "同じ場所の行をまとめた");
 }
 
-export type ChildcareSqlInput = {
-  rows: readonly ChildcareRow[];
-  csvUrl: string;
-  // 市のページに書かれた更新日。書かれていなければ null
-  updatedOn: string | null;
-  // 取り込んだ日（YYYY-MM-DD）
-  usedOn: string;
-};
+export type ChildcareSqlInput = Pick<CityFacilitiesSqlInput<ChildcareRow>, "rows" | "csvUrl" | "updatedOn" | "usedOn">;
 
-// 子育て施設と出典を、この取り込みの中身にそろえる SQL。何度当てても同じ結果になる
-export function buildChildcareSql({ rows, csvUrl, updatedOn, usedOn }: ChildcareSqlInput): string {
-  // 空のまま当てると今ある施設を消してしまうので止める
-  if (rows.length === 0) throw new Error("子育て施設が0件で、SQL を作れない");
-  const source = sqlLiteral(CHILDCARE_SOURCE_ID);
-  const values = rows
-    .map((row) =>
-      [
-        `'${row.kind}'::public.facility_kind`,
-        sqlLiteral(row.subkind),
-        sqlLiteral(row.name),
-        sqlLiteral(row.address),
-        sqlLiteral(row.townName),
-        sqlLiteral(row.districtId),
-        String(row.lat),
-        String(row.lon),
-        source,
-        sqlLiteral(row.sourceKey),
-        sqlJson(row.attributes),
-      ].join(", "),
-    )
-    .map((tuple) => `  (${tuple})`)
-    .join(",\n");
-
-  return `-- 009 飯田市オープンデータ「${CHILDCARE_DATASET_NAME}」の施設を、市の CSV にそろえる。
--- このファイルは npm run childcare:sql で作る。手で編集しない（手順は docs/009_ingest-city-opendata.md）
--- CSV：${csvUrl}
-
-update public.data_sources set
-  credit_text = ${sqlLiteral(buildChildcareCreditText(usedOn))},
-  period_label = ${sqlLiteral(buildPeriodLabel(updatedOn))},
-  checked_on = ${sqlLiteral(usedOn)}::date
-where id = ${source};
-
-delete from public.facilities where source_id = ${source};
-insert into public.facilities (kind, subkind, name, address, town_name, district_id, latitude, longitude, source_id, source_key, attributes) values
-${values};
-`;
+export function buildChildcareSql(input: ChildcareSqlInput): string {
+  return buildCityFacilitiesSql({
+    sourceId: CHILDCARE_SOURCE_ID,
+    datasetName: CHILDCARE_DATASET_NAME,
+    noun: "施設",
+    command: "childcare:sql",
+    creditText: buildChildcareCreditText(input.usedOn),
+    kindOf: (row) => row.kind,
+    ...input,
+  });
 }
