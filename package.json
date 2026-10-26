@@ -20,7 +20,8 @@
     "childcare:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-childcare-sql.mjs",
     "education:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-education-sql.mjs",
     "evacuation:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-evacuation-sql.mjs",
-    "public-facilities:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-public-facilities-sql.mjs"
+    "public-facilities:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-public-facilities-sql.mjs",
+    "population:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-population-sql.mjs"
   },
   "dependencies": {
     "next": "15.5.28",
