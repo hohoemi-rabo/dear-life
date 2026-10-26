@@ -60,7 +60,7 @@
 - [×] 集計結果が 5.1 の表と一致することを確かめるテスト（または検証 SQL）を作る → 関数の振る舞いは `src/test/supabase-migrations.test.ts`、本番の値は `supabase/verify/market_stats_5_1.sql`
 - [×] Worker の取り込み後に集計を呼ぶ
 - [×] 定期取得 Worker を公開する（2026-10-24 15:42 JST、まさゆきさんが `npm run ingest:deploy`）
-- [ ] 本番の Cron（2026-10-25 03:00 JST）で `refresh_market_stats` が呼ばれ、`ingest_runs` が成功になることを確かめる
+- [×] 本番の Cron（2026-10-25 03:00 JST）で `refresh_market_stats` が呼ばれ、`ingest_runs` が成功になることを確かめる → 2026-10-26 に確認。10-25・10-26 の Cron とも transactions は成功（外部 API 1回・0行）。`market_stats` の12行の `computed_at` は 10-26 の Cron の transactions の実行中（03:36:33 JST）に新しくなり、`market_stats_5_1.sql` は0行のまま
 
 ## 完了条件
 
