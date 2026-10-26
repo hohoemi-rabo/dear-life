@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTownResolver } from "../town-district/resolve";
-import { buildEvacuationCreditText, buildEvacuationRows, buildEvacuationSql } from "./evacuation";
+import { buildEvacuationCreditText, buildEvacuationRows, buildEvacuationSql, parseEvacuationPoints } from "./evacuation";
 
 const resolveTown = createTownResolver([
   { townName: "小伝馬町", cityDistrict: "中心市街地", districtId: "chushin" },
@@ -9,6 +9,7 @@ const resolveTown = createTownResolver([
   { townName: "座光寺", cityDistrict: "座光寺", districtId: null },
 ]);
 const noTowns = new Map<string, { townName: string }>();
+const noPoints = new Map<string, { lat: number; lon: number }>();
 
 const HEADER =
   "全国地方公共団体コード,ID,名称,所在地_全国地方公共団体コード,所在地_連結表記,所在地_町字,所在地_番地以下,緯度,経度,災害種別_洪水,災害種別_崖崩れ、土石流及び地滑り,災害種別_高潮,災害種別_地震,災害種別_津波,災害種別_大規模な火事,災害種別_内水氾濫,災害種別_火山現象,指定避難所との重複,想定収容人数";
@@ -48,7 +49,7 @@ describe("buildEvacuationRows", () => {
         ",".repeat(18),
       ),
       resolveTown,
-      noTowns,
+      noTowns, noPoints,
     );
     expect(result).toMatchObject({ skipped: 1, unmappedTowns: [], missingCoordinates: [] });
     expect(result.rows).toEqual([
@@ -76,7 +77,7 @@ describe("buildEvacuationRows", () => {
   });
 
   it("同じ名前・同じ場所が別の ID で2回載っていたら1か所にまとめる", () => {
-    const { rows } = buildEvacuationRows(csv(line({}), line({ ID: "CC2020530065" })), resolveTown, noTowns);
+    const { rows } = buildEvacuationRows(csv(line({}), line({ ID: "CC2020530065" })), resolveTown, noTowns, noPoints);
     expect(rows).toHaveLength(1);
     expect(rows[0].attributes.ids).toEqual(["CC2020530001", "CC2020530065"]);
   });
@@ -85,30 +86,43 @@ describe("buildEvacuationRows", () => {
     const { rows } = buildEvacuationRows(
       csv(line({ 名称: "風越公園（妙琴）", 所在地_町字: "鼎切石", 緯度: "", 経度: "" })),
       resolveTown,
-      noTowns,
+      noTowns, noPoints,
     );
     expect(rows[0]).toMatchObject({ districtId: "kanae", lat: null, lon: null });
   });
 
+  it("緯度経度のない避難場所は、補う位置があれば使い、印を付ける。市の CSV に位置が載ったら補う位置を消すよう止める", () => {
+    const points = parseEvacuationPoints("ID,名称,緯度,経度,メモ\r\nCC2020530107,八幡公園,35.4966477,137.8333872,確認済み");
+    const record = line({ ID: "CC2020530107", 名称: "八幡公園", 緯度: "", 経度: "" });
+    expect(buildEvacuationRows(csv(record), resolveTown, noTowns, points).rows[0]).toMatchObject({
+      lat: 35.4966477,
+      lon: 137.8333872,
+      attributes: { point_supplemented: true },
+    });
+    expect(buildEvacuationRows(csv(line({})), resolveTown, noTowns, noPoints).rows[0].attributes).not.toHaveProperty("point_supplemented");
+    expect(() => buildEvacuationRows(csv(line({ ID: "CC2020530107" })), resolveTown, noTowns, points)).toThrow(/evacuation_points\.csv から消す/);
+    expect(() => parseEvacuationPoints("ID,名称,緯度,経度,メモ\nCC1,x,,137,")).toThrow(/読めない/);
+  });
+
   it("町字が空の行は、緯度経度から引いた町名で振り分ける。まだ引いていない位置は返す", () => {
     const record = line({ 名称: "並木通り", 所在地_町字: "", 所在地_連結表記: "長野県飯田市", 緯度: "35.51477", 経度: "137.82478" });
-    expect(buildEvacuationRows(csv(record), resolveTown, noTowns)).toMatchObject({ rows: [], missingCoordinates: ["35.51477,137.82478"] });
+    expect(buildEvacuationRows(csv(record), resolveTown, noTowns, noPoints)).toMatchObject({ rows: [], missingCoordinates: ["35.51477,137.82478"] });
     const towns = new Map([["35.51477,137.82478", { townName: "知久町二丁目" }]]);
-    expect(buildEvacuationRows(csv(record), resolveTown, towns).rows[0]).toMatchObject({ townName: "知久町", districtId: "chushin" });
-    expect(() => buildEvacuationRows(csv(line({ 所在地_町字: "", 緯度: "", 経度: "" })), resolveTown, noTowns)).toThrow(/地区を決められない/);
+    expect(buildEvacuationRows(csv(record), resolveTown, towns, noPoints).rows[0]).toMatchObject({ townName: "知久町", districtId: "chushin" });
+    expect(() => buildEvacuationRows(csv(line({ 所在地_町字: "", 緯度: "", 経度: "" })), resolveTown, noTowns, noPoints)).toThrow(/地区を決められない/);
   });
 
   it("対応表にない町名は集めて返す。飯田市以外の避難場所や、読めない値があれば止める", () => {
-    expect(buildEvacuationRows(csv(line({ 所在地_町字: "水の手町" })), resolveTown, noTowns).unmappedTowns).toEqual(["水の手町"]);
-    expect(() => buildEvacuationRows(csv(line({ 所在地_全国地方公共団体コード: "204072" })), resolveTown, noTowns)).toThrow(/飯田市の避難場所になっていない/);
-    expect(() => buildEvacuationRows(csv(line({ 災害種別_洪水: "○" })), resolveTown, noTowns)).toThrow(/1 でも空でもない/);
-    expect(() => buildEvacuationRows(csv(line({ 想定収容人数: "約200人" })), resolveTown, noTowns)).toThrow(/想定収容人数が読めない/);
+    expect(buildEvacuationRows(csv(line({ 所在地_町字: "水の手町" })), resolveTown, noTowns, noPoints).unmappedTowns).toEqual(["水の手町"]);
+    expect(() => buildEvacuationRows(csv(line({ 所在地_全国地方公共団体コード: "204072" })), resolveTown, noTowns, noPoints)).toThrow(/飯田市の避難場所になっていない/);
+    expect(() => buildEvacuationRows(csv(line({ 災害種別_洪水: "○" })), resolveTown, noTowns, noPoints)).toThrow(/1 でも空でもない/);
+    expect(() => buildEvacuationRows(csv(line({ 想定収容人数: "約200人" })), resolveTown, noTowns, noPoints)).toThrow(/想定収容人数が読めない/);
   });
 });
 
 describe("buildEvacuationSql", () => {
   it("市の記載例どおりのクレジットと、更新日・確認日を入れ、避難場所を入れ直す。緯度経度がなければ null にする", () => {
-    const { rows } = buildEvacuationRows(csv(line({ 名称: "O'Hall", 緯度: "", 経度: "" })), resolveTown, noTowns);
+    const { rows } = buildEvacuationRows(csv(line({ 名称: "O'Hall", 緯度: "", 経度: "" })), resolveTown, noTowns, noPoints);
     const sql = buildEvacuationSql({ rows, csvUrl: "https://www.city.iida.lg.jp/uploaded/attachment/78765.csv", updatedOn: "2025-12-19", usedOn: "2026-10-26" });
     expect(sql).toContain("period_label = '2025年12月19日更新'");
     expect(sql).toContain("checked_on = '2026-10-26'::date");
@@ -117,7 +131,7 @@ describe("buildEvacuationSql", () => {
     expect(sql).toContain("'chushin', null, null, 'iida_evacuation'");
     expect(buildEvacuationCreditText("2026-10-26")).toBe(
       "出典：飯田市（https://www.city.iida.lg.jp/soshiki/168/opendata.html）、PDL1.0（https://www.digital.go.jp/resources/open_data/public_data_license_v1.0）（2026年10月26日に利用）。" +
-        "「指定緊急避難場所一覧」（飯田市）（https://www.city.iida.lg.jp/soshiki/168/opendata.html）を加工して作成（同じ場所の行をまとめた）",
+        "「指定緊急避難場所一覧」（飯田市）（https://www.city.iida.lg.jp/soshiki/168/opendata.html）を加工して作成（同じ場所の行をまとめ、緯度経度のない一部の場所に位置を補った）",
     );
   });
 

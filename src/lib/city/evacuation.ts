@@ -30,7 +30,7 @@ export type EvacuationRow = {
   townName: string;
   // 4地区の外は null
   districtId: DistrictId | null;
-  // 市の CSV に緯度経度がない場所は null（地図には出さず、一覧にだけ出す）
+  // 市の CSV に緯度経度がなく、補った位置（data/evacuation_points.csv）もない場所は null（地図には出さず、一覧にだけ出す）
   lat: number | null;
   lon: number | null;
   sourceKey: string;
@@ -42,8 +42,24 @@ export type EvacuationRow = {
     capacity?: number;
     // 「4平方メートルあたり1人」のような、収容人数の数え方
     capacity_note?: string;
+    // 位置が市の CSV になく、data/evacuation_points.csv で補った
+    point_supplemented?: true;
   };
 };
+
+// 市の CSV に緯度経度がない避難場所に補う位置（ID → 位置）
+export type SupplementedPoints = ReadonlyMap<string, { lat: number; lon: number }>;
+
+// data/evacuation_points.csv（ID,名称,緯度,経度,メモ）を読む
+export function parseEvacuationPoints(csvText: string): SupplementedPoints {
+  return new Map(
+    parseCsv(csvText).map((record) => {
+      const point = coordinates(record);
+      if (!record["ID"] || point === null) throw new Error(`補う位置の行が読めない（${record["名称"]}）`);
+      return [record["ID"], point];
+    }),
+  );
+}
 
 function present(value: string | undefined): string | undefined {
   const trimmed = value?.trim() ?? "";
@@ -78,6 +94,7 @@ export function buildEvacuationRows(
   csvText: string,
   resolveTown: (address: string) => TownMapEntry | null,
   coordinateTowns: ReadonlyMap<string, { townName: string }>,
+  supplementedPoints: SupplementedPoints,
 ): { rows: EvacuationRow[]; unmappedTowns: string[]; missingCoordinates: string[]; skipped: number } {
   const groups = new Map<string, CsvRecord[]>();
   let skipped = 0;
@@ -98,7 +115,13 @@ export function buildEvacuationRows(
   const missingCoordinates = new Set<string>();
   for (const records of groups.values()) {
     const [first] = records;
-    const point = coordinates(first);
+    const csvPoint = coordinates(first);
+    const supplemented = supplementedPoints.get(first["ID"]);
+    // 市の CSV に位置が載ったら、補った位置は使わない（古いまま残らないよう、消し忘れに気づけるようにする）
+    if (csvPoint !== null && supplemented !== undefined) {
+      throw new Error(`${first["名称"]} は市の CSV に緯度経度が載ったので、data/evacuation_points.csv から消す`);
+    }
+    const point = csvPoint ?? supplemented ?? null;
     let town = present(first["所在地_町字"]);
     if (town === undefined) {
       if (point === null) throw new Error(`${first["名称"]} は町字も緯度経度もなく、地区を決められない`);
@@ -130,6 +153,7 @@ export function buildEvacuationRows(
         hazards: (Object.keys(HAZARD_COLUMNS) as Hazard[]).filter((hazard) => flag(first, HAZARD_COLUMNS[hazard])),
         also_shelter: flag(first, "指定避難所との重複"),
         ...capacityOf(first),
+        ...(supplemented ? { point_supplemented: true as const } : {}),
       },
     });
   }
@@ -137,7 +161,7 @@ export function buildEvacuationRows(
 }
 
 export function buildEvacuationCreditText(usedOn: string): string {
-  return buildCityCreditText(EVACUATION_DATASET_NAME, usedOn, "同じ場所の行をまとめた");
+  return buildCityCreditText(EVACUATION_DATASET_NAME, usedOn, "同じ場所の行をまとめ、緯度経度のない一部の場所に位置を補った");
 }
 
 export type EvacuationSqlInput = Pick<CityFacilitiesSqlInput<EvacuationRow>, "rows" | "csvUrl" | "updatedOn" | "usedOn">;

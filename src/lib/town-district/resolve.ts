@@ -33,8 +33,9 @@ function toMatchKey(text: string): string {
   return text.replace(/ノ/g, "の").replace(/龍/g, "竜").replace(/嶋/g, "島").replace(/通り/g, "通");
 }
 
-// 番地・丁目・枝番の始まり。「三日市場」「二本松」のように町名に漢数字があるので、漢数字は丁目・番の前だけ見る
-const BLOCK_NUMBER_START = /\d|[一二三四五六七八九十]*(?:丁目|番)|-/;
+// 番地・丁目・枝番の始まり。「三日市場」「二本松」のように町名に漢数字があるので、漢数字は丁目・番の前だけ見る。
+// 漢数字の「二」がカタカナの「ニ」で書かれていることがある（市「指定緊急避難場所一覧」の「追手町ニ丁目」）
+const BLOCK_NUMBER_START = /\d|[一二三四五六七八九十ニ]*(?:丁目|番)|-/;
 
 // 対応表にない町名を記録するときの名前。番地より前を町名とみなす
 export function townNameForRecord(address: string): string {
