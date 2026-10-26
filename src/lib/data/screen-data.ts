@@ -154,6 +154,10 @@ export type SceneSentence = {
   has_children: boolean | null;
   car: Enums["car_choice"] | null;
   housing: Enums["housing_choice"] | null;
+  // 差し込む値が「該当なし」のときに代わりに出す本文（017）
+  fallback_body: string | null;
+  // 本文に書いた事実（差し込みではないもの）の出典（017）
+  source_id: string | null;
 };
 
 // 列の名前はひな形の選び方（@/lib/conditions/scene の SceneCondition）に合わせ、テーブルと同じにしている

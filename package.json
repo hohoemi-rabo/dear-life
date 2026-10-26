@@ -22,6 +22,7 @@
     "evacuation:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-evacuation-sql.mjs",
     "public-facilities:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-public-facilities-sql.mjs",
     "population:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-population-sql.mjs",
+    "scenes:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-scenes-sql.mjs",
     "pixel": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-pixel.mjs"
   },
   "dependencies": {

@@ -601,12 +601,14 @@ export type Database = {
           body: string
           car: Database["public"]["Enums"]["car_choice"] | null
           created_at: string
+          fallback_body: string | null
           has_children: boolean | null
           housing: Database["public"]["Enums"]["housing_choice"] | null
           id: number
           karte_card: Database["public"]["Enums"]["karte_card"] | null
           kind: Database["public"]["Enums"]["sentence_kind"]
           position: number
+          source_id: string | null
           template_id: number
           updated_at: string
         }
@@ -614,12 +616,14 @@ export type Database = {
           body: string
           car?: Database["public"]["Enums"]["car_choice"] | null
           created_at?: string
+          fallback_body?: string | null
           has_children?: boolean | null
           housing?: Database["public"]["Enums"]["housing_choice"] | null
           id?: never
           karte_card?: Database["public"]["Enums"]["karte_card"] | null
           kind: Database["public"]["Enums"]["sentence_kind"]
           position: number
+          source_id?: string | null
           template_id: number
           updated_at?: string
         }
@@ -627,16 +631,25 @@ export type Database = {
           body?: string
           car?: Database["public"]["Enums"]["car_choice"] | null
           created_at?: string
+          fallback_body?: string | null
           has_children?: boolean | null
           housing?: Database["public"]["Enums"]["housing_choice"] | null
           id?: never
           karte_card?: Database["public"]["Enums"]["karte_card"] | null
           kind?: Database["public"]["Enums"]["sentence_kind"]
           position?: number
+          source_id?: string | null
           template_id?: number
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "scene_sentences_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "scene_sentences_template_id_fkey"
             columns: ["template_id"]

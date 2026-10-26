@@ -170,6 +170,8 @@ describe("公開の範囲（F-09・7.3）", () => {
   it("公開したひな形の文だけが anon に見える", async () => {
     const rows = await run<{ title: string }>(
       "anon",
+      // マイグレーションの下書き（017）は外して確かめる
+      "delete from scene_templates",
       `insert into scene_templates (season, title, reviewed_on, is_published) values
          ('春', '公開', '2026-10-22', true), ('夏', '下書き', null, false)`,
       `insert into scene_sentences (template_id, position, kind, body)
@@ -198,6 +200,7 @@ describe("入力の制約", () => {
       await expect(
         run(
           "postgres",
+          "delete from scene_templates",
           "insert into scene_templates (season, title) values ('冬', 't')",
           `insert into scene_sentences (template_id, position, kind, body)
            select id, 1, '想定', '${body}' from scene_templates`,
@@ -216,6 +219,43 @@ describe("入力の制約", () => {
     await expect(
       run("postgres", "insert into scene_templates (season, title, is_published) values ('春', 'a', true)"),
     ).rejects.toThrow(/scene_templates_review_before_publish/);
+  });
+
+  it.each([
+    ["言いかえ", "fallback_body", "'言いかえ'"],
+    ["出典", "source_id", "'rakuen_shinshu_iida_sheet'"],
+  ])("想定の文には%sを付けられない", async (_, column, value) => {
+    await expect(
+      run(
+        "postgres",
+        "delete from scene_templates",
+        "insert into scene_templates (season, title) values ('冬', 't')",
+        `insert into scene_sentences (template_id, position, kind, body, ${column})
+         select id, 1, '想定', '朝、出かけます。', ${value} from scene_templates`,
+      ),
+    ).rejects.toThrow(/scene_sentences_assumption_no_extras/);
+  });
+
+  it("文の出典は data_sources にあるものだけ", async () => {
+    await expect(
+      run(
+        "postgres",
+        "delete from scene_templates",
+        "insert into scene_templates (season, title) values ('冬', 't')",
+        `insert into scene_sentences (template_id, position, kind, body, source_id)
+         select id, 1, 'データ', '路面が凍ります。', 'no_such_source' from scene_templates`,
+      ),
+    ).rejects.toThrow(/scene_sentences_source_id_fkey/);
+  });
+
+  it("ひな形の下書き（017）は全季節ぶん入っていて、確認前なので anon からは見えない", async () => {
+    const all = await run<{ season: string; n: number }>(
+      "postgres",
+      "select season::text, count(*)::int as n from scene_templates where not is_published group by 1 order by 1",
+    );
+    expect(all.map((r) => r.season).sort()).toEqual(["冬", "夏", "春", "秋"].sort());
+    expect(await run("anon", "select * from scene_templates")).toEqual([]);
+    expect(await run("anon", "select * from scene_sentences")).toEqual([]);
   });
 
   it("相場は件数0なら値を持たず、件数があれば値を持つ（該当なしの区別）", async () => {
@@ -1177,6 +1217,7 @@ describe("画面が読むデータ screen_data（015）", () => {
   it("行事・支援制度・ひな形は公開したものだけが入る", async () => {
     const data = await screenData(
       "update district_events set is_published = false",
+      "delete from scene_templates",
       `insert into district_events (district_id, name, season, timing_note, scope, source_note, checked_on, is_published) values
          ('kanae', '公開の行事', '秋', '例年10月ごろ', '地区全体', 'テスト', '2026-10-22', true),
          ('kanae', '下書きの行事', '秋', '例年10月ごろ', '地区全体', 'テスト', '2026-10-22', false)`,
@@ -1188,7 +1229,12 @@ describe("画面が読むデータ screen_data（015）", () => {
     expect(district(data, "kanae").events.map((e) => e.name)).toEqual(["公開の行事"]);
     expect(district(data, "kamisato").events).toEqual([]);
     expect(data.scene_templates).toEqual([
-      expect.objectContaining({ title: "公開", sentences: [expect.objectContaining({ body: "{地区名}には{件数}か所あります。" })] }),
+      expect.objectContaining({
+        title: "公開",
+        sentences: [
+          expect.objectContaining({ body: "{地区名}には{件数}か所あります。", fallback_body: null, source_id: null }),
+        ],
+      }),
     ]);
     const programs = await run<{ n: number }>("postgres", "select count(*)::int as n from support_programs where is_published");
     expect(data.support_programs).toHaveLength(programs[0].n);
