@@ -3,6 +3,7 @@ import type { Canvas } from "../canvas.ts";
 import type { PixelAssetId } from "../assets.ts";
 import { BACKGROUND_HEIGHT, BACKGROUND_WIDTH, DIRT_TOP, seasonBackground } from "./backgrounds.ts";
 import { familyCanvas } from "./family.ts";
+import * as icons from "./icons.ts";
 import { apartment, newHouse, oldHouse } from "./houses.ts";
 import { appleAvenue, easel, mountain, park, withSnow } from "./landmarks.ts";
 import { bus, car, cultureFestival, festival, heavyRain, noticeBoard, nursery, publicFacility, school, shelter, sportsDay, train } from "./parts.ts";
@@ -43,4 +44,32 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   "landmark-igara-winter": () => withSnow(easel()),
   "landmark-kamisato-winter": () => withSnow(mountain()),
   "overlay-rain": () => heavyRain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT, DIRT_TOP),
+  "icon-sprout": icons.sprout,
+  "icon-calendar": icons.calendar,
+  "icon-book": icons.book,
+  "icon-districts": icons.mountainIcon,
+  "icon-pin": icons.pin,
+  "icon-house": icons.house,
+  "icon-car": icons.carIcon,
+  "icon-family": icons.family,
+  "icon-spring": icons.sakura,
+  "icon-summer": icons.umbrella,
+  "icon-autumn": icons.maple,
+  "icon-winter": icons.snow,
+  "icon-chart": icons.chart,
+  "icon-map": icons.map,
+  "icon-gear": icons.gear,
+  "icon-refresh": icons.refresh,
+  "icon-school": icons.schoolIcon,
+  "icon-disaster": icons.helmet,
+  "icon-transport": icons.busIcon,
+  "icon-population": icons.people,
+  "icon-public": icons.building,
+  "icon-support": icons.support,
+  "icon-info": icons.info,
+  "icon-document": icons.documentIcon,
+  logo: icons.logo,
+  "deco-grass": icons.grass,
+  "deco-tree": icons.smallTree,
+  "deco-mountains": icons.mountains,
 };
