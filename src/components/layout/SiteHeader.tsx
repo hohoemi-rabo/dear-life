@@ -6,7 +6,7 @@ import { StepIndicator } from "./StepIndicator";
 export function SiteHeader() {
   return (
     <header className="border-b border-line bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
+      <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
         <Link href="/" className="flex min-h-tap flex-col justify-center leading-tight">
           <span className="text-xl font-bold text-primary">{SITE_NAME}</span>
           <span className="text-xs tracking-widest text-ink-muted">{SITE_NAME_JA}</span>

@@ -36,7 +36,7 @@ export function KurashiView() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-extrabold">
           {DISTRICT_NAMES[district]}で、わが家の{season}。
         </h1>
         <p className="text-sm text-ink-muted">季節を選んで、飯田での暮らしをのぞいてみよう。</p>
@@ -125,7 +125,7 @@ function ActionBar({ conditions, season }: { conditions: Conditions; season: Sea
 function NoDistrict({ conditions }: { conditions: Conditions }) {
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4">
-      <h1 className="text-2xl font-bold">くらしを見る</h1>
+      <h1 className="text-2xl font-extrabold">くらしを見る</h1>
       <Card className="flex flex-col items-start gap-3">
         <p>住む地区がまだ選ばれていません。「01 えらぶ」で地区を選ぶと、その地区の春夏秋冬の場面が見られます。</p>
         <ButtonLink href={conditionsHref(ERABU_PATH, conditions)}>

@@ -39,7 +39,7 @@ const COUNT_LABEL_RULES = [
 export default function AboutDataPage() {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">データについて</h1>
+      <h1 className="text-2xl font-extrabold">データについて</h1>
       <p>このページでは、画面に出している情報の出典・対象時点・確認日と、相場の計算のしかたをまとめています。</p>
 
       <Section id="about-service" title="このサービスについて">

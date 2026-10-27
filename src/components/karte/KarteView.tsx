@@ -39,7 +39,7 @@ export function KarteView() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">わが家のカルテ</h1>
+        <h1 className="text-2xl font-extrabold">わが家のカルテ</h1>
         <p className="text-sm text-ink-muted">{DISTRICT_NAMES[district]}の暮らしの根拠を、出典とともに確かめよう。</p>
       </div>
 
@@ -163,7 +163,7 @@ function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; sea
 function NoDistrict({ conditions }: { conditions: Conditions }) {
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4">
-      <h1 className="text-2xl font-bold">わが家のカルテ</h1>
+      <h1 className="text-2xl font-extrabold">わが家のカルテ</h1>
       <Card className="flex flex-col items-start gap-3">
         <p>住む地区がまだ選ばれていません。「01 えらぶ」で地区を選ぶと、その地区の相場・学校・交通などを確かめられます。</p>
         <ButtonLink href={conditionsHref(ERABU_PATH, conditions)}>

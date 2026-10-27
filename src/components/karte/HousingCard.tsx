@@ -60,9 +60,9 @@ function MarketBlock({ category, state, featured }: { category: MarketCategory; 
         <>
           <p className="text-xs text-ink-muted">{isLand ? "1㎡あたりの真ん中の値" : "総額の真ん中の値"}</p>
           <p className="flex flex-wrap items-baseline gap-x-3">
-            <span className={`font-bold tabular-nums ${featured ? "text-4xl" : "text-2xl"}`}>
+            <span className={`price-figure ${featured ? "text-4xl" : "text-2xl"}`}>
               {formatManYen(state.value.median)}
-              {isLand && <span className="text-base">／㎡</span>}
+              {isLand && <span className="font-sans text-base font-bold">／㎡</span>}
             </span>
             <CountBadge count={state.value.sampleCount} />
           </p>

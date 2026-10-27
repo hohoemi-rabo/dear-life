@@ -7,7 +7,7 @@ import { ABOUT_DATA_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 export function SiteFooter() {
   return (
     <footer className="mt-12 border-t border-line bg-kinari-deep">
-      <div className="mx-auto max-w-6xl space-y-3 px-4 py-6 text-sm text-ink-muted">
+      <div className="mx-auto max-w-page space-y-3 px-4 py-6 text-sm text-ink-muted">
         <p className="font-bold text-ink">対象地区：{TARGET_DISTRICTS_LABEL}</p>
         <p>
           相場は、国土交通省 不動産情報ライブラリの取引価格情報（飯田市・直近5年分）を地区ごとに集計した、過去の取引の参考値です。調停・競売等、関係者間取引、隣地の購入は除いています。

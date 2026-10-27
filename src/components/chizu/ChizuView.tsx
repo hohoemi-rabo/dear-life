@@ -37,7 +37,7 @@ export function ChizuView() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">地図で確かめる</h1>
+        <h1 className="text-2xl font-extrabold">地図で確かめる</h1>
         <p className="text-sm text-ink-muted">学校・保育施設・バス停・避難場所などの位置と、小学校区の範囲を地図で見られます。</p>
       </div>
 

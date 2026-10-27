@@ -25,8 +25,9 @@ function stateCell<T>(state: DataState<T>, render: (value: T) => ReactNode): Rea
   return state.status === "available" ? render(state.value) : <DataStateLabel state={state} />;
 }
 
+// 値段だけを大きく出すので、値段用のフォントにする（027）
 function BigValue({ children }: { children: ReactNode }) {
-  return <span className="block text-xl font-bold tabular-nums">{children}</span>;
+  return <span className="price-figure block text-xl">{children}</span>;
 }
 
 // 土地は㎡単価の真ん中の値と幅（下位25%〜上位25%）。伊賀良のように幅が広い地区でも幅は省略しない（要件 5.1）
@@ -35,7 +36,7 @@ function LandCell({ stat }: { stat: MarketStat }) {
     <span className="flex flex-col gap-1">
       <BigValue>
         {formatManYen(stat.median)}
-        <span className="text-sm">／㎡</span>
+        <span className="font-sans text-sm font-bold">／㎡</span>
       </BigValue>
       {stat.p25 !== null && stat.p75 !== null && (
         <span className="text-sm tabular-nums">

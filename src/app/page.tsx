@@ -6,7 +6,7 @@ import { ERABU_PATH, SITE_CATCHPHRASE, TARGET_DISTRICTS_LABEL } from "@/lib/site
 export default function Home() {
   return (
     <section className="mx-auto flex max-w-xl flex-col gap-4">
-      <h1 className="text-2xl font-bold">{SITE_CATCHPHRASE}</h1>
+      <h1 className="text-2xl font-extrabold">{SITE_CATCHPHRASE}</h1>
       <p>
         家族・地区・家・車を選ぶと、その条件で過ごす飯田の春夏秋冬をのぞけます。数字は公開データの本物を、出典つきで出します。登録はいりません。
       </p>

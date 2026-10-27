@@ -93,8 +93,9 @@ function ReplyTitle({ children }: { children: ReactNode }) {
   return <h2 className="text-base font-bold text-primary">{children}</h2>;
 }
 
-function BigNumber({ children }: { children: ReactNode }) {
-  return <p className="text-4xl font-bold tabular-nums tracking-tight">{children}</p>;
+// 値段は値段用のフォント、件数はふつうのフォント（027）
+function BigNumber({ children, price = false }: { children: ReactNode; price?: boolean }) {
+  return <p className={`text-4xl tracking-tight ${price ? "price-figure" : "font-bold tabular-nums"}`}>{children}</p>;
 }
 
 // 相場の値。件数・件数ラベル・出典・対象期間・注意書きを必ず添える（要件 5章-6・7）
@@ -114,7 +115,7 @@ function MarketFigure({
       <p className="text-sm font-bold text-ink-muted">{label}</p>
       {state.status === "available" ? (
         <>
-          <BigNumber>{formatManYen(state.value.median)}</BigNumber>
+          <BigNumber price>{formatManYen(state.value.median)}</BigNumber>
           {extra && <p className="text-sm">{extra(state.value)}</p>}
           <CountBadge count={state.value.sampleCount} alwaysFew={alwaysFew} />
         </>

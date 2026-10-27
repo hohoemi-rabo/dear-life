@@ -26,7 +26,7 @@ export function KurabeView() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">4地区をくらべる</h1>
+        <h1 className="text-2xl font-extrabold">4地区をくらべる</h1>
         <p className="text-sm text-ink-muted">上郷・鼎・伊賀良・中心市街地を、同じ項目で並べています。地区の並びは固定で、良し悪しの順ではありません。</p>
       </div>
 

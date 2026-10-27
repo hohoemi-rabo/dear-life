@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_JP } from "next/font/google";
+import { Mochiy_Pop_One, M_PLUS_Rounded_1c } from "next/font/google";
 import { Suspense } from "react";
 import { OfflineBanner } from "@/components/data/OfflineBanner";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -10,9 +10,18 @@ import { APP_ICONS, appIconPx, appIconSrc } from "@/lib/pwa/icons";
 import { SITE_CATCHPHRASE, SITE_NAME, SITE_NAME_JA, TARGET_DISTRICTS_LABEL, THEME_COLOR } from "@/lib/site";
 import "./globals.css";
 
-// 本文・数字・ボタンはドット風にせず、ふつうのフォントにする（要件 8章「読みやすさ」）
-const notoSansJp = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
+// 本文・数字・ボタンはドット風にせず、ふつうのフォントにする（要件 8章「読みやすさ」）。
+// デザインイメージに合わせて丸ゴシックにし、家・土地の値段だけ太い丸文字にする（027 まさゆきさん決定）
+const bodyFont = M_PLUS_Rounded_1c({
+  variable: "--font-body",
+  weight: ["400", "500", "700", "800"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const priceFont = Mochiy_Pop_One({
+  variable: "--font-price",
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -40,10 +49,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={notoSansJp.variable}>
+    <html lang="ja" className={`${bodyFont.variable} ${priceFont.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+        <main className="mx-auto w-full max-w-page flex-1 px-4 py-6">
           <OfflineBanner />
           {children}
         </main>

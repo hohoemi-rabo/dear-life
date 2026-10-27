@@ -50,7 +50,7 @@ export function ErabuFlow() {
 
       <section aria-labelledby="erabu-question" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h1 id="erabu-question" className="text-2xl font-bold">
+          <h1 id="erabu-question" className="text-2xl font-extrabold">
             {question.title}
           </h1>
           <p className="text-sm text-ink-muted">{question.lead}</p>
