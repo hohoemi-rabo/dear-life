@@ -7,7 +7,8 @@ import { SEASONS, type Season } from "@/lib/conditions/scene";
 import { SCENE_AXIS_LABELS } from "@/lib/kurashi/season";
 import { seasonView } from "@/lib/kurashi/view";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { SEASON_STYLES } from "./season-styles";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { SEASON_ICONS, SEASON_STYLES } from "./season-styles";
 
 // PC：場面の下の4季節のサムネイル（デザインイメージ PC版）。押すとその季節に切り替わる。ScreenDataBoundary の中で使う
 export function SeasonThumbnails({
@@ -41,7 +42,8 @@ export function SeasonThumbnails({
               <div aria-hidden="true">
                 <PixelScene layers={layers} widthClassName="w-[160px]" />
               </div>
-              <span className="text-sm font-bold">
+              <span className="flex items-center gap-1 text-sm font-bold">
+                <PixelIcon icon={SEASON_ICONS[item]} size="sm" />
                 {item}
                 <span className="ml-2 font-normal">{SCENE_AXIS_LABELS[plan.axis].short}</span>
               </span>

@@ -35,7 +35,6 @@ export function KarteView() {
 
   const chosen = { ...conditions, district };
   const layout = karteLayout(chosen);
-  const onDistrictChange = (id: DistrictId) => setConditions({ district: id });
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -45,12 +44,12 @@ export function KarteView() {
 
       <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)] xl:gap-6">
         <aside aria-label="わが家の設定" className="hidden xl:block">
-          <ConditionsPanel conditions={chosen} onDistrictChange={onDistrictChange} chooseAgainLabel="条件を変える" />
+          <ConditionsPanel conditions={chosen} onConditionsChange={setConditions} chooseAgainLabel="条件を変える" />
         </aside>
 
         <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2 xl:hidden">
-            <ConditionChips conditions={chosen} onDistrictChange={onDistrictChange} />
+            <ConditionChips conditions={chosen} onConditionsChange={setConditions} />
             <ChooseAgainLink conditions={chosen} label="条件を変える" />
           </div>
 

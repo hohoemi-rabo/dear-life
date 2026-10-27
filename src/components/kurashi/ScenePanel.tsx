@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PixelScene } from "@/components/pixel/PixelScene";
 import { GofreelyLink } from "@/components/data/GofreelyLink";
 import { Notice } from "@/components/ui/Notice";
@@ -18,25 +19,30 @@ import { seasonView } from "@/lib/kurashi/view";
 import type { TransitRef } from "@/lib/scenes/placeholders";
 import type { Scene, SceneLine } from "@/lib/scenes/render";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { SEASON_STYLES } from "./season-styles";
+import { SEASON_ICONS, SEASON_STYLES } from "./season-styles";
 
 type Props = { season: Season; conditions: Conditions & { district: DistrictId } };
 
-// 1つの季節の場面（F-12）：ドット絵1枚と、会話ウィンドウ風の枠に入れた3〜5文と出典。ScreenDataBoundary の中で使う
+// 場面の絵の幅。160px の整数倍だけを使い、置き場所の幅に入るいちばん大きい倍率にする（xl は3列の真ん中、幅 1432px 以上で 800px が入る）
+export const SCENE_WIDTH_CLASS = "w-[320px] sm:w-[480px] md:w-[640px] lg:w-[800px] xl:w-[640px] min-[1432px]:w-[800px]";
+
+// 1つの季節の場面（F-12）：ドット絵1枚と、その下の3〜5文と出典を1枚のカードにする（027 デザインイメージ。細い枠の白いカード）。
+// 季節のタブがカードの上にくっつくので、上の角は丸めない。ScreenDataBoundary の中で使う
 export function ScenePanel({ season, conditions }: Props) {
   const { plan, district, layers, scene } = seasonView(season, conditions, useScreenData());
   return (
-    <div className="flex flex-col gap-4">
-      <figure className="pixel-frame relative mx-auto w-fit">
-        <PixelScene layers={layers} widthClassName="w-[320px] sm:w-[480px]" />
-        <figcaption className={`absolute left-2 top-2 px-2 py-0.5 text-sm font-bold text-white ${SEASON_STYLES[season].label}`}>
+    <div className="overflow-hidden rounded-b-card border border-line bg-surface shadow-card">
+      <figure className="relative mx-auto w-fit">
+        <PixelScene layers={layers} widthClassName={SCENE_WIDTH_CLASS} />
+        <figcaption className={`absolute left-2 top-2 rounded px-2 py-0.5 text-sm font-bold text-white ${SEASON_STYLES[season].label}`}>
           {district.name}の{season}
         </figcaption>
-        <span className="absolute bottom-2 right-2 bg-ink/75 px-2 py-0.5 text-xs text-white">想定の風景</span>
+        <span className="absolute bottom-2 right-2 rounded bg-ink/75 px-2 py-0.5 text-xs text-white">想定の風景</span>
       </figure>
 
-      <section aria-labelledby="scene-title" className="pixel-frame flex flex-col gap-3 p-4">
-        <h2 id="scene-title" className="text-lg font-bold">
+      <section aria-labelledby="scene-title" className="flex flex-col gap-3 border-t border-line p-4">
+        <h2 id="scene-title" className="flex items-center gap-2 text-lg font-bold">
+          <PixelIcon icon={SEASON_ICONS[season]} />
           {season}｜{SCENE_AXIS_LABELS[plan.axis].title}
         </h2>
         {scene ? (
@@ -76,8 +82,7 @@ function SceneBody({ scene, season, conditions }: { scene: Scene } & Props) {
       {scene.notices.map((notice) => (
         <Notice key={notice}>{notice}</Notice>
       ))}
-      <KindLegend />
-      {scene.sources.length > 0 && <SceneSources sources={scene.sources} />}
+      <SceneSources sources={scene.sources} />
     </>
   );
 }
@@ -157,16 +162,17 @@ function TransitTimetableNote({ transit, sources }: { transit: TransitRef; sourc
   return <p className="text-xs text-ink-muted">{note}</p>;
 }
 
-// 場面の中のデータから、カルテの該当カードへ直接移る（F-14）
+// 場面の中のデータから、カルテの該当カードへ直接移る（F-14）。スマホは幅いっぱいのボタン、PC は右寄せのリンク（デザインイメージ）
 function KarteCardLinks({ cards, season, conditions }: { cards: readonly KarteCard[] } & Props) {
   return (
-    <ul className="flex flex-wrap gap-x-4">
+    <ul className="flex flex-col gap-2 xl:flex-row xl:flex-wrap xl:justify-end xl:gap-x-4">
       {cards.map((card) => (
         <li key={card}>
           <Link
             href={karteHref(conditions, season, card)}
-            className="inline-flex min-h-tap items-center gap-1 font-bold text-primary underline underline-offset-4 hover:no-underline"
+            className="flex min-h-tap items-center gap-2 rounded-button bg-primary-soft px-4 font-bold text-primary hover:underline xl:bg-transparent xl:px-0 xl:underline xl:underline-offset-4 xl:hover:no-underline"
           >
+            <PixelIcon icon="icon-book" size="sm" className="xl:hidden" />
             {KARTE_CARD_LABELS[card]}をカルテで確認
             <span aria-hidden="true">→</span>
           </Link>
@@ -176,10 +182,10 @@ function KarteCardLinks({ cards, season, conditions }: { cards: readonly KarteCa
   );
 }
 
-// 文の種類の見分け方（要件 6.4）
+// 文の種類の見分け方（要件 6.4）。出典と一緒に「出典・確認日を見る」の中に畳む（027）
 function KindLegend() {
   return (
-    <dl className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 border-t border-line pt-3 text-xs text-ink-muted">
+    <dl className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
       <dt>
         <KindMark inline={false} className="bg-kind-data-soft text-kind-data">出典</KindMark>
       </dt>
@@ -198,16 +204,27 @@ function KindLegend() {
 
 function SceneSources({ sources }: { sources: readonly SourceInfo[] }) {
   return (
-    <details className="group">
-      <summary className="flex min-h-tap cursor-pointer items-center text-sm font-bold text-primary">出典・確認日を見る</summary>
-      <ol className="flex flex-col gap-3">
-        {sources.map((source, index) => (
-          <li key={source.id} className="flex gap-2">
-            <span className="text-xs font-bold text-kind-data">出典{index + 1}</span>
-            <DataSourceNote source={source} />
-          </li>
-        ))}
-      </ol>
+    <details className="group border-t border-line pt-1">
+      <summary className="flex min-h-tap cursor-pointer list-none items-center gap-1.5 text-sm font-bold text-primary xl:justify-end [&::-webkit-details-marker]:hidden">
+        <PixelIcon icon="icon-document" size="sm" />
+        <span>出典・確認日を見る</span>
+        <span aria-hidden="true" className="transition-transform group-open:rotate-180">
+          ∨
+        </span>
+      </summary>
+      <div className="flex flex-col gap-3 pb-1">
+        <KindLegend />
+        {sources.length > 0 && (
+          <ol className="flex flex-col gap-3 border-t border-line pt-3">
+            {sources.map((source, index) => (
+              <li key={source.id} className="flex gap-2">
+                <span className="whitespace-nowrap text-xs font-bold text-kind-data">出典{index + 1}</span>
+                <DataSourceNote source={source} />
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </details>
   );
 }

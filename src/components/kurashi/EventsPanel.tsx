@@ -1,6 +1,7 @@
 "use client";
 
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PixelImage } from "@/components/pixel/PixelImage";
 import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
@@ -20,18 +21,20 @@ export function EventsPanel({ season, conditions }: { season: Season; conditions
   const events = selectSceneEvents(district, planScene(season, conditions));
   return (
     <Card as="section" aria-labelledby="events-title" className="flex flex-col gap-3">
-      <h2 id="events-title" className="text-lg font-bold">
+      <h2 id="events-title" className="flex items-center gap-2 text-lg font-bold">
+        <PixelIcon icon="icon-calendar" />
         この季節の地区の行事
       </h2>
       {events.length === 0 ? (
-        <p className="rounded-button border border-dashed border-line px-3 py-4 text-center text-ink-muted">
-          この季節の行事は準備中です。
-        </p>
+        <div className="flex flex-col items-center gap-2 rounded-button border border-dashed border-line px-3 py-4 text-center text-ink-muted">
+          <PixelImage asset="event-other" scale={3} decorative />
+          <p>この季節の行事は準備中です。</p>
+        </div>
       ) : (
         <>
-          <ul className="flex flex-col gap-4">
+          <ul className="flex flex-col divide-y divide-line">
             {events.map((event) => (
-              <li key={event.name}>
+              <li key={event.name} className="py-3 first:pt-0">
                 <EventItem event={event} />
               </li>
             ))}
