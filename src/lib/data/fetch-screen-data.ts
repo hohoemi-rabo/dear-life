@@ -51,12 +51,16 @@ const DEFAULT_BACKOFF_MS = 1_000;
 // 画面が呼ぶ RPC。どれも引数なしで、anon が実行できる
 export type ScreenRpc = "screen_data" | "map_data";
 
+export function rpcUrl(config: SupabaseConfig, rpc: ScreenRpc): string {
+  return `${config.url.replace(/\/+$/, "")}/rest/v1/rpc/${rpc}`;
+}
+
 async function fetchOnce(config: SupabaseConfig, rpc: ScreenRpc, fetchImpl: typeof fetch, timeoutMs: number): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    // GET で呼ぶのは、024 の Service Worker が Cache API に残せるようにするため（POST は残せない）
-    const response = await fetchImpl(`${config.url.replace(/\/+$/, "")}/rest/v1/rpc/${rpc}`, {
+    // GET で呼ぶのは、応答を URL ごとに Cache API に残せるようにするため（POST は残せない。024 の offline-data.ts）
+    const response = await fetchImpl(rpcUrl(config, rpc), {
       method: "GET",
       headers: { apikey: config.publishableKey, Accept: "application/json" },
       signal: controller.signal,
@@ -74,10 +78,6 @@ async function fetchOnce(config: SupabaseConfig, rpc: ScreenRpc, fetchImpl: type
   } finally {
     clearTimeout(timer);
   }
-}
-
-export function fetchScreenData(config: SupabaseConfig, options: FetchOptions = {}): Promise<unknown> {
-  return fetchRpc(config, "screen_data", options);
 }
 
 export async function fetchRpc(config: SupabaseConfig, rpc: ScreenRpc, options: FetchOptions = {}): Promise<unknown> {

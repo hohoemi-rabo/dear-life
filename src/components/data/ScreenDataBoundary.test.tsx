@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearScreenDataCache, loadScreenData } from "@/lib/data/load-screen-data";
+import { FakeCacheStorage } from "@/test/fake-cache-storage";
+import { OfflineBanner } from "./OfflineBanner";
 import { ScreenDataBoundary, useScreenData } from "./ScreenDataBoundary";
 
 const emptySection = (source_id: string) => ({ source_id, items: [] });
@@ -99,6 +101,51 @@ describe("ScreenDataBoundary", () => {
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "もう一度読み込む" })));
     expect(await screen.findByText("上郷・鼎・伊賀良・中心市街地")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("圏外のときは前に読めたデータを出し、オフライン表示中と、データの日付を出す", async () => {
+    const caches = new FakeCacheStorage().asCacheStorage();
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(body)));
+    await loadScreenData({ caches });
+    clearScreenDataCache();
+
+    fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    await act(async () => {
+      // 画面が読む前に、待たずにやり直す設定で読み始めておく（同じ Promise を画面が使う）
+      const loading = loadScreenData({ caches, sleep: () => Promise.resolve() });
+      render(
+        <>
+          <OfflineBanner />
+          <ScreenDataBoundary>
+            <DistrictNames />
+          </ScreenDataBoundary>
+          <ScreenDataBoundary>
+            <DistrictNames />
+          </ScreenDataBoundary>
+        </>,
+      );
+      await loading;
+    });
+    expect(await screen.findAllByText("上郷・鼎・伊賀良・中心市街地")).toHaveLength(2);
+    // 画面にデータの区切りがいくつあっても、知らせは1つだけ。generated_at は 2026-10-26T13:00:00Z（日本時間の 10月26日 22時）
+    expect(screen.getByRole("status")).toHaveTextContent("オフライン表示中・データは10月26日時点");
+  });
+
+  it("つながったら（もう一度読み込んだら）オフライン表示を消す", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(body)));
+    await act(async () => {
+      render(
+        <>
+          <OfflineBanner />
+          <ScreenDataBoundary>
+            <DistrictNames />
+          </ScreenDataBoundary>
+        </>,
+      );
+      await loadScreenData();
+    });
+    expect(await screen.findByText("上郷・鼎・伊賀良・中心市街地")).toBeInTheDocument();
+    expect(screen.queryByText(/オフライン表示中/)).not.toBeInTheDocument();
   });
 
   it("データの読み込み以外のエラーは受け止めずに上へ渡す", () => {

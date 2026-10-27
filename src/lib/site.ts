@@ -2,6 +2,9 @@ export const SITE_NAME = "DearLife";
 export const SITE_NAME_JA = "飯田移住カルテ";
 export const SITE_CATCHPHRASE = "家族に合わせて、飯田の暮らしを見える化";
 
+// ブラウザの枠とホーム画面から開いたときの色（024）。tailwind.config.ts の kinari と同じ
+export const THEME_COLOR = "#F7F3EA";
+
 // 地区の一覧そのものは 004 の地区マスタが正。ここは画面の表記だけを持つ
 export const TARGET_DISTRICTS_LABEL = "上郷・鼎・伊賀良・中心市街地";
 

@@ -1,7 +1,8 @@
+import { ResumeLastView } from "@/components/pwa/ResumeLastView";
 import { ButtonLink } from "@/components/ui/Button";
 import { ERABU_PATH, SITE_CATCHPHRASE, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
-// 入口。暮らし方を選ぶ「01 えらぶ」へつなぐ
+// 入口。暮らし方を選ぶ「01 えらぶ」へつなぐ。前に見た画面があれば、そこへ戻るボタンも出す（024）
 export default function Home() {
   return (
     <section className="mx-auto flex max-w-xl flex-col gap-4">
@@ -14,6 +15,7 @@ export default function Home() {
         暮らし方をえらぶ
         <span aria-hidden="true">→</span>
       </ButtonLink>
+      <ResumeLastView />
     </section>
   );
 }

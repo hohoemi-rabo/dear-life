@@ -2,12 +2,14 @@ import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { DRAW } from "./art";
 import { familyCanvas } from "./art/family";
+import { appIcon } from "./art/icon";
 import { withSnow } from "./art/landmarks";
 import { EVENT_ART_ASSET, PIXEL_ASSETS, landmarkAssetId, familyAssetId, pixelAssetSrc, type PixelAssetId } from "./assets";
 import { createCanvas, ditherRect, parseSprite, ridge, stamp, toRows } from "./canvas";
 import { composeScene } from "./compose";
 import { PALETTE } from "./palette";
 import { encodePng } from "./png";
+import { APP_ICONS, appIconPx } from "../pwa/icons";
 import { SCENE_SLOTS, layerOutOfBounds, placeInSlot, type SceneSlot } from "./scenes";
 
 describe("パレット", () => {
@@ -183,5 +185,35 @@ describe("場面", () => {
     const scene = composeScene([placeInSlot("bg-spring", "full"), family], DRAW);
     const sprite = DRAW[family.asset]();
     expect(scene.pixels[family.y * 160 + family.x + 4]).toBe(sprite.pixels[4]);
+  });
+});
+
+describe("ホーム画面のアイコン（024）", () => {
+  it("一覧の px の大きさで、整数倍に書き出せる", () => {
+    for (const icon of Object.values(APP_ICONS)) {
+      const canvas = appIcon(icon.dots);
+      expect([canvas.width, canvas.height]).toEqual([icon.dots, icon.dots]);
+      expect(appIconPx(icon)).toBe(Number(icon.file.match(/\d+/)?.[0] ?? 180));
+    }
+  });
+
+  it("端まで背景を塗り、空と草地以外（家と木）は真ん中の円（直径の80%）に収める（丸く切り抜かれても欠けない）", () => {
+    const canvas = appIcon();
+    const background = new Set(["p", "g", "l"]);
+    const rows = toRows(canvas);
+    const center = (canvas.width - 1) / 2;
+    const radius = canvas.width * 0.4;
+    rows.forEach((row, y) =>
+      [...row].forEach((key, x) => {
+        expect(key).not.toBe(".");
+        if (!background.has(key)) expect(Math.hypot(x - center, y - center)).toBeLessThanOrEqual(radius + 0.5);
+      }),
+    );
+  });
+
+  it("iPhone 用は空と草地を広げるだけで、家と木は同じ", () => {
+    const small = toRows(appIcon(32));
+    const large = toRows(appIcon(36));
+    expect(large.slice(2, 34).map((row) => row.slice(2, 34))).toEqual(small);
   });
 });

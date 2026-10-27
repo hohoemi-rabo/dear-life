@@ -2,18 +2,23 @@
 // 使い方：npm run pixel
 //   - 一覧（src/lib/pixel/assets.ts）にない古い PNG は消す
 //   - 確認用に、場面を重ねて8倍にした PNG を .pixel-preview/ に書く（公開しない・コミットしない）
+//   - ホーム画面のアイコン（024）を public/icons/ に書く
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DRAW } from "../src/lib/pixel/art/index.ts";
+import { appIcon } from "../src/lib/pixel/art/icon.ts";
 import { PIXEL_ASSETS } from "../src/lib/pixel/assets.ts";
 import { composeScene } from "../src/lib/pixel/compose.ts";
 import { encodePng } from "../src/lib/pixel/png.ts";
 import { placeInSlot } from "../src/lib/pixel/scenes.ts";
+import { APP_ICONS, ICON_DIR, appIconPx } from "../src/lib/pwa/icons.ts";
 
 const root = join(import.meta.dirname, "..");
 const outDir = join(root, "public/pixel");
 const previewDir = join(root, ".pixel-preview");
+const iconDir = join(root, "public", ICON_DIR);
 mkdirSync(outDir, { recursive: true });
+mkdirSync(iconDir, { recursive: true });
 mkdirSync(previewDir, { recursive: true });
 
 const ids = Object.keys(PIXEL_ASSETS);
@@ -33,6 +38,11 @@ for (const file of readdirSync(outDir)) {
     rmSync(join(outDir, file));
     console.log(`削除：public/pixel/${file}（一覧にない）`);
   }
+}
+
+for (const icon of Object.values(APP_ICONS)) {
+  writeFileSync(join(iconDir, icon.file), encodePng(appIcon(icon.dots), icon.scale));
+  console.log(`書き出し：public${ICON_DIR}/${icon.file}（${appIconPx(icon)}px）`);
 }
 
 // 確認用の場面。実際の組み合わせは場面のひな形（017）が決める

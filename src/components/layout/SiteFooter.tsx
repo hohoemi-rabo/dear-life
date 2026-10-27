@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { ABOUT_DATA_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
@@ -21,6 +22,7 @@ export function SiteFooter() {
             <span aria-hidden="true">→</span>
           </Link>
         </div>
+        <InstallGuide />
         <p>{REINFOLIB_API_CREDIT}</p>
         <p>{PERSONAL_SERVICE_NOTE}</p>
       </div>

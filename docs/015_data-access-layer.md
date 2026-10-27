@@ -34,7 +34,7 @@
 
 ### RPC `screen_data()`
 
-- 画面は `GET /rest/v1/rpc/screen_data`（ヘッダーは `apikey` に publishable key だけ）で呼ぶ。GET にしたのは、024 の Service Worker が Cache API に残せるようにするため（POST は残せない）
+- 画面は `GET /rest/v1/rpc/screen_data`（ヘッダーは `apikey` に publishable key だけ）で呼ぶ。GET にしたのは、応答を URL ごとに Cache API に残せるようにするため（POST は残せない）。024 では Service Worker ではなく画面の側（`src/lib/data/offline-data.ts`）が残す
 - `security invoker` なので、anon の RLS がそのまま効く。未公開の出典のデータ・未公開の行事・ひな形は入らない。anon が実行できる関数はこれだけ（テストで確かめる）
 - 返すもの：`generated_at`、公開済みの出典（`sources`）、4地区（地区マスタの並び順）ごとの相場・小中学校区の学校名・施設7種類・駅の本数・人口（最新の1時点）・おでかけ（バス・電車とも並び順1だけ）・行事、地区によらない支援制度・ひな形（文つき）
 - 出典のあるデータは欄ごとに `{ source_id, items }`。**どの欄がどの出典かはこの関数だけで決める**（学校は `iida_education`、保育施設・放課後児童クラブは `iida_childcare`。XKT006・XKT007 は公開しても入れない）

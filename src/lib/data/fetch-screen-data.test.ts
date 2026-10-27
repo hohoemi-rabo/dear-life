@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchScreenData, ScreenDataError } from "./fetch-screen-data";
+import { fetchRpc, ScreenDataError, type FetchOptions } from "./fetch-screen-data";
 
 const config = { url: "https://example.supabase.co/", publishableKey: "sb_publishable_test" };
 const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 const noSleep = () => Promise.resolve();
+const fetchScreenData = (target: typeof config, options: FetchOptions) => fetchRpc(target, "screen_data", options);
 
-describe("fetchScreenData", () => {
+describe("fetchRpc", () => {
   it("publishable key を付けて screen_data を GET で呼ぶ", async () => {
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(ok({ districts: [] }));
     await expect(fetchScreenData(config, { fetch: fetchImpl })).resolves.toEqual({ districts: [] });
