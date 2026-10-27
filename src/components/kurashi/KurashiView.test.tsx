@@ -160,6 +160,9 @@ describe("KurashiView：場面（F-12）", () => {
     const scene = sceneWindow();
     expect(scene).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
     expect(within(scene).getByText("2027年1月16日（土）の時刻表")).toBeInTheDocument();
+    const gofreely = within(scene).getByRole("link", { name: /この便を gofreely で調べる/ });
+    expect(gofreely).toHaveAttribute("target", "_blank");
+    expect(gofreely.getAttribute("href")).toMatch(/^https:\/\/gofreely\.rabo-hohoemi\.workers\.dev\/\?from=/);
     expect(within(scene).getByText(NOTICES.carFree)).toBeInTheDocument();
     expect(within(scene).getByRole("link", { name: /交通をカルテで確認/ })).toHaveAttribute(
       "href",

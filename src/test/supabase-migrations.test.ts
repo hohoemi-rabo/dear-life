@@ -248,14 +248,14 @@ describe("入力の制約", () => {
     ).rejects.toThrow(/scene_sentences_source_id_fkey/);
   });
 
-  it("ひな形の下書き（017）は全季節ぶん入っていて、確認前なので anon からは見えない", async () => {
+  it("ひな形（017）は全季節ぶん入っていて、確認済み（2026-10-27）なので公開され anon からも読める", async () => {
     const all = await run<{ season: string; n: number }>(
       "postgres",
-      "select season::text, count(*)::int as n from scene_templates where not is_published group by 1 order by 1",
+      "select season::text, count(*)::int as n from scene_templates where is_published group by 1 order by 1",
     );
     expect(all.map((r) => r.season).sort()).toEqual(["冬", "夏", "春", "秋"].sort());
-    expect(await run("anon", "select * from scene_templates")).toEqual([]);
-    expect(await run("anon", "select * from scene_sentences")).toEqual([]);
+    expect(await run("anon", "select * from scene_templates where not is_published")).toEqual([]);
+    expect((await run("anon", "select * from scene_sentences")).length).toBeGreaterThan(0);
   });
 
   it("相場は件数0なら値を持たず、件数があれば値を持つ（該当なしの区別）", async () => {

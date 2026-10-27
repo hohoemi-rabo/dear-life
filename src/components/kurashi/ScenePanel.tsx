@@ -5,12 +5,14 @@ import type { ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelScene } from "@/components/pixel/PixelScene";
+import { buttonClassName } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import type { Season } from "@/lib/conditions/scene";
-import type { SourceInfo } from "@/lib/data/screen-data";
+import type { BusOuting, SourceInfo } from "@/lib/data/screen-data";
 import { formatJaDate, formatJaDateWithWeekday } from "@/lib/format";
+import { gofreelyHref } from "@/lib/kurashi/gofreely";
 import { karteHref } from "@/lib/kurashi/links";
 import { SCENE_AXIS_LABELS } from "@/lib/kurashi/season";
 import { seasonView } from "@/lib/kurashi/view";
@@ -110,7 +112,12 @@ function SceneLineView({
               </KindMark>
             ))}
           </p>
-          {withTimetableNote && line.transit && <TransitTimetableNote transit={line.transit} sources={line.sources} />}
+          {withTimetableNote && line.transit && (
+            <>
+              <TransitTimetableNote transit={line.transit} sources={line.sources} />
+              {line.transit.mode === "bus" && <GofreelyLink outing={line.transit.outing} />}
+            </>
+          )}
         </div>
       );
     case "地区の情報":
@@ -149,6 +156,17 @@ function TransitTimetableNote({ transit, sources }: { transit: TransitRef; sourc
       : sources.find((source) => source.periodLabel)?.periodLabel;
   if (!note) return null;
   return <p className="text-xs text-ink-muted">{note}</p>;
+}
+
+// この便を gofreely で調べる（要件 1.1・6.3）。別のサイトなので新しいタブで開く
+function GofreelyLink({ outing }: { outing: BusOuting }) {
+  return (
+    <a href={gofreelyHref(outing)} target="_blank" rel="noopener noreferrer" className={buttonClassName("secondary", "mt-1 self-start")}>
+      この便を gofreely で調べる
+      <span className="sr-only">（別のサイトが新しいタブで開きます）</span>
+      <span aria-hidden="true">↗</span>
+    </a>
+  );
 }
 
 // 場面の中のデータから、カルテの該当カードへ直接移る（F-14）

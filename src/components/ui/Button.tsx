@@ -11,7 +11,7 @@ const VARIANTS: Record<Variant, string> = {
   secondary: "border-2 border-primary bg-surface text-primary hover:bg-primary-soft",
 };
 
-function buttonClassName(variant: Variant, className?: string): string {
+export function buttonClassName(variant: Variant, className?: string): string {
   return [BASE, VARIANTS[variant], className].filter(Boolean).join(" ");
 }
 

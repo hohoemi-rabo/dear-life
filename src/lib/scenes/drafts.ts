@@ -35,7 +35,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: null,
     housing: null,
     title: "春・子どもあり・入園と入学",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "春、入園と入学の季節です。"],
       ["データ", "{地区名}には、保育園・幼稚園等が{保育施設の数}か所あります。", { karte_card: "子育て・学校" }],
@@ -58,7 +58,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: null,
     housing: null,
     title: "春・子どもなし・地区の公共施設",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "春、あたたかくなって、地区の中を見てまわります。"],
       ["データ", "{地区名}には、公民館や図書館、公園などの公共施設が{公共施設の数}か所あります。"],
@@ -72,7 +72,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: null,
     housing: null,
     title: "夏・大雨と避難",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "夏、強い雨が降りつづく日があります。"],
       ["データ", "{地区名}には、市の指定緊急避難場所が{避難場所の数}か所あります。", { karte_card: "防災" }],
@@ -93,7 +93,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: null,
     housing: null,
     title: "秋・地区の行事",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "秋、地区の行事の季節です。"],
       ["地区の情報", "{地区名}では、{行事の時期}に{行事名}があります。"],
@@ -111,7 +111,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: "車なし",
     housing: null,
     title: "冬・車なし・バスと電車でおでかけ",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "冬の休みの日、車を使わずに出かけます。"],
       [
@@ -147,7 +147,7 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: "車あり・未選択",
     housing: null,
     title: "冬・車あり・雪と路面の凍結",
-    reviewed_on: null,
+    reviewed_on: "2026-10-27",
     sentences: sentences(
       ["想定", "冬の朝、車で出かけます。"],
       [

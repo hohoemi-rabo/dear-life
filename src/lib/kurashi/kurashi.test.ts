@@ -3,6 +3,7 @@ import { DEFAULT_CONDITIONS } from "@/lib/conditions/model";
 import { planScene, type Season } from "@/lib/conditions/scene";
 import type { DistrictData, DistrictEvent } from "@/lib/data/screen-data";
 import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { gofreelyHref } from "./gofreely";
 import { karteHref } from "./links";
 import { scenePictureLayers } from "./picture";
 import { parseSeason } from "./season";
@@ -108,5 +109,32 @@ describe("scenePictureLayers", () => {
 
   it("家族の絵は大人2人・子ども3人までで描く", () => {
     expect(assets("夏", { children: 5 })).toContain("family-a2-c3");
+  });
+});
+
+describe("gofreelyHref", () => {
+  it("おでかけの乗り場・行き先・日付・着く時刻・帰りの時刻を渡す", () => {
+    const href = gofreelyHref({
+      originName: "鼎公民館前",
+      destinationName: "飯田駅前",
+      outbound: { departure: "10:01", arrival: "10:11", line: "市内線" },
+      return: { departure: "12:00", arrival: "12:10", line: "市内線" },
+      nextReturn: null,
+      outboundTripsPerDay: 17,
+      returnTripsPerDay: 16,
+      originDeparturesPerDay: 21,
+      dayType: "土曜",
+      serviceDate: "2027-01-16",
+      validUntil: "2027-03-31",
+    });
+    const url = new URL(href);
+    expect(url.origin).toBe("https://gofreely.rabo-hohoemi.workers.dev");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      from: "鼎公民館前",
+      to: "飯田駅前",
+      date: "2027-01-16",
+      arrive: "10:11",
+      return: "12:00",
+    });
   });
 });
