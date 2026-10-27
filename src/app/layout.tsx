@@ -11,12 +11,16 @@ import { SITE_CATCHPHRASE, SITE_NAME, SITE_NAME_JA, TARGET_DISTRICTS_LABEL, THEM
 import "./globals.css";
 
 // 本文・数字・ボタンはドット風にせず、ふつうのフォントにする（要件 8章「読みやすさ」）。
-// デザインイメージに合わせて丸ゴシックにし、家・土地の値段だけ太い丸文字にする（027 まさゆきさん決定）
+// デザインイメージに合わせて丸ゴシックにし、家・土地の値段だけ太い丸文字にする（027 まさゆきさん決定）。
+// preload は切る：日本語のフォントは文字の範囲ごとに百数十個のファイルに分かれていて、next/font は subsets が latin でも
+// それを全部先読みする（太さ3つで268個・約3.4MB）。スマホの回線では画面の部品より先に読まれ、見出しが出るまで20秒かかった。
+// 切ると、画面に出ている文字の分だけ読む（027 の「測った値」）
 const bodyFont = M_PLUS_Rounded_1c({
   variable: "--font-body",
-  weight: ["400", "500", "700", "800"],
+  weight: ["400", "700", "800"],
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 const priceFont = Mochiy_Pop_One({
@@ -24,6 +28,7 @@ const priceFont = Mochiy_Pop_One({
   weight: "400",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
