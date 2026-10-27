@@ -51,3 +51,6 @@ next-env.d.ts
 
 # pixel art preview (npm run pixel)
 /.pixel-preview/
+
+# MapLibre の worker（npm run dev / build の前に node_modules から写す。021）
+/public/maplibre/

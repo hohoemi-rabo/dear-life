@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChooseAgainLink, ConditionChips, ConditionsPanel } from "@/components/conditions/ConditionsPanel";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
-import { ButtonLink, buttonClassName } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
 import { karteLayout } from "@/lib/conditions/karte-order";
@@ -15,6 +15,7 @@ import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
+import { mapHref } from "@/lib/map/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -135,7 +136,7 @@ function KarteCards({ cards, conditions }: { cards: readonly KarteCard[]; condit
   );
 }
 
-// 下部：地区くらべ・地図（021 で作る）と「くらしに戻る」
+// 下部：地区くらべ・地図と「くらしに戻る」
 function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; searchParams: { get(name: string): string | null } }) {
   return (
     <nav aria-label="ほかの見方" className="flex flex-col gap-3">
@@ -143,7 +144,9 @@ function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; sea
         <ButtonLink href={kurabeHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary">
           地区くらべ
         </ButtonLink>
-        <ComingSoon>地図</ComingSoon>
+        <ButtonLink href={mapHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary">
+          地図
+        </ButtonLink>
       </div>
       <Link
         href={kurashiHref(conditions, searchParams)}
@@ -156,15 +159,6 @@ function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; sea
   );
 }
 
-// 画面ができるまでは押せないボタンにしておく（リンク先がないまま公開しない）。021 で ButtonLink に差しかえる
-function ComingSoon({ children }: { children: ReactNode }) {
-  return (
-    <span aria-disabled="true" className={buttonClassName("secondary", "cursor-not-allowed flex-col gap-0 opacity-50")}>
-      {children}
-      <span className="text-xs font-normal">準備中</span>
-    </span>
-  );
-}
 
 function NoDistrict({ conditions }: { conditions: Conditions }) {
   return (

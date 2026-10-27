@@ -1,4 +1,4 @@
-// screen_data()（015）を Supabase の REST から読む。@supabase/supabase-js は使わない（RPC を1つ GET で呼ぶだけなので。
+// screen_data()（015）・map_data()（021）を Supabase の REST から読む。@supabase/supabase-js は使わない（RPC を1つ GET で呼ぶだけなので。
 // 2026-10-26 に測った大きさは gzip 後で supabase-js 58KB・postgrest-js 5.6KB に対し、fetch は0）。
 // 画面に渡すのは URL と publishable key だけ。service_role key は絶対に使わない（CLAUDE.md）
 
@@ -48,12 +48,15 @@ const DEFAULT_TIMEOUT_MS = 6_000;
 const DEFAULT_RETRIES = 1;
 const DEFAULT_BACKOFF_MS = 1_000;
 
-async function fetchOnce(config: SupabaseConfig, fetchImpl: typeof fetch, timeoutMs: number): Promise<unknown> {
+// 画面が呼ぶ RPC。どれも引数なしで、anon が実行できる
+export type ScreenRpc = "screen_data" | "map_data";
+
+async function fetchOnce(config: SupabaseConfig, rpc: ScreenRpc, fetchImpl: typeof fetch, timeoutMs: number): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     // GET で呼ぶのは、024 の Service Worker が Cache API に残せるようにするため（POST は残せない）
-    const response = await fetchImpl(`${config.url.replace(/\/+$/, "")}/rest/v1/rpc/screen_data`, {
+    const response = await fetchImpl(`${config.url.replace(/\/+$/, "")}/rest/v1/rpc/${rpc}`, {
       method: "GET",
       headers: { apikey: config.publishableKey, Accept: "application/json" },
       signal: controller.signal,
@@ -73,7 +76,11 @@ async function fetchOnce(config: SupabaseConfig, fetchImpl: typeof fetch, timeou
   }
 }
 
-export async function fetchScreenData(config: SupabaseConfig, options: FetchOptions = {}): Promise<unknown> {
+export function fetchScreenData(config: SupabaseConfig, options: FetchOptions = {}): Promise<unknown> {
+  return fetchRpc(config, "screen_data", options);
+}
+
+export async function fetchRpc(config: SupabaseConfig, rpc: ScreenRpc, options: FetchOptions = {}): Promise<unknown> {
   const {
     fetch: fetchImpl = globalThis.fetch.bind(globalThis),
     timeoutMs = DEFAULT_TIMEOUT_MS,
@@ -83,7 +90,7 @@ export async function fetchScreenData(config: SupabaseConfig, options: FetchOpti
   } = options;
   for (let attempt = 0; ; attempt++) {
     try {
-      return await fetchOnce(config, fetchImpl, timeoutMs);
+      return await fetchOnce(config, rpc, fetchImpl, timeoutMs);
     } catch (error) {
       if (!(error instanceof ScreenDataError) || !error.retryable || attempt >= retries) throw error;
       await sleep(backoffMs * 2 ** attempt);

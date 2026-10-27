@@ -17,7 +17,7 @@ function isLoadError(error: unknown): boolean {
   return error instanceof ScreenDataError || error instanceof ScreenDataFormatError;
 }
 
-type ErrorBoundaryProps = { children: ReactNode };
+type ErrorBoundaryProps = { children: ReactNode; clearCache: () => void };
 type ErrorBoundaryState = { error: unknown };
 
 // データの読み込みの失敗だけを受け止める。ほかのエラー（画面の不具合）はそのまま上（error.tsx）に渡す
@@ -29,7 +29,7 @@ class LoadErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
   }
 
   private retry = () => {
-    clearScreenDataCache();
+    this.props.clearCache();
     this.setState({ error: null });
   };
 
@@ -56,6 +56,16 @@ const subscribeNothing = () => () => {};
 // 静的書き出しのビルドではデータを読まない（ビルド時に読むと、そのときのデータが HTML に固まってしまう）。
 // ビルドとハイドレーションのあいだは骨組みを出し、ブラウザで動き出してから読み込む
 export function ScreenDataBoundary({ children, fallback = <ScreenSkeleton /> }: { children: ReactNode; fallback?: ReactNode }) {
+  return (
+    <DataBoundary fallback={fallback} clearCache={() => clearScreenDataCache()}>
+      {children}
+    </DataBoundary>
+  );
+}
+
+// 読み込み中の骨組みと、失敗したときの再試行。clearCache は「もう一度読み込む」で捨てるキャッシュ
+// （画面のデータは ScreenDataBoundary、地図のデータは 021 の MapDataBoundary が渡す）
+export function DataBoundary({ children, fallback, clearCache }: { children: ReactNode; fallback: ReactNode; clearCache: () => void }) {
   const inBrowser = useSyncExternalStore(
     subscribeNothing,
     () => true,
@@ -63,7 +73,7 @@ export function ScreenDataBoundary({ children, fallback = <ScreenSkeleton /> }: 
   );
   if (!inBrowser) return fallback;
   return (
-    <LoadErrorBoundary>
+    <LoadErrorBoundary clearCache={clearCache}>
       <Suspense fallback={fallback}>{children}</Suspense>
     </LoadErrorBoundary>
   );

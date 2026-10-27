@@ -3,7 +3,8 @@ import type { DistrictEvent } from "@/lib/data/screen-data";
 import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
 import { compareSources, eventLabel, eventSources } from "./compare";
-import { karteFromKurabeHref, kurabeHref } from "./links";
+import { karteBackHref } from "../karte/links";
+import { kurabeHref } from "./links";
 
 const EDUCATION = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
 const POPULATION = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
@@ -60,12 +61,12 @@ describe("eventSources・eventLabel", () => {
   });
 });
 
-describe("kurabeHref・karteFromKurabeHref", () => {
+describe("kurabeHref・karteBackHref", () => {
   const conditions = { ...DEFAULT_CONDITIONS, district: "kanae" as const, car: 0 as const };
 
   it("条件と季節を残して行き来する", () => {
     expect(kurabeHref(conditions, "winter")).toBe("/kurabe?s=winter&d=kanae&a=2&k=1&h=new&c=0");
-    expect(karteFromKurabeHref(conditions, new URLSearchParams("s=winter&d=kanae"))).toBe("/karte?s=winter&d=kanae&a=2&k=1&h=new&c=0");
+    expect(karteBackHref(conditions, new URLSearchParams("s=winter&d=kanae"))).toBe("/karte?s=winter&d=kanae&a=2&k=1&h=new&c=0");
   });
 
   it("季節がなければ付けない", () => {

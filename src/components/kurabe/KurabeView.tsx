@@ -11,10 +11,9 @@ import { SourceNote } from "@/components/ui/SourceNote";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
-import { kurashiHref } from "@/lib/karte/links";
+import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { compareSources, eventSources } from "@/lib/kurabe/compare";
-import { karteFromKurabeHref } from "@/lib/kurabe/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { CompareBySection, CompareTable } from "./CompareLayouts";
@@ -97,7 +96,7 @@ function KurabeNavigation({ conditions }: { conditions: Conditions }) {
   }
   return (
     <nav aria-label="ほかの見方" className="flex flex-col items-center gap-3">
-      <ButtonLink href={karteFromKurabeHref(conditions, searchParams)} variant="secondary" className="w-full max-w-sm">
+      <ButtonLink href={karteBackHref(conditions, searchParams)} variant="secondary" className="w-full max-w-sm">
         <span aria-hidden="true">←</span>
         カルテに戻る
       </ButtonLink>

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseScreenData } from "../lib/data/screen-data";
+import { parseMapData } from "../lib/map/map-data";
 
 // supabase/migrations の SQL を手元の Postgres（PGlite）に当て、権限（要件 9.4）と入力の制約を確かめる。
 // 本番の Supabase と同じ「新しいテーブルに anon / authenticated の全権限が付く」既定を再現してから当てる
@@ -1135,14 +1136,15 @@ describe("画面が読むデータ screen_data（015）", () => {
     return found;
   };
 
-  it("anon が実行できる関数は screen_data だけ", async () => {
+  it("anon が実行できる関数は screen_data と地図の map_data（021）だけ", async () => {
     const rows = await run<{ proname: string }>(
       "postgres",
       `select proname from pg_proc
        where pronamespace = 'public'::regnamespace and has_function_privilege('anon', oid, 'execute') order by proname`,
     );
-    expect(rows.map((r) => r.proname)).toEqual(["screen_data"]);
+    expect(rows.map((r) => r.proname)).toEqual(["map_data", "screen_data"]);
     await expect(run("authenticated", "select public.screen_data()")).rejects.toThrow(/permission denied/);
+    await expect(run("authenticated", "select public.map_data()")).rejects.toThrow(/permission denied/);
   });
 
   it("出典がすべて未公開なら、4地区の欄は出典の id だけを持ち、中身は空（データ未取得）", async () => {
@@ -1263,5 +1265,103 @@ describe("画面が読むデータ screen_data（015）", () => {
     }
     expect(data.districts.kanae.busOuting).toMatchObject({ value: { originName: "鼎公民館前", dayType: "土曜" } });
     expect(data.districts.kanae.trainOuting.status).toBe("available");
+  });
+});
+
+describe("地図が読むデータ map_data（021）", () => {
+  type Section = { source_id: string; items: Record<string, unknown>[] };
+  type MapData = {
+    sources: { id: string }[];
+    districts: { id: string; facilities: Record<string, Section>; elementary_school_districts: Section }[];
+  };
+  const mapData = async (...setup: string[]) =>
+    (
+      await run<{ data: MapData }>(
+        "anon",
+        "delete from data_sources where id in ('published_src', 'draft_src')",
+        ...setup,
+        "select public.map_data() as data",
+      )
+    )[0].data;
+  const district = (data: MapData, id: string) => {
+    const found = data.districts.find((d) => d.id === id);
+    if (!found) throw new Error(`${id} がない`);
+    return found;
+  };
+  // タイルの切れ端2つ（座標は丸める前の長い桁）と、4地区の外の学校の学区
+  const insertSchoolDistricts = `insert into school_districts (level, school_name, geometry, source_id, source_key, district_id) values
+    ('elementary', '鼎小学校', '{"type": "MultiPolygon", "coordinates": [[[[137.8122854232788, 35.499845125237925], [137.82, 35.5], [137.82, 35.51], [137.8122854232788, 35.499845125237925]]], [[[137.82, 35.5], [137.83, 35.5], [137.83, 35.51], [137.82, 35.5]]]]}', 'reinfolib_xkt004', 'k', 'kanae'),
+    ('elementary', '松尾小学校', '{"type": "Polygon", "coordinates": [[[137.83, 35.48], [137.84, 35.48], [137.84, 35.49], [137.83, 35.48]]]}', 'reinfolib_xkt004', 'm', null),
+    ('junior_high', '鼎中学校', '{"type": "MultiPolygon", "coordinates": []}', 'reinfolib_xkt005', 'kj', 'kanae')`;
+
+  it("出典がすべて未公開なら、欄は出典の id だけを持ち、中身は空（データ未取得）", async () => {
+    const data = await mapData(insertSchoolDistricts);
+    expect(data.sources).toEqual([]);
+    expect(data.districts.map((d) => d.id)).toEqual(["kamisato", "kanae", "igara", "chushin"]);
+    const kanae = district(data, "kanae");
+    expect(Object.keys(kanae.facilities).sort()).toEqual(
+      ["after_school_clubs", "bus_stops", "childcare", "evacuation_sites", "schools", "train_stations"].sort(),
+    );
+    expect(Object.values(kanae.facilities).every((s) => s.items.length === 0)).toBe(true);
+    expect(kanae.elementary_school_districts).toEqual({ source_id: "reinfolib_xkt004", items: [] });
+  });
+
+  it("公開した出典の施設を、位置（小数6桁）つきで4地区の分だけ返す。位置のない施設と国土数値情報の学校は入れない", async () => {
+    const data = await mapData(
+      "update data_sources set is_published = true where id in ('iida_evacuation', 'reinfolib_xkt006', 'gtfs_minamishinshu_bus')",
+    );
+    const counts = await run<{ district_id: string; n: number }>(
+      "postgres",
+      `select district_id, count(*)::int as n from facilities
+       where source_id = 'iida_evacuation' and district_id is not null and latitude is not null group by 1`,
+    );
+    for (const { district_id, n } of counts) {
+      expect(district(data, district_id).facilities.evacuation_sites.items, district_id).toHaveLength(n);
+    }
+    const [site] = district(data, "kanae").facilities.evacuation_sites.items;
+    expect(site).toEqual({
+      name: expect.any(String),
+      subkind: expect.any(String),
+      address: expect.any(String),
+      latitude: expect.any(Number),
+      longitude: expect.any(Number),
+    });
+    expect(String(site.latitude).split(".")[1]?.length ?? 0).toBeLessThanOrEqual(6);
+    expect(district(data, "kanae").facilities.bus_stops.items.length).toBeGreaterThan(0);
+    expect(district(data, "kanae").facilities.schools).toEqual({ source_id: "iida_education", items: [] });
+  });
+
+  it("学区は4地区の小学校区だけを MultiPolygon の形で返し、座標を小数6桁に丸める。並びと切れ端は変えない", async () => {
+    const data = await mapData("update data_sources set is_published = true where id in ('reinfolib_xkt004', 'reinfolib_xkt005')", insertSchoolDistricts);
+    const kanae = district(data, "kanae");
+    expect(kanae.elementary_school_districts.items).toEqual([
+      {
+        school_name: "鼎小学校",
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: [
+            [[[137.812285, 35.499845], [137.82, 35.5], [137.82, 35.51], [137.812285, 35.499845]]],
+            [[[137.82, 35.5], [137.83, 35.5], [137.83, 35.51], [137.82, 35.5]]],
+          ],
+        },
+      },
+    ]);
+    const all = data.districts.flatMap((d) => d.elementary_school_districts.items.map((item) => item.school_name));
+    expect(all).toEqual(["鼎小学校"]);
+  });
+
+  it("応答は画面の読み込み（parseMapData）でそのまま読める", async () => {
+    const data = parseMapData(
+      await mapData("update data_sources set is_published = true where id not in ('reinfolib_xkt006', 'reinfolib_xkt007')", insertSchoolDistricts),
+    );
+    for (const id of data.districtOrder) {
+      const d = data.districts[id];
+      for (const kind of ["schools", "childcare", "after_school_clubs", "bus_stops", "evacuation_sites"] as const) {
+        expect(d.points[kind].status, `${id} ${kind}`).toBe("available");
+      }
+    }
+    expect(data.districts.igara.points.train_stations.status).toBe("none");
+    expect(data.districts.kanae.elementarySchoolDistricts).toMatchObject({ status: "available", value: [{ schoolName: "鼎小学校" }] });
+    expect(data.districts.kamisato.elementarySchoolDistricts.status).toBe("none");
   });
 });

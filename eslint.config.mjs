@@ -19,6 +19,8 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       ".wrangler/**",
+      // MapLibre の worker を node_modules から写したもの（021）
+      "public/maplibre/**",
     ],
   },
 ];

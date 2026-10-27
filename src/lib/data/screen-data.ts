@@ -185,9 +185,9 @@ export type ScreenData = {
 
 // ---- screen_data() の応答（列の名前はデータベースのまま） ----
 
-type RawSection<T> = { source_id: string; items: T[] };
+export type RawSection<T> = { source_id: string; items: T[] };
 
-type RawSource = {
+export type RawSource = {
   id: string;
   name: string;
   publisher: string;
@@ -292,14 +292,14 @@ export class ScreenDataFormatError extends Error {
   }
 }
 
-const DISTRICT_IDS: readonly DistrictId[] = ["kamisato", "kanae", "igara", "chushin"];
+export const DISTRICT_IDS: readonly DistrictId[] = ["kamisato", "kanae", "igara", "chushin"];
 const MARKET_CATEGORIES: readonly MarketCategory[] = ["land", "house_built_within_20y", "house_built_over_20y"];
 
-function isObject(value: unknown): value is Record<string, unknown> {
+export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isSection(value: unknown): value is RawSection<unknown> {
+export function isSection(value: unknown): value is RawSection<unknown> {
   return isObject(value) && typeof value.source_id === "string" && Array.isArray(value.items);
 }
 
@@ -330,10 +330,10 @@ function assertShape(raw: unknown): asserts raw is RawScreenData {
   }
 }
 
-type SourceLookup = (sourceId: string) => SourceInfo | undefined;
+export type SourceLookup = (sourceId: string) => SourceInfo | undefined;
 
 // 出典が公開されていなければ「データ未取得」、公開済みで中身が空なら「該当なし」
-function listState<T, U>(section: RawSection<T>, findSource: SourceLookup, map: (item: T) => U): DataState<readonly U[]> {
+export function listState<T, U>(section: RawSection<T>, findSource: SourceLookup, map: (item: T) => U): DataState<readonly U[]> {
   const source = findSource(section.source_id);
   if (!source) return { status: "unavailable" };
   if (section.items.length === 0) return { status: "none", source };
@@ -461,10 +461,9 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
   };
 }
 
-// today は日本時間の今日（YYYY-MM-DD）。バスの時刻表の有効期限を見るのに使う
-export function parseScreenData(raw: unknown, today: string): ScreenData {
-  assertShape(raw);
-  const sources: SourceInfo[] = raw.sources.map((source) => ({
+// 公開済みの出典の一覧と、id から引く関数。地図のデータ（021 の map_data）も同じ形で出典を返すので共通にしている
+export function parseSources(raw: readonly RawSource[]): { sources: SourceInfo[]; findSource: SourceLookup } {
+  const sources: SourceInfo[] = raw.map((source) => ({
     id: source.id,
     name: source.name,
     publisher: source.publisher,
@@ -477,7 +476,13 @@ export function parseScreenData(raw: unknown, today: string): ScreenData {
     fetchedOn: source.fetched_at === null ? null : japanDate(new Date(source.fetched_at)),
   }));
   const sourceById = new Map(sources.map((source) => [source.id, source]));
-  const findSource: SourceLookup = (id) => sourceById.get(id);
+  return { sources, findSource: (id) => sourceById.get(id) };
+}
+
+// today は日本時間の今日（YYYY-MM-DD）。バスの時刻表の有効期限を見るのに使う
+export function parseScreenData(raw: unknown, today: string): ScreenData {
+  assertShape(raw);
+  const { sources, findSource } = parseSources(raw.sources);
 
   const districts = raw.districts.map((district) => toDistrict(district, findSource, today));
   const missing = DISTRICT_IDS.filter((id) => !districts.some((district) => district.id === id));
