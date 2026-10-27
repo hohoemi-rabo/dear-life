@@ -94,7 +94,7 @@ describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
 
   it("相場は真ん中の値・幅・件数ラベル。件数が少ない値には「件数少なめ・参考程度」。該当なしとデータ未取得を分ける", async () => {
     await open("d=kanae");
-    expect(cells(tableRow("土地（宅地）"))).toEqual(["データ未取得", "2.4万円／㎡幅 1.7万円〜3万円96件件数じゅうぶん", "データ未取得", "データ未取得"]);
+    expect(cells(tableRow("土地（宅地）"))).toEqual(["データ未取得", "2.4万円／m²幅 1.7万円〜3万円96件件数じゅうぶん", "データ未取得", "データ未取得"]);
     expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
     expect(cells(tableRow("中古戸建て（築21年以上）"))[1]).toBe("該当なし");
     expect(screen.getAllByText(NOTICES.market).length).toBeGreaterThan(0);

@@ -4,7 +4,7 @@ import { CountBadge } from "@/components/ui/CountBadge";
 import { SEASONS } from "@/lib/conditions/scene";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data";
-import { formatManYen } from "@/lib/format";
+import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
 import { eventLabel, FACILITY_COUNT_ROWS } from "@/lib/kurabe/compare";
@@ -36,7 +36,7 @@ function LandCell({ stat }: { stat: MarketStat }) {
     <span className="flex flex-col gap-1">
       <BigValue>
         {formatManYen(stat.median)}
-        <span className="font-sans text-sm font-bold">／㎡</span>
+        <span className="font-sans text-sm font-bold">／{SQUARE_METER}</span>
       </BigValue>
       {stat.p25 !== null && stat.p75 !== null && (
         <span className="text-sm tabular-nums">
@@ -67,7 +67,7 @@ export const COMPARE_SECTIONS: readonly CompareSection[] = [
       {
         id: "land",
         label: MARKET_CATEGORY_LABELS.land,
-        note: "1㎡あたりの真ん中の値",
+        note: `1${SQUARE_METER}あたりの真ん中の値`,
         cell: (district) => stateCell(district.market.land, (stat) => <LandCell stat={stat} />),
       },
       {

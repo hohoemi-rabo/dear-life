@@ -103,9 +103,10 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
     await open("d=kanae&a=2&k=1&h=new");
     expect(cardTitles()).toEqual(["子育て・学校", "住まい", "交通", "防災", "人口", "公共施設", "支援制度"]);
     expect(screen.getByRole("note", { name: "表示の順番" })).toHaveTextContent("子どもがいるので、子育て・学校の情報を前の方に表示しています。");
-    // 最初は1枚目だけ開く
-    expect(card("childcare").open).toBe(true);
+    // 最初はすべて閉じ、見出しの一言で中身を伝える（027）
+    expect(card("childcare").open).toBe(false);
     expect(card("housing").open).toBe(false);
+    expect(card("childcare")).toHaveTextContent("主な学区と、学校・保育施設の数");
   });
 
   it("車0台・大切にしたいことあり：大切にしたいこと → 交通。交通カードに注意書きと冬の場面の便、gofreely へのリンク", async () => {
@@ -131,6 +132,18 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
 });
 
 describe("KarteView：住まいカード（5章）", () => {
+  it("閉じていても、見出しに選んだ家に近い相場を件数・件数ラベル・注意書き・出典つきで出す", async () => {
+    await open("d=kanae&k=0&h=new");
+    const housing = card("housing");
+    expect(housing.open).toBe(false);
+    const summary = housing.querySelector("summary") as HTMLElement;
+    expect(summary).toHaveTextContent("中古戸建て（築20年以内）の真ん中の値");
+    expect(summary).toHaveTextContent("3,350万円");
+    expect(summary).toHaveTextContent("12件参考になる件数");
+    expect(summary).toHaveTextContent(NOTICES.market);
+    expect(summary).toHaveTextContent("出典");
+  });
+
   it("土地は真ん中の値・幅・坪単価・200㎡の目安、件数ラベルと注意書き・出典を出す。新しめは築20年以内を先に", async () => {
     await open("d=kanae&k=0&h=new&p=housing");
     const housing = card("housing");
@@ -138,8 +151,10 @@ describe("KarteView：住まいカード（5章）", () => {
     expect(titles).toEqual(["中古戸建て（築20年以内）", "土地（宅地）", "中古戸建て（築21年以上）"]);
     expect(housing).toHaveTextContent("3,350万円");
     expect(housing).toHaveTextContent("12件参考になる件数");
-    expect(housing).toHaveTextContent("2.4万円／㎡");
-    expect(housing).toHaveTextContent("1.7万円〜3万円／㎡");
+    expect(housing).toHaveTextContent("2.4万円／m²");
+    expect(housing).toHaveTextContent("1.7万円〜3万円／m²");
+    // 「㎡」はフォントの字形が空で出ないので、画面には書かない（027）
+    expect(housing.textContent).not.toContain("㎡");
     expect(housing).toHaveTextContent("約7.93万円／坪");
     expect(housing).toHaveTextContent("約480万円");
     expect(housing).toHaveTextContent("96件件数じゅうぶん");
@@ -157,7 +172,7 @@ describe("KarteView：住まいカード（5章）", () => {
     const reference = within(housing).getByText("売買の相場を参考に見る").closest("details");
     expect(reference).not.toBeNull();
     expect(reference?.open).toBe(false);
-    expect(reference).toHaveTextContent("2.4万円／㎡");
+    expect(reference).toHaveTextContent("2.4万円／m²");
   });
 });
 
@@ -210,7 +225,7 @@ describe("KarteView：移動（F-04・F-14）", () => {
       fireEvent.change(screen.getAllByRole("combobox", { name: "地区を切り替える" })[0], { target: { value: "igara" } });
     });
     expect(new URLSearchParams(url.query).get("d")).toBe("igara");
-    expect(screen.getByText("伊賀良の暮らしの根拠を、出典とともに確かめよう。")).toBeInTheDocument();
+    expect(screen.getByText("伊賀良の暮らしの根拠を、確かめよう。")).toBeInTheDocument();
   });
 
   it("「くらしに戻る」「地区くらべ」は季節を残す。「条件を変える」はえらぶへ", async () => {

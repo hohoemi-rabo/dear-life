@@ -13,7 +13,7 @@ import type { Conditions } from "@/lib/conditions/model";
 import type { DataState, MarketStat } from "@/lib/data/screen-data";
 import { erabuReply, type ErabuReply } from "@/lib/erabu/replies";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { formatManYen, formatQuarterRange } from "@/lib/format";
+import { SQUARE_METER, formatManYen, formatQuarterRange } from "@/lib/format";
 import { NOTICES } from "@/lib/notices";
 import { familyArtFor } from "@/lib/pixel/assets";
 
@@ -48,7 +48,7 @@ function ReplyBody({ reply, conditions }: { reply: ErabuReply; conditions: Condi
             {reply.area}
           </p>
           <MarketFigure
-            label="土地の真ん中の値（1㎡あたり）"
+            label={`土地の真ん中の値（1${SQUARE_METER}あたり）`}
             state={reply.land}
             extra={(stat) => `1坪あたり 約${formatManYen(stat.median * SQUARE_METERS_PER_TSUBO)}`}
           />

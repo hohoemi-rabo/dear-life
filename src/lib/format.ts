@@ -33,6 +33,10 @@ export function formatServiceTime(time: string): string {
   return hours >= 24 ? `翌${hours - 24}:${minutes}` : `${hours}:${minutes}`;
 }
 
+// 面積の単位。画面のフォント（M PLUS Rounded 1c）は「㎡」（U+33A1）の字形が空で、ほかのフォントにも切り替わらず何も出ないので、
+// 「m²」と2文字で書く（027）。画面に出す ㎡ は必ずこれを使う
+export const SQUARE_METER = "m²";
+
 // 円を「万円」で出す（要件 5.1 の書き方）。100万円以上は整数に丸めて桁区切り（3,900万円）、
 // それより小さい土地の㎡単価などは小数2桁までにして末尾の0を落とす（2.8万円・1.25万円・0.46万円）
 export function formatManYen(yen: number): string {

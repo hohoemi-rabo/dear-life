@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PixelImage } from "@/components/pixel/PixelImage";
 import { CAR_LABELS, DISTRICTS, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type CarCount, type Housing } from "@/lib/conditions/labels";
@@ -24,17 +24,19 @@ export function ChooseAgainLink({
   conditions,
   className = "",
   label = "選び直す",
+  icon = "icon-refresh",
 }: {
   conditions: Conditions;
   className?: string;
   label?: string;
+  icon?: ComponentProps<typeof PixelIcon>["icon"];
 }) {
   return (
     <Link
       href={conditionsHref(ERABU_PATH, conditions)}
       className={`inline-flex min-h-tap items-center gap-1 font-bold text-primary underline-offset-4 hover:underline ${className}`}
     >
-      <PixelIcon icon="icon-refresh" size="sm" />
+      <PixelIcon icon={icon} size="sm" />
       {label}
     </Link>
   );
@@ -46,12 +48,14 @@ function carText(conditions: Conditions): string {
 
 const CHIP = "flex min-h-tap items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm";
 
-// スマホ：地区の切り替え（F-04）と、選んだ条件のチップ。くらしは地区と家族だけ、カルテは住まい・車も出す（デザインイメージ）
+// スマホ：地区の切り替え（F-04）と、選んだ条件のチップ。くらしは地区と家族だけ、カルテは住まい・車も出す（デザインイメージ）。
+// action（カルテの「条件を変える」）を渡すと、地区の右に置き、ほかのチップは次の行に回す
 export function ConditionChips({
   conditions,
   onConditionsChange,
   showAll = true,
-}: Props & { showAll?: boolean }) {
+  action,
+}: Props & { showAll?: boolean; action?: ReactNode }) {
   return (
     <ul aria-label="選んだ条件" className="flex flex-wrap items-center gap-2">
       <li>
@@ -71,6 +75,12 @@ export function ConditionChips({
           </select>
         </label>
       </li>
+      {action && (
+        <>
+          <li className="ml-auto">{action}</li>
+          <li aria-hidden="true" className="basis-full" />
+        </>
+      )}
       <li className={CHIP}>
         <PixelIcon icon="icon-family" size="sm" />
         {familyLabel(conditions.adults, conditions.children)}

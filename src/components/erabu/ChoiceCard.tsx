@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import { PixelStage } from "@/components/pixel/PixelStage";
 
 // 選択肢のカード。押すと選ぶ（もう一度押すと外すかどうかは呼ぶ側で決める）。
 // 選んだものは枠を太くし、チェックの印を付ける。色だけに頼らないよう、印と aria-pressed でも伝える。
-// 絵のあるカードは上半分を空の色にして絵を大きく出し、下に「選んだ／選べる」の丸い印を置く（027 デザインイメージ）。
+// 絵のあるカードは上半分を空と地面の台にして絵を大きく出し、下に「選んだ／選べる」の丸い印を置く（027 デザインイメージ）。
 // 印は飾りなので読み上げず、ボタンの名前は「ラベル＋説明」のまま
 export function ChoiceCard({
   selected,
@@ -37,13 +38,7 @@ export function ChoiceCard({
           ✓
         </span>
       )}
-      {art && (
-        // 絵の下に地面を敷き、絵が空の端で切れて見えないようにする
-        <span className="mb-1 flex h-28 w-full flex-col items-center justify-end bg-pixel-sky pt-2">
-          {art}
-          <span aria-hidden="true" className="h-2 w-full shrink-0 bg-pixel-grass" />
-        </span>
-      )}
+      {art && <PixelStage className="mb-1 h-28 w-full">{art}</PixelStage>}
       <span className="px-1 text-sm font-bold sm:text-base">{label}</span>
       {description && <span className="px-1 text-xs text-ink-muted">{description}</span>}
       {art && (

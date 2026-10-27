@@ -4,6 +4,7 @@ import { ManualDataList, MarketCounts, SourceList } from "@/components/about/Abo
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { Card } from "@/components/ui/Card";
 import { countLabel } from "@/lib/count-label";
+import { SQUARE_METER } from "@/lib/format";
 import { GSI_TILES, LANDSAT_CREDIT, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { EXAMPLE_LAND_AREA, SQUARE_METERS_PER_TSUBO } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
@@ -73,8 +74,10 @@ export default function AboutDataPage() {
           <li>取引の町名を、町名と地区の対応表に当てはめて地区に振り分けます。</li>
           <li>「調停・競売等」「関係者間取引」「隣地の購入」の取引は、ふつうの売り買いと値段の決まり方が違うため除いています。</li>
           <li>
-            土地は種類が「宅地(土地)」の取引で、1㎡あたりの値段の真ん中の値と、下位25%〜上位25%の幅を出します。1㎡あたりの値段がない取引は、総額を面積で割って補います。坪単価（1坪＝
-            {SQUARE_METERS_PER_TSUBO}㎡）と、{EXAMPLE_LAND_AREA}㎡（約60坪）のときの目安も添えます。
+            土地は種類が「宅地(土地)」の取引で、1{SQUARE_METER}あたりの値段の真ん中の値と、下位25%〜上位25%の幅を出します。1{SQUARE_METER}あたりの値段がない取引は、総額を面積で割って補います。坪単価（1坪＝
+            {SQUARE_METERS_PER_TSUBO}
+            {SQUARE_METER}）と、{EXAMPLE_LAND_AREA}
+            {SQUARE_METER}（約60坪）のときの目安も添えます。
           </li>
           <li>
             中古戸建ては種類が「宅地(土地と建物)」で、用途に住宅を含む（または空欄の）取引です。築年数（取引の年−建てた年）で「築20年以内」「築21年以上」に分け、総額の真ん中の値を出します。建てた年がわからない取引はどちらにも入れません。
