@@ -61,6 +61,11 @@ export function familyAssetId(adults: 1 | 2, children: 0 | 1 | 2 | 3): PixelAsse
   return `family-a${adults}-c${children}` as const;
 }
 
+// 家族の絵は大人2人・子ども3人まで描いてあるので、それより多いときは描ける人数で出す（人数は文字で出す）
+export function familyArtFor(adults: number, children: number): PixelAssetId {
+  return familyAssetId(Math.min(adults, 2) as 1 | 2, Math.min(children, 3) as 0 | 1 | 2 | 3);
+}
+
 export type Season = "spring" | "summer" | "autumn" | "winter";
 
 // 地区 → 目印（2026-10-26 にまさゆきさんが決めた）。冬は雪の積もった絵にする

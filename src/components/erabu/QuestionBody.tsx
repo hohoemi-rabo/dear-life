@@ -12,7 +12,7 @@ import {
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { familyAssetId, landmarkAssetId, type PixelAssetId } from "@/lib/pixel/assets";
+import { familyArtFor, landmarkAssetId, type PixelAssetId } from "@/lib/pixel/assets";
 import { ChoiceCard } from "./ChoiceCard";
 
 type Props = {
@@ -56,15 +56,10 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
   );
 }
 
-// 家族の絵は大人2人・子ども3人まで描いてあるので、それより多いときは描ける人数で出す（人数は文字で出す）
-function familyArt(adults: number, children: number): PixelAssetId {
-  return familyAssetId(Math.min(adults, 2) as 1 | 2, Math.min(children, 3) as 0 | 1 | 2 | 3);
-}
-
 function FamilyCounter({ conditions, onChange }: ChoiceProps) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <PixelImage asset={familyArt(conditions.adults, conditions.children)} scale={3} decorative />
+      <PixelImage asset={familyArtFor(conditions.adults, conditions.children)} scale={3} decorative />
       <div className="flex w-full flex-col gap-3">
         <Counter
           label="大人"

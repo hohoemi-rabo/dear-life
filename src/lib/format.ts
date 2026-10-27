@@ -11,6 +11,15 @@ export function formatJaDate(isoDate: string): string {
   return `${year}年${Number(month)}月${Number(day)}日`;
 }
 
+const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+
+// 「2027年1月16日（土）」。バスの時刻表を見た日に使う。曜日は UTC で数え、タイムゾーンで日付がずれないようにする
+export function formatJaDateWithWeekday(isoDate: string): string {
+  const date = formatJaDate(isoDate);
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return `${date}（${WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]}）`;
+}
+
 const SERVICE_TIME = /^(\d{2}):(\d{2})$/;
 
 // バス・電車の時刻（HH:MM）を画面の書き方にする。GTFS では翌日にかかる便が24時以上になるので「翌0:30」と書く（010）

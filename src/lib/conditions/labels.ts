@@ -62,3 +62,8 @@ export const PRIORITIES: readonly Priority[] = KARTE_CARDS.filter(
 export function familyLabel(adults: number, children: number): string {
   return `大人${adults}人・子ども${children}人`;
 }
+
+// カルテのカードの id。くらしの場面から、カルテの該当カードへ直接移るのに使う（F-14・019）
+export function karteCardAnchor(card: KarteCard): string {
+  return `karte-${card}`;
+}

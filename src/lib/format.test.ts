@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { formatJaDate, formatManYen, formatQuarterRange, formatServiceTime } from "./format";
+import { formatJaDate, formatJaDateWithWeekday, formatManYen, formatQuarterRange, formatServiceTime } from "./format";
+
+describe("formatJaDateWithWeekday", () => {
+  it("日付に曜日を添える", () => {
+    expect(formatJaDateWithWeekday("2027-01-16")).toBe("2027年1月16日（土）");
+    expect(formatJaDateWithWeekday("2027-01-18")).toBe("2027年1月18日（月）");
+  });
+
+  it("形の違う日付は受け付けない", () => {
+    expect(() => formatJaDateWithWeekday("2027/01/16")).toThrow(RangeError);
+  });
+});
 
 describe("formatJaDate", () => {
   it("YYYY-MM-DD を「年月日」で出し、月日の0を付けない", () => {
