@@ -58,11 +58,15 @@ async function run<T = Record<string, unknown>>(role: Role, ...statements: strin
   }
 }
 
+// 公開の範囲（022 で決めた）に左右されずに「公開するまで見えない」を確かめるため、出典を全部未公開に戻す準備の文
+const UNPUBLISH_ALL = "update data_sources set is_published = false";
+
 const PUBLIC_TABLES = [
   "districts",
   "data_sources",
   "town_district_map",
   "market_stats",
+  "market_summary",
   "facilities",
   "school_districts",
   "population",
@@ -143,10 +147,11 @@ describe("公開の範囲（F-09・7.3）", () => {
   it("anon には公開済みの出典だけが見え、未公開の出典のデータは見えない", async () => {
     const insertFacilities = `insert into facilities (kind, name, source_id, source_key) values
       ('school', '公開の学校', 'published_src', 'a'), ('school', '確認中の学校', 'draft_src', 'b')`;
-    const facilities = await run<{ name: string }>("anon", insertFacilities, "select name from facilities");
+    const onlyTestSource = "update data_sources set is_published = (id = 'published_src')";
+    const facilities = await run<{ name: string }>("anon", onlyTestSource, insertFacilities, "select name from facilities");
     expect(facilities.map((r) => r.name)).toEqual(["公開の学校"]);
 
-    const sources = await run<{ id: string }>("anon", "select id from data_sources");
+    const sources = await run<{ id: string }>("anon", onlyTestSource, "select id from data_sources");
     expect(sources.map((r) => r.id)).toEqual(["published_src"]);
   });
 
@@ -417,18 +422,44 @@ describe("不動産取引の取り込み（006）", () => {
     }
   });
 
-  it("出典にクレジットが入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ credit_text: string; is_published: boolean }>(
+  it("出典にクレジットが入り", async () => {
+    const rows = await run<{ credit_text: string}>(
       "postgres",
-      "select credit_text, is_published from data_sources where id = 'reinfolib_xit001'",
+      "select credit_text from data_sources where id = 'reinfolib_xit001'",
     );
+    // 利用規約の出典記載例どおり。API 利用約款 第7条の文言はサービス全体の表示として画面に出す（src/lib/credits.ts）
     expect(rows).toEqual([
       {
-        credit_text:
-          "このサービスは、国土交通省の不動産情報ライブラリのAPI機能を使用していますが、提供情報の最新性、正確性、完全性等が保証されたものではありません",
-        is_published: false,
+        credit_text: expect.stringMatching(/^出典：国土交通省 不動産情報ライブラリ（https:\/\/www\.reinfolib\.mlit\.go\.jp\/）。/),
       },
     ]);
+  });
+});
+
+describe("出典の公開（022）", () => {
+  it("クレジットを画面に出せる出典を公開し、電車の時刻（市の許可待ち）と画面に出さない国の学校・保育施設は未公開のまま", async () => {
+    const rows = await run<{ id: string; is_published: boolean }>(
+      "postgres",
+      "select id, is_published from data_sources where id not in ('published_src', 'draft_src') order by id",
+    );
+    expect(rows.filter((row) => row.is_published).map((row) => row.id)).toEqual([
+      "estat_census_small_area",
+      "gtfs_minamishinshu_bus",
+      "iida_childcare",
+      "iida_education",
+      "iida_evacuation",
+      "iida_public_facilities",
+      "rakuen_shinshu_iida_sheet",
+      "reinfolib_xit001",
+      "reinfolib_xkt004",
+      "reinfolib_xkt005",
+      "sena_iida_line_stations",
+    ]);
+    expect(rows.filter((row) => !row.is_published).map((row) => row.id)).toEqual(["iida_jr_timetable", "reinfolib_xkt006", "reinfolib_xkt007"]);
+  });
+
+  it("公開した出典には、どれもクレジットが入っている", async () => {
+    expect(await run("postgres", "select id from data_sources where is_published and coalesce(credit_text, '') = '' and id <> 'published_src'")).toEqual([]);
   });
 });
 
@@ -563,6 +594,52 @@ describe("相場の集計（007）", () => {
     expect(await run("service_role", refresh())).toEqual([{ written: 12 }]);
   });
 
+  it("対象期間の取引の件数と、外した取引の理由ごとの件数を market_summary に入れ直す", async () => {
+    const trade = (district: string | null, circumstances: string | null, excluded: boolean, year = 2025) =>
+      `(${year}, 1, '不動産取引価格情報', '宅地(土地)', '鼎', ${district === null ? "null" : `'${district}'`}, 5000000, 25000, 200, null, null,
+        ${circumstances === null ? "null" : `'${circumstances}'`}, ${excluded}, '{}')`;
+    const rows = await run<Record<string, string | number>>(
+      "service_role",
+      `insert into real_estate_transactions (
+         trade_year, trade_quarter, price_category, property_type, town_name, district_id,
+         trade_price, unit_price_per_sqm, area_sqm, building_year, use, circumstances, is_excluded, raw
+       ) values ${[
+         trade("kanae", null, false),
+         trade("kanae", "私道を含む取引", false),
+         trade("kanae", "調停・競売等", true),
+         trade("igara", "関係者間取引、隣地の購入", true),
+         trade(null, "調停・競売等", true), // 4地区の外：市全体の件数にだけ入る
+         trade("kanae", "調停・競売等", true, 2020), // 期間の外
+       ].join(", ")}`,
+      refresh(),
+      refresh(),
+      `select period_from, period_to, citywide_count, district_count, excluded_count, mediation_count, related_party_count, adjacent_land_count
+       from market_summary`,
+    );
+    expect(rows).toEqual([
+      {
+        period_from: "2021Q1",
+        period_to: "2026Q1",
+        citywide_count: 5,
+        district_count: 4,
+        excluded_count: 2,
+        mediation_count: 1,
+        related_party_count: 1,
+        adjacent_land_count: 1,
+      },
+    ]);
+  });
+
+  it("外した取引の件数は、相場の出典を公開するまで anon に見えない", async () => {
+    const seed = [
+      `insert into market_summary (period_from, period_to, citywide_count, district_count, excluded_count, mediation_count, related_party_count, adjacent_land_count, source_id)
+       values ('2021Q1', '2026Q1', 10, 5, 1, 1, 0, 0, 'reinfolib_xit001')
+       on conflict (id) do nothing`,
+    ];
+    expect(await run("anon", ...seed, "update data_sources set is_published = false where id = 'reinfolib_xit001'", "select * from market_summary")).toEqual([]);
+    expect(await run("anon", ...seed, "update data_sources set is_published = true where id = 'reinfolib_xit001'", "select * from market_summary")).toHaveLength(1);
+  });
+
   it("期間の形が違う・始まりが終わりより後なら失敗する", async () => {
     await expect(run("service_role", refresh("2021-1", "2026Q1"))).rejects.toThrow(/2021Q1 の形で渡す/);
     await expect(run("service_role", refresh("2026Q2", "2026Q1"))).rejects.toThrow(/終わり（2026Q1）より後/);
@@ -617,26 +694,26 @@ describe("バス（010）", () => {
   });
 
   it("出典を公開するまで、anon にはバス停もおでかけも見えない。公開すると見える", async () => {
-    expect(await run("anon", "select 1 from bus_outings")).toEqual([]);
-    expect(await run("anon", "select 1 from facilities where kind = 'bus_stop'")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from bus_outings")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from facilities where kind = 'bus_stop'")).toEqual([]);
     const published = await run<{ outings: number }>(
       "anon",
+      UNPUBLISH_ALL,
       "update data_sources set is_published = true where id = 'gtfs_minamishinshu_bus'",
       "select count(*)::int as outings from bus_outings",
     );
     expect(published[0].outings).toBeGreaterThan(0);
   });
 
-  it("出典にクレジットと期間が入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+  it("出典にクレジットと期間が入り", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string}>(
       "postgres",
-      "select license, credit_text, period_label, is_published from data_sources where id = 'gtfs_minamishinshu_bus'",
+      "select license, credit_text, period_label from data_sources where id = 'gtfs_minamishinshu_bus'",
     );
     expect(rows).toHaveLength(1);
     expect(rows[0].license).toBe("CC BY 4.0");
     expect(rows[0].credit_text).toMatch(/^出典：南信州地域交通問題協議会「.+」（GTFSデータリポジトリ）。CC BY 4.0/);
     expect(rows[0].period_label).toMatch(/まで有効なダイヤ$/);
-    expect(rows[0].is_published).toBe(false);
   });
 
   it("便の有無と状態が食い違う行は入れられない", async () => {
@@ -706,11 +783,12 @@ describe("電車（026）", () => {
   });
 
   it("出典を公開するまで、anon には駅も時刻も見えない。駅と時刻は別々に公開できる", async () => {
-    expect(await run("anon", "select 1 from train_departures")).toEqual([]);
-    expect(await run("anon", "select 1 from train_outings")).toEqual([]);
-    expect(await run("anon", "select 1 from facilities where kind = 'train_station'")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from train_departures")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from train_outings")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from facilities where kind = 'train_station'")).toEqual([]);
     const stationsOnly = await run<{ stations: number; departures: number }>(
       "anon",
+      UNPUBLISH_ALL,
       "update data_sources set is_published = true where id = 'sena_iida_line_stations'",
       `select (select count(*)::int from facilities where kind = 'train_station') as stations,
               (select count(*)::int from train_departures) as departures`,
@@ -719,10 +797,10 @@ describe("電車（026）", () => {
     expect(stationsOnly[0].departures).toBe(0);
   });
 
-  it("出典にクレジットが入り、時刻は許可を取るまで未公開・ライセンス未記入にしておく", async () => {
-    const rows = await run<{ id: string; license: string | null; credit_text: string; period_label: string | null; is_published: boolean }>(
+  it("出典にクレジットが入り、時刻はライセンス未記入のまま", async () => {
+    const rows = await run<{ id: string; license: string | null; credit_text: string; period_label: string | null}>(
       "postgres",
-      "select id, license, credit_text, period_label, is_published from data_sources where id in ('sena_iida_line_stations', 'iida_jr_timetable') order by id",
+      "select id, license, credit_text, period_label from data_sources where id in ('sena_iida_line_stations', 'iida_jr_timetable') order by id",
     );
     expect(rows).toHaveLength(2);
     const [timetable, stations] = rows;
@@ -731,7 +809,6 @@ describe("電車（026）", () => {
     expect(timetable.license).toBeNull();
     expect(timetable.credit_text).toMatch(/^出典：飯田市「公共交通総合案内」JR飯田線 時刻表/);
     expect(timetable.period_label).toMatch(/改正のダイヤ$/);
-    expect(rows.every((row) => !row.is_published)).toBe(true);
   });
 
   it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
@@ -876,16 +953,19 @@ describe("学区・学校・保育施設（008）", () => {
     }
   });
 
-  it("国の4つの出典にクレジットと対象年度が入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ id: string; credit_text: string; period_label: string; is_published: boolean }>(
+  it("国の4つの出典にクレジットと対象年度が入り", async () => {
+    const rows = await run<{ id: string; credit_text: string; period_label: string}>(
       "postgres",
-      "select id, credit_text, period_label, is_published from data_sources where id like 'reinfolib_xkt%' order by id",
+      "select id, credit_text, period_label from data_sources where id like 'reinfolib_xkt%' order by id",
     );
     expect(rows.map((row) => row.id)).toEqual(["reinfolib_xkt004", "reinfolib_xkt005", "reinfolib_xkt006", "reinfolib_xkt007"]);
+    // 学区は国土数値情報の利用規約の記載例に合わせた（022）。学校・保育施設は画面に出さないので元のまま
+    expect(rows.slice(0, 2).map((row) => row.credit_text)).toEqual([
+      expect.stringMatching(/^出典：「国土数値情報（小学校区データ）」（国土交通省）/),
+      expect.stringMatching(/^出典：「国土数値情報（中学校区データ）」（国土交通省）/),
+    ]);
     for (const row of rows) {
-      expect(row.credit_text).toMatch(/^このサービスは、国土交通省の不動産情報ライブラリのAPI機能を使用していますが/);
       expect(row.period_label).toBe("令和5年度");
-      expect(row.is_published).toBe(false);
     }
   });
 });
@@ -927,17 +1007,16 @@ describe("市の子育て施設（009）", () => {
     }
   });
 
-  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null; is_published: boolean }>(
+  it("出典に市の記載例どおりのクレジットと更新日が入り", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null}>(
       "postgres",
-      "select license, credit_text, period_label, checked_on::text, is_published from data_sources where id = 'iida_childcare'",
+      "select license, credit_text, period_label, checked_on::text from data_sources where id = 'iida_childcare'",
     );
     expect(rows).toHaveLength(1);
     expect(rows[0].license).toBe("PDL1.0");
     expect(rows[0].credit_text).toMatch(/^出典：飯田市（https:\/\/www\.city\.iida\.lg\.jp\/soshiki\/168\/opendata\.html）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「子育て施設」（飯田市）/);
     expect(rows[0].period_label).toMatch(/更新$/);
     expect(rows[0].checked_on).not.toBeNull();
-    expect(rows[0].is_published).toBe(false);
   });
 });
 
@@ -977,17 +1056,16 @@ describe("市の教育機関一覧（009・008）", () => {
     }
   });
 
-  it("出典に市の記載例どおりのクレジットが入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+  it("出典に市の記載例どおりのクレジットが入り", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string}>(
       "postgres",
-      "select license, credit_text, period_label, is_published from data_sources where id = 'iida_education'",
+      "select license, credit_text, period_label from data_sources where id = 'iida_education'",
     );
     expect(rows).toEqual([
       {
         license: "PDL1.0",
         credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「教育機関一覧」（飯田市）/),
         period_label: "更新日の記載なし",
-        is_published: false,
       },
     ]);
   });
@@ -1029,10 +1107,10 @@ describe("市の指定緊急避難場所一覧（009）", () => {
     }
   });
 
-  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null; is_published: boolean }>(
+  it("出典に市の記載例どおりのクレジットと更新日が入り", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string; checked_on: string | null}>(
       "postgres",
-      "select license, credit_text, period_label, checked_on::text, is_published from data_sources where id = 'iida_evacuation'",
+      "select license, credit_text, period_label, checked_on::text from data_sources where id = 'iida_evacuation'",
     );
     expect(rows).toEqual([
       {
@@ -1040,7 +1118,6 @@ describe("市の指定緊急避難場所一覧（009）", () => {
         credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「指定緊急避難場所一覧」（飯田市）/),
         period_label: expect.stringMatching(/更新$/),
         checked_on: expect.any(String),
-        is_published: false,
       },
     ]);
   });
@@ -1084,17 +1161,16 @@ describe("市の公共施設一覧（009）", () => {
     }
   });
 
-  it("出典に市の記載例どおりのクレジットと更新日が入り、画面に出せるまでは未公開にしておく", async () => {
-    const rows = await run<{ license: string; credit_text: string; period_label: string; is_published: boolean }>(
+  it("出典に市の記載例どおりのクレジットと更新日が入り", async () => {
+    const rows = await run<{ license: string; credit_text: string; period_label: string}>(
       "postgres",
-      "select license, credit_text, period_label, is_published from data_sources where id = 'iida_public_facilities'",
+      "select license, credit_text, period_label from data_sources where id = 'iida_public_facilities'",
     );
     expect(rows).toEqual([
       {
         license: "PDL1.0",
         credit_text: expect.stringMatching(/^出典：飯田市（.+）、PDL1\.0（.+）（\d{4}年\d{1,2}月\d{1,2}日に利用）。「公共施設一覧」（飯田市）/),
         period_label: "2025年6月23日更新",
-        is_published: false,
       },
     ]);
   });
@@ -1120,12 +1196,14 @@ describe("画面が読むデータ screen_data（015）", () => {
   };
   const publish = (...ids: string[]) =>
     `update data_sources set is_published = true where id in (${ids.map((id) => `'${id}'`).join(", ")})`;
-  // テスト用に最初に入れた出典（published_src など）は外し、マイグレーションの出典だけで確かめる
+  // テスト用に最初に入れた出典（published_src など）は外し、マイグレーションの出典だけで確かめる。
+  // 公開の範囲（022）に左右されないよう、全部を未公開に戻してから確かめたい出典だけを公開する
   const screenData = async (...setup: string[]) =>
     (
       await run<{ data: ScreenData }>(
         "anon",
         "delete from data_sources where id in ('published_src', 'draft_src')",
+        UNPUBLISH_ALL,
         ...setup,
         "select public.screen_data() as data",
       )
@@ -1279,6 +1357,7 @@ describe("地図が読むデータ map_data（021）", () => {
       await run<{ data: MapData }>(
         "anon",
         "delete from data_sources where id in ('published_src', 'draft_src')",
+        UNPUBLISH_ALL,
         ...setup,
         "select public.map_data() as data",
       )

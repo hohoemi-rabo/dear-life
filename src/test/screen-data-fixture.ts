@@ -73,6 +73,7 @@ export function screenDataFixture(overrides: Partial<Record<DistrictId, Partial<
       DistrictId,
       DistrictData
     >,
+    marketSummary: UNAVAILABLE,
     supportPrograms: [],
     sceneTemplates: [],
   };

@@ -44,6 +44,20 @@ export type MarketStat = {
   periodTo: string;
 };
 
+// 相場の集計の対象期間の取引件数と、外した取引の件数（要件 5章-3。データについてページで出す）
+export type MarketSummary = {
+  periodFrom: string;
+  periodTo: string;
+  // 飯田市全体の取引件数と、そのうち4地区に振り分けた件数（どちらも外した取引を含む）
+  citywideCount: number;
+  districtCount: number;
+  // 4地区の取引のうち集計から外した件数と、その理由ごとの件数（1件が複数の理由に当たることがある）
+  excludedCount: number;
+  mediationCount: number;
+  relatedPartyCount: number;
+  adjacentLandCount: number;
+};
+
 export type Facility = {
   name: string;
   // 元の区分（「小学校」「認定こども園（保育所型）」「公園」など）。バス停・駅は null
@@ -179,6 +193,7 @@ export type ScreenData = {
   // 地区マスタの並び順
   districtOrder: readonly DistrictId[];
   districts: Readonly<Record<DistrictId, DistrictData>>;
+  marketSummary: DataState<MarketSummary>;
   supportPrograms: readonly SupportProgram[];
   sceneTemplates: readonly SceneTemplate[];
 };
@@ -280,6 +295,16 @@ export type RawScreenData = {
   generated_at: string;
   sources: RawSource[];
   districts: RawDistrict[];
+  market_summary: RawSection<{
+    period_from: string;
+    period_to: string;
+    citywide_count: number;
+    district_count: number;
+    excluded_count: number;
+    mediation_count: number;
+    related_party_count: number;
+    adjacent_land_count: number;
+  }>;
   support_programs: { name: string; summary: string; category: SupportProgram["category"]; official_url: string; checked_on: string }[];
   scene_templates: SceneTemplate[];
 };
@@ -310,6 +335,7 @@ function assertShape(raw: unknown): asserts raw is RawScreenData {
     if (!Array.isArray(raw[key])) throw new ScreenDataFormatError(`${key} が配列ではありません`);
   }
   if (typeof raw.generated_at !== "string") throw new ScreenDataFormatError("generated_at がありません");
+  if (!isSection(raw.market_summary)) throw new ScreenDataFormatError("market_summary の欄がありません");
   for (const district of raw.districts as unknown[]) {
     if (!isObject(district) || !DISTRICT_IDS.includes(district.id as DistrictId)) {
       throw new ScreenDataFormatError(`知らない地区があります：${isObject(district) ? String(district.id) : "?"}`);
@@ -493,6 +519,16 @@ export function parseScreenData(raw: unknown, today: string): ScreenData {
     sources,
     districtOrder: districts.map((district) => district.id),
     districts: Object.fromEntries(districts.map((district) => [district.id, district])) as Record<DistrictId, DistrictData>,
+    marketSummary: singleState(raw.market_summary, findSource, (item) => ({
+      periodFrom: item.period_from,
+      periodTo: item.period_to,
+      citywideCount: item.citywide_count,
+      districtCount: item.district_count,
+      excludedCount: item.excluded_count,
+      mediationCount: item.mediation_count,
+      relatedPartyCount: item.related_party_count,
+      adjacentLandCount: item.adjacent_land_count,
+    })),
     supportPrograms: raw.support_programs.map((program) => ({
       name: program.name,
       summary: program.summary,

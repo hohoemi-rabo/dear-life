@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { use, useMemo, useState, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
+import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { DataBoundary } from "@/components/data/ScreenDataBoundary";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -13,12 +14,13 @@ import { DISTRICT_NAMES, DISTRICTS } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
+import { GSI_TILES } from "@/lib/credits";
 import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
-import { BASE_MAP_LABELS, GSI_TILE_LIST_URL, POINT_STYLES, type BaseMap } from "@/lib/map/style";
+import { BASE_MAP_LABELS, POINT_STYLES, type BaseMap } from "@/lib/map/style";
 import { pointKindSummary, schoolDistrictSummary, type LayerSummary } from "@/lib/map/summary";
 import { NOTICES } from "@/lib/notices";
 import { ERABU_PATH } from "@/lib/site";
@@ -411,12 +413,7 @@ function Sources({ data }: { data: MapData }) {
       <h2 id="map-sources" className="text-lg font-bold">
         出典と対象時点
       </h2>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-        <dt className="font-bold">該当なし</dt>
-        <dd className="text-ink-muted">出典のデータに、4地区に当てはまるものはありません。</dd>
-        <dt className="font-bold">データ未取得</dt>
-        <dd className="text-ink-muted">このデータは準備中です。</dd>
-      </dl>
+      <DataStateLegend place="4地区" />
       <ul className="flex flex-col divide-y divide-line">
         {[...sources.values()].map((source) => (
           <li key={source.id} className="py-2">
@@ -425,8 +422,8 @@ function Sources({ data }: { data: MapData }) {
         ))}
         <li className="flex flex-wrap items-center py-1 text-xs text-ink-muted">
           背景地図・航空写真・標高：
-          <a href={GSI_TILE_LIST_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center text-primary underline underline-offset-4">
-            地理院タイル（国土地理院）
+          <a href={GSI_TILES.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center text-primary underline underline-offset-4">
+            {GSI_TILES.name}
           </a>
         </li>
       </ul>

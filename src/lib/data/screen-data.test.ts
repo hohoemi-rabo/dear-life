@@ -61,11 +61,12 @@ function district(id: string, overrides: Record<string, unknown> = {}) {
   };
 }
 
-function raw(overrides: { sources?: unknown[]; kanae?: Record<string, unknown> } = {}): RawScreenData {
+function raw(overrides: { sources?: unknown[]; kanae?: Record<string, unknown>; marketSummary?: unknown[] } = {}): RawScreenData {
   return {
     generated_at: "2026-10-26T13:00:00+00:00",
     sources: overrides.sources ?? [],
     districts: ["kamisato", "kanae", "igara", "chushin"].map((id) => district(id, id === "kanae" ? overrides.kanae : {})),
+    market_summary: section("reinfolib_xit001", overrides.marketSummary ?? []),
     support_programs: [],
     scene_templates: [],
   } as unknown as RawScreenData;
@@ -124,6 +125,47 @@ describe("parseScreenData：データ未取得と該当なし（F-09）", () => 
     });
     expect(market.house_built_within_20y.status).toBe("none");
     expect(market.house_built_over_20y.status).toBe("unavailable");
+  });
+});
+
+describe("parseScreenData：相場の集計で外した取引の件数（022）", () => {
+  const summary = {
+    period_from: "2021Q1",
+    period_to: "2026Q1",
+    citywide_count: 1313,
+    district_count: 792,
+    excluded_count: 7,
+    mediation_count: 6,
+    related_party_count: 1,
+    adjacent_land_count: 0,
+  };
+
+  it("相場の出典が公開済みなら件数を返し、未公開ならデータ未取得", () => {
+    expect(parseScreenData(raw({ sources: [source("reinfolib_xit001")], marketSummary: [summary] }), TODAY).marketSummary).toEqual({
+      status: "available",
+      value: {
+        periodFrom: "2021Q1",
+        periodTo: "2026Q1",
+        citywideCount: 1313,
+        districtCount: 792,
+        excludedCount: 7,
+        mediationCount: 6,
+        relatedPartyCount: 1,
+        adjacentLandCount: 0,
+      },
+      source: expect.objectContaining({ id: "reinfolib_xit001" }),
+    });
+    expect(parseScreenData(raw({ marketSummary: [summary] }), TODAY).marketSummary).toEqual({ status: "unavailable" });
+  });
+
+  it("まだ集計していなければデータ未取得", () => {
+    expect(parseScreenData(raw({ sources: [source("reinfolib_xit001")] }), TODAY).marketSummary).toEqual({ status: "unavailable" });
+  });
+
+  it("欄がない応答（関数が古い）は形の違いとして失敗する", () => {
+    const old: Partial<RawScreenData> = raw();
+    delete old.market_summary;
+    expect(() => parseScreenData(old, TODAY)).toThrow(ScreenDataFormatError);
   });
 });
 

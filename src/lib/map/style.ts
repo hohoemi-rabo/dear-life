@@ -1,16 +1,10 @@
 // 地図（021）の下地・点の色・最初に見せる範囲。MapLibre の本体は読み込まない（型だけ）ので、テストからも使える
 import type { LngLatBoundsLike, StyleSpecification } from "maplibre-gl";
 import type { DistrictId } from "../town-district/resolve.ts";
+import { GSI_TILES, LANDSAT_CREDIT } from "../credits.ts";
 import type { MapPointKind } from "./map-data.ts";
 
-// 地理院タイル（国土地理院）。ウェブでリアルタイムに読み込むなら、出典の明示だけで申請は要らない。
-// 出典は「地理院タイル」などと書き、タイル一覧のページへリンクする（2026-10-27 にタイル一覧のページで確認）
-export const GSI_TILE_LIST_URL = "https://maps.gsi.go.jp/development/ichiran.html";
-const GSI_ATTRIBUTION = `<a href="${GSI_TILE_LIST_URL}" target="_blank" rel="noopener noreferrer">地理院タイル</a>`;
-// 写真のズーム9〜13は全国ランドサットモザイク画像なので、タイル一覧の指定どおりの出所も書く
-// （ズーム14以上の全国最新写真の一部に使われる GRUS 画像は、範囲が北緯20度付近だけなので飯田には関係ない）
-const LANDSAT_ATTRIBUTION =
-  "データソース：Landsat8画像（GSI,TSIC,GEO Grid/AIST）, Landsat8画像（courtesy of the U.S. Geological Survey）, 海底地形（GEBCO）";
+const GSI_ATTRIBUTION = `<a href="${GSI_TILES.url}" target="_blank" rel="noopener noreferrer">地理院タイル</a>`;
 
 const GSI = "https://cyberjapandata.gsi.go.jp/xyz";
 
@@ -81,7 +75,7 @@ export function baseMapStyle(): StyleSpecification {
         tileSize: 256,
         minzoom: 2,
         maxzoom: 18,
-        attribution: `${GSI_ATTRIBUTION}（写真） ${LANDSAT_ATTRIBUTION}`,
+        attribution: `${GSI_ATTRIBUTION}（写真） ${LANDSAT_CREDIT}`,
       },
       // 標高タイル（DEM10B の PNG）。高さ(m) = (R×2^16 + G×2^8 + B) × 0.01。
       // 2^23 以上は負の値・(128,0,0) は値なしだが、飯田には海も標高0m未満もないので、足し算だけの custom にする

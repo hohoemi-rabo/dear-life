@@ -26,6 +26,7 @@ const body = {
     train_outing: emptySection("iida_jr_timetable"),
     events: [],
   })),
+  market_summary: emptySection("reinfolib_xit001"),
   support_programs: [],
   scene_templates: [],
 };

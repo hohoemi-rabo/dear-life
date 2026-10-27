@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { DataStateLabel } from "@/components/data/DataStateMessage";
 import { CountBadge } from "@/components/ui/CountBadge";
 import { SEASONS } from "@/lib/conditions/scene";
+import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data";
 import { formatManYen } from "@/lib/format";
 import { MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
@@ -151,7 +152,7 @@ export const COMPARE_SECTIONS: readonly CompareSection[] = [
   {
     id: "events",
     title: "季節ごとの主な行事",
-    notice: NOTICES.events,
+    notice: EVENTS_CREDIT,
     // まだ集めていない季節は「準備中」と出し、作り話で埋めない（F-13）
     rows: SEASONS.map((season) => ({
       id: `events-${season}`,

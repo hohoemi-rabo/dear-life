@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { ABOUT_DATA_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
 // 全画面の下に対象期間・除外した取引・出典を書き、「データについて」へつなぐ（F-08・要件 7.3）
@@ -20,7 +21,8 @@ export function SiteFooter() {
             <span aria-hidden="true">→</span>
           </Link>
         </div>
-        <p>このサービスは、個人が公開データをもとに作成したものです。国や飯田市のサービスではありません。</p>
+        <p>{REINFOLIB_API_CREDIT}</p>
+        <p>{PERSONAL_SERVICE_NOTE}</p>
       </div>
     </footer>
   );

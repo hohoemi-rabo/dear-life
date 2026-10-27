@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
+import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { SCENE_TEMPLATE_DRAFTS } from "@/lib/scenes/drafts";
 import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
@@ -190,7 +191,7 @@ describe("KurashiView：地区の行事（F-13）", () => {
     expect(titles).toEqual(["子ども祭り", "鼎地区運動会"]);
     expect(eventsPanel()).toHaveTextContent("区によって違います");
     expect(eventsPanel()).toHaveTextContent("確認日 2026年10月26日");
-    expect(within(eventsPanel()).getByText(NOTICES.events)).toBeInTheDocument();
+    expect(within(eventsPanel()).getByText(EVENTS_CREDIT)).toBeInTheDocument();
   });
 });
 

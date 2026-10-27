@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
 import type { Conditions } from "@/lib/conditions/model";
 import { planScene, type Season } from "@/lib/conditions/scene";
+import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DistrictEvent } from "@/lib/data/screen-data";
 import { formatJaDate } from "@/lib/format";
-import { NOTICES } from "@/lib/notices";
 import { EVENT_ART_ASSET } from "@/lib/pixel/assets";
 import { selectSceneEvents } from "@/lib/scenes/render";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -36,7 +36,7 @@ export function EventsPanel({ season, conditions }: { season: Season; conditions
               </li>
             ))}
           </ul>
-          <Notice>{NOTICES.events}</Notice>
+          <Notice>{EVENTS_CREDIT}</Notice>
         </>
       )}
     </Card>

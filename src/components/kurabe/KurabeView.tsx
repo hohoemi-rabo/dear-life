@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
+import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -59,12 +60,7 @@ function Sources({ data }: { data: ScreenData }) {
       <h2 id="kurabe-sources" className="text-lg font-bold">
         出典と対象時点
       </h2>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-        <dt className="font-bold">該当なし</dt>
-        <dd className="text-ink-muted">出典のデータに、その地区に当てはまるものはありません。</dd>
-        <dt className="font-bold">データ未取得</dt>
-        <dd className="text-ink-muted">このデータは準備中です。</dd>
-      </dl>
+      <DataStateLegend place="その地区" />
       <ul className="flex flex-col divide-y divide-line">
         {sources.map(({ source, period }) => (
           <li key={source.id} className="py-2">
