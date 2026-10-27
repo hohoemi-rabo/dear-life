@@ -37,7 +37,13 @@ export function ChoiceCard({
           ✓
         </span>
       )}
-      {art && <span className="mb-1 flex h-24 w-full items-end justify-center bg-pixel-sky pt-2">{art}</span>}
+      {art && (
+        // 絵の下に地面を敷き、絵が空の端で切れて見えないようにする
+        <span className="mb-1 flex h-28 w-full flex-col items-center justify-end bg-pixel-sky pt-2">
+          {art}
+          <span aria-hidden="true" className="h-2 w-full shrink-0 bg-pixel-grass" />
+        </span>
+      )}
       <span className="px-1 text-sm font-bold sm:text-base">{label}</span>
       {description && <span className="px-1 text-xs text-ink-muted">{description}</span>}
       {art && (

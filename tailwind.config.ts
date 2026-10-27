@@ -19,8 +19,8 @@ const config: Config = {
         summer: { DEFAULT: "#2A73A8", soft: "#E2EFF8" },
         autumn: { DEFAULT: "#B65A17", soft: "#FBEADB" },
         winter: { DEFAULT: "#3C88AD", soft: "#E4F2F8" },
-        // ドット絵の側：選択肢の絵の背景（パレットの「薄い空」と同じ色。027）
-        "pixel-sky": "#D3EAF0",
+        // ドット絵の側：選択肢の絵の背景（パレットの「薄い空」「緑」と同じ色。027）
+        pixel: { sky: "#D3EAF0", grass: "#5E9A4E" },
         // えらぶの返事のカード（デザインイメージの温かい色。027）
         warm: { DEFAULT: "#E5B970", soft: "#FFF6E3" },
         // 場面の文の種類（要件 6.4）
