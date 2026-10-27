@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { ComponentProps } from "react";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel } from "@/lib/conditions/labels";
@@ -50,7 +53,8 @@ export function ErabuFlow() {
 
       <section aria-labelledby="erabu-question" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h1 id="erabu-question" className="text-2xl font-extrabold">
+          <h1 id="erabu-question" className="flex items-center gap-2 text-2xl font-extrabold">
+            <PixelIcon icon="icon-sprout" />
             {question.title}
           </h1>
           <p className="text-sm text-ink-muted">{question.lead}</p>
@@ -67,18 +71,20 @@ export function ErabuFlow() {
         )}
       </div>
 
-      <nav aria-label="質問の移動" className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          {previous ? (
-            <Button variant="secondary" onClick={() => goTo(previous)}>
-              <span aria-hidden="true">←</span>
-              戻る
-            </Button>
-          ) : (
-            <span />
-          )}
+      {/* 戻る・次へは画面の下に固定する（デザインイメージ）。「飛ばす」は次へのそばに小さく置く */}
+      <BottomActionBar label="質問の移動">
+        {previous ? (
+          <button type="button" onClick={() => goTo(previous)} className={TEXT_ACTION}>
+            <span aria-hidden="true">←</span>
+            戻る
+          </button>
+        ) : (
+          <span />
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          {question.optional && <SkipButton current={current} conditions={conditions} next={next} onSkip={goTo} />}
           {next ? (
-            <Button disabled={!canProceed(current, conditions)} onClick={() => goTo(next)}>
+            <Button disabled={!canProceed(current, conditions)} onClick={() => goTo(next)} className="min-w-32">
               次へ
               <span aria-hidden="true">→</span>
             </Button>
@@ -89,15 +95,13 @@ export function ErabuFlow() {
             </ButtonLink>
           )}
         </div>
-        {question.optional && (
-          <div className="flex justify-end">
-            <SkipButton current={current} conditions={conditions} next={next} onSkip={goTo} />
-          </div>
-        )}
-      </nav>
+      </BottomActionBar>
     </div>
   );
 }
+
+// 枠のない文字だけの操作（戻る・飛ばす）
+const TEXT_ACTION = "inline-flex min-h-tap min-w-tap items-center justify-center gap-1 px-2 font-bold text-primary underline-offset-4 hover:underline";
 
 // 任意の質問を飛ばす。車は未選択、大切にしたいことはなしにして次へ進む（最後の質問なら、くらしを見るへ）
 function SkipButton({
@@ -112,23 +116,22 @@ function SkipButton({
   onSkip: (id: QuestionId, update: Partial<Conditions>) => void;
 }) {
   const update: Partial<Conditions> = current === "car" ? { car: null } : { priorities: [] };
-  const className =
-    "inline-flex min-h-tap items-center px-2 text-base font-bold text-primary underline underline-offset-4 hover:no-underline";
   if (next) {
     return (
-      <button type="button" className={className} onClick={() => onSkip(next, update)}>
+      <button type="button" className={`${TEXT_ACTION} text-sm`} onClick={() => onSkip(next, update)}>
         飛ばす
       </button>
     );
   }
   return (
-    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={className}>
+    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={`${TEXT_ACTION} text-sm`}>
       飛ばす
     </Link>
   );
 }
 
-// 上部の進み具合。答えた質問・今の質問には戻れる。地区を選ぶまでは後ろの質問を押せない
+// 上部の進み具合。答えた質問・今の質問には戻れる。地区を選ぶまでは後ろの質問を押せない。
+// 「地区 → 家族 → …」と矢印でつなぎ、今の質問だけをチップにする（デザインイメージ）。矢印は CSS で出し、読み上げない
 function QuestionProgress({
   current,
   conditions,
@@ -139,18 +142,22 @@ function QuestionProgress({
   onOpen: (id: QuestionId) => void;
 }) {
   return (
-    <ol aria-label="質問" className="grid grid-cols-5 rounded-full bg-kinari-deep p-1">
-      {QUESTIONS.map(({ id, stepLabel }) => {
+    <ol aria-label="質問" className="flex items-center justify-center">
+      {QUESTIONS.map(({ id, stepLabel }, index) => {
         const isCurrent = id === current;
         return (
-          <li key={id} aria-current={isCurrent ? "step" : undefined}>
+          <li
+            key={id}
+            aria-current={isCurrent ? "step" : undefined}
+            className={`flex items-center ${index > 0 ? "before:px-0.5 before:text-xs before:text-ink-muted before:content-['→']" : ""}`}
+          >
             <button
               type="button"
               disabled={!canOpenQuestion(id, conditions)}
               onClick={() => onOpen(id)}
               className={[
-                "min-h-tap w-full whitespace-nowrap rounded-full px-0.5 text-xs font-bold sm:text-sm",
-                isCurrent ? "bg-primary text-white" : "text-ink-muted hover:text-primary disabled:hover:text-ink-muted",
+                "min-h-tap min-w-tap whitespace-nowrap rounded-full px-2 text-sm",
+                isCurrent ? "bg-primary font-bold text-white" : "text-ink-muted hover:text-primary disabled:hover:text-ink-muted",
                 "disabled:cursor-not-allowed disabled:opacity-50",
               ].join(" ")}
             >
@@ -163,19 +170,21 @@ function QuestionProgress({
   );
 }
 
+type Chip = { label: string; icon: ComponentProps<typeof PixelIcon>["icon"] };
+
 // それまでに選んだ条件のチップ。今の質問より前の質問の答えだけを出す（まだ聞いていない初期値は出さない）
-function conditionChips(question: QuestionId, conditions: Conditions): string[] {
+function conditionChips(question: QuestionId, conditions: Conditions): Chip[] {
   switch (question) {
     case "district":
-      return conditions.district ? [DISTRICT_NAMES[conditions.district]] : [];
+      return conditions.district ? [{ label: DISTRICT_NAMES[conditions.district], icon: "icon-pin" }] : [];
     case "family":
-      return [familyLabel(conditions.adults, conditions.children)];
+      return [{ label: familyLabel(conditions.adults, conditions.children), icon: "icon-family" }];
     case "housing":
-      return [HOUSING_LABELS[conditions.housing]];
+      return [{ label: HOUSING_LABELS[conditions.housing], icon: "icon-house" }];
     case "car":
-      return conditions.car === null ? [] : [`車${CAR_LABELS[conditions.car]}`];
+      return conditions.car === null ? [] : [{ label: `車${CAR_LABELS[conditions.car]}`, icon: "icon-car" }];
     case "priorities":
-      return conditions.priorities.map((priority) => `${KARTE_CARD_LABELS[priority]}を大切に`);
+      return conditions.priorities.map((priority) => ({ label: `${KARTE_CARD_LABELS[priority]}を大切に`, icon: "icon-sprout" }));
   }
 }
 
@@ -186,8 +195,9 @@ function ConditionChips({ current, conditions }: { current: QuestionId; conditio
   return (
     <ul aria-label="選んだ条件" className="flex flex-wrap gap-2">
       {chips.map((chip) => (
-        <li key={chip} className="rounded-full border border-line bg-surface px-3 py-1 text-sm">
-          {chip}
+        <li key={chip.label} className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm">
+          <PixelIcon icon={chip.icon} size="sm" />
+          {chip.label}
         </li>
       ))}
     </ul>

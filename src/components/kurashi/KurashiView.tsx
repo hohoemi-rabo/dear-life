@@ -5,6 +5,7 @@ import { ChooseAgainLink, ConditionChips, ConditionsPanel } from "@/components/c
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PixelImage } from "@/components/pixel/PixelImage";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
+import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -114,22 +115,16 @@ function KarteCard({ conditions, season }: { conditions: Conditions; season: Sea
   );
 }
 
-// スマホ：画面の下に固定する「選び直す」と「カルテで確かめる」（F-14。どの季節からでも出す）。
-// 後ろの文が透けて読みにくくならないよう、背景は塗りつぶす
+// スマホ：画面の下に固定する「選び直す」と「カルテで確かめる」（F-14。どの季節からでも出す）
 function ActionBar({ conditions, season }: { conditions: Conditions; season: Season }) {
   return (
-    <nav
-      aria-label="次の操作"
-      className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t border-line bg-kinari px-4 py-3 xl:hidden"
-    >
-      <PixelImage asset="deco-grass" scale={1} decorative className="pointer-events-none absolute bottom-0 left-0" />
-      <PixelImage asset="deco-grass" scale={1} decorative className="pointer-events-none absolute bottom-0 right-0" />
-      <ChooseAgainLink conditions={conditions} className="relative" />
-      <ButtonLink href={karteHref(conditions, season)} className="relative flex-1">
+    <BottomActionBar label="次の操作" className="justify-between xl:hidden">
+      <ChooseAgainLink conditions={conditions} />
+      <ButtonLink href={karteHref(conditions, season)} className="flex-1">
         カルテで確かめる
         <span aria-hidden="true">→</span>
       </ButtonLink>
-    </nav>
+    </BottomActionBar>
   );
 }
 

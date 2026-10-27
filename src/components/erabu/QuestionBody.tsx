@@ -136,7 +136,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
           <ChoiceCard
             selected={conditions.housing === id}
             onSelect={() => onChange({ housing: id })}
-            art={<PixelImage asset={art} scale={2} decorative />}
+            art={<PixelImage asset={art} scale={3} decorative />}
             label={HOUSING_LABELS[id]}
             description={description}
           />

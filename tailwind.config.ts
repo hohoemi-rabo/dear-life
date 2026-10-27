@@ -19,6 +19,10 @@ const config: Config = {
         summer: { DEFAULT: "#2A73A8", soft: "#E2EFF8" },
         autumn: { DEFAULT: "#B65A17", soft: "#FBEADB" },
         winter: { DEFAULT: "#3C88AD", soft: "#E4F2F8" },
+        // ドット絵の側：選択肢の絵の背景（パレットの「薄い空」と同じ色。027）
+        "pixel-sky": "#D3EAF0",
+        // えらぶの返事のカード（デザインイメージの温かい色。027）
+        warm: { DEFAULT: "#E5B970", soft: "#FFF6E3" },
         // 場面の文の種類（要件 6.4）
         "kind-data": { DEFAULT: "#1F6E5E", soft: "#E2F0EC" },
         "kind-local": { DEFAULT: "#8A5A12", soft: "#F6EBD7" },

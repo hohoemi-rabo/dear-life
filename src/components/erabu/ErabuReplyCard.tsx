@@ -1,10 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
-import { Card } from "@/components/ui/Card";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { PixelImage } from "@/components/pixel/PixelImage";
 import { CountBadge } from "@/components/ui/CountBadge";
 import { Notice } from "@/components/ui/Notice";
 import { HOUSING_LABELS } from "@/lib/conditions/labels";
@@ -14,28 +15,34 @@ import { erabuReply, type ErabuReply } from "@/lib/erabu/replies";
 import type { QuestionId } from "@/lib/erabu/questions";
 import { formatManYen, formatQuarterRange } from "@/lib/format";
 import { NOTICES } from "@/lib/notices";
+import { familyArtFor } from "@/lib/pixel/assets";
 
 // 1坪＝3.3058㎡（要件 5章-4）
 const SQUARE_METERS_PER_TSUBO = 3.3058;
 
-// 選ぶたびの返事（F-10）。実データの側なので、ふつうのフォント・基本色の枠で、大きな数字と件数・出典を出す（要件 8.1）。
-// ScreenDataBoundary の中で使う
+// 選ぶたびの返事（F-10）。実データの側なので、ふつうのフォントで、大きな数字と件数・出典を出す（要件 8.1）。
+// カードはデザインイメージに合わせて温かい色にする（027）。ScreenDataBoundary の中で使う
 export function ErabuReplyCard({ question, conditions }: { question: QuestionId; conditions: Conditions }) {
   const reply = erabuReply(question, conditions, useScreenData());
   if (!reply) return null;
   return (
-    <Card as="section" aria-label="選んだ条件のデータ" className="flex flex-col gap-3 border-primary/30">
-      <ReplyBody reply={reply} />
-    </Card>
+    <section
+      aria-label="選んだ条件のデータ"
+      className="flex flex-col gap-3 rounded-card border-2 border-warm bg-warm-soft p-4 shadow-card"
+    >
+      <ReplyBody reply={reply} conditions={conditions} />
+    </section>
   );
 }
 
-function ReplyBody({ reply }: { reply: ErabuReply }) {
+function ReplyBody({ reply, conditions }: { reply: ErabuReply; conditions: Conditions }) {
+  // 家の返事には、選んだ家族の絵を添える（デザインイメージ）
+  const family = <PixelImage asset={familyArtFor(conditions.adults, conditions.children)} scale={2} decorative />;
   switch (reply.kind) {
     case "district":
       return (
         <>
-          <ReplyTitle>{reply.districtName}は、こんな地区</ReplyTitle>
+          <ReplyTitle icon="icon-pin">{reply.districtName}は、こんな地区</ReplyTitle>
           <p className="text-sm">
             <span className="font-bold">範囲：</span>
             {reply.area}
@@ -50,7 +57,7 @@ function ReplyBody({ reply }: { reply: ErabuReply }) {
     case "children":
       return (
         <>
-          <ReplyTitle>{reply.districtName}の子育て・学校</ReplyTitle>
+          <ReplyTitle icon="icon-school">{reply.districtName}の子育て・学校</ReplyTitle>
           <div className="grid grid-cols-2 gap-3">
             <CountFigure label="保育園・幼稚園等" unit="か所" state={reply.childcare} />
             <CountFigure label="小学校" unit="校" state={reply.elementarySchools} />
@@ -61,27 +68,31 @@ function ReplyBody({ reply }: { reply: ErabuReply }) {
     case "house":
       return (
         <>
-          <ReplyTitle>
+          <ReplyTitle icon="icon-house">
             {reply.districtName}で「{HOUSING_LABELS[reply.housing]}」なら
           </ReplyTitle>
           <MarketFigure
             label={reply.housing === "new" ? "築20年以内の中古戸建ての真ん中の値" : "築21年以上の中古戸建ての真ん中の値"}
             state={reply.house}
             alwaysFew={reply.alwaysFew}
+            art={family}
           />
         </>
       );
     case "rent":
       return (
         <>
-          <ReplyTitle>「{HOUSING_LABELS.rent}」なら</ReplyTitle>
-          <p className="text-lg font-bold">家賃の情報はまだありません。</p>
+          <ReplyTitle icon="icon-house">「{HOUSING_LABELS.rent}」なら</ReplyTitle>
+          <div className="flex items-end justify-between gap-3">
+            <p className="text-lg font-bold">家賃の情報はまだありません。</p>
+            {family}
+          </div>
         </>
       );
     case "busStops":
       return (
         <>
-          <ReplyTitle>{reply.districtName}のバス停</ReplyTitle>
+          <ReplyTitle icon="icon-transport">{reply.districtName}のバス停</ReplyTitle>
           <CountFigure label="バス停" unit="か所" state={reply.busStops} />
           <SourceNotes states={[reply.busStops]} />
         </>
@@ -89,8 +100,13 @@ function ReplyBody({ reply }: { reply: ErabuReply }) {
   }
 }
 
-function ReplyTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-base font-bold text-primary">{children}</h2>;
+function ReplyTitle({ icon, children }: { icon: ComponentProps<typeof PixelIcon>["icon"]; children: ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2 text-base font-bold text-primary">
+      <PixelIcon icon={icon} />
+      {children}
+    </h2>
+  );
 }
 
 // 値段は値段用のフォント、件数はふつうのフォント（027）
@@ -99,36 +115,46 @@ function BigNumber({ children, price = false }: { children: ReactNode; price?: b
 }
 
 // 相場の値。件数・件数ラベル・出典・対象期間・注意書きを必ず添える（要件 5章-6・7）
+// 値段の右に件数と件数ラベルを並べる（デザインイメージ）。狭いときは下に回る
 function MarketFigure({
   label,
   state,
   alwaysFew = false,
   extra,
+  art,
 }: {
   label: string;
   state: DataState<MarketStat>;
   alwaysFew?: boolean;
   extra?: (stat: MarketStat) => string;
+  art?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-bold text-ink-muted">{label}</p>
       {state.status === "available" ? (
         <>
-          <BigNumber price>{formatManYen(state.value.median)}</BigNumber>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <BigNumber price>{formatManYen(state.value.median)}</BigNumber>
+            <CountBadge count={state.value.sampleCount} alwaysFew={alwaysFew} />
+          </div>
           {extra && <p className="text-sm">{extra(state.value)}</p>}
-          <CountBadge count={state.value.sampleCount} alwaysFew={alwaysFew} />
         </>
       ) : (
         <DataStateMessage state={state} />
       )}
-      <Notice>{NOTICES.market}</Notice>
-      {state.status !== "unavailable" && (
-        <DataSourceNote
-          source={state.source}
-          period={state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined}
-        />
-      )}
+      <div className="flex items-end justify-between gap-3 border-t border-warm pt-2">
+        <div className="flex flex-col gap-2">
+          <Notice>{NOTICES.market}</Notice>
+          {state.status !== "unavailable" && (
+            <DataSourceNote
+              source={state.source}
+              period={state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined}
+            />
+          )}
+        </div>
+        {art && <div className="shrink-0">{art}</div>}
+      </div>
     </div>
   );
 }
