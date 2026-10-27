@@ -9,17 +9,6 @@
 }
 
 @layer components {
-  /* ドット絵の側の枠。角を1段欠いたドット風の線にする（要件 8.1）。実データの枠（Card）には使わない */
-  .pixel-frame {
-    margin: 4px;
-    background-color: theme("colors.surface");
-    box-shadow:
-      0 -4px 0 0 theme("colors.ink.DEFAULT"),
-      0 4px 0 0 theme("colors.ink.DEFAULT"),
-      -4px 0 0 0 theme("colors.ink.DEFAULT"),
-      4px 0 0 0 theme("colors.ink.DEFAULT");
-  }
-
   /* 家・土地の値段の大きな数字（027）。太さが1つだけのフォントなので、太字を重ねずに使う */
   .price-figure {
     @apply font-price font-normal tabular-nums;
