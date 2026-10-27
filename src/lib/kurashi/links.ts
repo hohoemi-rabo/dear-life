@@ -7,7 +7,13 @@ import { writeConditions } from "../conditions/url.ts";
 import { KARTE_PATH } from "../site.ts";
 import { SEASON_PARAM, SEASON_SLUGS } from "./season.ts";
 
+// 条件と季節（URL の s の値。なければ付けない）を載せたリンク先。カルテ・地区くらべのあいだを行き来しても、
+// くらしに戻ったときに見ていた季節で開けるように、どの画面でも s を持ち回る
+export function seasonalHref(path: string, conditions: Conditions, seasonSlug: string | null, hash?: string): string {
+  const params = writeConditions(conditions, new URLSearchParams(seasonSlug ? { [SEASON_PARAM]: seasonSlug } : {}));
+  return `${path}?${params.toString()}${hash ? `#${hash}` : ""}`;
+}
+
 export function karteHref(conditions: Conditions, season: Season, card?: KarteCard): string {
-  const params = writeConditions(conditions, new URLSearchParams({ [SEASON_PARAM]: SEASON_SLUGS[season] }));
-  return `${KARTE_PATH}?${params.toString()}${card ? `#${karteCardAnchor(card)}` : ""}`;
+  return seasonalHref(KARTE_PATH, conditions, SEASON_SLUGS[season], card && karteCardAnchor(card));
 }

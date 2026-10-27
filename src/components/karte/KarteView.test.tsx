@@ -213,9 +213,10 @@ describe("KarteView：移動（F-04・F-14）", () => {
     expect(screen.getByText("伊賀良の暮らしの根拠を、出典とともに確かめよう。")).toBeInTheDocument();
   });
 
-  it("「くらしに戻る」は季節を残す。「条件を変える」はえらぶへ", async () => {
+  it("「くらしに戻る」「地区くらべ」は季節を残す。「条件を変える」はえらぶへ", async () => {
     await open("s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: /くらしに戻る/ })).toHaveAttribute("href", "/kurashi?s=winter&d=kanae&a=2&k=1&h=new");
+    expect(screen.getByRole("link", { name: "地区くらべ" })).toHaveAttribute("href", "/kurabe?s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getAllByRole("link", { name: "条件を変える" })[0]).toHaveAttribute("href", "/erabu?d=kanae&a=2&k=1&h=new");
   });
 

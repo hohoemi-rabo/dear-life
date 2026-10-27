@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ChooseAgainLink, ConditionChips, ConditionsPanel } from "@/components/conditions/ConditionsPanel";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { ButtonLink } from "@/components/ui/Button";
@@ -10,7 +11,9 @@ import type { Conditions } from "@/lib/conditions/model";
 import type { Season } from "@/lib/conditions/scene";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
+import { kurabeHref } from "@/lib/kurabe/links";
 import { karteHref } from "@/lib/kurashi/links";
+import { SEASON_SLUGS } from "@/lib/kurashi/season";
 import { useSeason } from "@/lib/kurashi/useSeason";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -84,6 +87,13 @@ function KarteCard({ conditions, season }: { conditions: Conditions; season: Sea
         カルテで確かめる
         <span aria-hidden="true">→</span>
       </ButtonLink>
+      <Link
+        href={kurabeHref(conditions, SEASON_SLUGS[season])}
+        className="inline-flex min-h-tap items-center justify-between gap-1 border-t border-line pt-2 font-bold text-primary hover:underline"
+      >
+        地区くらべ
+        <span aria-hidden="true">›</span>
+      </Link>
     </Card>
   );
 }

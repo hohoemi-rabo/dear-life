@@ -14,6 +14,8 @@ import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { kurashiHref } from "@/lib/karte/links";
+import { kurabeHref } from "@/lib/kurabe/links";
+import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { HousingCard } from "./HousingCard";
@@ -133,12 +135,14 @@ function KarteCards({ cards, conditions }: { cards: readonly KarteCard[]; condit
   );
 }
 
-// 下部：地区くらべ・地図（020・021 で作る）と「くらしに戻る」
+// 下部：地区くらべ・地図（021 で作る）と「くらしに戻る」
 function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; searchParams: { get(name: string): string | null } }) {
   return (
     <nav aria-label="ほかの見方" className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
-        <ComingSoon>地区くらべ</ComingSoon>
+        <ButtonLink href={kurabeHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary">
+          地区くらべ
+        </ButtonLink>
         <ComingSoon>地図</ComingSoon>
       </div>
       <Link
@@ -152,7 +156,7 @@ function KarteNavigation({ conditions, searchParams }: { conditions: Chosen; sea
   );
 }
 
-// 画面ができるまでは押せないボタンにしておく（リンク先がないまま公開しない）。020・021 で ButtonLink に差しかえる
+// 画面ができるまでは押せないボタンにしておく（リンク先がないまま公開しない）。021 で ButtonLink に差しかえる
 function ComingSoon({ children }: { children: ReactNode }) {
   return (
     <span aria-disabled="true" className={buttonClassName("secondary", "cursor-not-allowed flex-col gap-0 opacity-50")}>

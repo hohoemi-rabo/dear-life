@@ -9,6 +9,7 @@ export const ABOUT_DATA_PATH = "/about-data";
 export const ERABU_PATH = "/erabu";
 export const KURASHI_PATH = "/kurashi";
 export const KARTE_PATH = "/karte";
+export const KURABE_PATH = "/kurabe";
 
 // 乗り継ぎを含めて実際の便を調べる別アプリ（まさゆきさん作。要件 1.1）
 export const GOFREELY_URL = "https://gofreely.rabo-hohoemi.workers.dev/";
