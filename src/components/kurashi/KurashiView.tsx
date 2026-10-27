@@ -1,5 +1,6 @@
 "use client";
 
+import { ChooseAgainLink, ConditionChips, ConditionsPanel } from "@/components/conditions/ConditionsPanel";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -13,7 +14,6 @@ import { karteHref } from "@/lib/kurashi/links";
 import { useSeason } from "@/lib/kurashi/useSeason";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { ChooseAgainLink, ConditionChips, ConditionsPanel } from "./ConditionsPanel";
 import { EventsPanel } from "./EventsPanel";
 import { ScenePanel } from "./ScenePanel";
 import { SeasonTabs } from "./SeasonTabs";

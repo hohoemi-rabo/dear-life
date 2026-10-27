@@ -1073,6 +1073,7 @@ export type Database = {
         | "交通"
         | "防災"
         | "人口"
+        | "公共施設"
         | "支援制度"
       market_category:
         | "land"
@@ -1231,6 +1232,7 @@ export const Constants = {
         "交通",
         "防災",
         "人口",
+        "公共施設",
         "支援制度",
       ],
       market_category: [

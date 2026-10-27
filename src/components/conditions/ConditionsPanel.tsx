@@ -14,14 +14,24 @@ type Props = {
   onDistrictChange: (district: DistrictId) => void;
 };
 
+// くらし（018）とカルテ（019）で使う、選んだ条件の表示と地区の切り替え（F-04）
+
 const LINK_CLASS =
   "inline-flex min-h-tap items-center gap-1 font-bold text-primary underline underline-offset-4 hover:no-underline";
 
-// 選び直す：条件を持ったまま 01 えらぶ に戻る
-export function ChooseAgainLink({ conditions, className = "" }: { conditions: Conditions; className?: string }) {
+// 選び直す：条件を持ったまま 01 えらぶ に戻る。カルテでは「条件を変える」と書く（デザインイメージ）
+export function ChooseAgainLink({
+  conditions,
+  className = "",
+  label = "選び直す",
+}: {
+  conditions: Conditions;
+  className?: string;
+  label?: string;
+}) {
   return (
     <Link href={conditionsHref(ERABU_PATH, conditions)} className={`${LINK_CLASS} ${className}`}>
-      選び直す
+      {label}
     </Link>
   );
 }
@@ -59,7 +69,7 @@ export function ConditionChips({ conditions, onDistrictChange }: Props) {
 }
 
 // PC：左の「わが家の設定」と「対象の4地区」（デザインイメージ PC版）
-export function ConditionsPanel({ conditions, onDistrictChange }: Props) {
+export function ConditionsPanel({ conditions, onDistrictChange, chooseAgainLabel }: Props & { chooseAgainLabel?: string }) {
   return (
     <div className="flex flex-col gap-4">
       <section aria-labelledby="settings-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
@@ -82,7 +92,7 @@ export function ConditionsPanel({ conditions, onDistrictChange }: Props) {
               : conditions.priorities.map((priority) => KARTE_CARD_LABELS[priority]).join("・")}
           </dd>
         </dl>
-        <ChooseAgainLink conditions={conditions} className="self-center" />
+        <ChooseAgainLink conditions={conditions} className="self-center" label={chooseAgainLabel} />
       </section>
 
       <section aria-labelledby="districts-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">

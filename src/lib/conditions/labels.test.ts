@@ -12,8 +12,8 @@ describe("labels", () => {
     expect(DISTRICT_NAMES.chushin).toBe("中心市街地");
   });
 
-  it("大切にしたいことの選択肢は、支援制度を除いたカードを既定の並びで持つ", () => {
-    expect(PRIORITIES).toEqual(KARTE_CARDS.slice(0, -1));
+  it("大切にしたいことの選択肢は、支援制度と公共施設を除いたカードを既定の並びで持つ", () => {
+    expect(PRIORITIES).toEqual(KARTE_CARDS.filter((card) => card !== "support" && card !== "public_facilities"));
     expect(KARTE_CARDS.at(-1)).toBe("support");
   });
 

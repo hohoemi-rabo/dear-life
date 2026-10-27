@@ -8,9 +8,16 @@ type Enums = Database["public"]["Enums"];
 export type Housing = "new" | "old" | "rent";
 // 2 は「2台以上」
 export type CarCount = 0 | 1 | 2;
-export type KarteCard = "housing" | "childcare" | "transport" | "disaster" | "population" | "support";
-// 大切にしたいことの選択肢。支援制度は入れない（要件 4章）
-export type Priority = Exclude<KarteCard, "support">;
+export type KarteCard =
+  | "housing"
+  | "childcare"
+  | "transport"
+  | "disaster"
+  | "population"
+  | "public_facilities"
+  | "support";
+// 大切にしたいことの選択肢。支援制度は入れない（要件 4章）。公共施設も入れない（019 で足したカード。えらぶ画面の選択肢は 016 で決めたまま）
+export type Priority = Exclude<KarteCard, "support" | "public_facilities">;
 
 // 並びは画面の表記「上郷・鼎・伊賀良・中心市街地」と districts.sort_order に合わせる（003 の seed）
 export const DISTRICTS: readonly { id: DistrictId; name: string }[] = [
@@ -36,13 +43,14 @@ export const CAR_LABELS: Readonly<Record<CarCount, string>> = {
   2: "2台以上",
 };
 
-// カルテの既定の並び（要件 4章）。支援制度は常に最後
+// カルテの既定の並び（要件 4章）。支援制度は常に最後。公共施設（019）は人口のあと、支援制度の前に置く
 export const KARTE_CARDS: readonly KarteCard[] = [
   "housing",
   "childcare",
   "transport",
   "disaster",
   "population",
+  "public_facilities",
   "support",
 ];
 
@@ -52,11 +60,12 @@ export const KARTE_CARD_LABELS: Readonly<Record<KarteCard, Enums["karte_card"]>>
   transport: "交通",
   disaster: "防災",
   population: "人口",
+  public_facilities: "公共施設",
   support: "支援制度",
 };
 
 export const PRIORITIES: readonly Priority[] = KARTE_CARDS.filter(
-  (card): card is Priority => card !== "support",
+  (card): card is Priority => card !== "support" && card !== "public_facilities",
 );
 
 export function familyLabel(adults: number, children: number): string {
