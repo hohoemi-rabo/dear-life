@@ -63,7 +63,7 @@
 - `src/lib/about/sources.ts`：出典の使い道と並び（知らない出典は最後に出し、落とさない）、支援制度の確認日の幅
 - `src/lib/credits.ts`：上の「決めたこと」の文言
 - `supabase/migrations/20261027134032_market_summary.sql`：`market_summary`・`refresh_market_stats` の更新・`screen_data()` の `market_summary` 欄・クレジットの直し
-- `supabase/migrations/20261027140000_publish_sources.sql`：出典の公開
+- `supabase/migrations/20261027134702_publish_sources.sql`：出典の公開
 
 ## 完了条件
 
