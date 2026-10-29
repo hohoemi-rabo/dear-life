@@ -195,8 +195,8 @@ const HOUSING_CHOICES: readonly { id: Housing; description: string }[] = [
   { id: "rent", description: "アパート・借家" },
 ];
 
-// 家の選択肢（028 見本）：空の色の上に家の絵、下に名前と説明。選んだものは右上に ✓。
-// 家の絵はプレビューと同じもの（4地区で使い回す）
+// 家の選択肢（028 見本）：家の絵、下に名前と説明。選んだものは右上に ✓。
+// 家の絵はプレビューと同じもの（4地区で使い回す）。絵の後ろは透明なので、カードの地の色のまま出す（2026-10-29 まさゆきさん）
 function HousingChoices({ conditions, onChange }: ChoiceProps) {
   return (
     <ul className="grid grid-cols-3 gap-2" aria-label="家">
@@ -206,7 +206,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
             selected={conditions.housing === id}
             onSelect={() => onChange({ housing: id })}
             check="right"
-            pictureClassName="flex aspect-square sm:aspect-[4/3] items-end justify-center bg-gradient-to-b from-pixel-sky from-60% to-primary-soft px-1 pb-1.5"
+            pictureClassName="flex aspect-square sm:aspect-[4/3] items-end justify-center px-1 pb-1.5"
             picture={
               // eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由）
               <img

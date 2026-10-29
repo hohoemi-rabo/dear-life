@@ -14,7 +14,7 @@ import type { Conditions } from "@/lib/conditions/model";
 import type { DataState } from "@/lib/data/screen-data";
 import { erabuReply, type ErabuReply } from "@/lib/erabu/replies";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { formatManYen, formatQuarterRange } from "@/lib/format";
+import { formatManYen } from "@/lib/format";
 import { NOTICES } from "@/lib/notices";
 
 // 選ぶたびの返事（F-10）。実データの側なので、ふつうのフォントで、大きな数字と件数・出典を出す（要件 8.1）。
@@ -68,8 +68,9 @@ function MarketCheck({ reply }: { reply: MarketReply }) {
   );
 }
 
-// シートの中身は必要なものだけ：真ん中の値・件数と件数ラベル・注意書き・出典（要件 5章-6・7）。
-// 対象期間・確認日は出典の行を開いて見る（02 の子育て・学校のカードと同じ）
+// シートの中身は必要なものだけ：真ん中の値・件数と件数ラベル・注意書き（要件 5章-6・7）。
+// 出典・対象期間・確認日はここでは出さない（2026-10-29 まさゆきさん。えらぶは先へ進むのが主なので）。
+// 同じ相場はカルテの住まいのカードと「データについて」で、出典・対象期間・確認日と一緒に見られる
 function MarketSheetBody({ reply }: { reply: MarketReply }) {
   if (reply.kind === "rent") return <DataStateMessage state={{ status: "unavailable" }} />;
   const state = reply.house;
@@ -87,10 +88,6 @@ function MarketSheetBody({ reply }: { reply: MarketReply }) {
         <DataStateMessage state={state} />
       )}
       <Notice>{NOTICES.market}</Notice>
-      <CompactSources
-        states={[state]}
-        period={state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined}
-      />
     </div>
   );
 }
@@ -149,8 +146,7 @@ function InlineCount({ label, unit, state }: { label: string; unit: string; stat
 }
 
 // 出典を1行で出し（見本）、対象時点・確認日は開いて見る（要件：すべての情報に出典・対象時点・確認日）
-// period を渡すと、出典の対象期間の代わりにそれを出す（相場は集計の対象期間）
-function CompactSources({ states, period }: { states: readonly DataState<unknown>[]; period?: string }) {
+function CompactSources({ states }: { states: readonly DataState<unknown>[] }) {
   const sources = states.flatMap((state) => (state.status === "unavailable" ? [] : [state.source]));
   const unique = sources.filter((source, index) => sources.findIndex(({ id }) => id === source.id) === index);
   if (unique.length === 0) return null;
@@ -163,7 +159,7 @@ function CompactSources({ states, period }: { states: readonly DataState<unknown
       </summary>
       <div className="flex flex-col gap-2 pb-1">
         {unique.map((source) => (
-          <DataSourceNote key={source.id} source={source} period={period} />
+          <DataSourceNote key={source.id} source={source} />
         ))}
       </div>
     </details>

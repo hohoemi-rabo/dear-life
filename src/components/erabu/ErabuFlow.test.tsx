@@ -196,7 +196,8 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     // 買う・新しめは件数が12件でも「件数少なめ・参考程度」を付ける
     expect(within(sheet).getByText("件数少なめ・参考程度")).toBeInTheDocument();
     expect(within(sheet).getByText(/過去の取引の参考値です/)).toBeInTheDocument();
-    expect(within(sheet).getByText(/^出典：/)).toBeInTheDocument();
+    // 出典はシートに出さない（カルテとデータについてで見る。2026-10-29 まさゆきさん）
+    expect(within(sheet).queryByText(/^出典：/)).not.toBeInTheDocument();
 
     vi.useFakeTimers();
     try {
