@@ -107,8 +107,8 @@ describe("scenePictureLayers", () => {
     expect(assets("冬", { car: 0 })).toEqual(["bg-winter", "landmark-kamisato-winter", "family-a2-c1", "vehicle-bus"]);
   });
 
-  it("家族の絵は大人2人・子ども3人までで描く", () => {
-    expect(assets("夏", { children: 5 })).toContain("family-a2-c3");
+  it("家族の絵は大人2人・子ども2人までで描く", () => {
+    expect(assets("夏", { children: 5 })).toContain("family-a2-c2");
   });
 });
 

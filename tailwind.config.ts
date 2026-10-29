@@ -23,6 +23,10 @@ const config: Config = {
         pixel: { sky: "#D3EAF0", grass: "#5E9A4E" },
         // えらぶの返事のカード（デザインイメージの温かい色。027）
         warm: { DEFAULT: "#E5B970", soft: "#FFF6E3" },
+        // えらぶの「＋」（見本の金色。白い記号との色の差を 3:1 以上にするため、見本より少し濃くした。028）
+        gold: { DEFAULT: "#A8812F", hover: "#8F6C25" },
+        // えらぶ 02 の子育て・学校の返事のカード（見本の薄いピンク。028）
+        blush: { DEFAULT: "#F2C9CF", soft: "#FDEFF1" },
         // 場面の文の種類（要件 6.4）
         "kind-data": { DEFAULT: "#1F6E5E", soft: "#E2F0EC" },
         "kind-local": { DEFAULT: "#8A5A12", soft: "#F6EBD7" },
@@ -45,6 +49,34 @@ const config: Config = {
       // タップ領域は 44px 以上（要件 8章）
       minHeight: { tap: "44px" },
       minWidth: { tap: "44px" },
+      // えらぶで選んだものが「ぽん」と出る動き（028）。使う側で motion-safe: を付け、「動きを減らす」では動かさない。
+      // 出るときは少し行きすぎて戻るばねの動き、消えるときは出るときより短くする
+      keyframes: {
+        "pop-in": {
+          "0%": { opacity: "0", transform: "translateY(8%) scale(0.4)" },
+          "70%": { opacity: "1", transform: "translateY(0) scale(1.06)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "pop-out": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.7)" },
+        },
+        sparkle: {
+          "0%": { opacity: "0", transform: "translate(-50%, -50%) scale(0) rotate(0deg)" },
+          "40%": { opacity: "1", transform: "translate(-50%, -50%) scale(1) rotate(45deg)" },
+          "100%": { opacity: "0", transform: "translate(-50%, -90%) scale(0.4) rotate(90deg)" },
+        },
+        "pin-drop": {
+          "0%": { opacity: "0", transform: "translateY(-40%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "pop-in": "pop-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "pop-out": "pop-out 240ms ease-in both",
+        sparkle: "sparkle 700ms ease-out both",
+        "pin-drop": "pin-drop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+      },
     },
   },
   plugins: [],

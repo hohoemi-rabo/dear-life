@@ -125,9 +125,9 @@ describe("絵の一覧", () => {
     for (const id of iconIds) expect([DRAW[id]().width, DRAW[id]().height]).toEqual([16, 16]);
   });
 
-  it("家族の id は大人1〜2人・子ども0〜3人のすべてがある", () => {
+  it("家族の id は大人1〜2人・子ども0〜2人のすべてがある", () => {
     for (const adults of [1, 2] as const) {
-      for (const children of [0, 1, 2, 3] as const) expect(PIXEL_ASSETS[familyAssetId(adults, children)]).toBeDefined();
+      for (const children of [0, 1, 2] as const) expect(PIXEL_ASSETS[familyAssetId(adults, children)]).toBeDefined();
     }
   });
 

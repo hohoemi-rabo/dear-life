@@ -39,13 +39,8 @@ describe("erabuReply（要件 4章「えらぶ画面での返事」）", () => {
     expect(erabuReply("district", DEFAULT_CONDITIONS, data)).toBeNull();
   });
 
-  it("住む地区：地区の範囲と、土地の真ん中の値・件数", () => {
-    expect(erabuReply("district", kamisato(), data)).toEqual({
-      kind: "district",
-      districtName: "上郷",
-      area: "上郷の範囲",
-      land: marketFixture(28000, 202),
-    });
+  it("住む地区：返事なし（028 の見本どおり。相場は家の質問で出す）", () => {
+    expect(erabuReply("district", kamisato(), data)).toBeNull();
   });
 
   it("子ども1人以上：保育園・幼稚園等の数と、小学校だけの数", () => {

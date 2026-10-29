@@ -14,11 +14,9 @@ export const PIXEL_ASSETS = {
   "family-a1-c0": { width: 12, height: 21, alt: "大人1人" },
   "family-a1-c1": { width: 23, height: 21, alt: "大人1人と子ども1人の家族" },
   "family-a1-c2": { width: 34, height: 21, alt: "大人1人と子ども2人の家族" },
-  "family-a1-c3": { width: 45, height: 21, alt: "大人1人と子ども3人の家族" },
   "family-a2-c0": { width: 25, height: 21, alt: "大人2人" },
   "family-a2-c1": { width: 36, height: 21, alt: "大人2人と子ども1人の家族" },
   "family-a2-c2": { width: 47, height: 21, alt: "大人2人と子ども2人の家族" },
-  "family-a2-c3": { width: 58, height: 21, alt: "大人2人と子ども3人の家族" },
   // 施設（春・夏の場面）
   "facility-school": { width: 40, height: 24, alt: "時計台のある小学校の校舎" },
   "facility-nursery": { width: 28, height: 18, alt: "三角屋根の保育園の建物" },
@@ -87,13 +85,13 @@ export function pixelAssetSrc(id: PixelAssetId): string {
 }
 
 // 家族の絵の id。人数の範囲は えらぶ画面の選択肢（014）に合わせる
-export function familyAssetId(adults: 1 | 2, children: 0 | 1 | 2 | 3): PixelAssetId {
+export function familyAssetId(adults: 1 | 2, children: 0 | 1 | 2): PixelAssetId {
   return `family-a${adults}-c${children}` as const;
 }
 
-// 家族の絵は大人2人・子ども3人まで描いてあるので、それより多いときは描ける人数で出す（人数は文字で出す）
+// 選べる人数（大人1〜2人・子ども0〜2人。028）の家族の絵。範囲の外は描ける人数に丸める
 export function familyArtFor(adults: number, children: number): PixelAssetId {
-  return familyAssetId(Math.min(adults, 2) as 1 | 2, Math.min(children, 3) as 0 | 1 | 2 | 3);
+  return familyAssetId(Math.min(Math.max(adults, 1), 2) as 1 | 2, Math.min(Math.max(children, 0), 2) as 0 | 1 | 2);
 }
 
 export type Season = "spring" | "summer" | "autumn" | "winter";

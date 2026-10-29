@@ -2,28 +2,29 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { ComponentProps } from "react";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
+import { FamilyLayer } from "@/components/illust/FamilyLayer";
+import { PreviewFrame } from "@/components/illust/PreviewFrame";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
-import { Button, ButtonLink } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel } from "@/lib/conditions/labels";
+import { DISTRICT_NAMES, familyLabel } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref, writeConditions } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import {
-  canOpenQuestion,
   canProceed,
   nextQuestion,
   previousQuestion,
   QUESTION_PARAM,
-  QUESTIONS,
   questionOf,
   resolveQuestion,
   type QuestionId,
 } from "@/lib/erabu/questions";
-import { KURASHI_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
+import { erabuBaseFor } from "@/lib/illust/assets";
+import { familyMembers } from "@/lib/illust/family";
+import { KURASHI_PATH } from "@/lib/site";
+import { ErabuProgress } from "./ErabuProgress";
 import { ErabuReplyCard } from "./ErabuReplyCard";
 import { QuestionBody } from "./QuestionBody";
 
@@ -47,20 +48,19 @@ export function ErabuFlow() {
   };
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-5">
-      <QuestionProgress current={current} conditions={conditions} onOpen={(id) => goTo(id)} />
-      <ConditionChips current={current} conditions={conditions} />
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      <ErabuProgress current={current} conditions={conditions} onOpen={(id) => goTo(id)} />
+      <ErabuPreview question={current} conditions={conditions} onSelectDistrict={(district) => setConditions({ district })} />
 
       <section aria-labelledby="erabu-question" className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 id="erabu-question" className="flex items-center gap-2 text-2xl font-extrabold">
-            <PixelIcon icon="icon-sprout" />
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 id="erabu-question" className="text-2xl font-extrabold">
             {question.title}
           </h1>
           <p className="text-sm text-ink-muted">{question.lead}</p>
-          {current === "district" && <p className="text-sm font-bold">対象地区：{TARGET_DISTRICTS_LABEL}</p>}
         </div>
         <QuestionBody question={current} conditions={conditions} onChange={setConditions} />
+        {current === "district" && conditions.district !== null && <DistrictStage name={DISTRICT_NAMES[conditions.district]} />}
       </section>
 
       <div aria-live="polite">
@@ -71,28 +71,28 @@ export function ErabuFlow() {
         )}
       </div>
 
-      {/* 戻る・次へは画面の下に固定する（デザインイメージ）。「飛ばす」は次へのそばに小さく置く */}
-      <BottomActionBar label="質問の移動">
-        {previous ? (
+      {/* もどる・次へは画面の下に固定する。見本どおり、地区の質問は次へのボタンだけを真ん中に置く */}
+      <BottomActionBar label="質問の移動" decorated={false} className={previous ? "" : "justify-center"}>
+        {previous && (
           <button type="button" onClick={() => goTo(previous)} className={TEXT_ACTION}>
             <span aria-hidden="true">←</span>
-            戻る
+            もどる
           </button>
-        ) : (
-          <span />
         )}
-        <div className="ml-auto flex items-center gap-2">
-          {question.optional && <SkipButton current={current} conditions={conditions} next={next} onSkip={goTo} />}
+        <div className={`flex items-center gap-2 ${previous ? "ml-auto" : ""}`}>
+          {question.optional && (
+            <SkipButton label={question.skipLabel ?? "飛ばす"} current={current} conditions={conditions} next={next} onSkip={goTo} />
+          )}
           {next ? (
-            <Button disabled={!canProceed(current, conditions)} onClick={() => goTo(next)} className="min-w-32">
-              次へ
+            <button type="button" disabled={!canProceed(current, conditions)} onClick={() => goTo(next)} className={PILL_ACTION}>
+              {question.nextLabel}
               <span aria-hidden="true">→</span>
-            </Button>
+            </button>
           ) : (
-            <ButtonLink href={conditionsHref(KURASHI_PATH, conditions)}>
-              くらしを見る
+            <Link href={conditionsHref(KURASHI_PATH, conditions)} className={PILL_ACTION}>
+              {question.nextLabel}
               <span aria-hidden="true">→</span>
-            </ButtonLink>
+            </Link>
           )}
         </div>
       </BottomActionBar>
@@ -100,16 +100,62 @@ export function ErabuFlow() {
   );
 }
 
+// わが家のプレビュー（028 見本）。地区の質問では飯田市全体の絵に4地区の札、ほかの質問では地区の風景に家族を重ねる。
+// 質問を移るたびに家族を描き直し、ぽんと出し直す（選ぶたびにできあがっていく感じを出す）
+function ErabuPreview({
+  question,
+  conditions,
+  onSelectDistrict,
+}: {
+  question: QuestionId;
+  conditions: Conditions;
+  onSelectDistrict: (district: NonNullable<Conditions["district"]>) => void;
+}) {
+  if (question === "district") {
+    return (
+      <PreviewFrame background="erabu-iida-overview" label="わが家のプレビュー：飯田市の4地区">
+        <DistrictMapLayer selected={conditions.district} onSelect={onSelectDistrict} />
+      </PreviewFrame>
+    );
+  }
+  const background = erabuBaseFor(conditions.district);
+  const place = conditions.district ? DISTRICT_NAMES[conditions.district] : "飯田";
+  return (
+    <PreviewFrame background={background} label={`わが家のプレビュー：${place}で暮らす、${familyLabel(conditions.adults, conditions.children)}の家族`}>
+      <FamilyLayer key={question} members={familyMembers(conditions)} background={background} />
+    </PreviewFrame>
+  );
+}
+
+// 地区を選んだあとのひと言（028 見本）
+function DistrictStage({ name }: { name: string }) {
+  return (
+    <p className="flex items-center justify-center gap-1.5 rounded-full bg-warm-soft px-4 py-2 text-sm font-bold">
+      <svg aria-hidden="true" viewBox="0 0 24 32" className="h-4 w-3 shrink-0 text-primary">
+        <path d="M12 1C6 1 1.5 5.5 1.5 11.3 1.5 19 12 31 12 31s10.5-12 10.5-19.7C22.5 5.5 18 1 12 1z" fill="currentColor" />
+        <circle cx="12" cy="11.5" r="4.2" fill="white" />
+      </svg>
+      {name}を舞台に、暮らしをつくります。
+    </p>
+  );
+}
+
+// 次へ進む大きなボタン（見本の丸い深緑のボタン）
+const PILL_ACTION =
+  "inline-flex min-h-[3.25rem] items-center justify-center gap-3 rounded-full bg-primary px-8 text-base font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
+
 // 枠のない文字だけの操作（戻る・飛ばす）
 const TEXT_ACTION = "inline-flex min-h-tap min-w-tap items-center justify-center gap-1 px-2 font-bold text-primary underline-offset-4 hover:underline";
 
 // 任意の質問を飛ばす。車は未選択、大切にしたいことはなしにして次へ進む（最後の質問なら、くらしを見るへ）
 function SkipButton({
+  label,
   current,
   conditions,
   next,
   onSkip,
 }: {
+  label: string;
   current: QuestionId;
   conditions: Conditions;
   next: QuestionId | null;
@@ -119,88 +165,14 @@ function SkipButton({
   if (next) {
     return (
       <button type="button" className={`${TEXT_ACTION} text-sm`} onClick={() => onSkip(next, update)}>
-        飛ばす
+        {label}
       </button>
     );
   }
   return (
     <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={`${TEXT_ACTION} text-sm`}>
-      飛ばす
+      {label}
     </Link>
-  );
-}
-
-// 上部の進み具合。答えた質問・今の質問には戻れる。地区を選ぶまでは後ろの質問を押せない。
-// 「地区 → 家族 → …」と矢印でつなぎ、今の質問だけをチップにする（デザインイメージ）。矢印は CSS で出し、読み上げない
-function QuestionProgress({
-  current,
-  conditions,
-  onOpen,
-}: {
-  current: QuestionId;
-  conditions: Conditions;
-  onOpen: (id: QuestionId) => void;
-}) {
-  return (
-    <ol aria-label="質問" className="flex items-center justify-center">
-      {QUESTIONS.map(({ id, stepLabel }, index) => {
-        const isCurrent = id === current;
-        return (
-          <li
-            key={id}
-            aria-current={isCurrent ? "step" : undefined}
-            className={`flex items-center ${index > 0 ? "before:px-0.5 before:text-xs before:text-ink-muted before:content-['→']" : ""}`}
-          >
-            <button
-              type="button"
-              disabled={!canOpenQuestion(id, conditions)}
-              onClick={() => onOpen(id)}
-              className={[
-                "min-h-tap min-w-tap whitespace-nowrap rounded-full px-2 text-sm",
-                isCurrent ? "bg-primary font-bold text-white" : "text-ink-muted hover:text-primary disabled:hover:text-ink-muted",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              ].join(" ")}
-            >
-              {stepLabel}
-            </button>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-type Chip = { label: string; icon: ComponentProps<typeof PixelIcon>["icon"] };
-
-// それまでに選んだ条件のチップ。今の質問より前の質問の答えだけを出す（まだ聞いていない初期値は出さない）
-function conditionChips(question: QuestionId, conditions: Conditions): Chip[] {
-  switch (question) {
-    case "district":
-      return conditions.district ? [{ label: DISTRICT_NAMES[conditions.district], icon: "icon-pin" }] : [];
-    case "family":
-      return [{ label: familyLabel(conditions.adults, conditions.children), icon: "icon-family" }];
-    case "housing":
-      return [{ label: HOUSING_LABELS[conditions.housing], icon: "icon-house" }];
-    case "car":
-      return conditions.car === null ? [] : [{ label: `車${CAR_LABELS[conditions.car]}`, icon: "icon-car" }];
-    case "priorities":
-      return conditions.priorities.map((priority) => ({ label: `${KARTE_CARD_LABELS[priority]}を大切に`, icon: "icon-sprout" }));
-  }
-}
-
-function ConditionChips({ current, conditions }: { current: QuestionId; conditions: Conditions }) {
-  const answered = QUESTIONS.slice(0, QUESTIONS.findIndex(({ id }) => id === current));
-  const chips = answered.flatMap(({ id }) => conditionChips(id, conditions));
-  if (chips.length === 0) return null;
-  return (
-    <ul aria-label="選んだ条件" className="flex flex-wrap gap-2">
-      {chips.map((chip) => (
-        <li key={chip.label} className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm">
-          <PixelIcon icon={chip.icon} size="sm" />
-          {chip.label}
-        </li>
-      ))}
-    </ul>
   );
 }
 

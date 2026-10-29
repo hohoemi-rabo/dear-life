@@ -18,10 +18,10 @@ describe("parseConditions", () => {
   });
 
   it("すべての条件を読む", () => {
-    expect(parse("d=igara&a=1&k=3&h=old&c=0&p=disaster,housing")).toEqual({
+    expect(parse("d=igara&a=1&k=2&h=old&c=0&p=disaster,housing")).toEqual({
       district: "igara",
       adults: 1,
-      children: 3,
+      children: 2,
       housing: "old",
       car: 0,
       priorities: ["housing", "disaster"],
@@ -31,13 +31,10 @@ describe("parseConditions", () => {
   it.each([
     ["d=matsuo", "district", null],
     ["d=", "district", null],
-    ["a=0", "adults", 2],
-    ["a=10", "adults", 2],
     ["a=1.5", "adults", 2],
     ["a=-1", "adults", 2],
     ["a=２", "adults", 2],
     ["a=1e1", "adults", 2],
-    ["k=10", "children", 1],
     ["k=abc", "children", 1],
     ["h=buy", "housing", "new"],
     ["c=3", "car", null],
@@ -45,6 +42,16 @@ describe("parseConditions", () => {
     ["c=", "car", null],
   ] as const)("不正な値 %s は初期値に戻す", (query, key, expected) => {
     expect(parse(query)[key]).toEqual(expected);
+  });
+
+  it.each([
+    ["a=0", "adults", 1],
+    ["a=3", "adults", 2],
+    ["a=10", "adults", 2],
+    ["k=3", "children", 2],
+    ["k=10", "children", 2],
+  ] as const)("範囲の外の人数 %s は、範囲の端に丸める（大人1〜2人・子ども0〜2人）", (query, key, expected) => {
+    expect(parse(query)[key]).toBe(expected);
   });
 
   it("子ども0人・車2台以上を読む", () => {
@@ -66,7 +73,7 @@ describe("parseConditions", () => {
 describe("writeConditions", () => {
   const conditions: Conditions = {
     district: "chushin",
-    adults: 3,
+    adults: 1,
     children: 0,
     housing: "rent",
     car: 0,
@@ -75,7 +82,7 @@ describe("writeConditions", () => {
 
   it("短いパラメータ名で書き、読み直すと同じ条件に戻る", () => {
     const params = writeConditions(conditions);
-    expect(Object.fromEntries(params)).toEqual({ d: "chushin", a: "3", k: "0", h: "rent", c: "0", p: "childcare,population" });
+    expect(Object.fromEntries(params)).toEqual({ d: "chushin", a: "1", k: "0", h: "rent", c: "0", p: "childcare,population" });
     expect(parseConditions(params)).toEqual({ ...conditions, priorities: ["childcare", "population"] });
   });
 

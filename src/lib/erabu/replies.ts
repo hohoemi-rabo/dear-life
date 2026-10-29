@@ -4,9 +4,8 @@ import { hasChildren, hasNoCar, type Conditions } from "../conditions/model.ts";
 import type { DataState, Facility, MarketStat, ScreenData } from "../data/screen-data.ts";
 import type { QuestionId } from "./questions.ts";
 
+// 住む地区を選んだときの返事（範囲・土地の値段）は出さない。028 の見本にないため（相場は家の質問で出す）
 export type ErabuReply =
-  // 住む地区：地区の範囲と、土地の真ん中の値・件数
-  | { kind: "district"; districtName: string; area: string; land: DataState<MarketStat> }
   // 子ども1人以上：保育園・幼稚園等と小学校の数
   | {
       kind: "children";
@@ -38,7 +37,7 @@ export function erabuReply(question: QuestionId, conditions: Conditions, data: S
 
   switch (question) {
     case "district":
-      return { kind: "district", districtName, area: district.areaDescription, land: district.market.land };
+      return null;
     case "family":
       if (!hasChildren(conditions)) return null;
       return {

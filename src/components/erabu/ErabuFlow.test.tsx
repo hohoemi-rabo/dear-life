@@ -98,29 +98,40 @@ beforeEach(() => {
 });
 
 describe("ErabuFlow：質問の進行", () => {
-  it("最初は地区の質問で、対象地区を明記し、選ぶまでは次へ進めない", async () => {
+  it("最初は地区の質問で、選ぶまでは次へ進めない", async () => {
     await open();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("どの地区で暮らす？");
-    expect(screen.getByText("対象地区：上郷・鼎・伊賀良・中心市街地")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /次へ/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /ここで暮らしてみる/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: "家族" })).toBeDisabled();
-    expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/を舞台に、暮らしをつくります。/)).not.toBeInTheDocument();
   });
 
-  it("地区を選ぶと URL に入り、次へで家族の質問に進む。戻るで地区に戻っても選んだ地区は残る", async () => {
+  it("地区を選ぶと URL に入り、次へで家族の質問に進む。もどるで地区に戻っても選んだ地区は残る", async () => {
     await open();
     await tap("上郷");
     expect(params().get("d")).toBe("kamisato");
     expect(screen.getByRole("button", { name: "上郷" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("上郷を舞台に、暮らしをつくります。")).toBeInTheDocument();
 
-    await tap(/次へ/);
+    await tap(/ここで暮らしてみる/);
     expect(params().get("q")).toBe("family");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("何人で暮らす？");
-    expect(within(screen.getByRole("list", { name: "選んだ条件" })).getByText("上郷")).toBeInTheDocument();
+    expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent("家族");
+    expect(screen.getByRole("button", { name: "地区（答えた）" })).toBeEnabled();
 
-    await tap(/戻る/);
+    await tap(/もどる/);
     expect(params().get("q")).toBe("district");
     expect(screen.getByRole("button", { name: "上郷" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("飯田市全体の絵の地区の札を押しても、その地区を選べる", async () => {
+    await open();
+    const map = screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
+    await act(async () => {
+      fireEvent.click(within(map).getByText("鼎"));
+    });
+    expect(params().get("d")).toBe("kanae");
+    expect(screen.getByRole("button", { name: "鼎" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("地区がないまま後ろの質問の URL を開いたら、地区の質問を出す", async () => {
@@ -128,18 +139,22 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("どの地区で暮らす？");
   });
 
-  it("家族は人数をタップで増減し、範囲の端ではボタンを押せない", async () => {
+  it("家族は大人1〜2人・子ども0〜2人をタップで増減し、プレビューの家族も変わる", async () => {
     await open("d=kamisato&q=family");
-    await tap("子どもを1人減らす");
-    expect(params().get("k")).toBe("0");
-    expect(screen.getByRole("button", { name: "子どもを1人減らす" })).toBeDisabled();
-    await tap("大人を1人増やす");
-    expect(params().get("a")).toBe("3");
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "大人を1人増やす" })).toBeDisabled();
+    await tap("子どもを1人増やす");
+    expect(params().get("k")).toBe("2");
+    expect(screen.getByRole("button", { name: "子どもを1人増やす" })).toBeDisabled();
+    await tap("大人を1人減らす");
+    expect(params().get("a")).toBe("1");
+    expect(screen.getByRole("button", { name: "大人を1人減らす" })).toBeDisabled();
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人1人・子ども2人の家族" })).toBeInTheDocument();
   });
 
-  it("車は飛ばすと未選択にして次の質問へ進む", async () => {
+  it("車は「まだ決めない」で未選択にして次の質問へ進む", async () => {
     await open("d=kamisato&c=0&q=car");
-    await tap("飛ばす");
+    await tap("まだ決めない");
     expect(params().has("c")).toBe(false);
     expect(params().get("q")).toBe("priorities");
   });
@@ -148,32 +163,25 @@ describe("ErabuFlow：質問の進行", () => {
     await open("d=kamisato&a=2&k=1&h=old&c=0&q=priorities");
     await tap("防災");
     await tap("住まい");
-    const link = screen.getByRole("link", { name: /くらしを見る/ });
+    const link = screen.getByRole("link", { name: /わが家の一年を見にいく/ });
     expect(link).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0&p=housing%2Cdisaster");
     expect(link.getAttribute("href")).not.toContain("q=");
-    expect(screen.getByRole("link", { name: "飛ばす" })).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0");
+    expect(screen.getByRole("link", { name: "選ばずに進む" })).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0");
   });
 });
 
 describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
-  it("住む地区：範囲と土地の真ん中の値・件数・注意書き・出典", async () => {
+  it("住む地区：返事のカードは出さない（028 の見本どおり。相場は家の質問で出す）", async () => {
     await open("d=kamisato");
-    const card = reply();
-    expect(within(card).getByText("上郷飯沼・上郷黒田・上郷別府")).toBeInTheDocument();
-    expect(within(card).getByText("2.8万円")).toBeInTheDocument();
-    expect(within(card).getByText("1坪あたり 約9.26万円")).toBeInTheDocument();
-    expect(within(card).getByText("202件")).toBeInTheDocument();
-    expect(within(card).getByText("件数じゅうぶん")).toBeInTheDocument();
-    expect(within(card).getByText("現在の売り出し価格ではなく、過去の取引の参考値です。")).toBeInTheDocument();
-    expect(within(card).getByText("国土交通省 不動産情報ライブラリ「不動産価格（取引価格・成約価格）情報」")).toBeInTheDocument();
-    expect(within(card).getByText("2021年第1四半期〜2026年第1四半期")).toBeInTheDocument();
-    expect(within(card).getByText("取得日")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
   });
 
-  it("子ども1人以上：保育園・幼稚園等と小学校の数。子ども0人にすると返事を消す", async () => {
+  it("子ども1人以上：保育園・幼稚園等と小学校の数と出典。子ども0人にすると返事を消す", async () => {
     await open("d=kamisato&k=1&q=family");
-    expect(within(reply()).getByText("保育園・幼稚園等").nextSibling).toHaveTextContent("2か所");
-    expect(within(reply()).getByText("小学校").nextSibling).toHaveTextContent("1校");
+    expect(reply()).toHaveTextContent("上郷の子育て・学校");
+    expect(reply()).toHaveTextContent("保育園・幼稚園等 2か所");
+    expect(reply()).toHaveTextContent("小学校 1校");
+    expect(reply()).toHaveTextContent("出典：提供元「iida_childcare の名前」「iida_education の名前」");
     expect(within(reply()).getAllByText("確認日")).toHaveLength(2);
     await tap("子どもを1人減らす");
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
@@ -206,8 +214,8 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
 
   it("出典が未公開ならデータ未取得と出し、作った数字で埋めない", async () => {
     screenData = screenDataFixture();
-    await open("d=kanae");
-    expect(within(reply()).getByText("データ未取得")).toBeInTheDocument();
-    expect(within(reply()).queryByText(/万円/)).not.toBeInTheDocument();
+    await open("d=kanae&k=1&q=family");
+    expect(within(reply()).getAllByText("データ未取得")).toHaveLength(2);
+    expect(reply()).not.toHaveTextContent(/\d+(か所|校)/);
   });
 });

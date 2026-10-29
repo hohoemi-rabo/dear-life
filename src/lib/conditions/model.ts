@@ -14,9 +14,10 @@ export type Conditions = {
   priorities: readonly Priority[];
 };
 
-// 家族の人数の範囲。画面の増減ボタンもこの範囲で止める
-export const ADULTS_RANGE = { min: 1, max: 9 } as const;
-export const CHILDREN_RANGE = { min: 0, max: 9 } as const;
+// 家族の人数の範囲。画面の増減ボタンもこの範囲で止める。
+// 絵に出せるのが大人2人・子ども2人までなので、選べる人数もそこまでにする（絵と条件がいつも一致するように。028 まさゆきさん決定）
+export const ADULTS_RANGE = { min: 1, max: 2 } as const;
+export const CHILDREN_RANGE = { min: 0, max: 2 } as const;
 
 // 質問を飛ばしたときの初期値（F-01）：大人2人・子ども1人・買う・新しめ、車は未選択
 export const DEFAULT_CONDITIONS: Conditions = {

@@ -26,7 +26,8 @@
     "public-facilities:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-public-facilities-sql.mjs",
     "population:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-population-sql.mjs",
     "scenes:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-scenes-sql.mjs",
-    "pixel": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-pixel.mjs"
+    "pixel": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-pixel.mjs",
+    "illust": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-illust.mjs"
   },
   "dependencies": {
     "maplibre-gl": "6.14.0",
@@ -52,6 +53,7 @@
     "fflate": "^0.8.3",
     "jsdom": "^30.1.3",
     "postcss": "^8.5.31",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
     "vitest": "^5.0.5",

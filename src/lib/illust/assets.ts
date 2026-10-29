@@ -1,0 +1,86 @@
+// 生成AIで作った絵（028）の一覧。元の画像は assets/illust/（まさゆきさんが用意）、画面用の WebP は npm run illust が
+// public/illust/ に書き出す。ドット絵（src/lib/pixel/、コードで描く）とは別のもの。
+// 本当のドットの粒がそろった絵ではないので、整数倍の表示（pixelated）にはせず、ふつうに縮めて出す
+import type { DistrictId } from "../town-district/resolve.ts";
+
+export const ILLUST_DIR = "illust";
+
+// 背景・選択肢の絵。widths は書き出す横幅（端末の幅で選ばせる）
+export const ILLUST_PICTURES = {
+  "erabu-iida-overview": {
+    source: "erabu-iida-overview.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152],
+    alt: "飯田市を上から見た街並みと山の風景",
+  },
+  "erabu-kamisato-base": {
+    source: "erabu-kamisato-base.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152],
+    alt: "上郷の高台の広場から見た、家並みと南アルプスの風景",
+  },
+  "district-kamisato": {
+    source: "district-kamisato.png",
+    width: 1672,
+    height: 941,
+    widths: [480],
+    alt: "桜の咲く上郷の街並み",
+  },
+} as const;
+
+export type IllustPictureId = keyof typeof ILLUST_PICTURES;
+
+// 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
+// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ
+export const PEOPLE = ["father", "mother", "boy", "girl"] as const;
+export type Person = (typeof PEOPLE)[number];
+export const POSES = ["stand", "joy"] as const;
+export type Pose = (typeof POSES)[number];
+
+export type SpriteId = `${Person}-${Pose}`;
+
+// キャラクターのシートは1枚に4〜6人が並び、人と人のあいだが透明になっている。
+// index は「左から何人目か」（0始まり）。並びは assets/illust/README.md
+export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; alt: string }> = {
+  "father-stand": { sheet: "characters-sheet-1.png", index: 0, alt: "緑の上着のお父さん" },
+  "father-joy": { sheet: "characters-sheet-2.png", index: 0, alt: "手を振る、緑の上着のお父さん" },
+  "mother-stand": { sheet: "characters-sheet-1.png", index: 1, alt: "青いスカートのお母さん" },
+  "mother-joy": { sheet: "characters-sheet-2.png", index: 3, alt: "手を広げる、青いスカートのお母さん" },
+  "boy-stand": { sheet: "characters-sheet-1.png", index: 2, alt: "赤い服の男の子" },
+  "boy-joy": { sheet: "characters-sheet-2.png", index: 1, alt: "跳ねる、赤い服の男の子" },
+  "girl-stand": { sheet: "characters-sheet-1.png", index: 5, alt: "手を振る、おさげの女の子" },
+  "girl-joy": { sheet: "characters-sheet-2.png", index: 2, alt: "手を振って歩く、おさげの女の子" },
+};
+
+// シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
+export const SPRITE_SCALE = 0.5;
+
+export function spriteId(person: Person, pose: Pose): SpriteId {
+  return `${person}-${pose}`;
+}
+
+export function illustPictureSrc(id: IllustPictureId, width: number): string {
+  return `/${ILLUST_DIR}/${id}-${width}.webp`;
+}
+
+export function spriteSrc(id: SpriteId): string {
+  return `/${ILLUST_DIR}/person-${id}.webp`;
+}
+
+// 地区の選択肢の絵。まず上郷だけ（028。ほかの3地区は用意できるまで今のドット絵）
+export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
+  kamisato: "district-kamisato",
+};
+
+// えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）
+export type ErabuBaseId = "erabu-kamisato-base" | "erabu-iida-overview";
+
+export const ERABU_BASES: Partial<Record<DistrictId, ErabuBaseId>> = {
+  kamisato: "erabu-kamisato-base",
+};
+
+export function erabuBaseFor(district: DistrictId | null): ErabuBaseId {
+  return (district && ERABU_BASES[district]) ?? "erabu-iida-overview";
+}

@@ -49,11 +49,11 @@ for (const icon of Object.values(APP_ICONS)) {
 const previewScenes = {
   "spring-children": [["bg-spring", "full"], ["landmark-chushin", "landmark"], ["event-festival", "fieldLeft"], ["facility-school", "fieldRight"], ["family-a2-c1", "family"]],
   "spring-no-children": [["bg-spring", "full"], ["landmark-kanae", "landmark"], ["facility-nursery", "fieldLeft"], ["facility-public", "fieldRight"], ["family-a2-c0", "family"]],
-  "summer-rain": [["bg-summer", "full"], ["landmark-kamisato", "landmark"], ["facility-shelter", "fieldRight"], ["family-a2-c3", "family"], ["overlay-rain", "full"]],
+  "summer-rain": [["bg-summer", "full"], ["landmark-kamisato", "landmark"], ["facility-shelter", "fieldRight"], ["family-a2-c2", "family"], ["overlay-rain", "full"]],
   "autumn-events": [["bg-autumn", "full"], ["landmark-igara", "landmark"], ["event-sports", "fieldLeft"], ["event-culture", "fieldRight"], ["family-a1-c2", "family"]],
   "autumn-other": [["bg-autumn", "full"], ["event-other", "fieldLeft"], ["family-a1-c0", "family"]],
   "winter-car": [["bg-winter", "full"], ["landmark-chushin-winter", "landmark"], ["family-a2-c2", "family"], ["vehicle-car", "roadRight"]],
-  "winter-no-car": [["bg-winter", "full"], ["landmark-kamisato-winter", "landmark"], ["vehicle-train", "fieldRight"], ["family-a2-c3", "family"], ["vehicle-bus", "roadRight"]],
+  "winter-no-car": [["bg-winter", "full"], ["landmark-kamisato-winter", "landmark"], ["vehicle-train", "fieldRight"], ["family-a2-c2", "family"], ["vehicle-bus", "roadRight"]],
 };
 for (const [name, parts] of Object.entries(previewScenes)) {
   const layers = parts.map(([asset, slot]) => placeInSlot(asset, slot));

@@ -1,5 +1,6 @@
 // 条件 ⇔ URL パラメータ（F-02）。条件はサーバーに送らず、URL だけで持つ。
-// URL は外部入力なので、知らない値・範囲外の値は黙って初期値に戻す（共有された古い URL でも画面が開けるように）
+// URL は外部入力なので、知らない値は黙って初期値に戻す（共有された古い URL でも画面が開けるように）。
+// 人数だけは範囲の端に丸める（028 で選べる人数を減らす前の URL の「子ども3人」は、初期値の1人より2人のほうが近い）
 import type { DistrictId } from "../town-district/resolve.ts";
 import { DISTRICT_NAMES, HOUSING_LABELS, PRIORITIES, type CarCount, type Housing, type Priority } from "./labels.ts";
 import { ADULTS_RANGE, CHILDREN_RANGE, DEFAULT_CONDITIONS, type Conditions } from "./model.ts";
@@ -18,10 +19,9 @@ const CONDITION_PARAM_NAMES: readonly string[] = Object.values(CONDITION_PARAMS)
 
 type ReadableParams = { get(name: string): string | null };
 
-function parseIntInRange(value: string | null, range: { min: number; max: number }, fallback: number): number {
+function parseCount(value: string | null, range: { min: number; max: number }, fallback: number): number {
   if (value === null || !/^\d+$/.test(value)) return fallback;
-  const number = Number(value);
-  return number >= range.min && number <= range.max ? number : fallback;
+  return Math.min(Math.max(Number(value), range.min), range.max);
 }
 
 function isDistrictId(value: string | null): value is DistrictId {
@@ -49,8 +49,8 @@ export function parseConditions(params: ReadableParams): Conditions {
   const housing = params.get(CONDITION_PARAMS.housing);
   return {
     district: isDistrictId(district) ? district : DEFAULT_CONDITIONS.district,
-    adults: parseIntInRange(params.get(CONDITION_PARAMS.adults), ADULTS_RANGE, DEFAULT_CONDITIONS.adults),
-    children: parseIntInRange(params.get(CONDITION_PARAMS.children), CHILDREN_RANGE, DEFAULT_CONDITIONS.children),
+    adults: parseCount(params.get(CONDITION_PARAMS.adults), ADULTS_RANGE, DEFAULT_CONDITIONS.adults),
+    children: parseCount(params.get(CONDITION_PARAMS.children), CHILDREN_RANGE, DEFAULT_CONDITIONS.children),
     housing: isHousing(housing) ? housing : DEFAULT_CONDITIONS.housing,
     car: parseCar(params.get(CONDITION_PARAMS.car)),
     priorities: parsePriorities(params.get(CONDITION_PARAMS.priorities)),

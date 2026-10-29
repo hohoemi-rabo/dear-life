@@ -12,6 +12,10 @@ export type Question = {
   lead: string;
   // 任意の質問は「飛ばす」を出す。飛ばすと未選択（車）・なし（大切にしたいこと）になる
   optional: boolean;
+  // 次へ進むボタンの言葉（028 見本。最後の質問はくらしを見るへ進む）
+  nextLabel: string;
+  // 任意の質問の「飛ばす」の言葉（028 見本）
+  skipLabel?: string;
 };
 
 export const QUESTIONS: readonly Question[] = [
@@ -19,15 +23,17 @@ export const QUESTIONS: readonly Question[] = [
     id: "district",
     stepLabel: "地区",
     title: "どの地区で暮らす？",
-    lead: "気になる地区を1つ選んでください。あとから切り替えられます。",
+    lead: "気になる場所から、はじめよう。",
     optional: false,
+    nextLabel: "ここで暮らしてみる",
   },
   {
     id: "family",
     stepLabel: "家族",
     title: "何人で暮らす？",
-    lead: "いっしょに暮らす大人と子どもの人数を選んでください。",
+    lead: "一緒に暮らす家族を、迎えよう。",
     optional: false,
+    nextLabel: "家族で、次へ",
   },
   {
     id: "housing",
@@ -35,6 +41,7 @@ export const QUESTIONS: readonly Question[] = [
     title: "どんな家で暮らす？",
     lead: "買うか借りるか、買うなら新しめか古めかを選んでください。",
     optional: false,
+    nextLabel: "この家で暮らしてみる",
   },
   {
     id: "car",
@@ -42,6 +49,8 @@ export const QUESTIONS: readonly Question[] = [
     title: "車は何台？",
     lead: "家族で持つ車の台数です。決めていなければ飛ばせます。",
     optional: true,
+    nextLabel: "大切にしたいことへ",
+    skipLabel: "まだ決めない",
   },
   {
     id: "priorities",
@@ -49,6 +58,8 @@ export const QUESTIONS: readonly Question[] = [
     title: "大切にしたいことは？",
     lead: "いくつでも選べます。カルテで先に表示します。",
     optional: true,
+    nextLabel: "わが家の一年を見にいく",
+    skipLabel: "選ばずに進む",
   },
 ];
 
