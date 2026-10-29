@@ -39,7 +39,7 @@ export const QUESTIONS: readonly Question[] = [
     id: "housing",
     stepLabel: "家",
     title: "どんな家で暮らす？",
-    lead: "買うか借りるか、買うなら新しめか古めかを選んでください。",
+    lead: "わが家の拠点を、えらぼう。",
     optional: false,
     nextLabel: "この家で暮らしてみる",
   },
@@ -94,6 +94,11 @@ export function nextQuestion(id: QuestionId): QuestionId | null {
 
 export function previousQuestion(id: QuestionId): QuestionId | null {
   return QUESTION_IDS[indexOf(id) - 1] ?? null;
+}
+
+// 今の質問が、ある質問と同じかそれより後ろか（プレビューの絵に、もう答えた家などを重ねるかを決める）
+export function isAtOrAfter(current: QuestionId, target: QuestionId): boolean {
+  return indexOf(current) >= indexOf(target);
 }
 
 // 次へ進めるか（必須の質問は答えてから）。家族・家は初期値があるので、いつでも進める（F-01）

@@ -3,6 +3,7 @@ import { DISTRICTS } from "../conditions/labels";
 import { ERABU_BASES, PEOPLE, POSES, SPRITE_SOURCES, erabuBaseFor, spriteId } from "./assets";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, placeFamily } from "./family";
+import { placeHouse } from "./house";
 import { SPRITE_SIZES } from "./sprites";
 
 describe("familyMembers（028 まさゆきさん決定）", () => {
@@ -68,6 +69,21 @@ describe("絵の一覧", () => {
       expect(x).toBeLessThan(100);
       expect(y).toBeGreaterThan(0);
       expect(y).toBeLessThan(100);
+    }
+  });
+});
+
+describe("placeHouse（028 見本の 03）", () => {
+  it("どの家も背景の中に収まり、家族より奥（足もとより上）に建つ", () => {
+    for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
+      const familyFoot = placeFamily(familyMembers({ adults: 2, children: 2 }), background)[0].footY;
+      for (const housing of ["new", "old", "rent"] as const) {
+        const { centerX, footY, width, height } = placeHouse(housing, background);
+        expect(centerX - width / 2).toBeGreaterThan(0);
+        expect(centerX + width / 2).toBeLessThan(100);
+        expect(footY - height).toBeGreaterThan(0);
+        expect(footY).toBeLessThan(familyFoot);
+      }
     }
   });
 });

@@ -72,12 +72,28 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(-40%)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // 下から出るシート（028）。閉じるときは出るときより短くする
+        "sheet-in": {
+          "0%": { transform: "translateY(100%)" },
+          "100%": { transform: "translateY(0)" },
+        },
+        "sheet-out": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(100%)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
       },
       animation: {
         "pop-in": "pop-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "pop-out": "pop-out 240ms ease-in both",
         sparkle: "sparkle 700ms ease-out both",
         "pin-drop": "pin-drop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "sheet-in": "sheet-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "sheet-out": "sheet-out 200ms ease-in both",
+        "fade-in": "fade-in 300ms ease-out both",
       },
     },
   },

@@ -5,15 +5,17 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
+import { HouseLayer } from "@/components/illust/HouseLayer";
 import { PreviewFrame } from "@/components/illust/PreviewFrame";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { DISTRICT_NAMES, familyLabel } from "@/lib/conditions/labels";
+import { DISTRICT_NAMES, familyLabel, HOUSING_LABELS } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref, writeConditions } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import {
   canProceed,
+  isAtOrAfter,
   nextQuestion,
   previousQuestion,
   QUESTION_PARAM,
@@ -101,6 +103,7 @@ export function ErabuFlow() {
 }
 
 // わが家のプレビュー（028 見本）。地区の質問では飯田市全体の絵に4地区の札、ほかの質問では地区の風景に家族を重ねる。
+// 家の質問からは、家族の後ろに選んだ家を建てる（04・05 の見本でも家は残る）。
 // 質問を移るたびに家族を描き直し、ぽんと出し直す（選ぶたびにできあがっていく感じを出す）
 function ErabuPreview({
   question,
@@ -120,8 +123,14 @@ function ErabuPreview({
   }
   const background = erabuBaseFor(conditions.district);
   const place = conditions.district ? DISTRICT_NAMES[conditions.district] : "飯田";
+  const showHouse = isAtOrAfter(question, "housing");
+  const family = `${familyLabel(conditions.adults, conditions.children)}の家族`;
+  const label = showHouse
+    ? `わが家のプレビュー：${place}の「${HOUSING_LABELS[conditions.housing]}」の家で暮らす、${family}`
+    : `わが家のプレビュー：${place}で暮らす、${family}`;
   return (
-    <PreviewFrame background={background} label={`わが家のプレビュー：${place}で暮らす、${familyLabel(conditions.adults, conditions.children)}の家族`}>
+    <PreviewFrame background={background} label={label}>
+      {showHouse && <HouseLayer housing={conditions.housing} background={background} />}
       <FamilyLayer key={question} members={familyMembers(conditions)} background={background} />
     </PreviewFrame>
   );
@@ -142,10 +151,10 @@ function DistrictStage({ name }: { name: string }) {
 
 // 次へ進む大きなボタン（見本の丸い深緑のボタン）
 const PILL_ACTION =
-  "inline-flex min-h-[3.25rem] items-center justify-center gap-3 rounded-full bg-primary px-8 text-base font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
+  "inline-flex min-h-[3.25rem] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary px-6 text-base font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
 
 // 枠のない文字だけの操作（戻る・飛ばす）
-const TEXT_ACTION = "inline-flex min-h-tap min-w-tap items-center justify-center gap-1 px-2 font-bold text-primary underline-offset-4 hover:underline";
+const TEXT_ACTION = "inline-flex shrink-0 whitespace-nowrap min-h-tap min-w-tap items-center justify-center gap-1 px-2 font-bold text-primary underline-offset-4 hover:underline";
 
 // 任意の質問を飛ばす。車は未選択、大切にしたいことはなしにして次へ進む（最後の質問なら、くらしを見るへ）
 function SkipButton({

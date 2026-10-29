@@ -187,20 +187,51 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
   });
 
-  it("家：買う・新しめは件数が12件でも「件数少なめ・参考程度」を付ける", async () => {
+  it("家：返事は「住まいの参考相場を確認」のカードだけで、押すと下のシートに相場を出す（028）", async () => {
     await open("d=kamisato&h=new&q=housing");
-    expect(within(reply()).getByText("上郷で「買う・新しめ」なら")).toBeInTheDocument();
-    expect(within(reply()).getByText("3,900万円")).toBeInTheDocument();
-    expect(within(reply()).getByText("件数少なめ・参考程度")).toBeInTheDocument();
+    expect(screen.queryByText("3,900万円")).not.toBeInTheDocument();
+    await tap(/住まいの参考相場を確認/);
+    const sheet = screen.getByRole("dialog", { name: "上郷の中古戸建て（築20年以内）" });
+    expect(within(sheet).getByText("3,900万円")).toBeInTheDocument();
+    // 買う・新しめは件数が12件でも「件数少なめ・参考程度」を付ける
+    expect(within(sheet).getByText("件数少なめ・参考程度")).toBeInTheDocument();
+    expect(within(sheet).getByText(/過去の取引の参考値です/)).toBeInTheDocument();
+    expect(within(sheet).getByText(/^出典：/)).toBeInTheDocument();
+
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        fireEvent.click(within(sheet).getByRole("button", { name: "閉じる" }));
+        vi.advanceTimersByTime(200);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(sheet).not.toHaveAttribute("open");
   });
 
-  it("家：買う・古め・借りる に選び直すと返事も変わる", async () => {
+  it("家：買う・古め・借りる に選び直すとシートの中身も変わる。借りるはデータ未取得", async () => {
     await open("d=kamisato&h=new&q=housing");
     await tap(/買う・古め/);
-    expect(within(reply()).getByText("860万円")).toBeInTheDocument();
-    expect(within(reply()).getByText("件数じゅうぶん")).toBeInTheDocument();
+    await tap(/住まいの参考相場を確認/);
+    const sheet = screen.getByRole("dialog", { name: "上郷の中古戸建て（築21年以上）" });
+    expect(within(sheet).getByText("860万円")).toBeInTheDocument();
+    expect(within(sheet).getByText("件数じゅうぶん")).toBeInTheDocument();
+  });
+
+  it("家：借りるときもカードは出し、シートでデータ未取得と出す", async () => {
+    await open("d=kamisato&h=rent&q=housing");
+    await tap(/住まいの参考相場を確認/);
+    const sheet = screen.getByRole("dialog", { name: "借りるときの家賃" });
+    expect(within(sheet).getByText("データ未取得")).toBeInTheDocument();
+    expect(sheet).not.toHaveTextContent(/万円/);
+  });
+
+  it("家の質問から、プレビューに選んだ家が建つ", async () => {
+    await open("d=kamisato&a=2&k=1&h=old&q=housing");
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷の「買う・古め」の家で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
     await tap(/借りる/);
-    expect(within(reply()).getByText("家賃の情報はまだありません。")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷の「借りる」の家で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
   });
 
   it("車：0台でバス停の数。もう一度押すと未選択に戻して返事を消す", async () => {

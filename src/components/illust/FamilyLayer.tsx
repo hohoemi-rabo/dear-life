@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { spriteId, spriteSrc, type ErabuBaseId, type Person } from "@/lib/illust/assets";
 import { placeFamily, type Placement } from "@/lib/illust/family";
+import { Sparkles, type SparklePoint } from "./Sparkles";
 
 // 出てきた人がよろこぶポーズでいる時間。そのあと立つポーズに戻る
 const JOY_MS = 1200;
@@ -50,12 +51,12 @@ function useLeavingPlacements(placements: readonly Placement[]): Placement[] {
 }
 
 // キラキラの位置（人の絵の幅・高さに対する％）と、出る順のずれ
-const SPARKLES = [
+const SPARKLES: readonly SparklePoint[] = [
   { x: -8, y: 18, delay: 0 },
   { x: 108, y: 10, delay: 60 },
   { x: 100, y: 46, delay: 120 },
   { x: -2, y: 56, delay: 180 },
-] as const;
+];
 
 function PersonSprite({ placement, leaving = false }: { placement: Placement; leaving?: boolean }) {
   const [pose, setPose] = useState<"joy" | "stand">(leaving ? "stand" : "joy");
@@ -77,14 +78,7 @@ function PersonSprite({ placement, leaving = false }: { placement: Placement; le
         draggable={false}
         className={`h-full w-auto max-w-none origin-bottom select-none ${leaving ? "motion-safe:animate-pop-out" : "motion-safe:animate-pop-in"}`}
       />
-      {!leaving &&
-        SPARKLES.map(({ x, y, delay }) => (
-          <span
-            key={`${x}-${y}`}
-            className="absolute hidden size-3 bg-gold motion-safe:block motion-safe:animate-sparkle [clip-path:polygon(50%_0,62%_38%,100%_50%,62%_62%,50%_100%,38%_62%,0_50%,38%_38%)]"
-            style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${delay}ms` }}
-          />
-        ))}
+      {!leaving && <Sparkles points={SPARKLES} />}
     </span>
   );
 }

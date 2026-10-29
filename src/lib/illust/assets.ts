@@ -1,6 +1,7 @@
 // 生成AIで作った絵（028）の一覧。元の画像は assets/illust/（まさゆきさんが用意）、画面用の WebP は npm run illust が
 // public/illust/ に書き出す。ドット絵（src/lib/pixel/、コードで描く）とは別のもの。
 // 本当のドットの粒がそろった絵ではないので、整数倍の表示（pixelated）にはせず、ふつうに縮めて出す
+import type { Housing } from "../conditions/labels.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 
 export const ILLUST_DIR = "illust";
@@ -59,6 +60,21 @@ export const SPRITE_SCALE = 0.5;
 
 export function spriteId(person: Person, pose: Pose): SpriteId {
   return `${person}-${pose}`;
+}
+
+// 家（4地区で使い回す。2026-10-29 受け取り）。透過 PNG で、家のまわりの暗いもやは見た目だけで本当は透明。
+// 家そのものもほんの少し透けているので、書き出すときに不透明にそろえ、透明なふちを切り落とす
+export const HOUSE_SOURCES: Record<Housing, { source: string; alt: string }> = {
+  new: { source: "house-new.png", alt: "白い壁に瓦屋根の、新しめの2階建ての家" },
+  old: { source: "house-old.png", alt: "木の格子戸とベランダのある、古めの2階建ての家" },
+  rent: { source: "house-rent.png", alt: "外階段のある2階建てのアパート" },
+};
+
+// 書き出す横幅。プレビュー（表示は最大で約330px）と選択肢のカード（約110px）で同じ画像を使い、端末に選ばせる
+export const HOUSE_WIDTHS = [320, 640] as const;
+
+export function houseSrc(housing: Housing, width: number): string {
+  return `/${ILLUST_DIR}/house-${housing}-${width}.webp`;
 }
 
 export function illustPictureSrc(id: IllustPictureId, width: number): string {

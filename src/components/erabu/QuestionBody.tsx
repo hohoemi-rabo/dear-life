@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { FamilyHint } from "@/components/illust/FamilyHint";
 import { IllustPicture } from "@/components/illust/IllustPicture";
 import { PixelImage } from "@/components/pixel/PixelImage";
@@ -15,7 +16,7 @@ import {
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { DISTRICT_PICTURES } from "@/lib/illust/assets";
+import { DISTRICT_PICTURES, HOUSE_WIDTHS, houseSrc } from "@/lib/illust/assets";
 import { landmarkAssetId, type PixelAssetId } from "@/lib/pixel/assets";
 import { ChoiceCard } from "./ChoiceCard";
 
@@ -49,36 +50,71 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
   return (
     <ul className="grid grid-cols-2 gap-3" aria-label="住む地区">
       {DISTRICTS.map(({ id, name }) => {
-        const selected = conditions.district === id;
         const picture = DISTRICT_PICTURES[id];
         return (
           <li key={id}>
-            <button
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onChange({ district: id })}
-              className={[
-                "relative flex w-full flex-col items-stretch gap-1 rounded-card border-2 bg-surface p-1.5 pb-2 text-center transition duration-150 active:scale-[0.98]",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
-              ].join(" ")}
-            >
-              {selected && <CheckMark className="left-2.5 top-2.5" />}
-              <span className="block aspect-[16/9] overflow-hidden rounded-[0.6rem]">
-                {picture ? (
+            <PictureChoiceCard
+              selected={conditions.district === id}
+              onSelect={() => onChange({ district: id })}
+              check="left"
+              pictureClassName="aspect-[16/9]"
+              picture={
+                picture ? (
                   <IllustPicture picture={picture} sizes="(min-width: 640px) 280px, 50vw" decorative className="size-full object-cover" />
                 ) : (
                   <PixelStage className="size-full">
                     <PixelImage asset={landmarkAssetId(id, "spring")} scale={2} decorative />
                   </PixelStage>
-                )}
-              </span>
-              <span className="font-bold">{name}</span>
-            </button>
+                )
+              }
+              label={name}
+            />
           </li>
         );
       })}
     </ul>
+  );
+}
+
+// 絵のある選択肢のカード（028 見本の 01 地区・03 家）。上に絵、下に名前と説明。選んだものは枠を緑にして ✓ を付ける
+// （色だけに頼らないよう、印と aria-pressed でも伝える）
+function PictureChoiceCard({
+  selected,
+  onSelect,
+  check,
+  picture,
+  pictureClassName,
+  label,
+  labelClassName = "",
+  description,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  // ✓ を付ける角（見本：地区は左上、家は右上）
+  check: "left" | "right";
+  picture: ReactNode;
+  pictureClassName: string;
+  label: string;
+  // 3つ並べる家のカードは、名前を1行に収めるため少し小さくする
+  labelClassName?: string;
+  description?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={[
+        "relative flex h-full w-full flex-col items-stretch gap-1 rounded-card border-2 bg-surface p-1.5 pb-2 text-center transition duration-150 active:scale-[0.98]",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
+      ].join(" ")}
+    >
+      {selected && <CheckMark className={check === "left" ? "left-2.5 top-2.5" : "right-2.5 top-2.5"} />}
+      <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName}`}>{picture}</span>
+      <span className={`whitespace-nowrap font-bold ${labelClassName}`}>{label}</span>
+      {description && <span className="-mt-1 whitespace-nowrap text-xs text-ink-muted">{description}</span>}
+    </button>
   );
 }
 
@@ -152,22 +188,39 @@ function Counter({
   );
 }
 
-const HOUSING_CHOICES: readonly { id: Housing; art: PixelAssetId; description: string }[] = [
-  { id: "new", art: "house-new", description: "築20年以内の中古戸建て" },
-  { id: "old", art: "house-old", description: "築21年以上の中古戸建て" },
-  { id: "rent", art: "house-rent", description: "アパート・借家" },
+// 家の選択肢の説明（028 見本）。「新しめ・古め」の境目は相場の区分（築20年以内・21年以上）と同じ
+const HOUSING_CHOICES: readonly { id: Housing; description: string }[] = [
+  { id: "new", description: "築20年以内" },
+  { id: "old", description: "築21年以上" },
+  { id: "rent", description: "アパート・借家" },
 ];
 
+// 家の選択肢（028 見本）：空の色の上に家の絵、下に名前と説明。選んだものは右上に ✓。
+// 家の絵はプレビューと同じもの（4地区で使い回す）
 function HousingChoices({ conditions, onChange }: ChoiceProps) {
   return (
     <ul className="grid grid-cols-3 gap-2" aria-label="家">
-      {HOUSING_CHOICES.map(({ id, art, description }) => (
+      {HOUSING_CHOICES.map(({ id, description }) => (
         <li key={id}>
-          <ChoiceCard
+          <PictureChoiceCard
             selected={conditions.housing === id}
             onSelect={() => onChange({ housing: id })}
-            art={<PixelImage asset={art} scale={3} decorative />}
+            check="right"
+            pictureClassName="flex aspect-square sm:aspect-[4/3] items-end justify-center bg-gradient-to-b from-pixel-sky from-60% to-primary-soft px-1 pb-1.5"
+            picture={
+              // eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由）
+              <img
+                src={houseSrc(id, HOUSE_WIDTHS[0])}
+                srcSet={HOUSE_WIDTHS.map((w) => `${houseSrc(id, w)} ${w}w`).join(", ")}
+                sizes="(min-width: 640px) 180px, 30vw"
+                alt=""
+                draggable={false}
+                decoding="async"
+                className="w-full select-none"
+              />
+            }
             label={HOUSING_LABELS[id]}
+            labelClassName="text-sm sm:text-base"
             description={description}
           />
         </li>
