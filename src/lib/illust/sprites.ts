@@ -12,10 +12,10 @@ export const SPRITE_SIZES: Record<SpriteId, { width: number; height: number }> =
   "boy-joy": { width: 151, height: 219 },
   "girl-stand": { width: 148, height: 210 },
   "girl-joy": { width: 140, height: 210 },
-  "father-back": { width: 134, height: 309 },
-  "mother-back": { width: 122, height: 287 },
-  "boy-back": { width: 102, height: 221 },
-  "girl-back": { width: 146, height: 209 },
+  "father-back": { width: 122, height: 318 },
+  "mother-back": { width: 123, height: 293 },
+  "boy-back": { width: 103, height: 231 },
+  "girl-back": { width: 127, height: 218 },
 };
 
 // ふちを切り落とした家の大きさ（元の画像の px）。縦横の比を画面で使う

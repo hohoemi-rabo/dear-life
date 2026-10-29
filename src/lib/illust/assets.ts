@@ -47,7 +47,7 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
-// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は後ろ姿（05 で町を見わたす。見本どおり）
+// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）
 export const PEOPLE = ["father", "mother", "boy", "girl"] as const;
 export type Person = (typeof PEOPLE)[number];
 export const POSES = ["stand", "joy", "back"] as const;
@@ -66,10 +66,10 @@ export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; al
   "boy-joy": { sheet: "characters-sheet-2.png", index: 1, alt: "跳ねる、赤い服の男の子" },
   "girl-stand": { sheet: "characters-sheet-1.png", index: 5, alt: "手を振る、おさげの女の子" },
   "girl-joy": { sheet: "characters-sheet-2.png", index: 2, alt: "手を振って歩く、おさげの女の子" },
-  "father-back": { sheet: "characters-sheet-4.png", index: 0, alt: "後ろ姿の、緑の上着のお父さん" },
-  "mother-back": { sheet: "characters-sheet-4.png", index: 1, alt: "後ろ姿の、青いスカートのお母さん" },
-  "boy-back": { sheet: "characters-sheet-4.png", index: 2, alt: "後ろ姿の、赤い服の男の子" },
-  "girl-back": { sheet: "characters-sheet-4.png", index: 5, alt: "後ろ姿の、おさげの女の子" },
+  "father-back": { sheet: "characters-sheet-5.png", index: 0, alt: "右奥を向いた後ろ姿の、緑の上着のお父さん" },
+  "mother-back": { sheet: "characters-sheet-5.png", index: 1, alt: "右奥を向いた後ろ姿の、青いスカートのお母さん" },
+  "boy-back": { sheet: "characters-sheet-5.png", index: 2, alt: "右奥を向いた後ろ姿の、赤い服の男の子" },
+  "girl-back": { sheet: "characters-sheet-5.png", index: 5, alt: "右奥を向いた後ろ姿の、おさげの女の子" },
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
