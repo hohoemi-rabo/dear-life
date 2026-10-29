@@ -24,9 +24,10 @@ export function DistrictMapLayer({ selected, onSelect }: { selected: DistrictId 
             >
               <span
                 className={[
-                  "rounded-md px-2 py-1 text-xs font-bold leading-tight text-white shadow-card transition-transform duration-150 group-active:scale-95 sm:text-sm",
+                  "rounded-md px-2 py-1 text-xs font-bold leading-tight shadow-card transition duration-150 group-active:scale-95 sm:text-sm",
                   vertical ? "[writing-mode:vertical-rl]" : "whitespace-nowrap",
-                  isSelected ? "bg-primary ring-2 ring-white" : "bg-primary-hover/90 group-hover:bg-primary",
+                  // 選んだ地区は明るい薄緑に白い枠、選んでいない地区は暗い濃い緑（2026-10-29 まさゆきさん）
+                  isSelected ? "bg-map-label-selected text-primary-hover ring-2 ring-white" : "bg-map-label-idle/90 text-white group-hover:bg-map-label-idle",
                 ].join(" ")}
               >
                 {name}
