@@ -136,11 +136,11 @@ function PictureChoiceCard({
 }
 
 // 選んだ印。色だけに頼らないよう ✓ を出す（ボタンの aria-pressed でも伝える）
-function CheckMark({ className }: { className: string }) {
+function CheckMark({ className, sizeClassName = "size-6 text-sm" }: { className: string; sizeClassName?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`absolute z-10 flex size-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-white ring-2 ring-white ${className}`}
+      className={`absolute z-10 flex items-center justify-center rounded-full bg-primary font-bold text-white ring-2 ring-white ${sizeClassName} ${className}`}
     >
       ✓
     </span>
@@ -348,6 +348,10 @@ function PriorityChoices({ conditions, onChange }: ChoiceProps) {
   );
 }
 
+// スマホ（400px 未満）ではカードを見本の高さに詰めるので、右上の印も小さくして名前と重ならないようにする
+const PRIORITY_CHECK_PLACE = "right-1.5 top-1.5 min-[400px]:right-2 min-[400px]:top-2";
+const PRIORITY_CHECK_SIZE = "size-5 min-[400px]:size-6";
+
 function PriorityCard({ priority, selected, onSelect }: { priority: Priority; selected: boolean; onSelect: () => void }) {
   return (
     <button
@@ -355,17 +359,17 @@ function PriorityCard({ priority, selected, onSelect }: { priority: Priority; se
       aria-pressed={selected}
       onClick={onSelect}
       className={[
-        "relative flex min-h-[4.5rem] w-full items-center gap-1.5 rounded-card border-2 bg-surface py-2 pl-2 pr-8 text-left transition duration-150 active:scale-[0.98] min-[400px]:gap-3",
+        "relative flex min-h-[3.75rem] w-full items-center gap-1.5 rounded-card border-2 bg-surface py-1.5 pl-2 pr-7 text-left transition duration-150 active:scale-[0.98] min-[400px]:min-h-[4.5rem] min-[400px]:gap-3 min-[400px]:py-2 min-[400px]:pr-8",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
       ].join(" ")}
     >
       {selected ? (
-        <CheckMark className="right-2 top-2" />
+        <CheckMark className={PRIORITY_CHECK_PLACE} sizeClassName={`${PRIORITY_CHECK_SIZE} text-xs min-[400px]:text-sm`} />
       ) : (
-        <span aria-hidden="true" className="absolute right-2 top-2 size-6 rounded-full border-2 border-line bg-surface" />
+        <span aria-hidden="true" className={`absolute rounded-full border-2 border-line bg-surface ${PRIORITY_CHECK_PLACE} ${PRIORITY_CHECK_SIZE}`} />
       )}
-      <span className="flex h-12 w-9 shrink-0 items-center justify-center min-[375px]:w-10 min-[400px]:w-16">
+      <span className="flex h-10 w-9 shrink-0 min-[400px]:h-12 items-center justify-center min-[375px]:w-10 min-[400px]:w-16">
         {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由） */}
         <img
           src={priorityIconSrc(priority, PRIORITY_ICON_WIDTHS[0])}
