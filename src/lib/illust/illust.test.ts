@@ -121,19 +121,19 @@ describe("placeCars（028 見本の 04）", () => {
 describe("05 の背景（2026-10-29 まさゆきさん）", () => {
   const background = "erabu-kamisato-priorities";
 
-  it("見本どおり、家と車は家族の左に収まり、家族より奥に置く", () => {
+  it("見本どおり、家と車は家族の左に収まる（家族は広場のいちばん奥に立つ。2026-10-30 まさゆきさん）", () => {
     const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
     for (const housing of ["new", "old", "rent"] as const) {
       const { centerX, footY, height } = placeHouse(housing, background);
       expect(centerX).toBeLessThan(family[0].centerX);
       expect(footY - height).toBeGreaterThan(0);
-      expect(footY).toBeLessThan(family[0].footY);
+      expect(footY).toBeLessThan(100);
     }
     for (const car of [1, 2] as const) {
       for (const { centerX, width, footY } of placeCars(car, background)) {
         expect(centerX - width / 2).toBeGreaterThan(0);
-        expect(centerX).toBeLessThan(family[0].centerX);
-        expect(footY).toBeLessThan(family[0].footY);
+        expect(centerX + width / 2).toBeLessThan(family[0].centerX);
+        expect(footY).toBeLessThan(100);
       }
     }
   });

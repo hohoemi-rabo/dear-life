@@ -16,8 +16,9 @@ const STAGES: Record<ErabuBaseId, { footY: number; adultHeight: number; centerX:
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
   // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
   "erabu-kamisato-base": { footY: 94, adultHeight: 32, centerX: 50 },
-  // 05 の背景。02〜04 と同じ大きさ・同じ真ん中に、後ろ姿で立たせる
-  "erabu-kamisato-priorities": { footY: 94, adultHeight: 32, centerX: 50 },
+  // 05 の背景。05 の主役は町（印）なので、家族は広場のいちばん奥（川べりの手前）に小さめに立たせる
+  // （2026-10-30 まさゆきさん：キャラを少し小さく、いちばん奥まで）
+  "erabu-kamisato-priorities": { footY: 70, adultHeight: 24, centerX: 50 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
 };

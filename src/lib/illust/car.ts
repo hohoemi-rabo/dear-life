@@ -12,8 +12,9 @@ import { PROP_SIZES } from "./sprites.ts";
 // 高さはタイヤの下（footY）、幅は1台ぶん（どれも背景に対する％）
 const PARKING: Record<ErabuBaseId, { single: number; white: number; blue: number; footY: number; width: number }> = {
   "erabu-kamisato-base": { single: 70, white: 70, blue: 84.5, footY: 89, width: 18 },
-  // 05 の背景。見本どおり左の家の前に置く（家族と重ならないよう、2台目も家族の左に収める）
-  "erabu-kamisato-priorities": { single: 24, white: 15, blue: 27.5, footY: 86, width: 15 },
+  // 05 の背景。見本どおり左の家の前に置く（家族と重ならないよう、2台目も家族の左に収める）。
+  // 家族を奥に下げたので、車も家族と同じくらいの奥行き・大きさにそろえる（2026-10-30 まさゆきさん：キャラと車のバランス）
+  "erabu-kamisato-priorities": { single: 26, white: 19, blue: 30, footY: 75, width: 12.5 },
   "erabu-iida-overview": { single: 70, white: 70, blue: 83.5, footY: 91, width: 16 },
 };
 
