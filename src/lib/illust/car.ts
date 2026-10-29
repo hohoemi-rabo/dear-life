@@ -5,13 +5,14 @@ import type { CarCount } from "../conditions/labels.ts";
 import { ILLUST_PICTURES, type ErabuBaseId, type PropId } from "./assets.ts";
 import { PROP_SIZES } from "./sprites.ts";
 
-// 背景ごとの置き場所。家族より少し奥（足もとより上）に置いて遠近感を出す。
+// 背景ごとの置き場所。家族より少し奥（足もとより上）に置き、手前の家族が白い車の端に少しだけ重なるようにして遠近感を出す
+// （全部は隠さない。2026-10-29 まさゆきさん）。
 // 1台は single の真ん中に、2台は white・blue の真ん中に横に並べる（2026-10-29 まさゆきさん：車は横並び）。
 // 絵の車は斜めを向いていて、外枠どうしを付けても見た目は離れるので、白い車を青い車に少し重ねる（同日まさゆきさん）。
 // 高さはタイヤの下（footY）、幅は1台ぶん（どれも背景に対する％）
 const PARKING: Record<ErabuBaseId, { single: number; white: number; blue: number; footY: number; width: number }> = {
-  "erabu-kamisato-base": { single: 74, white: 73, blue: 88.5, footY: 89, width: 19 },
-  "erabu-iida-overview": { single: 74, white: 73.5, blue: 88, footY: 91, width: 17 },
+  "erabu-kamisato-base": { single: 70, white: 70, blue: 84.5, footY: 89, width: 18 },
+  "erabu-iida-overview": { single: 70, white: 70, blue: 83.5, footY: 91, width: 16 },
 };
 
 export type CarPlacement = {

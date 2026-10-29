@@ -13,10 +13,11 @@ export function familyMembers({ adults, children }: Pick<Conditions, "adults" | 
 
 // 背景ごとの立ち位置。footY は足もとの高さ、adultHeight はお父さん（立つ）の背の高さ（どちらも背景の高さに対する割合）
 const STAGES: Record<ErabuBaseId, { footY: number; adultHeight: number; centerX: number }> = {
-  // 手前の広場の少し左に立たせ、右に車を置く場所を空ける（04 の見本。2026-10-29 まさゆきさん：家族が大きすぎるので縮めて左へ）
-  "erabu-kamisato-base": { footY: 94, adultHeight: 36, centerX: 40 },
+  // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
+  // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
+  "erabu-kamisato-base": { footY: 94, adultHeight: 32, centerX: 50 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
-  "erabu-iida-overview": { footY: 95, adultHeight: 32, centerX: 40 },
+  "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）

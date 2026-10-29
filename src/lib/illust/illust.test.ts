@@ -36,10 +36,10 @@ describe("placeFamily", () => {
     }
   });
 
-  it("家族は少し左にまとまり（右は車の場所）、子どもは大人より背が低い", () => {
+  it("家族は真ん中にまとまり、子どもは大人より背が低い", () => {
     const placements = placeFamily(members, "erabu-kamisato-base");
     const middle = (placements[0].centerX + placements.at(-1)!.centerX) / 2;
-    expect(middle).toBeCloseTo(40, 0);
+    expect(middle).toBeCloseTo(50, 0);
     const height = (index: number) => placements[index].heightPercent("stand");
     expect(height(1)).toBeLessThan(height(0));
     expect(height(2)).toBeLessThan(height(3));
@@ -97,15 +97,16 @@ describe("placeCars（028 見本の 04）", () => {
     expect(placeCars(2, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-white", "car-blue"]);
   });
 
-  it("車は背景の中に収まり、家族の右・少し奥に、白・青の順で横に並ぶ（重なりは少しだけ）", () => {
+  it("車は背景の中に収まり、家族の右・少し奥に、白・青の順で横に並ぶ（車どうしの重なりは少しだけ）", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
       const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
       const [white, blue] = placeCars(2, background);
       expect(white.centerX).toBeLessThan(blue.centerX);
       expect(white.centerX + white.width / 2 - (blue.centerX - blue.width / 2)).toBeLessThan(white.width * 0.25);
       expect(white.footY).toBe(blue.footY);
+      // 家族は白い車の端に重なってもよいが、車の真ん中より右には出ない（全部は隠さない）
+      expect(white.centerX).toBeGreaterThan(family.at(-1)!.centerX);
       for (const { centerX, footY, width, height } of [white, blue]) {
-        expect(centerX - width / 2).toBeGreaterThan(family.at(-1)!.centerX);
         expect(centerX + width / 2).toBeLessThan(100);
         expect(footY - height).toBeGreaterThan(0);
         expect(footY).toBeLessThan(family[0].footY);
