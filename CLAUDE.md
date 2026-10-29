@@ -37,6 +37,7 @@ npm run education:sql  # 飯田市オープンデータ「教育機関一覧」�
 npm run evacuation:sql # 飯田市オープンデータ「指定緊急避難場所一覧」から、市全体の避難場所のマイグレーションを作る（009）
 npm run public-facilities:sql # 飯田市オープンデータ「公共施設一覧」から、暮らしに関係する公共施設のマイグレーションを作る（009）
 npm run pixel          # ドット絵を描いて public/pixel/ に PNG を書き出す。ホーム画面のアイコンは public/icons/（024）。確認用の拡大画像は .pixel-preview/（013）
+npm run illust         # assets/illust/ の生成AIの絵から、画面用の WebP を public/illust/ に書き、人物を切り分けて大きさを src/lib/illust/sprites.ts に書く（028）
 npm run scenes:sql     # src/lib/scenes/drafts.ts から場面のひな形のマイグレーションを作る（決まりごとのチェックを通してから。017）
 npm run population:sql # e-Stat「国勢調査 小地域集計」の年齢別人口から、4地区の人口と年齢構成のマイグレーションを作る（011）
 ```
