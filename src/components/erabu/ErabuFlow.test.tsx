@@ -168,6 +168,28 @@ describe("ErabuFlow：質問の進行", () => {
     expect(link.getAttribute("href")).not.toContain("q=");
     expect(screen.getByRole("link", { name: "選ばずに進む" })).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0");
   });
+
+  it("大切なこと：選んだものはプレビューの印として読み上げ、選んだ条件の帯に地区・家族・車を出す（028 見本の 05）", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&c=1&q=priorities");
+    await tap("子育て・学校");
+    await tap("住まい");
+    expect(
+      screen.getByRole("group", {
+        name: "わが家のプレビュー：上郷の「買う・新しめ」の家で暮らす、大人2人・子ども1人の家族（車1台）。印：住まい・子育て・学校",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("選んだ情報を、カルテで先に表示します")).toBeInTheDocument();
+    const chosen = screen.getByRole("list", { name: "選んだ条件" });
+    expect(within(chosen).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["上郷", "大人2人・子ども1人", "車1台"]);
+    await tap("住まい");
+    expect(screen.getByRole("button", { name: "住まい" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("大切なこと：車が未選択なら、選んだ条件の帯に車を出さない", async () => {
+    await open("d=kamisato&a=1&k=0&q=priorities");
+    const chosen = screen.getByRole("list", { name: "選んだ条件" });
+    expect(within(chosen).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["上郷", "大人1人・子ども0人"]);
+  });
 });
 
 describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {

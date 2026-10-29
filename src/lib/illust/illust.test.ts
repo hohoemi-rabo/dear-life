@@ -5,6 +5,7 @@ import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, placeFamily } from "./family";
 import { placeCars } from "./car";
 import { placeHouse } from "./house";
+import { placePriorityMarks } from "./priorities";
 import { SPRITE_SIZES } from "./sprites";
 
 describe("familyMembers（028 まさゆきさん決定）", () => {
@@ -57,8 +58,10 @@ describe("絵の一覧", () => {
     }
   });
 
-  it("背景がまだない地区は、飯田市全体の絵を使う", () => {
-    expect(erabuBaseFor("kamisato")).toBe(ERABU_BASES.kamisato);
+  it("背景がまだない地区は、飯田市全体の絵を使う。05 は 05 の背景があればそれを使う", () => {
+    expect(erabuBaseFor("kamisato")).toBe(ERABU_BASES.kamisato?.base);
+    expect(erabuBaseFor("kamisato", "priorities")).toBe("erabu-kamisato-priorities");
+    expect(erabuBaseFor("kanae", "priorities")).toBe("erabu-iida-overview");
     expect(erabuBaseFor("kanae")).toBe("erabu-iida-overview");
     expect(erabuBaseFor(null)).toBe("erabu-iida-overview");
   });
@@ -112,5 +115,50 @@ describe("placeCars（028 見本の 04）", () => {
         expect(footY).toBeLessThan(family[0].footY);
       }
     }
+  });
+});
+
+describe("05 の背景（2026-10-29 まさゆきさん）", () => {
+  const background = "erabu-kamisato-priorities";
+
+  it("見本どおり、家と車は家族の左に収まり、家族より奥に置く", () => {
+    const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
+    for (const housing of ["new", "old", "rent"] as const) {
+      const { centerX, footY, height } = placeHouse(housing, background);
+      expect(centerX).toBeLessThan(family[0].centerX);
+      expect(footY - height).toBeGreaterThan(0);
+      expect(footY).toBeLessThan(family[0].footY);
+    }
+    for (const car of [1, 2] as const) {
+      for (const { centerX, width, footY } of placeCars(car, background)) {
+        expect(centerX - width / 2).toBeGreaterThan(0);
+        expect(centerX).toBeLessThan(family[0].centerX);
+        expect(footY).toBeLessThan(family[0].footY);
+      }
+    }
+  });
+});
+
+describe("placePriorityMarks（028 見本の 05）", () => {
+  it("選んだものだけを、カルテの並びで、背景の中に置く", () => {
+    for (const background of ["erabu-kamisato-priorities", "erabu-kamisato-base", "erabu-iida-overview"] as const) {
+      const marks = placePriorityMarks(["population", "housing", "childcare", "transport", "disaster"], "old", background);
+      expect(marks.map(({ priority }) => priority)).toEqual(["housing", "childcare", "transport", "disaster", "population"]);
+      for (const { x, y } of marks) {
+        expect(x).toBeGreaterThan(0);
+        expect(x).toBeLessThan(100);
+        expect(y).toBeGreaterThan(0);
+        expect(y).toBeLessThan(100);
+      }
+    }
+    expect(placePriorityMarks([], "new", "erabu-kamisato-priorities")).toEqual([]);
+  });
+
+  it("住まいの印は、プレビューに建てた家の上に付く", () => {
+    const house = placeHouse("rent", "erabu-kamisato-priorities");
+    const [mark] = placePriorityMarks(["housing"], "rent", "erabu-kamisato-priorities");
+    expect(mark.x).toBe(house.centerX);
+    expect(mark.y).toBeGreaterThan(house.footY - house.height);
+    expect(mark.y).toBeLessThan(house.footY);
   });
 });

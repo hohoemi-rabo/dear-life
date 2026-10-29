@@ -55,8 +55,8 @@ export const QUESTIONS: readonly Question[] = [
   {
     id: "priorities",
     stepLabel: "大切なこと",
-    title: "大切にしたいことは？",
-    lead: "いくつでも選べます。カルテで先に表示します。",
+    title: "どんな暮らしを、大切にしたい？",
+    lead: "気になることを、いくつでも。",
     optional: true,
     nextLabel: "わが家の一年を見にいく",
     skipLabel: "選ばずに進む",

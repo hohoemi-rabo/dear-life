@@ -8,6 +8,8 @@ import { HOUSE_SIZES } from "./sprites.ts";
 const LOTS: Record<ErabuBaseId, { centerX: number; footY: number; width: number }> = {
   // 手前の広場の奥。家族（足もと 94%）より上に土台を置き、家族が家の前に立つように見せる
   "erabu-kamisato-base": { centerX: 60, footY: 82, width: 68 },
+  // 05 の背景（町を見わたす）。町の学校・駅を隠さないよう、見本どおり左の端に寄せて小さめに建てる
+  "erabu-kamisato-priorities": { centerX: 12, footY: 74, width: 40 },
   // 上郷以外の地区の仮の背景。街並みを隠しすぎないよう少し小さめに
   "erabu-iida-overview": { centerX: 58, footY: 84, width: 52 },
 };

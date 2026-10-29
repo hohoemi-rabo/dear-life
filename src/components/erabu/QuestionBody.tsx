@@ -9,21 +9,33 @@ import { PixelImage } from "@/components/pixel/PixelImage";
 import { PixelStage } from "@/components/pixel/PixelStage";
 import {
   CAR_LABELS,
+  DISTRICT_NAMES,
   DISTRICTS,
+  familyLabel,
   HOUSING_LABELS,
   KARTE_CARD_LABELS,
   PRIORITIES,
   type CarCount,
   type Housing,
+  type Priority,
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { DISTRICT_PICTURES, HOUSE_WIDTHS, houseSrc, PROP_WIDTHS, propSrc, propSrcSet } from "@/lib/illust/assets";
+import {
+  DISTRICT_PICTURES,
+  HOUSE_WIDTHS,
+  houseSrc,
+  PRIORITY_ICON_WIDTHS,
+  priorityIconSrc,
+  priorityIconSrcSet,
+  PROP_WIDTHS,
+  propSrc,
+  propSrcSet,
+} from "@/lib/illust/assets";
 import { familyMembers } from "@/lib/illust/family";
 import { landmarkAssetId } from "@/lib/pixel/assets";
 import { MAP_PATH } from "@/lib/site";
-import { ChoiceCard } from "./ChoiceCard";
 
 type Props = {
   question: QuestionId;
@@ -302,27 +314,128 @@ function BusStopMapLink({ conditions }: { conditions: Conditions }) {
   );
 }
 
+// 大切にしたいことの選択肢（028 見本）：2列の横長のカード（左に絵、右に名前）。人口は2列ぶん。
+// 選んだものは緑の枠と右上に ✓、選んでいないものは右上に空の丸。いくつでも選べて、もう一度押すと外れる。
+// 下に「カルテで先に表示します」の帯と、ここまでに選んだ条件の帯（見本どおり地区・家族・車。家は見本の帯にないので出さない）
 function PriorityChoices({ conditions, onChange }: ChoiceProps) {
   return (
-    <ul className="grid grid-cols-2 gap-2" aria-label="大切にしたいこと">
-      {PRIORITIES.map((priority) => {
-        const selected = conditions.priorities.includes(priority);
-        return (
-          <li key={priority}>
-            <ChoiceCard
-              selected={selected}
-              onSelect={() =>
-                onChange({
-                  priorities: selected
-                    ? conditions.priorities.filter((picked) => picked !== priority)
-                    : [...conditions.priorities, priority],
-                })
-              }
-              label={KARTE_CARD_LABELS[priority]}
-            />
-          </li>
-        );
-      })}
+    <div className="flex flex-col gap-3">
+      <ul className="grid grid-cols-2 gap-2" aria-label="大切にしたいこと">
+        {PRIORITIES.map((priority, index) => {
+          const selected = conditions.priorities.includes(priority);
+          // 数が奇数なので、最後の1つ（人口）は2列ぶんの幅にする
+          const wide = index === PRIORITIES.length - 1 && PRIORITIES.length % 2 === 1;
+          return (
+            <li key={priority} className={wide ? "col-span-2" : ""}>
+              <PriorityCard
+                priority={priority}
+                selected={selected}
+                onSelect={() =>
+                  onChange({
+                    priorities: selected
+                      ? conditions.priorities.filter((picked) => picked !== priority)
+                      : [...conditions.priorities, priority],
+                  })
+                }
+              />
+            </li>
+          );
+        })}
+      </ul>
+      <p className="rounded-button bg-kinari-deep px-4 py-2 text-center text-sm">選んだ情報を、カルテで先に表示します</p>
+      <ChosenConditions conditions={conditions} />
+    </div>
+  );
+}
+
+function PriorityCard({ priority, selected, onSelect }: { priority: Priority; selected: boolean; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={[
+        "relative flex min-h-[4.5rem] w-full items-center gap-1.5 rounded-card border-2 bg-surface py-2 pl-2 pr-8 text-left transition duration-150 active:scale-[0.98] min-[400px]:gap-3",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
+      ].join(" ")}
+    >
+      {selected ? (
+        <CheckMark className="right-2 top-2" />
+      ) : (
+        <span aria-hidden="true" className="absolute right-2 top-2 size-6 rounded-full border-2 border-line bg-surface" />
+      )}
+      <span className="flex h-12 w-9 shrink-0 items-center justify-center min-[375px]:w-10 min-[400px]:w-16">
+        {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由） */}
+        <img
+          src={priorityIconSrc(priority, PRIORITY_ICON_WIDTHS[0])}
+          srcSet={priorityIconSrcSet(priority)}
+          sizes="64px"
+          alt=""
+          draggable={false}
+          decoding="async"
+          className="max-h-full w-full select-none object-contain"
+        />
+      </span>
+      <span className="whitespace-nowrap text-xs font-bold min-[375px]:text-[0.8125rem] min-[400px]:text-base">{KARTE_CARD_LABELS[priority]}</span>
+    </button>
+  );
+}
+
+// ここまでに選んだ条件の帯（028 見本の 05）：山の印＋地区 ｜ 人の印＋家族 ｜ 車の印＋台数。車が未選択なら車は出さない。
+// 印は見本どおり平らな緑の印（実データではなく飾りなので読み上げない）
+function ChosenConditions({ conditions }: { conditions: Conditions }) {
+  if (conditions.district === null) return null;
+  const items: { icon: ReactNode; label: string }[] = [
+    { icon: <MountainGlyph />, label: DISTRICT_NAMES[conditions.district] },
+    { icon: <PeopleGlyph />, label: familyLabel(conditions.adults, conditions.children) },
+  ];
+  if (conditions.car !== null) items.push({ icon: <CarGlyph />, label: `車${CAR_LABELS[conditions.car]}` });
+  return (
+    <ul
+      aria-label="選んだ条件"
+      className="flex flex-wrap items-center justify-center gap-y-1 rounded-card border border-line bg-surface px-1 py-2.5 text-[0.8125rem] font-bold min-[400px]:px-3 min-[400px]:text-sm"
+    >
+      {items.map(({ icon, label }, index) => (
+        <li key={label} className={`flex items-center gap-1 whitespace-nowrap px-2 min-[400px]:gap-1.5 min-[400px]:px-3 ${index > 0 ? "border-l border-line" : ""}`}>
+          {icon}
+          {label}
+        </li>
+      ))}
     </ul>
+  );
+}
+
+const GLYPH_CLASS = "h-3.5 w-4 shrink-0 text-primary min-[400px]:h-4 min-[400px]:w-5";
+
+function MountainGlyph() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 18" className={GLYPH_CLASS}>
+      <path d="M1 17 8.5 5l3.6 5.6L15.5 6 23 17z" fill="currentColor" />
+      <path d="M8.5 5 6.2 8.7l1.3-.6 1 .9 1-.9 1.2.5z" fill="white" />
+    </svg>
+  );
+}
+
+function PeopleGlyph() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 18" className={GLYPH_CLASS}>
+      <circle cx="7.5" cy="3" r="2.6" fill="currentColor" />
+      <path d="M3.5 7.2c0-.9.7-1.6 1.6-1.6h4.8c.9 0 1.6.7 1.6 1.6V12H10l-.6 6H5.6L5 12H3.5z" fill="currentColor" />
+      <circle cx="16.5" cy="5.2" r="2.2" fill="currentColor" />
+      <path d="M13.2 8.9c0-.8.6-1.4 1.4-1.4h3.8c.8 0 1.4.6 1.4 1.4V13h-1.2l-.5 5h-3.2l-.5-5h-1.2z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function CarGlyph() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 18" className={GLYPH_CLASS}>
+      <path
+        d="M5.2 4.6C5.6 3.4 6.7 2.6 8 2.6h8c1.3 0 2.4.8 2.8 2l1.4 4.1c1.3.4 2.3 1.6 2.3 3V15h-2.2a2.6 2.6 0 0 1-5.1 0H8.8a2.6 2.6 0 0 1-5.1 0H1.5v-3.3c0-1.4 1-2.6 2.3-3zM7.6 4.8 6.6 8.4h10.8l-1-3.6z"
+        fill="currentColor"
+        fillRule="evenodd"
+      />
+    </svg>
   );
 }

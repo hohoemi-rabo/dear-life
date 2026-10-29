@@ -8,9 +8,10 @@ import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { HouseLayer } from "@/components/illust/HouseLayer";
 import { PreviewFrame } from "@/components/illust/PreviewFrame";
+import { PriorityMarkLayer } from "@/components/illust/PriorityMarkLayer";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { CAR_LABELS, DISTRICT_NAMES, familyLabel, HOUSING_LABELS } from "@/lib/conditions/labels";
+import { CAR_LABELS, DISTRICT_NAMES, familyLabel, HOUSING_LABELS, KARTE_CARD_LABELS, PRIORITIES } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref, writeConditions } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
@@ -57,7 +58,7 @@ export function ErabuFlow() {
 
       <section aria-labelledby="erabu-question" className="flex flex-col gap-4">
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 id="erabu-question" className="text-2xl font-extrabold">
+          <h1 id="erabu-question" className="text-[1.375rem] font-extrabold max-[374px]:text-xl min-[400px]:text-2xl">
             {question.title}
           </h1>
           <p className="text-sm text-ink-muted">{question.lead}</p>
@@ -109,6 +110,7 @@ export function ErabuFlow() {
 
 // わが家のプレビュー（028 見本）。地区の質問では飯田市全体の絵に4地区の札、ほかの質問では地区の風景に家族を重ねる。
 // 家の質問からは、家族の後ろに選んだ家を建てる（04・05 の見本でも家は残る）。車の質問からは、家族の右に車を置く。
+// 大切なことの質問（05）は町を見わたす別の背景にし、家族は後ろ姿で、選んだ分野の場所に印を付ける（見本どおり）。
 // 質問を移るたびに家族を描き直し、ぽんと出し直す（選ぶたびにできあがっていく感じを出す）
 function ErabuPreview({
   question,
@@ -126,20 +128,24 @@ function ErabuPreview({
       </PreviewFrame>
     );
   }
-  const background = erabuBaseFor(conditions.district);
+  const atPriorities = question === "priorities";
+  const background = erabuBaseFor(conditions.district, atPriorities ? "priorities" : "base");
   const place = conditions.district ? DISTRICT_NAMES[conditions.district] : "飯田";
   const showHouse = isAtOrAfter(question, "housing");
   const showCar = isAtOrAfter(question, "car");
   const family = `${familyLabel(conditions.adults, conditions.children)}の家族`;
   const carNote = showCar && conditions.car !== null ? `（車${CAR_LABELS[conditions.car]}）` : "";
+  const picked = PRIORITIES.filter((priority) => conditions.priorities.includes(priority)).map((priority) => KARTE_CARD_LABELS[priority]);
+  const markNote = atPriorities && picked.length > 0 ? `。印：${picked.join("・")}` : "";
   const label = showHouse
-    ? `わが家のプレビュー：${place}の「${HOUSING_LABELS[conditions.housing]}」の家で暮らす、${family}${carNote}`
+    ? `わが家のプレビュー：${place}の「${HOUSING_LABELS[conditions.housing]}」の家で暮らす、${family}${carNote}${markNote}`
     : `わが家のプレビュー：${place}で暮らす、${family}`;
   return (
     <PreviewFrame background={background} label={label}>
       {showHouse && <HouseLayer housing={conditions.housing} background={background} />}
       {showCar && <CarLayer car={conditions.car} background={background} />}
-      <FamilyLayer key={question} members={familyMembers(conditions)} background={background} />
+      <FamilyLayer key={question} members={familyMembers(conditions)} background={background} facing={atPriorities ? "back" : "front"} />
+      {atPriorities && <PriorityMarkLayer priorities={conditions.priorities} housing={conditions.housing} background={background} />}
     </PreviewFrame>
   );
 }

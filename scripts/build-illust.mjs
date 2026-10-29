@@ -1,8 +1,8 @@
 // 生成AIで作った絵（assets/illust/）から、画面用の WebP を public/illust/ に書き出す（チケット 028）。
 // 使い方：npm run illust（元の画像を差しかえたら流し直す）
-//   - 背景・選択肢の絵は、一覧（src/lib/illust/assets.ts）の横幅ごとに縮める
+//   - 背景・選択肢の絵は、一覧（src/lib/illust/assets.ts）の横幅ごとに縮める（crop があるものは先に切り出す）
 //   - キャラクターのシートは、人と人のあいだの透明な列で1人ずつに切り分け、全員同じ倍率で縮める
-//   - 家・車などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
+//   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
 //   - 切り出した人物・家・小物の大きさを src/lib/illust/sprites.ts に書く（画面で並べる位置の計算に使う）
 //   - 一覧にない古い WebP は消す
@@ -14,6 +14,9 @@ import {
   HOUSE_WIDTHS,
   ILLUST_DIR,
   ILLUST_PICTURES,
+  PRIORITY_ICON_INDEX,
+  PRIORITY_ICON_SOURCE,
+  PRIORITY_ICON_WIDTHS,
   PROP_SOURCES,
   PROP_WIDTHS,
   SPRITE_SCALE,
@@ -41,12 +44,17 @@ const written = new Set();
 for (const [id, picture] of Object.entries(ILLUST_PICTURES)) {
   const source = sharp(join(sourceDir, picture.source));
   const { width, height } = await source.metadata();
-  if (width !== picture.width || height !== picture.height) {
-    throw new Error(`${picture.source} の大きさが一覧（${picture.width}×${picture.height}）と違います: ${width}×${height}`);
+  const expectedWidth = picture.sourceWidth ?? picture.width;
+  const expectedHeight = picture.sourceHeight ?? picture.height;
+  if (width !== expectedWidth || height !== expectedHeight) {
+    throw new Error(`${picture.source} の大きさが一覧（${expectedWidth}×${expectedHeight}）と違います: ${width}×${height}`);
   }
+  const shown = picture.crop
+    ? source.clone().extract({ left: picture.crop.left, top: picture.crop.top, width: picture.width, height: picture.height })
+    : source;
   for (const outWidth of picture.widths) {
     const file = `${id}-${outWidth}.webp`;
-    const info = await source.clone().resize({ width: outWidth }).webp({ quality: WEBP_QUALITY }).toFile(join(outDir, file));
+    const info = await shown.clone().resize({ width: outWidth }).webp({ quality: WEBP_QUALITY }).toFile(join(outDir, file));
     written.add(file);
     console.log(`書き出し：public/${ILLUST_DIR}/${file}（${info.width}×${info.height}、${Math.round(info.size / 1024)}KB）`);
   }
@@ -164,6 +172,14 @@ for (const [prop, { source, index }] of Object.entries(PROP_SOURCES)) {
     if (!columns) throw new Error(`${source} に左から${index + 1}番目の絵がありません（${figures.length}個）`);
   }
   propSizes[prop] = await writeOpaqueCrop(source, columns, prop, PROP_WIDTHS);
+}
+
+// 大切にしたいことの絵：1枚に並んだ5つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）
+const priorityFigures = await figuresOf(PRIORITY_ICON_SOURCE);
+for (const [priority, index] of Object.entries(PRIORITY_ICON_INDEX)) {
+  const columns = priorityFigures[index];
+  if (!columns) throw new Error(`${PRIORITY_ICON_SOURCE} に左から${index + 1}番目の絵がありません（${priorityFigures.length}個）`);
+  await writeOpaqueCrop(PRIORITY_ICON_SOURCE, columns, `priority-${priority}`, PRIORITY_ICON_WIDTHS);
 }
 
 const spriteLines = Object.entries(sizes).map(([id, { width, height }]) => `  "${id}": { width: ${width}, height: ${height} },`);

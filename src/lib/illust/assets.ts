@@ -1,12 +1,13 @@
 // 生成AIで作った絵（028）の一覧。元の画像は assets/illust/（まさゆきさんが用意）、画面用の WebP は npm run illust が
 // public/illust/ に書き出す。ドット絵（src/lib/pixel/、コードで描く）とは別のもの。
 // 本当のドットの粒がそろった絵ではないので、整数倍の表示（pixelated）にはせず、ふつうに縮めて出す
-import type { Housing } from "../conditions/labels.ts";
+import type { Housing, Priority } from "../conditions/labels.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 
 export const ILLUST_DIR = "illust";
 
-// 背景・選択肢の絵。widths は書き出す横幅（端末の幅で選ばせる）
+// 背景・選択肢の絵。widths は書き出す横幅（端末の幅で選ばせる）。width・height は画面に出す絵の大きさ（元の画像の px）。
+// crop があるものは、元の画像（sourceWidth×sourceHeight）からその範囲を切り出して書き出す
 export const ILLUST_PICTURES = {
   "erabu-iida-overview": {
     source: "erabu-iida-overview.png",
@@ -22,6 +23,18 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152],
     alt: "上郷の高台の広場から見た、家並みと南アルプスの風景",
   },
+  // えらぶ 05 だけの背景（2026-10-29 まさゆきさん）。家族が後ろから町を見わたし、学校・駅・避難場所に印を付ける。
+  // 元の絵は 16:9 なので、プレビューの枠（3:2）に合わせて切り出す。右の広場の避難場所の標識が入るよう、左を多めに落とす
+  "erabu-kamisato-priorities": {
+    source: "erabu-kamisato-priorities.png",
+    sourceWidth: 1672,
+    sourceHeight: 941,
+    crop: { left: 220, top: 0 },
+    width: 1412,
+    height: 941,
+    widths: [768, 1152],
+    alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
+  },
   "district-kamisato": {
     source: "district-kamisato.png",
     width: 1672,
@@ -34,10 +47,10 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
-// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ
+// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は後ろ姿（05 で町を見わたす。見本どおり）
 export const PEOPLE = ["father", "mother", "boy", "girl"] as const;
 export type Person = (typeof PEOPLE)[number];
-export const POSES = ["stand", "joy"] as const;
+export const POSES = ["stand", "joy", "back"] as const;
 export type Pose = (typeof POSES)[number];
 
 export type SpriteId = `${Person}-${Pose}`;
@@ -53,6 +66,10 @@ export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; al
   "boy-joy": { sheet: "characters-sheet-2.png", index: 1, alt: "跳ねる、赤い服の男の子" },
   "girl-stand": { sheet: "characters-sheet-1.png", index: 5, alt: "手を振る、おさげの女の子" },
   "girl-joy": { sheet: "characters-sheet-2.png", index: 2, alt: "手を振って歩く、おさげの女の子" },
+  "father-back": { sheet: "characters-sheet-4.png", index: 0, alt: "後ろ姿の、緑の上着のお父さん" },
+  "mother-back": { sheet: "characters-sheet-4.png", index: 1, alt: "後ろ姿の、青いスカートのお母さん" },
+  "boy-back": { sheet: "characters-sheet-4.png", index: 2, alt: "後ろ姿の、赤い服の男の子" },
+  "girl-back": { sheet: "characters-sheet-4.png", index: 5, alt: "後ろ姿の、おさげの女の子" },
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
@@ -100,6 +117,28 @@ export function propSrcSet(prop: PropId): string {
   return PROP_WIDTHS.map((width) => `${propSrc(prop, width)} ${width}w`).join(", ");
 }
 
+// 大切にしたいことの絵（05。2026-10-29 受け取り。4地区で使い回す）。選択肢のカードとプレビューの印で使う。
+// priority-icons.png に左から 家・校舎・バス・非常口の印・3人 が並んでいるので、小物と同じく透明な列で切り分ける
+export const PRIORITY_ICON_SOURCE = "priority-icons.png";
+export const PRIORITY_ICON_INDEX: Record<Priority, number> = {
+  housing: 0,
+  childcare: 1,
+  transport: 2,
+  disaster: 3,
+  population: 4,
+};
+
+// 書き出す横幅。選択肢のカード（約56px）とプレビューの印（約40px）で使い、端末に選ばせる
+export const PRIORITY_ICON_WIDTHS = [128, 256] as const;
+
+export function priorityIconSrc(priority: Priority, width: number): string {
+  return `/${ILLUST_DIR}/priority-${priority}-${width}.webp`;
+}
+
+export function priorityIconSrcSet(priority: Priority): string {
+  return PRIORITY_ICON_WIDTHS.map((width) => `${priorityIconSrc(priority, width)} ${width}w`).join(", ");
+}
+
 export function illustPictureSrc(id: IllustPictureId, width: number): string {
   return `/${ILLUST_DIR}/${id}-${width}.webp`;
 }
@@ -113,13 +152,16 @@ export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
   kamisato: "district-kamisato",
 };
 
-// えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）
-export type ErabuBaseId = "erabu-kamisato-base" | "erabu-iida-overview";
+// えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）。
+// 05 大切なことだけは、町を見わたす別の背景にする（2026-10-29 まさゆきさん）。05 の背景がない地区は 02〜04 と同じ背景
+export type ErabuBaseId = "erabu-kamisato-base" | "erabu-kamisato-priorities" | "erabu-iida-overview";
+export type ErabuScene = "base" | "priorities";
 
-export const ERABU_BASES: Partial<Record<DistrictId, ErabuBaseId>> = {
-  kamisato: "erabu-kamisato-base",
+export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, ErabuBaseId>>>> = {
+  kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
 };
 
-export function erabuBaseFor(district: DistrictId | null): ErabuBaseId {
-  return (district && ERABU_BASES[district]) ?? "erabu-iida-overview";
+export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {
+  const bases = district ? ERABU_BASES[district] : undefined;
+  return bases?.[scene] ?? bases?.base ?? "erabu-iida-overview";
 }
