@@ -26,8 +26,8 @@ export function DistrictMapLayer({ selected, onSelect }: { selected: DistrictId 
                 className={[
                   "rounded-md px-2 py-1 text-xs font-bold leading-tight shadow-card transition duration-150 group-active:scale-95 sm:text-sm",
                   vertical ? "[writing-mode:vertical-rl]" : "whitespace-nowrap",
-                  // 選んだ地区は明るい薄緑に白い枠、選んでいない地区は暗い濃い緑（2026-10-29 まさゆきさん）
-                  isSelected ? "bg-map-label-selected text-primary-hover ring-2 ring-white" : "bg-map-label-idle/90 text-white group-hover:bg-map-label-idle",
+                  // 選んだ地区は後ろの絵が透ける明るい薄緑に白い枠、選んでいない地区は暗い濃い緑（2026-10-29 まさゆきさん）
+                  isSelected ? "bg-map-label-selected/75 text-primary-hover ring-2 ring-white" : "bg-map-label-idle/90 text-white group-hover:bg-map-label-idle",
                 ].join(" ")}
               >
                 {name}
@@ -40,14 +40,18 @@ export function DistrictMapLayer({ selected, onSelect }: { selected: DistrictId 
   );
 }
 
-// 札の上に立てるピン。選び直すたびに上から落ちてくる
+// 札の上に立てるピン。選び直すたびに上から落ちてくる。色は選んだ札と同じ、透ける薄緑（2026-10-29 まさゆきさん）
 function MapPin() {
   // 横の位置合わせ（translate）と落ちる動き（transform）がぶつからないよう、包む要素で位置を合わせる
   return (
     <span aria-hidden="true" className="absolute bottom-[calc(100%-6px)] left-1/2 -translate-x-1/2">
-      <svg viewBox="0 0 24 32" className="block h-9 w-7 text-primary drop-shadow motion-safe:animate-pin-drop">
-        <path d="M12 1C6 1 1.5 5.5 1.5 11.3 1.5 19 12 31 12 31s10.5-12 10.5-19.7C22.5 5.5 18 1 12 1z" fill="currentColor" stroke="white" strokeWidth="2" />
-        <circle cx="12" cy="11.5" r="4.2" fill="white" />
+      <svg viewBox="0 0 24 32" className="block h-9 w-7 drop-shadow motion-safe:animate-pin-drop">
+        <path
+          d="M12 1C6 1 1.5 5.5 1.5 11.3 1.5 19 12 31 12 31s10.5-12 10.5-19.7C22.5 5.5 18 1 12 1z"
+          className="fill-map-label-selected/75 stroke-white"
+          strokeWidth="2"
+        />
+        <circle cx="12" cy="11.5" r="4.2" className="fill-primary-hover" />
       </svg>
     </span>
   );
