@@ -22,8 +22,8 @@ export function CarChoicePicture({ car, members }: { car: CarCount; members: rea
       )}
       {car === 2 && (
         <>
-          <Prop prop="car-blue" left={47} width={53} raise={4} />
-          <Prop prop="car-white" left={0} width={55} />
+          <Prop prop="car-white" left={0} width={50} />
+          <Prop prop="car-blue" left={50} width={50} />
         </>
       )}
     </span>

@@ -97,11 +97,12 @@ describe("placeCars（028 見本の 04）", () => {
     expect(placeCars(2, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-white", "car-blue"]);
   });
 
-  it("車は背景の中に収まり、家族の右・少し奥に、重ならずに横に並ぶ", () => {
+  it("車は背景の中に収まり、家族の右・少し奥に、白・青の順で横に並ぶ（重なりは少しだけ）", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
       const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
       const [white, blue] = placeCars(2, background);
-      expect(white.centerX + white.width / 2).toBeLessThanOrEqual(blue.centerX - blue.width / 2);
+      expect(white.centerX).toBeLessThan(blue.centerX);
+      expect(white.centerX + white.width / 2 - (blue.centerX - blue.width / 2)).toBeLessThan(white.width * 0.25);
       expect(white.footY).toBe(blue.footY);
       for (const { centerX, footY, width, height } of [white, blue]) {
         expect(centerX - width / 2).toBeGreaterThan(family.at(-1)!.centerX);
