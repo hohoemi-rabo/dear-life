@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, type ComponentProps, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PixelImage } from "@/components/pixel/PixelImage";
 import { PixelStage } from "@/components/pixel/PixelStage";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -23,15 +22,7 @@ export function ErabuReplyCard({ question, conditions }: { question: QuestionId;
   const reply = erabuReply(question, conditions, useScreenData());
   if (!reply) return null;
   if (reply.kind === "children") return <ChildrenReply reply={reply} />;
-  if (reply.kind === "house" || reply.kind === "rent") return <MarketCheck reply={reply} />;
-  return (
-    <section
-      aria-label="選んだ条件のデータ"
-      className="flex flex-col gap-3 rounded-card border-2 border-warm bg-warm-soft p-4 shadow-card"
-    >
-      <ReplyBody reply={reply} />
-    </section>
-  );
+  return <MarketCheck reply={reply} />;
 }
 
 type MarketReply = Extract<ErabuReply, { kind: "house" | "rent" }>;
@@ -80,7 +71,7 @@ function MarketSheetBody({ reply }: { reply: MarketReply }) {
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold text-ink-muted">取引の真ん中の値</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <BigNumber price>{formatManYen(state.value.median)}</BigNumber>
+            <PriceFigure>{formatManYen(state.value.median)}</PriceFigure>
             <CountBadge count={state.value.sampleCount} alwaysFew={reply.alwaysFew} />
           </div>
         </div>
@@ -166,64 +157,7 @@ function CompactSources({ states }: { states: readonly DataState<unknown>[] }) {
   );
 }
 
-function ReplyBody({ reply }: { reply: ErabuReply }) {
-  switch (reply.kind) {
-    case "children":
-    case "house":
-    case "rent":
-      // ChildrenReply・MarketCheck で出す
-      return null;
-    case "busStops":
-      return (
-        <>
-          <ReplyTitle icon="icon-transport">{reply.districtName}のバス停</ReplyTitle>
-          <CountFigure label="バス停" unit="か所" state={reply.busStops} />
-          <SourceNotes states={[reply.busStops]} />
-        </>
-      );
-  }
-}
-
-function ReplyTitle({ icon, children }: { icon: ComponentProps<typeof PixelIcon>["icon"]; children: ReactNode }) {
-  return (
-    <h2 className="flex items-center gap-2 text-base font-bold text-primary">
-      <PixelIcon icon={icon} />
-      {children}
-    </h2>
-  );
-}
-
-// 値段は値段用のフォント、件数はふつうのフォント（027）
-function BigNumber({ children, price = false }: { children: ReactNode; price?: boolean }) {
-  return <p className={`text-4xl tracking-tight ${price ? "price-figure" : "font-bold tabular-nums"}`}>{children}</p>;
-}
-
-function CountFigure({ label, unit, state }: { label: string; unit: string; state: DataState<number> }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm font-bold text-ink-muted">{label}</p>
-      {state.status === "available" ? (
-        <BigNumber>
-          {state.value}
-          <span className="ml-1 text-lg">{unit}</span>
-        </BigNumber>
-      ) : (
-        <DataStateMessage state={state} />
-      )}
-    </div>
-  );
-}
-
-// 数の出典。数を横に並べても出典は読みやすい幅で出せるよう、数の下にまとめる（同じ出典は1回だけ）
-function SourceNotes({ states }: { states: readonly DataState<unknown>[] }) {
-  const sources = states.flatMap((state) => (state.status === "unavailable" ? [] : [state.source]));
-  const unique = sources.filter((source, index) => sources.findIndex(({ id }) => id === source.id) === index);
-  if (unique.length === 0) return null;
-  return (
-    <div className="flex flex-col gap-2">
-      {unique.map((source) => (
-        <DataSourceNote key={source.id} source={source} />
-      ))}
-    </div>
-  );
+// 値段は値段用のフォント（027）
+function PriceFigure({ children }: { children: ReactNode }) {
+  return <p className="price-figure text-4xl tracking-tight">{children}</p>;
 }

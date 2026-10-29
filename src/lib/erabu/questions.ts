@@ -46,8 +46,8 @@ export const QUESTIONS: readonly Question[] = [
   {
     id: "car",
     stepLabel: "車",
-    title: "車は何台？",
-    lead: "家族で持つ車の台数です。決めていなければ飛ばせます。",
+    title: "車は、何台で暮らす？",
+    lead: "移動のかたちも、わが家に合わせて。",
     optional: true,
     nextLabel: "大切にしたいことへ",
     skipLabel: "まだ決めない",

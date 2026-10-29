@@ -77,6 +77,29 @@ export function houseSrc(housing: Housing, width: number): string {
   return `/${ILLUST_DIR}/house-${housing}-${width}.webp`;
 }
 
+// 車・バス停などの小物（04 車。2026-10-29 受け取り。4地区で使い回す）。家と同じく、少し透けたところを不透明にそろえ、
+// 透明なふちを切り落とす。car.png は1枚に白い車・青い車・横長の駅とバス停が並んでいるので、index（左から何番目か、0始まり）で切り分ける
+export const PROPS = ["car-white", "car-blue", "bus-stop", "station-wide"] as const;
+export type PropId = (typeof PROPS)[number];
+
+export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt: string }> = {
+  "car-white": { source: "car.png", index: 0, alt: "白い軽自動車" },
+  "car-blue": { source: "car.png", index: 1, alt: "青い軽自動車" },
+  "bus-stop": { source: "bus-stop.png", alt: "駅の建物とバス停の標識・待合所" },
+  "station-wide": { source: "car.png", index: 2, alt: "横に並んだ駅の建物とバス停の標識・待合所" },
+};
+
+// 書き出す横幅。プレビュー（車の表示は最大で約150px）と選択肢のカード（約110px）・地図のカード（約90px）で使い、端末に選ばせる
+export const PROP_WIDTHS = [240, 480] as const;
+
+export function propSrc(prop: PropId, width: number): string {
+  return `/${ILLUST_DIR}/${prop}-${width}.webp`;
+}
+
+export function propSrcSet(prop: PropId): string {
+  return PROP_WIDTHS.map((width) => `${propSrc(prop, width)} ${width}w`).join(", ");
+}
+
 export function illustPictureSrc(id: IllustPictureId, width: number): string {
   return `/${ILLUST_DIR}/${id}-${width}.webp`;
 }

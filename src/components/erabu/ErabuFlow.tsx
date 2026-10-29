@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
+import { CarLayer } from "@/components/illust/CarLayer";
 import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { HouseLayer } from "@/components/illust/HouseLayer";
 import { PreviewFrame } from "@/components/illust/PreviewFrame";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { DISTRICT_NAMES, familyLabel, HOUSING_LABELS } from "@/lib/conditions/labels";
+import { CAR_LABELS, DISTRICT_NAMES, familyLabel, HOUSING_LABELS } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref, writeConditions } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
@@ -76,24 +77,28 @@ export function ErabuFlow() {
       {/* もどる・次へは画面の下に固定する。見本どおり、地区の質問は次へのボタンだけを真ん中に置く */}
       <BottomActionBar label="質問の移動" decorated={false} className={previous ? "" : "justify-center"}>
         {previous && (
-          <button type="button" onClick={() => goTo(previous)} className={TEXT_ACTION}>
+          <button type="button" onClick={() => goTo(previous)} className={`${TEXT_ACTION} ${question.optional ? "px-0 text-[0.8125rem] min-[400px]:text-sm sm:px-2 sm:text-base" : "px-2"}`}>
             <span aria-hidden="true">←</span>
             もどる
           </button>
         )}
-        <div className={`flex items-center gap-2 ${previous ? "ml-auto" : ""}`}>
+        <div className={`flex items-center ${question.optional ? "gap-1.5 sm:gap-2" : "gap-2"} ${previous ? "ml-auto" : ""}`}>
           {question.optional && (
             <SkipButton label={question.skipLabel ?? "飛ばす"} current={current} conditions={conditions} next={next} onSkip={goTo} />
           )}
           {next ? (
-            <button type="button" disabled={!canProceed(current, conditions)} onClick={() => goTo(next)} className={PILL_ACTION}>
+            <button type="button" disabled={!canProceed(current, conditions)} onClick={() => goTo(next)} className={pillAction(question.optional)}>
               {question.nextLabel}
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true" className={question.optional ? "max-[374px]:hidden" : ""}>
+                →
+              </span>
             </button>
           ) : (
-            <Link href={conditionsHref(KURASHI_PATH, conditions)} className={PILL_ACTION}>
+            <Link href={conditionsHref(KURASHI_PATH, conditions)} className={pillAction(question.optional)}>
               {question.nextLabel}
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true" className={question.optional ? "max-[374px]:hidden" : ""}>
+                →
+              </span>
             </Link>
           )}
         </div>
@@ -103,7 +108,7 @@ export function ErabuFlow() {
 }
 
 // わが家のプレビュー（028 見本）。地区の質問では飯田市全体の絵に4地区の札、ほかの質問では地区の風景に家族を重ねる。
-// 家の質問からは、家族の後ろに選んだ家を建てる（04・05 の見本でも家は残る）。
+// 家の質問からは、家族の後ろに選んだ家を建てる（04・05 の見本でも家は残る）。車の質問からは、家族の右に車を置く。
 // 質問を移るたびに家族を描き直し、ぽんと出し直す（選ぶたびにできあがっていく感じを出す）
 function ErabuPreview({
   question,
@@ -124,13 +129,16 @@ function ErabuPreview({
   const background = erabuBaseFor(conditions.district);
   const place = conditions.district ? DISTRICT_NAMES[conditions.district] : "飯田";
   const showHouse = isAtOrAfter(question, "housing");
+  const showCar = isAtOrAfter(question, "car");
   const family = `${familyLabel(conditions.adults, conditions.children)}の家族`;
+  const carNote = showCar && conditions.car !== null ? `（車${CAR_LABELS[conditions.car]}）` : "";
   const label = showHouse
-    ? `わが家のプレビュー：${place}の「${HOUSING_LABELS[conditions.housing]}」の家で暮らす、${family}`
+    ? `わが家のプレビュー：${place}の「${HOUSING_LABELS[conditions.housing]}」の家で暮らす、${family}${carNote}`
     : `わが家のプレビュー：${place}で暮らす、${family}`;
   return (
     <PreviewFrame background={background} label={label}>
       {showHouse && <HouseLayer housing={conditions.housing} background={background} />}
+      {showCar && <CarLayer car={conditions.car} background={background} />}
       <FamilyLayer key={question} members={familyMembers(conditions)} background={background} />
     </PreviewFrame>
   );
@@ -151,10 +159,22 @@ function DistrictStage({ name }: { name: string }) {
 
 // 次へ進む大きなボタン（見本の丸い深緑のボタン）
 const PILL_ACTION =
-  "inline-flex min-h-[3.25rem] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary px-6 text-base font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
+  "inline-flex min-h-[3.25rem] items-center justify-center whitespace-nowrap rounded-full bg-primary font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100";
 
-// 枠のない文字だけの操作（戻る・飛ばす）
-const TEXT_ACTION = "inline-flex shrink-0 whitespace-nowrap min-h-tap min-w-tap items-center justify-center gap-1 px-2 font-bold text-primary underline-offset-4 hover:underline";
+// 任意の質問は「もどる・飛ばす・次へ」の3つが並ぶので、スマホ（360〜375px）の幅に収まるよう詰める（見本の 04・05）。
+// 375px より狭い端末では、さらに文字を小さくして「→」を外す（05 の「わが家の一年を見にいく」が 360px に収まるように）
+function pillAction(compact: boolean): string {
+  return `${PILL_ACTION} ${
+    compact ? "gap-1 px-3 text-[0.8125rem] max-[374px]:text-xs min-[400px]:gap-2 min-[400px]:px-4 min-[400px]:text-sm sm:px-6 sm:text-base" : "gap-2 px-6 text-base"
+  }`;
+}
+
+// 任意の質問を飛ばす、枠つきの丸いボタン（見本の「まだ決めない」「選ばずに進む」）
+const OUTLINE_ACTION =
+  "inline-flex min-h-[3.25rem] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-bold min-[400px]:px-3 min-[400px]:text-[0.8125rem] sm:px-4 sm:text-sm text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+
+// 枠のない文字だけの操作（戻る）
+const TEXT_ACTION = "inline-flex shrink-0 whitespace-nowrap min-h-tap min-w-tap items-center justify-center gap-1 font-bold text-primary underline-offset-4 hover:underline";
 
 // 任意の質問を飛ばす。車は未選択、大切にしたいことはなしにして次へ進む（最後の質問なら、くらしを見るへ）
 function SkipButton({
@@ -173,13 +193,13 @@ function SkipButton({
   const update: Partial<Conditions> = current === "car" ? { car: null } : { priorities: [] };
   if (next) {
     return (
-      <button type="button" className={`${TEXT_ACTION} text-sm`} onClick={() => onSkip(next, update)}>
+      <button type="button" className={OUTLINE_ACTION} onClick={() => onSkip(next, update)}>
         {label}
       </button>
     );
   }
   return (
-    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={`${TEXT_ACTION} text-sm`}>
+    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={OUTLINE_ACTION}>
       {label}
     </Link>
   );

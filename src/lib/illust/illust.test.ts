@@ -3,6 +3,7 @@ import { DISTRICTS } from "../conditions/labels";
 import { ERABU_BASES, PEOPLE, POSES, SPRITE_SOURCES, erabuBaseFor, spriteId } from "./assets";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, placeFamily } from "./family";
+import { placeCars } from "./car";
 import { placeHouse } from "./house";
 import { SPRITE_SIZES } from "./sprites";
 
@@ -83,6 +84,27 @@ describe("placeHouse（028 見本の 03）", () => {
         expect(centerX + width / 2).toBeLessThan(100);
         expect(footY - height).toBeGreaterThan(0);
         expect(footY).toBeLessThan(familyFoot);
+      }
+    }
+  });
+});
+
+describe("placeCars（028 見本の 04）", () => {
+  it("0台・未選択は車を置かない。1台は白、2台以上は奥に青・手前に白", () => {
+    expect(placeCars(0, "erabu-kamisato-base")).toEqual([]);
+    expect(placeCars(null, "erabu-kamisato-base")).toEqual([]);
+    expect(placeCars(1, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-white"]);
+    expect(placeCars(2, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-blue", "car-white"]);
+  });
+
+  it("車は背景の中に収まり、家族の右に置く", () => {
+    for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
+      const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
+      for (const { centerX, footY, width, height } of placeCars(2, background)) {
+        expect(centerX - width / 2).toBeGreaterThan(family.at(-1)!.centerX);
+        expect(centerX + width / 2).toBeLessThan(100);
+        expect(footY - height).toBeGreaterThan(0);
+        expect(footY).toBeLessThan(100);
       }
     }
   });

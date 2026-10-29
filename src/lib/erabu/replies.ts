@@ -1,10 +1,11 @@
 // 選ぶたびの返事（F-10・要件 4章の「えらぶ画面での返事」の列）。どの質問で・どの選択のときに・何を返すかをここだけで決める。
 // 点数化・おすすめはしない。値はすべて DataState のまま渡し、「該当なし」と「データ未取得」の出し分けは画面に任せる
-import { hasChildren, hasNoCar, type Conditions } from "../conditions/model.ts";
+import { hasChildren, type Conditions } from "../conditions/model.ts";
 import type { DataState, Facility, MarketStat, ScreenData } from "../data/screen-data.ts";
 import type { QuestionId } from "./questions.ts";
 
-// 住む地区を選んだときの返事（範囲・土地の値段）は出さない。028 の見本にないため（相場は家の質問で出す）
+// 住む地区を選んだときの返事（範囲・土地の値段）は出さない。028 の見本にないため（相場は家の質問で出す）。
+// 車の返事（0台のときのバス停の数）も出さない。028 の見本は「バス停の場所は、地図で確認」のカードだけのため（QuestionBody）
 export type ErabuReply =
   // 子ども1人以上：保育園・幼稚園等と小学校の数
   | {
@@ -16,9 +17,7 @@ export type ErabuReply =
   // 家：買う・新しめ／古め：中古戸建ての真ん中の値と件数。新しめは件数によらず「件数少なめ・参考程度」を付ける
   | { kind: "house"; districtName: string; housing: "new" | "old"; house: DataState<MarketStat>; alwaysFew: boolean }
   // 家：借りる
-  | { kind: "rent" }
-  // 車：0台：バス停の数
-  | { kind: "busStops"; districtName: string; busStops: DataState<number> };
+  | { kind: "rent" };
 
 // 一覧の数を数える。出典は公開済みで当てはまるものが0件なら「該当なし」にする
 function countOf<T>(state: DataState<readonly T[]>, match: (item: T) => boolean = () => true): DataState<number> {
@@ -29,7 +28,7 @@ function countOf<T>(state: DataState<readonly T[]>, match: (item: T) => boolean 
 
 const isElementarySchool = (facility: Facility) => facility.subkind === "小学校";
 
-// 今の質問と選んだ条件に対する返事。返事がない選択（子ども0人・車1台以上・大切にしたいこと など）は null
+// 今の質問と選んだ条件に対する返事。返事がない選択（子ども0人・車・大切にしたいこと など）は null
 export function erabuReply(question: QuestionId, conditions: Conditions, data: ScreenData): ErabuReply | null {
   if (conditions.district === null) return null;
   const district = data.districts[conditions.district];
@@ -52,8 +51,6 @@ export function erabuReply(question: QuestionId, conditions: Conditions, data: S
         ? { kind: "house", districtName, housing: "new", house: district.market.house_built_within_20y, alwaysFew: true }
         : { kind: "house", districtName, housing: "old", house: district.market.house_built_over_20y, alwaysFew: false };
     case "car":
-      if (!hasNoCar(conditions)) return null;
-      return { kind: "busStops", districtName, busStops: countOf(district.busStops) };
     case "priorities":
       return null;
   }

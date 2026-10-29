@@ -235,13 +235,27 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷の「借りる」の家で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
   });
 
-  it("車：0台でバス停の数。もう一度押すと未選択に戻して返事を消す", async () => {
-    await open("d=kamisato&q=car");
-    await tap(/0台/);
-    expect(within(reply()).getByText("バス停").nextSibling).toHaveTextContent("3か所");
-    await tap(/0台/);
-    expect(params().has("c")).toBe(false);
+  it("車：選んだ台数の帯と、プレビューの車。もう一度押すと未選択に戻して帯を消す。返事のカードは出さない（028 見本）", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&q=car");
+    expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
+    await tap(/^1台/);
+    expect(params().get("c")).toBe("1");
+    expect(screen.getByText("家族で1台の暮らしを想像します")).toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "わが家のプレビュー：上郷の「買う・新しめ」の家で暮らす、大人2人・子ども1人の家族（車1台）" }),
+    ).toBeInTheDocument();
+    await tap(/^0台/);
+    expect(screen.getByText("車なしの暮らしを想像します")).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
+    await tap(/^0台/);
+    expect(params().has("c")).toBe(false);
+    expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
+  });
+
+  it("車：台数によらず、地図でバス停を見るカードを条件つきで出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
+    expect(screen.getByText("家族で2台以上の暮らしを想像します")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /バス停の場所は、地図で確認/ })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
   });
 
   it("出典が未公開ならデータ未取得と出し、作った数字で埋めない", async () => {

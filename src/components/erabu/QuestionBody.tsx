@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { CarChoicePicture } from "@/components/illust/CarChoicePicture";
 import { FamilyHint } from "@/components/illust/FamilyHint";
 import { IllustPicture } from "@/components/illust/IllustPicture";
 import { PixelImage } from "@/components/pixel/PixelImage";
@@ -15,9 +17,12 @@ import {
   type Housing,
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
+import { conditionsHref } from "@/lib/conditions/url";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { DISTRICT_PICTURES, HOUSE_WIDTHS, houseSrc } from "@/lib/illust/assets";
-import { landmarkAssetId, type PixelAssetId } from "@/lib/pixel/assets";
+import { DISTRICT_PICTURES, HOUSE_WIDTHS, houseSrc, PROP_WIDTHS, propSrc, propSrcSet } from "@/lib/illust/assets";
+import { familyMembers } from "@/lib/illust/family";
+import { landmarkAssetId } from "@/lib/pixel/assets";
+import { MAP_PATH } from "@/lib/site";
 import { ChoiceCard } from "./ChoiceCard";
 
 type Props = {
@@ -229,28 +234,71 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
   );
 }
 
-const CAR_CHOICES: readonly { id: CarCount; art: PixelAssetId; description: string }[] = [
-  { id: 0, art: "vehicle-bus", description: "バスや電車で" },
-  { id: 1, art: "vehicle-car", description: "家族で1台" },
-  { id: 2, art: "vehicle-car", description: "1人1台など" },
-];
+// 車の台数を選んだときの帯の言葉（028 見本の「家族で1台の暮らしを想像します」。ほかの台数も同じ形にそろえる。2026-10-29 まさゆきさん）
+const CAR_STAGES: Readonly<Record<CarCount, string>> = {
+  0: "車なしの暮らしを想像します",
+  1: "家族で1台の暮らしを想像します",
+  2: "家族で2台以上の暮らしを想像します",
+};
 
-// もう一度押すと未選択に戻す（任意の質問なので）
+// 車の選択肢（028 見本）：絵、下に台数。選んだものは右上に ✓。もう一度押すと未選択に戻す（任意の質問なので）。
+// 下に選んだ台数の帯（未選択なら出さない）と、地図でバス停を見るカード（台数によらず出す）
 function CarChoices({ conditions, onChange }: ChoiceProps) {
+  const members = familyMembers(conditions);
   return (
-    <ul className="grid grid-cols-3 gap-2" aria-label="車の台数">
-      {CAR_CHOICES.map(({ id, art, description }) => (
-        <li key={id}>
-          <ChoiceCard
-            selected={conditions.car === id}
-            onSelect={() => onChange({ car: conditions.car === id ? null : id })}
-            art={<PixelImage asset={art} scale={2} decorative />}
-            label={CAR_LABELS[id]}
-            description={description}
-          />
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-3">
+      <ul className="grid grid-cols-3 gap-2" aria-label="車の台数">
+        {CAR_COUNTS.map((car) => (
+          <li key={car}>
+            <PictureChoiceCard
+              selected={conditions.car === car}
+              onSelect={() => onChange({ car: conditions.car === car ? null : car })}
+              check="right"
+              pictureClassName="aspect-[5/4] px-1 pb-1"
+              picture={<CarChoicePicture car={car} members={members} />}
+              label={CAR_LABELS[car]}
+              labelClassName="order-first pt-1 text-lg"
+            />
+          </li>
+        ))}
+      </ul>
+      {conditions.car !== null && (
+        <p className="rounded-button bg-kinari-deep px-4 py-2 text-center text-sm">{CAR_STAGES[conditions.car]}</p>
+      )}
+      <BusStopMapLink conditions={conditions} />
+    </div>
+  );
+}
+
+const CAR_COUNTS: readonly CarCount[] = [0, 1, 2];
+
+// 地図でバス停の場所を見るカード（028 見本）。便の数や所要時間はここでは出さないので、別に確かめるよう添える
+function BusStopMapLink({ conditions }: { conditions: Conditions }) {
+  return (
+    <Link
+      href={conditionsHref(MAP_PATH, conditions)}
+      className="flex items-center gap-3 rounded-card border border-warm/60 bg-warm-soft px-3 py-2.5 transition duration-150 hover:border-warm active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
+      <span className="flex h-12 w-20 shrink-0 items-end justify-center overflow-hidden rounded-[0.6rem] bg-surface px-1 pb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由） */}
+        <img
+          src={propSrc("station-wide", PROP_WIDTHS[0])}
+          srcSet={propSrcSet("station-wide")}
+          sizes="80px"
+          alt=""
+          draggable={false}
+          decoding="async"
+          className="w-full select-none"
+        />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-sm font-bold sm:text-base">バス停の場所は、地図で確認</span>
+        <span className="text-xs text-ink-muted">運行本数や所要時間は、別途確認が必要です。</span>
+      </span>
+      <span aria-hidden="true" className="text-2xl text-ink-muted">
+        ›
+      </span>
+    </Link>
   );
 }
 

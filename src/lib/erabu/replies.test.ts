@@ -78,12 +78,8 @@ describe("erabuReply（要件 4章「えらぶ画面での返事」）", () => {
     expect(erabuReply("housing", kamisato({ housing: "rent" }), data)).toEqual({ kind: "rent" });
   });
 
-  it("車：0台：バス停の数。1台以上・未選択は返事なし", () => {
-    expect(erabuReply("car", kamisato({ car: 0 }), data)).toEqual({
-      kind: "busStops",
-      districtName: "上郷",
-      busStops: { status: "available", value: 1, source: BUS },
-    });
+  it("車：どの台数でも返事なし（028 見本は地図のカードだけ）", () => {
+    expect(erabuReply("car", kamisato({ car: 0 }), data)).toBeNull();
     expect(erabuReply("car", kamisato({ car: 1 }), data)).toBeNull();
     expect(erabuReply("car", kamisato({ car: 2 }), data)).toBeNull();
     expect(erabuReply("car", kamisato({ car: null }), data)).toBeNull();
