@@ -36,10 +36,10 @@ describe("placeFamily", () => {
     }
   });
 
-  it("家族は真ん中にまとまり、子どもは大人より背が低い", () => {
+  it("家族は少し左にまとまり（右は車の場所）、子どもは大人より背が低い", () => {
     const placements = placeFamily(members, "erabu-kamisato-base");
     const middle = (placements[0].centerX + placements.at(-1)!.centerX) / 2;
-    expect(middle).toBeCloseTo(50, 0);
+    expect(middle).toBeCloseTo(40, 0);
     const height = (index: number) => placements[index].heightPercent("stand");
     expect(height(1)).toBeLessThan(height(0));
     expect(height(2)).toBeLessThan(height(3));
@@ -90,21 +90,24 @@ describe("placeHouse（028 見本の 03）", () => {
 });
 
 describe("placeCars（028 見本の 04）", () => {
-  it("0台・未選択は車を置かない。1台は白、2台以上は奥に青・手前に白", () => {
+  it("0台・未選択は車を置かない。1台は白、2台以上は白と青を横に並べる", () => {
     expect(placeCars(0, "erabu-kamisato-base")).toEqual([]);
     expect(placeCars(null, "erabu-kamisato-base")).toEqual([]);
     expect(placeCars(1, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-white"]);
-    expect(placeCars(2, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-blue", "car-white"]);
+    expect(placeCars(2, "erabu-kamisato-base").map(({ prop }) => prop)).toEqual(["car-white", "car-blue"]);
   });
 
-  it("車は背景の中に収まり、家族の右に置く", () => {
+  it("車は背景の中に収まり、家族の右・少し奥に、重ならずに横に並ぶ", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
       const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
-      for (const { centerX, footY, width, height } of placeCars(2, background)) {
+      const [white, blue] = placeCars(2, background);
+      expect(white.centerX + white.width / 2).toBeLessThanOrEqual(blue.centerX - blue.width / 2);
+      expect(white.footY).toBe(blue.footY);
+      for (const { centerX, footY, width, height } of [white, blue]) {
         expect(centerX - width / 2).toBeGreaterThan(family.at(-1)!.centerX);
         expect(centerX + width / 2).toBeLessThan(100);
         expect(footY - height).toBeGreaterThan(0);
-        expect(footY).toBeLessThan(100);
+        expect(footY).toBeLessThan(family[0].footY);
       }
     }
   });

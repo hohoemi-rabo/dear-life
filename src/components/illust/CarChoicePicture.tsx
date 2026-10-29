@@ -3,7 +3,7 @@ import { PROP_SIZES, SPRITE_SIZES } from "@/lib/illust/sprites";
 import { PROP_WIDTHS, propSrc, propSrcSet, spriteId, spriteSrc, type Person, type PropId } from "@/lib/illust/assets";
 
 // 車の選択肢のカードの絵（028 見本の 04）。用意された小物と人物を組み合わせて作る（2026-10-29 まさゆきさん）：
-// 0台はバス停と家族、1台は白い車と家族、2台以上は白い車と青い車。家族は選んだ人数のまま（立つポーズ）。
+// 0台はバス停と家族、1台は白い車と家族、2台以上は白い車と青い車を横に並べる。家族は選んだ人数のまま（立つポーズ）。
 // 置き場所は絵の枠（正方形〜4:3）に対する％。絵は飾りで、カードの名前で読み上げる
 export function CarChoicePicture({ car, members }: { car: CarCount; members: readonly Person[] }) {
   return (
@@ -22,8 +22,8 @@ export function CarChoicePicture({ car, members }: { car: CarCount; members: rea
       )}
       {car === 2 && (
         <>
-          <Prop prop="car-blue" left={32} width={68} raise={14} />
-          <Prop prop="car-white" left={0} width={74} />
+          <Prop prop="car-blue" left={47} width={53} raise={4} />
+          <Prop prop="car-white" left={0} width={55} />
         </>
       )}
     </span>

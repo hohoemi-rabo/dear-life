@@ -257,7 +257,7 @@ function CarChoices({ conditions, onChange }: ChoiceProps) {
               pictureClassName="aspect-[5/4] px-1 pb-1"
               picture={<CarChoicePicture car={car} members={members} />}
               label={CAR_LABELS[car]}
-              labelClassName="order-first pt-1 text-lg"
+              labelClassName="order-first pr-5 pt-1 text-base min-[400px]:pr-0 min-[400px]:text-lg"
             />
           </li>
         ))}
