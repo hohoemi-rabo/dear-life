@@ -75,8 +75,9 @@ export function ErabuFlow() {
         )}
       </div>
 
-      {/* もどる・次へは画面の下に固定する。見本どおり、地区の質問は次へのボタンだけを真ん中に置く */}
-      <BottomActionBar label="質問の移動" decorated={false} className={previous ? "" : "justify-center"}>
+      {/* もどる・次へはスマホでは画面の下に固定する。見本どおり、地区の質問は次へのボタンだけを真ん中に置く。
+          PC はプレビューが大きく、固定した帯が絵の下（家族の足もと）を隠すので、固定せずに中身の最後に置く（2026-10-31 まさゆきさん） */}
+      <BottomActionBar label="質問の移動" decorated={false} className={`lg:static ${previous ? "" : "justify-center"}`}>
         {previous && (
           <button type="button" onClick={() => goTo(previous)} className={`${TEXT_ACTION} ${question.optional ? "px-0 text-[0.8125rem] min-[400px]:text-sm sm:px-2 sm:text-base" : "px-2"}`}>
             <span aria-hidden="true">←</span>
