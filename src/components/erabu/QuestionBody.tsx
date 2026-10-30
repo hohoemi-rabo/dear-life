@@ -65,7 +65,7 @@ type ChoiceProps = Omit<Props, "question">;
 // 絵があるのはまず上郷だけで、ほかの3地区は用意できるまで今のドット絵（仮）
 function DistrictChoices({ conditions, onChange }: ChoiceProps) {
   return (
-    <ul className="grid grid-cols-2 gap-3" aria-label="住む地区">
+    <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="住む地区">
       {DISTRICTS.map(({ id, name }) => {
         const picture = DISTRICT_PICTURES[id];
         return (
@@ -77,7 +77,7 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
               pictureClassName="aspect-[16/9]"
               picture={
                 picture ? (
-                  <IllustPicture picture={picture} sizes="(min-width: 640px) 280px, 50vw" decorative className="size-full object-cover" />
+                  <IllustPicture picture={picture} sizes="(min-width: 1024px) 290px, (min-width: 640px) 280px, 50vw" decorative className="size-full object-cover" />
                 ) : (
                   <PixelStage className="size-full">
                     <PixelImage asset={landmarkAssetId(id, "spring")} scale={2} decorative />
@@ -229,7 +229,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
               <img
                 src={houseSrc(id, HOUSE_WIDTHS[0])}
                 srcSet={HOUSE_WIDTHS.map((w) => `${houseSrc(id, w)} ${w}w`).join(", ")}
-                sizes="(min-width: 640px) 180px, 30vw"
+                sizes="(min-width: 1024px) 390px, (min-width: 640px) 180px, 30vw"
                 alt=""
                 draggable={false}
                 decoding="async"

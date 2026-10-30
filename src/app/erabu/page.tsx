@@ -18,11 +18,11 @@ export default function ErabuPage() {
 
 function ErabuSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="mx-auto flex max-w-xl flex-col gap-5">
+    <div role="status" aria-busy="true" className="mx-auto flex max-w-xl flex-col gap-5 lg:max-w-[1200px]">
       <span className="sr-only">読み込んでいます</span>
       <Skeleton className="h-11 w-full" />
       <Skeleton className="h-8 w-2/3" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-32" />
         ))}

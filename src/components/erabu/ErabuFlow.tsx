@@ -52,7 +52,7 @@ export function ErabuFlow() {
   };
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-4">
+    <div className="mx-auto flex max-w-xl flex-col gap-4 lg:max-w-[1200px]">
       <ErabuProgress current={current} conditions={conditions} onOpen={(id) => goTo(id)} />
       <ErabuPreview question={current} conditions={conditions} onSelectDistrict={(district) => setConditions({ district })} />
 

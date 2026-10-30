@@ -14,14 +14,14 @@ export const ILLUST_PICTURES = {
     source: "erabu-iida-overview.png",
     width: 1536,
     height: 1024,
-    widths: [768, 1152],
+    widths: [768, 1152, 1536],
     alt: "飯田市を上から見た街並みと山の風景",
   },
   "erabu-kamisato-base": {
     source: "erabu-kamisato-base.png",
     width: 1536,
     height: 1024,
-    widths: [768, 1152],
+    widths: [768, 1152, 1536],
     alt: "上郷の高台の広場から見た、家並みと南アルプスの風景",
   },
   // えらぶ 05 だけの背景（2026-10-29 まさゆきさん）。家族が後ろから町を見わたし、学校・駅・避難場所に印を付ける。
@@ -33,7 +33,7 @@ export const ILLUST_PICTURES = {
     crop: { left: 220, top: 0 },
     width: 1412,
     height: 941,
-    widths: [768, 1152],
+    widths: [768, 1152, 1412],
     alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
   },
   // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
@@ -106,8 +106,8 @@ export const HOUSE_SOURCES: Record<Housing, { source: string; alt: string }> = {
   rent: { source: "house-rent.png", alt: "外階段のある2階建てのアパート" },
 };
 
-// 書き出す横幅。プレビュー（表示は最大で約330px）と選択肢のカード（約110px）で同じ画像を使い、端末に選ばせる
-export const HOUSE_WIDTHS = [320, 640] as const;
+// 書き出す横幅。プレビュー（表示はスマホで約330px、PC の 1200px の枠で約780px）と選択肢のカード（約110〜390px）で同じ画像を使い、端末に選ばせる
+export const HOUSE_WIDTHS = [320, 640, 960] as const;
 
 export function houseSrc(housing: Housing, width: number): string {
   return `/${ILLUST_DIR}/house-${housing}-${width}.webp`;
@@ -125,7 +125,7 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "station-wide": { source: "car.png", index: 2, alt: "横に並んだ駅の建物とバス停の標識・待合所" },
 };
 
-// 書き出す横幅。プレビュー（車の表示は最大で約150px）と選択肢のカード（約110px）・地図のカード（約90px）で使い、端末に選ばせる
+// 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）で使い、端末に選ばせる
 export const PROP_WIDTHS = [240, 480] as const;
 
 export function propSrc(prop: PropId, width: number): string {

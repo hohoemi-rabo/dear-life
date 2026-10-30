@@ -26,7 +26,7 @@ export function HouseLayer({ housing, background }: { housing: Housing; backgrou
         <img
           src={houseSrc(housing, HOUSE_WIDTHS.at(-1)!)}
           srcSet={HOUSE_WIDTHS.map((w) => `${houseSrc(housing, w)} ${w}w`).join(", ")}
-          sizes="(min-width: 640px) 350px, 60vw"
+          sizes="(min-width: 1280px) 730px, (min-width: 1024px) 60vw, (min-width: 640px) 350px, 60vw"
           alt=""
           draggable={false}
           decoding="async"

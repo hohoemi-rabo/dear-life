@@ -7,7 +7,7 @@ import { IllustPicture } from "./IllustPicture";
 export function PreviewFrame({ background, label, children }: { background: IllustPictureId; label: string; children?: ReactNode }) {
   return (
     <figure role="group" aria-label={label} className="relative isolate aspect-[3/2] overflow-hidden rounded-card bg-pixel-sky shadow-card">
-      <IllustPicture picture={background} sizes="(min-width: 640px) 576px, 100vw" decorative priority className="absolute inset-0 size-full object-cover" />
+      <IllustPicture picture={background} sizes="(min-width: 1280px) 1200px, (min-width: 1024px) 100vw, (min-width: 640px) 576px, 100vw" decorative priority className="absolute inset-0 size-full object-cover" />
       <span
         aria-hidden="true"
         className="absolute left-2 top-2 z-20 rounded-full border border-line bg-surface/90 px-3 py-1 text-xs font-bold text-ink"

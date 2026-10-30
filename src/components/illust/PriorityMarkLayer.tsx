@@ -57,7 +57,7 @@ function Mark({ mark, leaving = false }: { mark: PriorityMark; leaving?: boolean
         <img
           src={priorityIconSrc(mark.priority, PRIORITY_ICON_WIDTHS[0])}
           srcSet={priorityIconSrcSet(mark.priority)}
-          sizes="(min-width: 640px) 75px, 13vw"
+          sizes="(min-width: 1280px) 160px, (min-width: 1024px) 13vw, (min-width: 640px) 75px, 13vw"
           alt=""
           draggable={false}
           decoding="async"

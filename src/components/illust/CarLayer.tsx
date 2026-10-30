@@ -35,7 +35,7 @@ function CarSprite({ placement, delay }: { placement: CarPlacement; delay: numbe
       <img
         src={propSrc(prop, PROP_WIDTHS.at(-1)!)}
         srcSet={propSrcSet(prop)}
-        sizes="(min-width: 640px) 150px, 25vw"
+        sizes="(min-width: 1280px) 315px, (min-width: 1024px) 25vw, (min-width: 640px) 150px, 25vw"
         alt=""
         draggable={false}
         decoding="async"
