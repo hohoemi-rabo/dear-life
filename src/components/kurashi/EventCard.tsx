@@ -40,7 +40,7 @@ export function EventCard({
           {thumbnail ? (
             <PinThumbnail picture={thumbnail.picture} spot={thumbnail.spot} className="w-28 shrink-0 lg:w-36" />
           ) : (
-            <span className="flex aspect-[1672/941] w-28 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
+            <span className="flex aspect-[3/2] w-28 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
               <PixelImage asset={EVENT_ART_ASSET[event.art]} scale={2} decorative />
             </span>
           )}

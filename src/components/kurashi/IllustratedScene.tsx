@@ -39,7 +39,7 @@ export function IllustratedScene({
   const tall = PIN_SPOTS[pictures.tall];
 
   return (
-    <figure role="group" aria-label={label} className="relative isolate aspect-[941/1672] overflow-hidden bg-pixel-sky lg:aspect-[1672/941]">
+    <figure role="group" aria-label={label} className="relative isolate aspect-[941/1672] overflow-hidden bg-pixel-sky lg:aspect-[3/2]">
       <ScenePicture pictures={pictures} />
       <div className="absolute inset-0 lg:hidden">
         <FamilyLayer members={members} background={pictures.tall} facing="back" />

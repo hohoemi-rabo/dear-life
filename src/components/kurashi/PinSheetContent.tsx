@@ -91,8 +91,8 @@ export function PinSheetContent({
   );
 }
 
-// 小さな絵の枠の縦横の比。ふつうは風景と同じ、PC の吹き出しは見本のように平たい帯にする
-const THUMBNAIL_ASPECT = { normal: 1672 / 941, wide: 2.6 } as const;
+// PC の吹き出しの小さな絵の枠の縦横の比（見本のように平たい帯にする）。ふつうは風景と同じ比
+const WIDE_THUMBNAIL_ASPECT = 2.6;
 
 // 風景から切り出した小さな絵（飾り。場所の名前はシートの見出しで読む）
 export function PinThumbnail({
@@ -107,7 +107,7 @@ export function PinThumbnail({
   className?: string;
 }) {
   const { width, height } = ILLUST_PICTURES[picture];
-  const frameAspect = wide ? THUMBNAIL_ASPECT.wide : THUMBNAIL_ASPECT.normal;
+  const frameAspect = wide ? WIDE_THUMBNAIL_ASPECT : width / height;
   const zoom = wide ? THUMBNAIL_ZOOM * 0.8 : THUMBNAIL_ZOOM;
   const position = thumbnailPosition(spot, zoom, frameAspect, width / height);
   const style: CSSProperties = {

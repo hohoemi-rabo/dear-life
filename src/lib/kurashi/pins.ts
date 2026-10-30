@@ -21,10 +21,10 @@ export type PinSpot = { x: number; y: number; side: "right" | "left" };
 // 住まい＝奥の谷の町並み、公共施設＝右中央の公民館
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
   "kurashi-kamisato-spring-wide": {
-    school: { x: 26.5, y: 32, side: "right" },
-    event: { x: 87, y: 14, side: "left" },
-    housing: { x: 57, y: 24, side: "left" },
-    public: { x: 78, y: 41, side: "left" },
+    school: { x: 27.3, y: 48, side: "right" },
+    event: { x: 87, y: 38.5, side: "left" },
+    housing: { x: 47, y: 38, side: "left" },
+    public: { x: 77.5, y: 58, side: "left" },
   },
   "kurashi-kamisato-spring-tall": {
     school: { x: 30, y: 31, side: "right" },

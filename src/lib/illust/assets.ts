@@ -37,10 +37,11 @@ export const ILLUST_PICTURES = {
     alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
   },
   // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
+  // PC 用は見本どおり見出しを空の上に重ねるので、上の1/4 は空と遠くの雪山だけ（2026-10-30 作り直し）
   "kurashi-kamisato-spring-wide": {
     source: "kurashi-kamisato-spring-wide.png",
-    width: 1672,
-    height: 941,
+    width: 1536,
+    height: 1024,
     widths: [960, 1440],
     alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },

@@ -69,14 +69,17 @@ export function KurashiView() {
 
       <div className="flex min-w-0 flex-col gap-4">
         {pictures ? (
-          // 風景の絵は画面の端まで広げ（スマホ）、見出しは空の色の上に重ねる（見本）
+          // 風景の絵は画面の端まで広げる（スマホ）。見出しは空の上に置く（見本）：PC は絵の上の1/4 が空なので絵に重ね、
+          // スマホの縦長の絵は空が狭いので、空の色の帯を絵の上に足してそこに置く
           <section
             aria-label="季節の場面"
             style={skyStyle(pictures)}
-            className="-mx-4 -mt-6 flex flex-col bg-[linear-gradient(to_bottom,#F4FAFF,#D9EDFC_55%,var(--sky))] lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:shadow-card lg:[background-image:linear-gradient(to_bottom,#F4FAFF,#D9EDFC_55%,var(--sky-lg))]"
+            className="-mx-4 -mt-6 flex flex-col bg-[linear-gradient(to_bottom,#F4FAFF,#D9EDFC_55%,var(--sky))] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
           >
-            <div className="px-4 pb-3 pt-4">{heading}</div>
-            <ScreenDataBoundary fallback={<Skeleton className="aspect-[941/1672] w-full rounded-none lg:aspect-[1672/941]" />}>
+            <div className="px-4 pb-3 pt-4 lg:absolute lg:inset-x-0 lg:top-0 lg:z-20 lg:bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] lg:pb-8 lg:pt-6">
+              {heading}
+            </div>
+            <ScreenDataBoundary fallback={<Skeleton className="aspect-[941/1672] w-full rounded-none lg:aspect-[3/2]" />}>
               <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
             </ScreenDataBoundary>
           </section>
@@ -121,14 +124,13 @@ export function KurashiView() {
   );
 }
 
-// 空の色（絵のいちばん上の色）。見出しの帯の下を絵につなげる
-const SKY_COLORS: Record<KurashiPictures["wide"] | KurashiPictures["tall"], string> = {
-  "kurashi-kamisato-spring-wide": "#7FBEFA",
+// スマホの縦長の絵のいちばん上の空の色。見出しの帯の下を絵につなげる
+const SKY_COLORS: Partial<Record<KurashiPictures["tall"], string>> = {
   "kurashi-kamisato-spring-tall": "#41A4FD",
 };
 
 function skyStyle(pictures: KurashiPictures): CSSProperties {
-  return { "--sky": SKY_COLORS[pictures.tall], "--sky-lg": SKY_COLORS[pictures.wide] } as CSSProperties;
+  return { "--sky": SKY_COLORS[pictures.tall] ?? "#D9EDFC" } as CSSProperties;
 }
 
 function useSeasonView(season: Season, conditions: Chosen) {
