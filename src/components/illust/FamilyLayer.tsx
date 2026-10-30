@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { spriteId, spriteSrc, type ErabuBaseId, type Person, type Pose } from "@/lib/illust/assets";
-import { placeFamily, type Placement } from "@/lib/illust/family";
+import { spriteId, spriteSrc, type Person, type Pose } from "@/lib/illust/assets";
+import { placeFamily, type FamilyStageId, type Placement } from "@/lib/illust/family";
 import { Sparkles, type SparklePoint } from "./Sparkles";
 import { useLeavingItems } from "./useLeavingItems";
 
@@ -12,15 +12,16 @@ const JOY_MS = 1200;
 // プレビューの背景の上に家族を立たせる（028）。人が増えるとぽんと出てキラキラが散り、減るとすっと消える。
 // 動きはすべて motion-safe: に付け、端末の「動きを減らす」では動かさない（ポーズは変わる）。
 // 絵は飾りで、家族の構成はプレビューの枠の名前で読み上げる。
-// facing="back" は後ろ姿で町を見わたす形（05。見本どおり）。よろこぶポーズにはせず、後ろ姿のままぽんと出る
+// facing="back" は後ろ姿で町を見わたす形（05。見本どおり）、"rear" は真後ろ姿で風景の中へ歩いていく形（くらし）。
+// 後ろ姿はよろこぶポーズにはせず、後ろ姿のままぽんと出る
 export function FamilyLayer({
   members,
   background,
   facing = "front",
 }: {
   members: readonly Person[];
-  background: ErabuBaseId;
-  facing?: "front" | "back";
+  background: FamilyStageId;
+  facing?: Facing;
 }) {
   const placements = placeFamily(members, background);
   const leaving = useLeavingItems(placements, personOf);
@@ -36,6 +37,8 @@ export function FamilyLayer({
   );
 }
 
+type Facing = "front" | "back" | "rear";
+
 function personOf({ person }: Placement): string {
   return person;
 }
@@ -48,14 +51,14 @@ const SPARKLES: readonly SparklePoint[] = [
   { x: -2, y: 56, delay: 180 },
 ];
 
-function PersonSprite({ placement, facing, leaving = false }: { placement: Placement; facing: "front" | "back"; leaving?: boolean }) {
+function PersonSprite({ placement, facing, leaving = false }: { placement: Placement; facing: Facing; leaving?: boolean }) {
   const [entered, setEntered] = useState(leaving);
   useEffect(() => {
     if (leaving) return;
     const timer = setTimeout(() => setEntered(true), JOY_MS);
     return () => clearTimeout(timer);
   }, [leaving]);
-  const pose: Pose = facing === "back" ? "back" : entered ? "stand" : "joy";
+  const pose: Pose = facing !== "front" ? facing : entered ? "stand" : "joy";
 
   return (
     <span

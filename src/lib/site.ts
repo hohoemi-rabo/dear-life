@@ -19,14 +19,13 @@ export const MAP_PATH = "/chizu";
 export const GOFREELY_URL = "https://gofreely.rabo-hohoemi.workers.dev/";
 
 export type Step = {
-  number: string;
   label: string;
   path: string;
 };
 
 // 基本の流れ「01 えらぶ → 02 くらしを見る → 03 カルテ」（要件 3章）
 export const STEPS: readonly Step[] = [
-  { number: "01", label: "えらぶ", path: ERABU_PATH },
-  { number: "02", label: "くらしを見る", path: KURASHI_PATH },
-  { number: "03", label: "カルテ", path: KARTE_PATH },
+  { label: "えらぶ", path: ERABU_PATH },
+  { label: "くらしを見る", path: KURASHI_PATH },
+  { label: "カルテ", path: KARTE_PATH },
 ];

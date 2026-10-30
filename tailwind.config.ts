@@ -85,6 +85,11 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        // くらしのピン（028）：押せると分かるよう、ゆっくり少しだけ上下にゆれる
+        "pin-bob": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
       },
       animation: {
         "pop-in": "pop-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
@@ -94,6 +99,7 @@ const config: Config = {
         "sheet-in": "sheet-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
+        "pin-bob": "pin-bob 2.4s ease-in-out infinite",
       },
     },
   },

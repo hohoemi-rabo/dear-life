@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
-import { DataStateMessage } from "@/components/data/DataStateMessage";
+import { MarketSheetBody } from "@/components/data/MarketSheetBody";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelImage } from "@/components/pixel/PixelImage";
 import { PixelStage } from "@/components/pixel/PixelStage";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { CountBadge } from "@/components/ui/CountBadge";
-import { Notice } from "@/components/ui/Notice";
 import type { Conditions } from "@/lib/conditions/model";
 import type { DataState } from "@/lib/data/screen-data";
 import { erabuReply, type ErabuReply } from "@/lib/erabu/replies";
 import type { QuestionId } from "@/lib/erabu/questions";
-import { formatManYen } from "@/lib/format";
-import { NOTICES } from "@/lib/notices";
 
 // 選ぶたびの返事（F-10）。実データの側なので、ふつうのフォントで、大きな数字と件数・出典を出す（要件 8.1）。
 // カードはデザインイメージに合わせて温かい色にする（027）。ScreenDataBoundary の中で使う
@@ -53,33 +49,11 @@ function MarketCheck({ reply }: { reply: MarketReply }) {
         onClose={() => setOpen(false)}
         title={reply.kind === "house" ? `${reply.districtName}の中古戸建て（${reply.housing === "new" ? "築20年以内" : "築21年以上"}）` : "借りるときの家賃"}
       >
-        <MarketSheetBody reply={reply} />
+        {/* 出典・対象期間・確認日はここでは出さない（2026-10-29 まさゆきさん。えらぶは先へ進むのが主なので）。
+            同じ相場はカルテの住まいのカードと「データについて」で、出典・対象期間・確認日と一緒に見られる */}
+        <MarketSheetBody state={reply.kind === "house" ? reply.house : null} alwaysFew={reply.kind === "house" && reply.alwaysFew} />
       </BottomSheet>
     </>
-  );
-}
-
-// シートの中身は必要なものだけ：真ん中の値・件数と件数ラベル・注意書き（要件 5章-6・7）。
-// 出典・対象期間・確認日はここでは出さない（2026-10-29 まさゆきさん。えらぶは先へ進むのが主なので）。
-// 同じ相場はカルテの住まいのカードと「データについて」で、出典・対象期間・確認日と一緒に見られる
-function MarketSheetBody({ reply }: { reply: MarketReply }) {
-  if (reply.kind === "rent") return <DataStateMessage state={{ status: "unavailable" }} />;
-  const state = reply.house;
-  return (
-    <div className="flex flex-col gap-3">
-      {state.status === "available" ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-bold text-ink-muted">取引の真ん中の値</p>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <PriceFigure>{formatManYen(state.value.median)}</PriceFigure>
-            <CountBadge count={state.value.sampleCount} alwaysFew={reply.alwaysFew} />
-          </div>
-        </div>
-      ) : (
-        <DataStateMessage state={state} />
-      )}
-      <Notice>{NOTICES.market}</Notice>
-    </div>
   );
 }
 
@@ -155,9 +129,4 @@ function CompactSources({ states }: { states: readonly DataState<unknown>[] }) {
       </div>
     </details>
   );
-}
-
-// 値段は値段用のフォント（027）
-function PriceFigure({ children }: { children: ReactNode }) {
-  return <p className="price-figure text-4xl tracking-tight">{children}</p>;
 }

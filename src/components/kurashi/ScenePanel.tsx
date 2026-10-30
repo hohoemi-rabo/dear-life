@@ -23,15 +23,15 @@ import { SEASON_ICONS, SEASON_STYLES } from "./season-styles";
 
 type Props = { season: Season; conditions: Conditions & { district: DistrictId } };
 
-// 場面の絵の幅。160px の整数倍だけを使い、置き場所の幅に入るいちばん大きい倍率にする（xl は3列の真ん中、幅 1432px 以上で 800px が入る）
-export const SCENE_WIDTH_CLASS = "w-[320px] sm:w-[480px] md:w-[640px] lg:w-[800px] xl:w-[640px] min-[1432px]:w-[800px]";
+// 場面の絵の幅。160px の整数倍だけを使い、置き場所の幅に入るいちばん大きい倍率にする（lg からは左の「わが家」の右の列。xl で 960px が入る）
+export const SCENE_WIDTH_CLASS = "w-[320px] sm:w-[480px] md:w-[640px] xl:w-[960px]";
 
 // 1つの季節の場面（F-12）：ドット絵1枚と、その下の3〜5文と出典を1枚のカードにする（027 デザインイメージ。細い枠の白いカード）。
-// 季節のタブがカードの上にくっつくので、上の角は丸めない。ScreenDataBoundary の中で使う
+// 028 で風景の絵とピンにしたのは上郷・春だけで、ほかの地区・季節は用意できるまでこの形で出す。ScreenDataBoundary の中で使う
 export function ScenePanel({ season, conditions }: Props) {
   const { plan, district, layers, scene } = seasonView(season, conditions, useScreenData());
   return (
-    <div className="overflow-hidden rounded-b-card border border-line bg-surface shadow-card">
+    <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
       <figure className="relative mx-auto w-fit">
         <PixelScene layers={layers} widthClassName={SCENE_WIDTH_CLASS} />
         <figcaption className={`absolute left-2 top-2 rounded px-2 py-0.5 text-sm font-bold text-white ${SEASON_STYLES[season].label}`}>
@@ -87,7 +87,7 @@ function SceneBody({ scene, season, conditions }: { scene: Scene } & Props) {
   );
 }
 
-function SceneLineView({
+export function SceneLineView({
   line,
   sourceNumbers,
   withTimetableNote,

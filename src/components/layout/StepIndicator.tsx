@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { STEPS } from "@/lib/site";
 
 // 条件は URL パラメータで持つため（F-02）、ステップはリンクにせず今どこにいるかだけを示す。
-// スマホは線の上の丸印3つと下のラベル、PC は大きなタブを「···」でつなぐ（027 デザインイメージ）
+// 028 見本：番号は付けず、名前を「›」（スマホ）・「→」（PC）でつなぎ、今のステップを太字の深緑と下線で示す
 export function StepIndicator() {
   const pathname = usePathname();
   const currentPath = STEPS.find(
@@ -12,10 +12,7 @@ export function StepIndicator() {
   )?.path;
 
   return (
-    <ol
-      aria-label="進みぐあい"
-      className="relative flex w-full before:absolute before:inset-x-[16%] before:top-[7px] before:h-0.5 before:bg-line md:w-auto md:items-center md:gap-0 md:before:hidden"
-    >
+    <ol aria-label="進みぐあい" className="flex w-full items-center justify-center md:w-auto">
       {STEPS.map((step, index) => {
         const isCurrent = step.path === currentPath;
         return (
@@ -23,25 +20,18 @@ export function StepIndicator() {
             key={step.path}
             aria-current={isCurrent ? "step" : undefined}
             className={[
-              "relative flex flex-1 flex-col items-center gap-1 md:flex-none md:flex-row",
-              // PC：2つ目からは前に「···」を置く（読み上げない飾りなので CSS で出す）
-              index > 0 ? "md:before:mx-2 md:before:text-ink-muted md:before:content-['···']" : "",
+              "flex items-center",
+              // 2つ目からは前に「›」「→」を置く（読み上げない飾りなので CSS で出す）
+              index > 0 ? "before:mx-3 before:text-ink-muted before:content-['›'] md:before:mx-5 md:before:content-['→']" : "",
             ].join(" ")}
           >
             <span
               className={[
-                "size-4 rounded-full border-2 md:hidden",
-                isCurrent ? "border-primary bg-primary ring-4 ring-primary-soft" : "border-line bg-surface",
-              ].join(" ")}
-            />
-            <span
-              className={[
-                "flex gap-1 whitespace-nowrap text-xs md:rounded-button md:px-5 md:py-2 md:text-base",
-                isCurrent ? "font-bold text-primary md:bg-primary md:text-white" : "text-ink-muted md:bg-kinari-deep",
+                "whitespace-nowrap border-b-[3px] px-1 py-1.5 text-sm md:text-base",
+                isCurrent ? "border-primary font-bold text-primary" : "border-transparent text-ink-muted",
               ].join(" ")}
             >
-              <span className="tabular-nums">{step.number}</span>
-              <span>{step.label}</span>
+              {step.label}
             </span>
           </li>
         );

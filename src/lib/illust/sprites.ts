@@ -16,6 +16,10 @@ export const SPRITE_SIZES: Record<SpriteId, { width: number; height: number }> =
   "mother-back": { width: 123, height: 293 },
   "boy-back": { width: 103, height: 231 },
   "girl-back": { width: 127, height: 218 },
+  "father-rear": { width: 134, height: 309 },
+  "mother-rear": { width: 122, height: 287 },
+  "boy-rear": { width: 102, height: 221 },
+  "girl-rear": { width: 146, height: 209 },
 };
 
 // ふちを切り落とした家の大きさ（元の画像の px）。縦横の比を画面で使う

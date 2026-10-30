@@ -1,16 +1,17 @@
 "use client";
 
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
+import { IllustPicture } from "@/components/illust/IllustPicture";
 import { PixelScene } from "@/components/pixel/PixelScene";
 import type { Conditions } from "@/lib/conditions/model";
 import { SEASONS, type Season } from "@/lib/conditions/scene";
-import { SCENE_AXIS_LABELS } from "@/lib/kurashi/season";
+import { kurashiPicturesFor } from "@/lib/illust/assets";
 import { seasonView } from "@/lib/kurashi/view";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
-import { SEASON_ICONS, SEASON_STYLES } from "./season-styles";
+import { SEASON_STYLES } from "./season-styles";
 
-// PC：場面の下の4季節のサムネイル（デザインイメージ PC版）。押すとその季節に切り替わる。ScreenDataBoundary の中で使う
+// PC：場面の下の4季節の絵（028 見本）。押すとその季節に切り替わる。風景の絵がある季節はその絵、ない季節は今のドット絵。
+// ScreenDataBoundary の中で使う
 export function SeasonThumbnails({
   season,
   conditions,
@@ -22,31 +23,31 @@ export function SeasonThumbnails({
 }) {
   const data = useScreenData();
   return (
-    <ul aria-label="季節の場面" className="grid grid-cols-4 gap-4">
+    <ul aria-label="季節の場面" className="grid grid-cols-4 gap-2">
       {SEASONS.map((item) => {
         const selected = item === season;
-        const { plan, layers } = seasonView(item, conditions, data);
+        const pictures = kurashiPicturesFor(conditions.district, item);
         return (
           <li key={item}>
             <button
               type="button"
               aria-pressed={selected}
+              aria-label={`${item}の場面`}
               onClick={() => onSelect(item)}
               className={[
-                "flex w-full flex-col items-center gap-1 rounded-button border-2 p-1.5 pb-2",
+                "block w-full overflow-hidden rounded-button border-2 transition duration-150 active:scale-95",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                selected ? SEASON_STYLES[item].selected : "border-line bg-surface hover:border-ink-muted",
+                selected ? SEASON_STYLES[item].selected : "border-transparent hover:border-ink-muted",
               ].join(" ")}
             >
-              {/* 絵の説明は大きい場面のほうで読むので、ここではボタンの文字だけを読ませる */}
-              <div aria-hidden="true">
-                <PixelScene layers={layers} widthClassName="w-[160px]" />
-              </div>
-              <span className="flex items-center gap-1 text-sm font-bold">
-                <PixelIcon icon={SEASON_ICONS[item]} size="sm" />
-                {item}
-                <span className="ml-2 font-normal">{SCENE_AXIS_LABELS[plan.axis].short}</span>
-              </span>
+              {/* 絵の説明は大きい場面のほうで読むので、ここではボタンの名前だけを読ませる */}
+              {pictures ? (
+                <IllustPicture picture={pictures.wide} sizes="120px" decorative className="block aspect-[4/5] w-full object-cover" />
+              ) : (
+                <div aria-hidden="true" className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-pixel-sky">
+                  <PixelScene layers={seasonView(item, conditions, data).layers} widthClassName="w-[320px] max-w-none shrink-0" />
+                </div>
+              )}
             </button>
           </li>
         );

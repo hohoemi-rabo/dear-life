@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ABOUT_DATA_PATH, ERABU_PATH } from "@/lib/site";
 import { HeaderMenu } from "./HeaderMenu";
 import { StepIndicator } from "./StepIndicator";
@@ -19,15 +18,25 @@ export function HeaderNav() {
       </div>
       <Link
         href={ABOUT_DATA_PATH}
-        className="hidden min-h-tap items-center gap-2 font-bold text-primary underline-offset-4 hover:underline md:order-last md:flex"
+        className="hidden min-h-tap items-center gap-1.5 text-sm font-bold text-ink underline-offset-4 hover:underline md:order-last md:flex"
       >
-        <PixelIcon icon="icon-sprout" />
+        <InfoIcon />
         データについて
-        <span aria-hidden="true">›</span>
       </Link>
       <div className="w-full md:w-auto">
         <StepIndicator />
       </div>
     </>
+  );
+}
+
+// 「データについて」の印（028 見本：丸に i）。飾り
+function InfoIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v6" />
+      <circle cx="12" cy="7.6" r="0.6" fill="currentColor" />
+    </svg>
   );
 }

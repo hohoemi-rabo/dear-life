@@ -2,6 +2,7 @@
 // public/illust/ に書き出す。ドット絵（src/lib/pixel/、コードで描く）とは別のもの。
 // 本当のドットの粒がそろった絵ではないので、整数倍の表示（pixelated）にはせず、ふつうに縮めて出す
 import type { Housing, Priority } from "../conditions/labels.ts";
+import type { Season } from "../conditions/scene.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 
 export const ILLUST_DIR = "illust";
@@ -35,6 +36,21 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152],
     alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
   },
+  // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
+  "kurashi-kamisato-spring-wide": {
+    source: "kurashi-kamisato-spring-wide.png",
+    width: 1672,
+    height: 941,
+    widths: [960, 1440],
+    alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
+  },
+  "kurashi-kamisato-spring-tall": {
+    source: "kurashi-kamisato-spring-tall.png",
+    width: 941,
+    height: 1672,
+    widths: [480, 941],
+    alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
+  },
   "district-kamisato": {
     source: "district-kamisato.png",
     width: 1672,
@@ -47,10 +63,11 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
-// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）
+// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）、
+// rear は真後ろ姿（くらしで風景の中へ歩いていく。見本どおり）
 export const PEOPLE = ["father", "mother", "boy", "girl"] as const;
 export type Person = (typeof PEOPLE)[number];
-export const POSES = ["stand", "joy", "back"] as const;
+export const POSES = ["stand", "joy", "back", "rear"] as const;
 export type Pose = (typeof POSES)[number];
 
 export type SpriteId = `${Person}-${Pose}`;
@@ -70,6 +87,10 @@ export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; al
   "mother-back": { sheet: "characters-sheet-5.png", index: 1, alt: "右奥を向いた後ろ姿の、青いスカートのお母さん" },
   "boy-back": { sheet: "characters-sheet-5.png", index: 2, alt: "右奥を向いた後ろ姿の、赤い服の男の子" },
   "girl-back": { sheet: "characters-sheet-5.png", index: 5, alt: "右奥を向いた後ろ姿の、おさげの女の子" },
+  "father-rear": { sheet: "characters-sheet-4.png", index: 0, alt: "後ろ姿の、緑の上着のお父さん" },
+  "mother-rear": { sheet: "characters-sheet-4.png", index: 1, alt: "後ろ姿の、青いスカートのお母さん" },
+  "boy-rear": { sheet: "characters-sheet-4.png", index: 2, alt: "後ろ姿の、赤い服の男の子" },
+  "girl-rear": { sheet: "characters-sheet-4.png", index: 5, alt: "後ろ姿の、おさげの女の子" },
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
@@ -164,4 +185,16 @@ export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {
   const bases = district ? ERABU_BASES[district] : undefined;
   return bases?.[scene] ?? bases?.base ?? "erabu-iida-overview";
+}
+
+// くらしの場面の絵（028）。まず上郷・春だけ。ない地区・季節は今のドット絵の場面（ScenePanel）で出す
+export type KurashiPictureId = "kurashi-kamisato-spring-wide" | "kurashi-kamisato-spring-tall";
+export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
+
+export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
+  kamisato: { 春: { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" } },
+};
+
+export function kurashiPicturesFor(district: DistrictId, season: Season): KurashiPictures | null {
+  return KURASHI_PICTURES[district]?.[season] ?? null;
 }

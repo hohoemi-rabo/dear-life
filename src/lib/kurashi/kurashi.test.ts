@@ -6,6 +6,7 @@ import { availableFixture, screenDataFixture, sourceFixture } from "@/test/scree
 import { gofreelyHref } from "./gofreely";
 import { karteHref } from "./links";
 import { scenePictureLayers } from "./picture";
+import { PIN_SPOTS, pinsFor, scenePinFor, thumbnailPosition } from "./pins";
 import { parseSeason } from "./season";
 
 describe("parseSeason", () => {
@@ -136,5 +137,31 @@ describe("gofreelyHref", () => {
       arrive: "10:11",
       return: "12:00",
     });
+  });
+});
+
+describe("くらしのピン（028）", () => {
+  const plan = (season: "春" | "夏", children: number) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children });
+
+  it("学校・地域の行事・住まいはいつも出し、子どもなしの春だけ公共施設を足す", () => {
+    expect(pinsFor(plan("春", 1), { children: 1 })).toEqual(["school", "event", "housing"]);
+    expect(pinsFor(plan("春", 0), { children: 0 })).toEqual(["school", "event", "housing", "public"]);
+    expect(scenePinFor(plan("春", 1))).toBe("school");
+    expect(scenePinFor(plan("春", 0))).toBe("public");
+    expect(scenePinFor(plan("夏", 1))).toBeNull();
+  });
+
+  it("札をどちらに伸ばすかは、スマホと PC で同じ", () => {
+    const [wide, tall] = Object.values(PIN_SPOTS);
+    for (const pin of Object.keys(wide) as (keyof typeof wide)[]) expect(tall[pin].side).toBe(wide[pin].side);
+  });
+
+  it("小さな絵は、ピンの場所が枠の真ん中に来るように切り出し、絵の外にははみ出さない", () => {
+    // 枠と絵の比が同じなら、縦も横と同じだけ拡大する
+    expect(thumbnailPosition({ x: 50, y: 50 }, 3, 16 / 9, 16 / 9)).toEqual({ x: 50, y: 50 });
+    const { x } = thumbnailPosition({ x: 25, y: 50 }, 3, 16 / 9, 16 / 9);
+    // 絵の 25% の点 × 幅3倍 = 枠の 0.75 倍の位置。真ん中（0.5）に来るよう (0.75 - 0.5) / (3 - 1) = 12.5%
+    expect(x).toBeCloseTo(12.5);
+    expect(thumbnailPosition({ x: 1, y: 99 }, 3, 16 / 9, 16 / 9)).toEqual({ x: 0, y: 100 });
   });
 });

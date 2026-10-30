@@ -1,7 +1,7 @@
 // えらぶの「わが家のプレビュー」に家族を並べる（028）。選んだ人数から誰を出すかと、背景の上のどこに立たせるかを決める。
 // 位置は背景に対する割合（％）で持つ。画面の幅が変わっても、背景と一緒に伸び縮みしてずれないように
 import type { Conditions } from "../conditions/model.ts";
-import { ILLUST_PICTURES, spriteId, type ErabuBaseId, type Person, type Pose } from "./assets.ts";
+import { ILLUST_PICTURES, spriteId, type ErabuBaseId, type KurashiPictureId, type Person, type Pose } from "./assets.ts";
 import { SPRITE_SIZES } from "./sprites.ts";
 
 // 大人1人ならお母さん、2人ならお父さんとお母さん。子どもは1人目が男の子、2人目が女の子（2026-10-29 まさゆきさん決定）。
@@ -11,8 +11,11 @@ export function familyMembers({ adults, children }: Pick<Conditions, "adults" | 
   return adults >= 2 ? ["father", ...kids, "mother"] : [...kids, "mother"];
 }
 
+// 家族を立たせる背景（えらぶのプレビューと、くらしの場面）
+export type FamilyStageId = ErabuBaseId | KurashiPictureId;
+
 // 背景ごとの立ち位置。footY は足もとの高さ、adultHeight はお父さん（立つ）の背の高さ（どちらも背景の高さに対する割合）
-const STAGES: Record<ErabuBaseId, { footY: number; adultHeight: number; centerX: number }> = {
+const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number }> = {
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
   // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
   "erabu-kamisato-base": { footY: 94, adultHeight: 32, centerX: 50 },
@@ -21,6 +24,9 @@ const STAGES: Record<ErabuBaseId, { footY: number; adultHeight: number; centerX:
   "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
+  // くらし：手前の広場から、後ろ姿で風景の中へ歩いていく（見本）。広場の左寄りに立たせ、右の川と駅を隠さない
+  "kurashi-kamisato-spring-wide": { footY: 96, adultHeight: 30, centerX: 36 },
+  "kurashi-kamisato-spring-tall": { footY: 95, adultHeight: 17, centerX: 42 },
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）
@@ -35,7 +41,7 @@ export type Placement = {
   heightPercent: (pose: Pose) => number;
 };
 
-export function placeFamily(members: readonly Person[], background: ErabuBaseId): Placement[] {
+export function placeFamily(members: readonly Person[], background: FamilyStageId): Placement[] {
   const stage = STAGES[background];
   const picture = ILLUST_PICTURES[background];
   const reference = SPRITE_SIZES["father-stand"].height;

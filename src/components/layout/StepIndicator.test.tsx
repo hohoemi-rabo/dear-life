@@ -14,16 +14,16 @@ describe("StepIndicator", () => {
     vi.mocked(usePathname).mockReturnValue("/");
     render(<StepIndicator />);
     expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
-      "01えらぶ",
-      "02くらしを見る",
-      "03カルテ",
+      "えらぶ",
+      "くらしを見る",
+      "カルテ",
     ]);
   });
 
   it.each([
-    ["/erabu", "01えらぶ"],
-    ["/kurashi", "02くらしを見る"],
-    ["/karte/", "03カルテ"],
+    ["/erabu", "えらぶ"],
+    ["/kurashi", "くらしを見る"],
+    ["/karte/", "カルテ"],
   ])("%s では %s を今のステップにする", (pathname, expected) => {
     vi.mocked(usePathname).mockReturnValue(pathname);
     render(<StepIndicator />);
