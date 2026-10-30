@@ -9,11 +9,13 @@ import { karteHref } from "@/lib/kurashi/links";
 import { SEASON_SLUGS } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 
-// スマホの下に固定するタブ（028 見本）：くらし・カルテ・地区くらべ・地図。条件と季節を URL に載せたまま移る（F-02）
+// スマホの下に固定するタブ（028 見本）：くらし・カルテ・地区くらべ・地図。条件と季節を URL に載せたまま移る（F-02）。
+// フッターまでスクロールしても流れないよう画面に固定する。タブの裏にフッターが隠れないよう、
+// data-tab-bar を目印に body の下にタブと同じ高さの余白をとる（layout.tsx）
 export function KurashiTabBar({ conditions, season }: { conditions: Conditions; season: Season }) {
   const slug = SEASON_SLUGS[season];
   return (
-    <nav aria-label="画面の切り替え" className="sticky bottom-0 z-30 -mx-4 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
+    <nav aria-label="画面の切り替え" data-tab-bar className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
       <ul className="grid grid-cols-4">
         <Tab current label="くらし" icon={<HomeIcon />} />
         <Tab href={karteHref(conditions, season)} label="カルテ" icon={<DocumentIcon />} />

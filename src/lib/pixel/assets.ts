@@ -75,7 +75,6 @@ export const PIXEL_ASSETS = {
   logo: { width: 24, height: 20, alt: "赤い屋根の家と芽" },
   "deco-grass": { width: 48, height: 10, alt: "花の咲いた草むら" },
   "deco-tree": { width: 12, height: 12, alt: "小さな木" },
-  "deco-mountains": { width: 96, height: 12, alt: "遠くの山並み" },
 } as const satisfies Record<string, { width: number; height: number; alt: string }>;
 
 export type PixelAssetId = keyof typeof PIXEL_ASSETS;

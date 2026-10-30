@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${bodyFont.variable} ${priceFont.variable}`}>
-      <body className="flex min-h-dvh flex-col">
+      <body className="flex min-h-dvh flex-col has-[[data-tab-bar]]:pb-[calc(3.5rem+1px+env(safe-area-inset-bottom))] lg:has-[[data-tab-bar]]:pb-0">
         <SiteHeader />
         <main className="mx-auto w-full max-w-page flex-1 px-4 py-6">
           <OfflineBanner />

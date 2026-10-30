@@ -69,5 +69,4 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   logo: icons.logo,
   "deco-grass": icons.grass,
   "deco-tree": icons.smallTree,
-  "deco-mountains": icons.mountains,
 };

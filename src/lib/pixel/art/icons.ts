@@ -536,21 +536,6 @@ const TREE = [
   "..llgggggl..",
 ];
 
-// フッターの山並み（96×12）
-const MOUNTAINS = [
-  "...............................................pp...............................................",
-  "..............................................pppp..............................................",
-  "..........pp.................................pppppp.........................pp..................",
-  ".........pppp...............................pppppppp.......................pppp.................",
-  "........pppppp...............mm............pppppppppp.....................pppppp................",
-  ".......pppppppp.............mmmm..........pppppppppppp...................pppppppp...............",
-  "......pppppppppp...........mmmmmm........pppppppppppppp.......mm........pppppppppp..............",
-  ".....pppppppppppp.........mmmmmmmm......pppppppppppppppp.....mmmm......pppppppppppp.........mm..",
-  "....pppppppppppppp.......mmmmmmmmmm....pppppppppppppppppp...mmmmmm....pppppppppppppp.......mmmm.",
-  "...pppppppppppppppp.....mmmmmmmmmmmm..pppppppppppppppppppp.mmmmmmmm..pppppppppppppppp.....mmmmmm",
-  "..pppppppppppppppppp...mmmmmmmmmmmmmmpppppppppppppppppppppmmmmmmmmmmpppppppppppppppppp...mmmmmmm",
-  ".pppppppppppppppppppp.mmmmmmmmmmmmmmmmppppppppppppppppppppmmmmmmmmmmmpppppppppppppppppp.mmmmmmmm",
-];
 
 export const sprout = (): Canvas => parseSprite(SPROUT);
 export const calendar = (): Canvas => parseSprite(CALENDAR);
@@ -579,4 +564,3 @@ export const documentIcon = (): Canvas => parseSprite(DOCUMENT);
 export const logo = (): Canvas => parseSprite(LOGO);
 export const grass = (): Canvas => parseSprite(GRASS);
 export const smallTree = (): Canvas => parseSprite(TREE);
-export const mountains = (): Canvas => parseSprite(MOUNTAINS);

@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ManualDataList, MarketCounts, SourceList } from "@/components/about/AboutDataLive";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
+import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { Card } from "@/components/ui/Card";
 import { countLabel } from "@/lib/count-label";
 import { SQUARE_METER } from "@/lib/format";
-import { GSI_TILES, LANDSAT_CREDIT, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
+import { GSI_TILES, ILLUSTRATION_NOTE, LANDSAT_CREDIT, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { EXAMPLE_LAND_AREA, SQUARE_METERS_PER_TSUBO } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
 import { TARGET_DISTRICTS_LABEL } from "@/lib/site";
@@ -49,7 +50,9 @@ export default function AboutDataPage() {
           <li>対象は飯田市の{TARGET_DISTRICTS_LABEL}の4地区だけです。点数やランキング、おすすめの地区は出しません。</li>
           <li>会員登録はありません。選んだ条件はページのアドレス（URL）にだけ入り、サーバーには送らず、保存もしません。</li>
           <li>アクセス解析（利用者の行動を記録するしくみ）は入れていません。</li>
+          <li>{ILLUSTRATION_NOTE}</li>
         </ul>
+        <InstallGuide />
       </Section>
 
       <Section id="about-notices" title="利用上の注意">

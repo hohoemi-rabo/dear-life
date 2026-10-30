@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
-import { REINFOLIB_API_CREDIT } from "@/lib/credits";
+import { ILLUSTRATION_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { MARKET_SOURCE, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import AboutDataPage from "./page";
@@ -73,9 +73,10 @@ beforeEach(() => {
 });
 
 describe("データについて（022・F-08・7.3）", () => {
-  it("個人が作ったサービスであること、利用上の注意、API 利用約款 第7条のクレジットを出す", async () => {
+  it("個人が作ったサービスであること、絵は生成AIのイメージであること、利用上の注意、API 利用約款 第7条のクレジットを出す", async () => {
     await open();
     expect(within(section("このサービスについて")).getByText(/個人が公開データをもとに作成したもの/)).toBeInTheDocument();
+    expect(within(section("このサービスについて")).getByText(ILLUSTRATION_NOTE)).toBeInTheDocument();
     for (const notice of [NOTICES.market, NOTICES.mapPosition, NOTICES.support, NOTICES.events]) {
       expect(within(section("利用上の注意")).getByText(notice)).toBeInTheDocument();
     }
