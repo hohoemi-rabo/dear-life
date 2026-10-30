@@ -80,7 +80,7 @@ function ScenePicture({ pictures }: { pictures: KurashiPictures }) {
   const tall = ILLUST_PICTURES[pictures.tall];
   return (
     <picture>
-      <source media="(min-width: 1024px)" srcSet={srcSet(pictures.wide)} sizes="(min-width: 1232px) 975px, 80vw" />
+      <source media="(min-width: 1024px)" srcSet={srcSet(pictures.wide)} sizes="(min-width: 1400px) 1150px, 80vw" />
       {/* 静的書き出しでは next/image の srcset が使えないので <img>（IllustPicture と同じ） */}
       <img
         src={illustPictureSrc(pictures.tall, tall.widths.at(-1)!)}
