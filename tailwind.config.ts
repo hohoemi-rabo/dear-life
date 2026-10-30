@@ -39,8 +39,9 @@ const config: Config = {
         // 家・土地の値段の大きな数字だけに使う（027 まさゆきさん決定）
         price: ["var(--font-price)", "var(--font-body)", ...defaultTheme.fontFamily.sans],
       },
-      // PC で広げすぎると文の1行が長くなるので、上限を決める（027）
-      maxWidth: { page: "1400px" },
+      // PC で広げすぎると文の1行が長くなるので、上限を決める（027）。
+      // 左右の余白（px-4）を引いた中身がちょうど 1200px になる幅（2026-10-31 まさゆきさん。前は 1400px）
+      maxWidth: { page: "1232px" },
       borderRadius: {
         card: "1rem",
         button: "0.75rem",
