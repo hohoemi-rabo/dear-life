@@ -24,9 +24,9 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
-  // くらし：手前の広場から、後ろ姿で風景の中へ歩いていく（見本）。広場の左寄りに立たせ、右の川と駅を隠さない
-  "kurashi-kamisato-spring-wide": { footY: 96, adultHeight: 30, centerX: 36 },
-  "kurashi-kamisato-spring-tall": { footY: 95, adultHeight: 17, centerX: 42 },
+  // くらし：斜め後ろ姿で、広場の奥（柵の手前）から町を見る（2026-10-30 まさゆきさん：斜めのキャラにして奥に）
+  "kurashi-kamisato-spring-wide": { footY: 82, adultHeight: 20, centerX: 40 },
+  "kurashi-kamisato-spring-tall": { footY: 84, adultHeight: 11, centerX: 45 },
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）

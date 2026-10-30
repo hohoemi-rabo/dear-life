@@ -12,8 +12,7 @@ const JOY_MS = 1200;
 // プレビューの背景の上に家族を立たせる（028）。人が増えるとぽんと出てキラキラが散り、減るとすっと消える。
 // 動きはすべて motion-safe: に付け、端末の「動きを減らす」では動かさない（ポーズは変わる）。
 // 絵は飾りで、家族の構成はプレビューの枠の名前で読み上げる。
-// facing="back" は後ろ姿で町を見わたす形（05。見本どおり）、"rear" は真後ろ姿で風景の中へ歩いていく形（くらし）。
-// 後ろ姿はよろこぶポーズにはせず、後ろ姿のままぽんと出る
+// facing="back" は斜め後ろ姿で町を見わたす形（えらぶ 05・くらし）。よろこぶポーズにはせず、後ろ姿のままぽんと出る
 export function FamilyLayer({
   members,
   background,
@@ -37,7 +36,7 @@ export function FamilyLayer({
   );
 }
 
-type Facing = "front" | "back" | "rear";
+type Facing = "front" | "back";
 
 function personOf({ person }: Placement): string {
   return person;
@@ -58,7 +57,7 @@ function PersonSprite({ placement, facing, leaving = false }: { placement: Place
     const timer = setTimeout(() => setEntered(true), JOY_MS);
     return () => clearTimeout(timer);
   }, [leaving]);
-  const pose: Pose = facing !== "front" ? facing : entered ? "stand" : "joy";
+  const pose: Pose = facing === "back" ? "back" : entered ? "stand" : "joy";
 
   return (
     <span

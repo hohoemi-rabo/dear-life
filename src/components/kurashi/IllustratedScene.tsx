@@ -8,7 +8,7 @@ import { PIN_SPOTS, type PinId, type PinSpot } from "@/lib/kurashi/pins";
 import { ScenePin } from "./ScenePin";
 
 // 生成AIで描いた季節の風景（028 見本。まず上郷・春）。スマホは縦長、PC は横長の絵を出しわけ、
-// 手前の広場に選んだ家族を後ろ姿で重ね、場所にピンを立てる。PC はピンを押すと絵の上に吹き出しを出す（スマホは下からのシートで、KurashiView が出す）
+// 広場の奥に選んだ家族を斜め後ろ姿で重ね、場所にピンを立てる。PC はピンを押すと絵の上に吹き出しを出す（スマホは下からのシートで、KurashiView が出す）
 export function IllustratedScene({
   pictures,
   label,
@@ -42,10 +42,10 @@ export function IllustratedScene({
     <figure role="group" aria-label={label} className="relative isolate aspect-[941/1672] overflow-hidden bg-pixel-sky lg:aspect-[1672/941]">
       <ScenePicture pictures={pictures} />
       <div className="absolute inset-0 lg:hidden">
-        <FamilyLayer members={members} background={pictures.tall} facing="rear" />
+        <FamilyLayer members={members} background={pictures.tall} facing="back" />
       </div>
       <div className="absolute inset-0 hidden lg:block">
-        <FamilyLayer members={members} background={pictures.wide} facing="rear" />
+        <FamilyLayer members={members} background={pictures.wide} facing="back" />
       </div>
       {pins.map((pin) => (
         <ScenePin

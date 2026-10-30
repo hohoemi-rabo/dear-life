@@ -2,6 +2,7 @@
 // 使い方：npm run illust（元の画像を差しかえたら流し直す）
 //   - 背景・選択肢の絵は、一覧（src/lib/illust/assets.ts）の横幅ごとに縮める（crop があるものは先に切り出す）
 //   - キャラクターのシートは、人と人のあいだの透明な列で1人ずつに切り分け、全員同じ倍率で縮める
+//     （人もほんの少し透けているので、家と同じく不透明にそろえる。透けると後ろの柵などが見えてしまう）
 //   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
 //   - 切り出した人物・家・小物の大きさを src/lib/illust/sprites.ts に書く（画面で並べる位置の計算に使う）
@@ -35,7 +36,7 @@ const MIN_FIGURE_WIDTH = 40;
 // 腕と体のあいだなど、人の中の細い隙間はつなげる
 const MAX_GAP_INSIDE_FIGURE = 12;
 const WEBP_QUALITY = 82;
-// 家・小物の絵で、これより濃いところは家そのもの（透明度 250 前後で、ほんの少し透けている）として不透明にする。
+// 人・家・小物の絵で、これより濃いところは絵そのもの（透明度 250 前後で、ほんの少し透けている）として不透明にする。
 // これより薄いところは輪郭のにじみなので、そのまま残す
 const HOUSE_OPAQUE_ALPHA = 224;
 
@@ -93,20 +94,32 @@ function figureRows(data, width, channels, left, right, height) {
   return { top, bottom };
 }
 
+// 濃いところ（人・家・小物そのもの）を不透明にする。薄いところは輪郭のにじみなので、そのまま残す
+function makeOpaque(data, channels) {
+  for (let alpha = channels - 1; alpha < data.length; alpha += channels) {
+    if (data[alpha] >= HOUSE_OPAQUE_ALPHA) data[alpha] = 255;
+  }
+}
+
 const sheets = new Map();
-async function figuresOf(sheet) {
+async function sheetOf(sheet) {
   if (!sheets.has(sheet)) {
     const { data, info } = await sharp(join(sourceDir, sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    makeOpaque(data, info.channels);
     const columns = figureColumns(data, info.width, info.height, info.channels);
     const figures = columns.map(({ left, right }) => ({ left, right, ...figureRows(data, info.width, info.channels, left, right, info.height) }));
-    sheets.set(sheet, figures);
+    sheets.set(sheet, { data, info, figures });
   }
   return sheets.get(sheet);
 }
 
+async function figuresOf(sheet) {
+  return (await sheetOf(sheet)).figures;
+}
+
 const sizes = {};
 for (const [id, { sheet, index }] of Object.entries(SPRITE_SOURCES)) {
-  const figures = await figuresOf(sheet);
+  const { data, info, figures } = await sheetOf(sheet);
   const figure = figures[index];
   if (!figure) throw new Error(`${sheet} に左から${index + 1}人目がいません（${figures.length}人）`);
   const cropWidth = figure.right - figure.left + 1;
@@ -114,14 +127,14 @@ for (const [id, { sheet, index }] of Object.entries(SPRITE_SOURCES)) {
   const outWidth = Math.round(cropWidth * SPRITE_SCALE);
   const outHeight = Math.round(cropHeight * SPRITE_SCALE);
   const file = `person-${id}.webp`;
-  const info = await sharp(join(sourceDir, sheet))
+  const out = await sharp(data, { raw: info })
     .extract({ left: figure.left, top: figure.top, width: cropWidth, height: cropHeight })
     .resize({ width: outWidth, height: outHeight })
     .webp({ quality: WEBP_QUALITY, alphaQuality: 100 })
     .toFile(join(outDir, file));
   written.add(file);
   sizes[id] = { width: outWidth, height: outHeight };
-  console.log(`書き出し：public/${ILLUST_DIR}/${file}（${outWidth}×${outHeight}、${Math.round(info.size / 1024)}KB）`);
+  console.log(`書き出し：public/${ILLUST_DIR}/${file}（${outWidth}×${outHeight}、${Math.round(out.size / 1024)}KB）`);
 }
 
 // 家・小物：濃いところを不透明にし、透明なふちを切り落とす。columns を渡すと、その列の範囲だけを見る（1枚に並んだ小物）。
@@ -133,10 +146,10 @@ async function writeOpaqueCrop(source, columns, name, widths) {
   let right = -1;
   let top = info.height;
   let bottom = -1;
+  makeOpaque(data, info.channels);
   for (let y = 0; y < info.height; y++) {
     for (let x = fromX; x <= toX; x++) {
       const alpha = (y * info.width + x) * info.channels + 3;
-      if (data[alpha] >= HOUSE_OPAQUE_ALPHA) data[alpha] = 255;
       if (data[alpha] > ALPHA_THRESHOLD) {
         left = Math.min(left, x);
         right = Math.max(right, x);
