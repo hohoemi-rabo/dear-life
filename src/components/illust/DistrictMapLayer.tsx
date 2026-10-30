@@ -26,12 +26,13 @@ export function DistrictMapLayer({ selected, onSelect }: { selected: DistrictId 
                 className={[
                   // PC（lg）では絵が 1200px まで広がるので、札も絵に合わせて大きくする（2026-10-31 まさゆきさん）
                   "rounded-md px-2 py-1 text-xs font-bold leading-tight shadow-card transition duration-150 group-active:scale-95 sm:text-sm lg:rounded-lg lg:px-4 lg:py-2 lg:text-2xl",
-                  vertical ? "[writing-mode:vertical-rl]" : "whitespace-nowrap",
+                  // 縦書きは writing-mode を使わず1字ずつ積む。iPhone の Safari では writing-mode だと字が札の右に寄るため（2026-10-31）
+                  vertical ? "flex flex-col items-center" : "whitespace-nowrap",
                   // 選んだ地区は後ろの絵が透ける明るい薄緑に白い枠、選んでいない地区は暗い濃い緑（2026-10-29 まさゆきさん）
                   isSelected ? "bg-map-label-selected/75 text-primary-hover ring-2 ring-white" : "bg-map-label-idle/90 text-white group-hover:bg-map-label-idle",
                 ].join(" ")}
               >
-                {name}
+                {vertical ? [...name].map((char, index) => <span key={index}>{char}</span>) : name}
               </span>
             </button>
           </li>
