@@ -69,19 +69,22 @@ export function KurashiView() {
 
       <div className="flex min-w-0 flex-col gap-4">
         {pictures ? (
-          // 風景の絵は画面の端まで広げる（スマホ）。見出しは空の上に置く（見本）：PC は絵の上の1/4 が空なので絵に重ね、
-          // スマホの縦長の絵は空が狭いので、空の色の帯を絵の上に足してそこに置く
+          // 風景の絵は画面の端まで広げる（スマホ）。見出し・条件の札・季節の切りかえは絵の空の上に重ねる（見本）。
+          // スマホは重ねるものが多く空からはみ出すので、絵の上に空と同じ色の帯を少し足し、絵を見出しの下にもぐらせる
+          // （もぐらせる量は幅に対する％＝絵の高さの約3割。空と雪山の範囲）
           <section
             aria-label="季節の場面"
             style={skyStyle(pictures)}
-            className="-mx-4 -mt-6 flex flex-col bg-[linear-gradient(to_bottom,#F4FAFF,#D9EDFC_55%,var(--sky))] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
+            className="-mx-4 -mt-6 flex flex-col bg-[var(--sky)] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
           >
-            <div className="px-4 pb-3 pt-4 lg:absolute lg:inset-x-0 lg:top-0 lg:z-20 lg:bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] lg:pb-8 lg:pt-6">
+            <div className="relative z-30 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] px-4 pb-3 pt-3 lg:absolute lg:inset-x-0 lg:top-0 lg:pb-8 lg:pt-6">
               {heading}
             </div>
-            <ScreenDataBoundary fallback={<Skeleton className="aspect-[941/1672] w-full rounded-none lg:aspect-[3/2]" />}>
-              <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
-            </ScreenDataBoundary>
+            <div className="-mt-[37%] lg:mt-0">
+              <ScreenDataBoundary fallback={<Skeleton className="aspect-[1122/1402] w-full rounded-none lg:aspect-[3/2]" />}>
+                <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
+              </ScreenDataBoundary>
+            </div>
           </section>
         ) : (
           <section aria-label="季節の場面" className="flex flex-col gap-4">
@@ -124,9 +127,9 @@ export function KurashiView() {
   );
 }
 
-// スマホの縦長の絵のいちばん上の空の色。見出しの帯の下を絵につなげる
+// スマホの縦長の絵のいちばん上の空の色。絵の上に足す帯を、切れ目なく絵につなげる
 const SKY_COLORS: Partial<Record<KurashiPictures["tall"], string>> = {
-  "kurashi-kamisato-spring-tall": "#41A4FD",
+  "kurashi-kamisato-spring-tall": "#35A2FC",
 };
 
 function skyStyle(pictures: KurashiPictures): CSSProperties {

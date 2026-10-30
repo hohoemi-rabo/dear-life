@@ -38,9 +38,9 @@ export function EventCard({
           className="flex w-full items-center gap-3 rounded-card border border-line bg-surface p-2 pr-3 text-left shadow-card transition duration-150 hover:border-ink-muted active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           {thumbnail ? (
-            <PinThumbnail picture={thumbnail.picture} spot={thumbnail.spot} className="w-28 shrink-0 lg:w-36" />
+            <PinThumbnail picture={thumbnail.picture} spot={thumbnail.spot} className="w-24 shrink-0 lg:w-36" />
           ) : (
-            <span className="flex aspect-[3/2] w-28 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
+            <span className="flex aspect-[3/2] w-24 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
               <PixelImage asset={EVENT_ART_ASSET[event.art]} scale={2} decorative />
             </span>
           )}

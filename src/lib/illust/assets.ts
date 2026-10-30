@@ -45,11 +45,12 @@ export const ILLUST_PICTURES = {
     widths: [960, 1440],
     alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
+  // スマホ用も見出し・条件の札・季節の切りかえを空の上に重ねるので、上の約3割は空と遠くの雪山だけ（2026-10-30 作り直し。4:5）
   "kurashi-kamisato-spring-tall": {
     source: "kurashi-kamisato-spring-tall.png",
-    width: 941,
-    height: 1672,
-    widths: [480, 941],
+    width: 1122,
+    height: 1402,
+    widths: [480, 960],
     alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   "district-kamisato": {

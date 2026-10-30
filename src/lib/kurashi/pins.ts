@@ -27,10 +27,10 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
     public: { x: 77.5, y: 58, side: "left" },
   },
   "kurashi-kamisato-spring-tall": {
-    school: { x: 30, y: 31, side: "right" },
-    event: { x: 84, y: 16, side: "left" },
-    housing: { x: 48, y: 17.5, side: "left" },
-    public: { x: 80, y: 44, side: "left" },
+    school: { x: 27.6, y: 49, side: "right" },
+    event: { x: 85, y: 40, side: "left" },
+    housing: { x: 51, y: 39.5, side: "left" },
+    public: { x: 77, y: 60, side: "left" },
   },
 };
 
