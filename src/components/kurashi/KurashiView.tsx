@@ -12,7 +12,7 @@ import type { Season } from "@/lib/conditions/scene";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { kurashiPicturesFor, type KurashiPictures } from "@/lib/illust/assets";
-import { familyMembers } from "@/lib/illust/family";
+import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { karteHref } from "@/lib/kurashi/links";
 import { pinSheet } from "@/lib/kurashi/pin-sheets";
 import { PIN_SPOTS, pinsFor, type PinId } from "@/lib/kurashi/pins";
@@ -165,6 +165,7 @@ function SceneWithPins({
         pictures={pictures}
         label={label}
         members={familyMembers(conditions)}
+        hiddenChildren={hiddenChildren(conditions)}
         pins={pins}
         openPin={openPin}
         onOpenPin={onOpenPin}

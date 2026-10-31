@@ -7,6 +7,8 @@ import { PixelImage } from "@/components/pixel/PixelImage";
 import { CAR_LABELS, DISTRICTS, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type CarCount, type Housing } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
+import { ExtraChildrenBadge } from "@/components/illust/ExtraChildrenBadge";
+import { hiddenChildren } from "@/lib/illust/family";
 import { familyArtFor, landmarkAssetId } from "@/lib/pixel/assets";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -111,8 +113,9 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
           <PixelIcon icon="icon-sprout" />
           わが家の設定
         </h2>
-        <div className="flex justify-center">
+        <div className="flex items-start justify-center gap-1">
           <PixelImage asset={familyArtFor(conditions)} scale={3} decorative />
+          <ExtraChildrenBadge count={hiddenChildren(conditions)} />
         </div>
         <p className="text-center font-bold">{familyLabel(conditions)}</p>
         <div className="flex flex-col gap-2 text-sm">

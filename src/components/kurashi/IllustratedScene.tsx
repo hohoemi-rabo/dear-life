@@ -13,6 +13,7 @@ export function IllustratedScene({
   pictures,
   label,
   members,
+  hiddenChildren,
   pins,
   openPin,
   onOpenPin,
@@ -22,6 +23,8 @@ export function IllustratedScene({
   // 風景の説明（読み上げ）。家族の構成も入れる
   label: string;
   members: readonly Person[];
+  // 絵に出せない5人目からの子ども（「＋N人」の札で出す）
+  hiddenChildren: number;
   pins: readonly PinId[];
   openPin: PinId | null;
   onOpenPin: (pin: PinId | null) => void;
@@ -42,10 +45,10 @@ export function IllustratedScene({
     <figure role="group" aria-label={label} className="relative isolate aspect-[1122/1402] overflow-hidden bg-pixel-sky lg:aspect-[3/2]">
       <ScenePicture pictures={pictures} />
       <div className="absolute inset-0 lg:hidden">
-        <FamilyLayer members={members} background={pictures.tall} facing="back" />
+        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.tall} facing="back" />
       </div>
       <div className="absolute inset-0 hidden lg:block">
-        <FamilyLayer members={members} background={pictures.wide} facing="back" />
+        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.wide} facing="back" />
       </div>
       {pins.map((pin) => (
         <ScenePin

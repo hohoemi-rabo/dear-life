@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DISTRICTS } from "../conditions/labels";
 import { ERABU_BASES, PEOPLE, POSES, SPRITE_SOURCES, erabuBaseFor, spriteId } from "./assets";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
-import { familyMembers, placeFamily } from "./family";
+import { familyMembers, hiddenChildren, placeFamily } from "./family";
 import { placeCars } from "./car";
 import { placeHouse } from "./house";
 import { placePriorityMarks } from "./priorities";
@@ -31,7 +31,11 @@ describe("familyMembers（028 まさゆきさん決定）", () => {
     expect(familyMembers({ adults: 2, children: 1, parent: "father" })).toEqual(["father", "boy", "mother"]);
   });
 
-  it("範囲の外の人数でも、絵に出せる子ども4人までにする", () => {
+  it("5人目からの子どもは絵に出さず、その人数を数える", () => {
+    expect([0, 4, 5, 8].map((children) => hiddenChildren({ children }))).toEqual([0, 0, 1, 4]);
+  });
+
+  it("5人以上でも、絵に出すのは子ども4人までにする", () => {
     expect(familyMembers({ adults: 2, children: 5, parent: "mother" })).toEqual(["father", "boy", "girl", "boy2", "girl2", "mother"]);
   });
 });

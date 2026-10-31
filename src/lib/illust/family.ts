@@ -8,6 +8,11 @@ import { SPRITE_SIZES } from "./sprites.ts";
 // 3人目が青い服の男の子、4人目が紫の服の女の子（2026-10-31 まさゆきさん）。左から お父さん・子ども・お母さん の順に並べる（見本の並び）
 const KIDS = ["boy", "girl", "boy2", "girl2"] as const satisfies readonly Person[];
 
+// 絵に出せない子ども（5人目から）の人数。絵の横に「＋N人」の札で出す（2026-10-31 まさゆきさん）
+export function hiddenChildren({ children }: Pick<Conditions, "children">): number {
+  return Math.max(0, children - KIDS.length);
+}
+
 export function familyMembers({ adults, children, parent }: Pick<Conditions, "adults" | "children" | "parent">): Person[] {
   const kids: Person[] = KIDS.slice(0, Math.max(0, Math.min(children, KIDS.length)));
   if (adults >= 2) return ["father", ...kids, "mother"];

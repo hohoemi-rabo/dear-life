@@ -85,6 +85,11 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        // 絵に出せない5人目からの子どもを増やしたとき（028）：今いる子どもたちがぴょんと跳ねる
+        hop: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "40%": { transform: "translateY(-14%)" },
+        },
         // くらしのピン（028）：押せると分かるよう、ゆっくり少しだけ上下にゆれる
         "pin-bob": {
           "0%, 100%": { transform: "translateY(0)" },
@@ -95,6 +100,7 @@ const config: Config = {
         "pop-in": "pop-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "pop-out": "pop-out 240ms ease-in both",
         sparkle: "sparkle 700ms ease-out both",
+        hop: "hop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "pin-drop": "pin-drop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "sheet-in": "sheet-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "sheet-out": "sheet-out 200ms ease-in both",

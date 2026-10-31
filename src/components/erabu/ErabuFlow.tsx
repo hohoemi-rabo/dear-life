@@ -26,7 +26,7 @@ import {
   type QuestionId,
 } from "@/lib/erabu/questions";
 import { erabuBaseFor } from "@/lib/illust/assets";
-import { familyMembers } from "@/lib/illust/family";
+import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { KURASHI_PATH } from "@/lib/site";
 import { ErabuProgress } from "./ErabuProgress";
 import { ErabuReplyCard } from "./ErabuReplyCard";
@@ -145,7 +145,13 @@ function ErabuPreview({
     <PreviewFrame background={background} label={label}>
       {showHouse && <HouseLayer housing={conditions.housing} background={background} />}
       {showCar && <CarLayer car={conditions.car} background={background} />}
-      <FamilyLayer key={question} members={familyMembers(conditions)} background={background} facing={atPriorities ? "back" : "front"} />
+      <FamilyLayer
+        key={question}
+        members={familyMembers(conditions)}
+        hiddenChildren={hiddenChildren(conditions)}
+        background={background}
+        facing={atPriorities ? "back" : "front"}
+      />
       {atPriorities && <PriorityMarkLayer priorities={conditions.priorities} housing={conditions.housing} background={background} />}
     </PreviewFrame>
   );

@@ -139,19 +139,29 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("どの地区で暮らす？");
   });
 
-  it("家族は大人1〜2人・子ども0〜4人をタップで増減し、プレビューの家族も変わる", async () => {
+  it("家族は大人1〜2人・子ども0〜8人をタップで増減し、プレビューの家族も変わる", async () => {
     await open("d=kamisato&q=family");
     expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "大人を1人増やす" })).toBeDisabled();
-    await tap("子どもを1人増やす");
-    await tap("子どもを1人増やす");
-    await tap("子どもを1人増やす");
-    expect(params().get("k")).toBe("4");
+    for (let i = 0; i < 7; i++) await tap("子どもを1人増やす");
+    expect(params().get("k")).toBe("8");
     expect(screen.getByRole("button", { name: "子どもを1人増やす" })).toBeDisabled();
     await tap("大人を1人減らす");
     expect(params().get("a")).toBe("1");
     expect(screen.getByRole("button", { name: "大人を1人減らす" })).toBeDisabled();
-    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、お母さん・子ども4人の家族" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、お母さん・子ども8人の家族" })).toBeInTheDocument();
+  });
+
+  it("子ども5人目からは絵の人を増やさず、「＋N人」の札で数える", async () => {
+    await open("d=kamisato&k=4&q=family");
+    expect(screen.queryByTestId("extra-children")).not.toBeInTheDocument();
+    await tap("子どもを1人増やす");
+    expect(screen.getByTestId("extra-children")).toHaveTextContent("＋1人");
+    await tap("子どもを1人増やす");
+    expect(screen.getByTestId("extra-children")).toHaveTextContent("＋2人");
+    await tap("子どもを1人減らす");
+    await tap("子どもを1人減らす");
+    expect(screen.queryByTestId("extra-children")).not.toBeInTheDocument();
   });
 
   it("大人1人のときだけ、お母さん・お父さんを選べる（ひとり親の家族）", async () => {

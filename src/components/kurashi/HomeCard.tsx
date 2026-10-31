@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, familyLabel } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { spriteId, spriteSrc } from "@/lib/illust/assets";
-import { familyMembers } from "@/lib/illust/family";
+import { ExtraChildrenBadge } from "@/components/illust/ExtraChildrenBadge";
+import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { SPRITE_SIZES } from "@/lib/illust/sprites";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
@@ -20,7 +21,7 @@ export function HomeCard({ conditions, onChangeConditions }: { conditions: Condi
       <h2 id="home-title" className="font-bold">
         わが家
       </h2>
-      <div aria-hidden="true" className="flex items-end justify-center">
+      <div aria-hidden="true" className={`relative flex items-end justify-center ${hiddenChildren(conditions) > 0 ? "pt-7" : ""}`}>
         {members.map((person, index) => {
           const id = spriteId(person, "stand");
           return (
@@ -35,6 +36,7 @@ export function HomeCard({ conditions, onChangeConditions }: { conditions: Condi
             />
           );
         })}
+        <ExtraChildrenBadge count={hiddenChildren(conditions)} className="absolute right-0 top-0" />
       </div>
       <p className="text-center text-sm">{familyLabel(conditions)}</p>
       <ul className="flex flex-col gap-2 border-t border-line pt-3 text-sm">
