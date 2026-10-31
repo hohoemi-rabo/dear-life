@@ -134,7 +134,7 @@ function ErabuPreview({
   const place = conditions.district ? DISTRICT_NAMES[conditions.district] : "飯田";
   const showHouse = isAtOrAfter(question, "housing");
   const showCar = isAtOrAfter(question, "car");
-  const family = `${familyLabel(conditions.adults, conditions.children)}の家族`;
+  const family = `${familyLabel(conditions)}の家族`;
   const carNote = showCar && conditions.car !== null ? `（車${CAR_LABELS[conditions.car]}）` : "";
   const picked = PRIORITIES.filter((priority) => conditions.priorities.includes(priority)).map((priority) => KARTE_CARD_LABELS[priority]);
   const markNote = atPriorities && picked.length > 0 ? `。印：${picked.join("・")}` : "";

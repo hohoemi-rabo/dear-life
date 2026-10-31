@@ -158,7 +158,7 @@ function SceneWithPins({
   const wide = useWideScreen();
   const pins = pinsFor(view.plan, conditions);
   const sheet = openPin ? pinSheet({ pin: openPin, season, conditions, ...view }) : null;
-  const label = `${view.district.name}の${season}の風景（イメージ）。家族：${familyLabel(conditions.adults, conditions.children)}。場所を押すと、その場所のデータが出ます`;
+  const label = `${view.district.name}の${season}の風景（イメージ）。家族：${familyLabel(conditions)}。場所を押すと、その場所のデータが出ます`;
   return (
     <>
       <IllustratedScene

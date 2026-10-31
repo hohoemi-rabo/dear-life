@@ -151,7 +151,22 @@ describe("ErabuFlow：質問の進行", () => {
     await tap("大人を1人減らす");
     expect(params().get("a")).toBe("1");
     expect(screen.getByRole("button", { name: "大人を1人減らす" })).toBeDisabled();
-    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人1人・子ども4人の家族" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、お母さん・子ども4人の家族" })).toBeInTheDocument();
+  });
+
+  it("大人1人のときだけ、お母さん・お父さんを選べる（ひとり親の家族）", async () => {
+    await open("d=kamisato&q=family");
+    expect(screen.queryByRole("button", { name: "お父さん" })).not.toBeInTheDocument();
+    await tap("大人を1人減らす");
+    expect(screen.getByRole("button", { name: "お母さん" })).toHaveAttribute("aria-pressed", "true");
+    expect(params().get("o")).toBe("mother");
+    await tap("お父さん");
+    expect(params().get("o")).toBe("father");
+    expect(screen.getByRole("button", { name: "お父さん" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、お父さん・子ども1人の家族" })).toBeInTheDocument();
+    await tap("大人を1人増やす");
+    expect(screen.queryByRole("button", { name: "お父さん" })).not.toBeInTheDocument();
+    expect(params().has("o")).toBe(false);
   });
 
   it("車は「まだ決めない」で未選択にして次の質問へ進む", async () => {
@@ -190,7 +205,7 @@ describe("ErabuFlow：質問の進行", () => {
   it("大切なこと：車が未選択なら、選んだ条件の帯に車を出さない", async () => {
     await open("d=kamisato&a=1&k=0&q=priorities");
     const chosen = screen.getByRole("list", { name: "選んだ条件" });
-    expect(within(chosen).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["上郷", "大人1人・子ども0人"]);
+    expect(within(chosen).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["上郷", "お母さん・子ども0人"]);
   });
 });
 

@@ -83,7 +83,7 @@ export function ConditionChips({
       )}
       <li className={CHIP}>
         <PixelIcon icon="icon-family" size="sm" />
-        {familyLabel(conditions.adults, conditions.children)}
+        {familyLabel(conditions)}
       </li>
       {showAll && (
         <>
@@ -112,9 +112,9 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
           わが家の設定
         </h2>
         <div className="flex justify-center">
-          <PixelImage asset={familyArtFor(conditions.adults, conditions.children)} scale={3} decorative />
+          <PixelImage asset={familyArtFor(conditions)} scale={3} decorative />
         </div>
-        <p className="text-center font-bold">{familyLabel(conditions.adults, conditions.children)}</p>
+        <p className="text-center font-bold">{familyLabel(conditions)}</p>
         <div className="flex flex-col gap-2 text-sm">
           <SettingRow icon={<PixelIcon icon="icon-pin" />} label="地区">
             <SettingSelect

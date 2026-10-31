@@ -8,6 +8,8 @@ type Enums = Database["public"]["Enums"];
 export type Housing = "new" | "old" | "rent";
 // 2 は「2台以上」
 export type CarCount = 0 | 1 | 2;
+// 大人1人の家族の大人（ひとり親の家族も選べるように。2026-10-31 まさゆきさん）
+export type SingleParent = "mother" | "father";
 export type KarteCard =
   | "housing"
   | "childcare"
@@ -68,8 +70,15 @@ export const PRIORITIES: readonly Priority[] = KARTE_CARDS.filter(
   (card): card is Priority => card !== "support" && card !== "public_facilities",
 );
 
-export function familyLabel(adults: number, children: number): string {
-  return `大人${adults}人・子ども${children}人`;
+export const SINGLE_PARENT_LABELS: Readonly<Record<SingleParent, string>> = {
+  mother: "お母さん",
+  father: "お父さん",
+};
+
+// 大人1人のときは、選んだ大人（お母さん・お父さん）を出す
+export function familyLabel({ adults, children, parent }: { adults: number; children: number; parent: SingleParent }): string {
+  const grownUps = adults === 1 ? SINGLE_PARENT_LABELS[parent] : `大人${adults}人`;
+  return `${grownUps}・子ども${children}人`;
 }
 
 // カルテのカードの id。くらしの場面から、カルテの該当カードへ直接移るのに使う（F-14・019）

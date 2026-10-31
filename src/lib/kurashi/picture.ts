@@ -19,7 +19,7 @@ export function scenePictureLayers({
   events,
 }: {
   plan: ScenePlan;
-  conditions: Pick<Conditions, "adults" | "children">;
+  conditions: Pick<Conditions, "adults" | "children" | "parent">;
   district: DistrictData;
   // 場面に出す行事（selectSceneEvents の結果）
   events: readonly DistrictEvent[];
@@ -59,7 +59,7 @@ export function scenePictureLayers({
     [landmarkAssetId(district.id, season), "landmark"],
     [firstEvent ? eventArt(firstEvent) : null, "fieldLeft"],
     [fieldRight, "fieldRight"],
-    [familyArtFor(conditions.adults, conditions.children), "family"],
+    [familyArtFor(conditions), "family"],
     [roadRight, "roadRight"],
     [overlay, "full"],
   ];

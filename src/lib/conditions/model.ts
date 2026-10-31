@@ -1,12 +1,14 @@
 // 選んだ条件（要件 F-01・F-02）。氏名・住所・年齢は持たない
 import type { DistrictId } from "../town-district/resolve.ts";
-import type { CarCount, Housing, Priority } from "./labels.ts";
+import type { CarCount, Housing, Priority, SingleParent } from "./labels.ts";
 
 export type Conditions = {
   // 住む地区は必須。まだ選んでいないあいだは null
   district: DistrictId | null;
   adults: number;
   children: number;
+  // 大人1人のときの大人。大人2人のときは使わない（お父さんとお母さんの両方を出す）
+  parent: SingleParent;
   housing: Housing;
   // 任意。未選択は null（場面とカルテでは「1台以上」と同じ扱い。要件 4章）
   car: CarCount | null;
@@ -20,11 +22,13 @@ export type Conditions = {
 export const ADULTS_RANGE = { min: 1, max: 2 } as const;
 export const CHILDREN_RANGE = { min: 0, max: 4 } as const;
 
-// 質問を飛ばしたときの初期値（F-01）：大人2人・子ども1人・買う・新しめ、車は未選択
+// 質問を飛ばしたときの初期値（F-01）：大人2人・子ども1人・買う・新しめ、車は未選択。
+// 大人を1人に減らしたときは、まずお母さん（それまでの大人1人の絵と同じ）
 export const DEFAULT_CONDITIONS: Conditions = {
   district: null,
   adults: 2,
   children: 1,
+  parent: "mother",
   housing: "new",
   car: null,
   priorities: [],

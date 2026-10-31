@@ -2,7 +2,16 @@
 // URL は外部入力なので、知らない値は黙って初期値に戻す（共有された古い URL でも画面が開けるように）。
 // 人数だけは範囲の端に丸める（028 で選べる人数を減らす前の URL の「子ども3人」は、初期値の1人より2人のほうが近い）
 import type { DistrictId } from "../town-district/resolve.ts";
-import { DISTRICT_NAMES, HOUSING_LABELS, PRIORITIES, type CarCount, type Housing, type Priority } from "./labels.ts";
+import {
+  DISTRICT_NAMES,
+  HOUSING_LABELS,
+  PRIORITIES,
+  SINGLE_PARENT_LABELS,
+  type CarCount,
+  type Housing,
+  type Priority,
+  type SingleParent,
+} from "./labels.ts";
 import { ADULTS_RANGE, CHILDREN_RANGE, DEFAULT_CONDITIONS, type Conditions } from "./model.ts";
 
 // パラメータ名は短く固定する。変えると共有された URL が読めなくなる
@@ -10,6 +19,7 @@ export const CONDITION_PARAMS = {
   district: "d",
   adults: "a",
   children: "k",
+  parent: "o",
   housing: "h",
   car: "c",
   priorities: "p",
@@ -32,6 +42,10 @@ function isHousing(value: string | null): value is Housing {
   return value !== null && Object.hasOwn(HOUSING_LABELS, value);
 }
 
+function isSingleParent(value: string | null): value is SingleParent {
+  return value !== null && Object.hasOwn(SINGLE_PARENT_LABELS, value);
+}
+
 function parseCar(value: string | null): CarCount | null {
   if (value === "0" || value === "1" || value === "2") return Number(value) as CarCount;
   return null;
@@ -47,10 +61,12 @@ function parsePriorities(value: string | null): Priority[] {
 export function parseConditions(params: ReadableParams): Conditions {
   const district = params.get(CONDITION_PARAMS.district);
   const housing = params.get(CONDITION_PARAMS.housing);
+  const parent = params.get(CONDITION_PARAMS.parent);
   return {
     district: isDistrictId(district) ? district : DEFAULT_CONDITIONS.district,
     adults: parseCount(params.get(CONDITION_PARAMS.adults), ADULTS_RANGE, DEFAULT_CONDITIONS.adults),
     children: parseCount(params.get(CONDITION_PARAMS.children), CHILDREN_RANGE, DEFAULT_CONDITIONS.children),
+    parent: isSingleParent(parent) ? parent : DEFAULT_CONDITIONS.parent,
     housing: isHousing(housing) ? housing : DEFAULT_CONDITIONS.housing,
     car: parseCar(params.get(CONDITION_PARAMS.car)),
     priorities: parsePriorities(params.get(CONDITION_PARAMS.priorities)),
@@ -58,7 +74,8 @@ export function parseConditions(params: ReadableParams): Conditions {
 }
 
 // 条件を URL パラメータにする。base にある条件以外のパラメータ（季節など）は残す。
-// 家族と家は初期値でも書き出し、URL だけ見ても選んだ条件がわかるようにする
+// 家族と家は初期値でも書き出し、URL だけ見ても選んだ条件がわかるようにする。
+// 大人1人のときの大人（お母さん・お父さん）は、大人1人のときだけ書く（大人2人なら意味がないので）
 export function writeConditions(conditions: Conditions, base?: ReadableParams & Iterable<[string, string]>): URLSearchParams {
   const params = new URLSearchParams();
   if (base) {
@@ -69,6 +86,7 @@ export function writeConditions(conditions: Conditions, base?: ReadableParams & 
   if (conditions.district) params.set(CONDITION_PARAMS.district, conditions.district);
   params.set(CONDITION_PARAMS.adults, String(conditions.adults));
   params.set(CONDITION_PARAMS.children, String(conditions.children));
+  if (conditions.adults === 1) params.set(CONDITION_PARAMS.parent, conditions.parent);
   params.set(CONDITION_PARAMS.housing, conditions.housing);
   if (conditions.car !== null) params.set(CONDITION_PARAMS.car, String(conditions.car));
   const priorities = PRIORITIES.filter((priority) => conditions.priorities.includes(priority));

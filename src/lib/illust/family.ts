@@ -4,13 +4,14 @@ import type { Conditions } from "../conditions/model.ts";
 import { ILLUST_PICTURES, spriteId, type ErabuBaseId, type KurashiPictureId, type Person, type Pose } from "./assets.ts";
 import { SPRITE_SIZES } from "./sprites.ts";
 
-// 大人1人ならお母さん、2人ならお父さんとお母さん。子どもは1人目が男の子、2人目が女の子（2026-10-29 まさゆきさん決定）、
+// 大人1人なら選んだ方（お母さん・お父さん。2026-10-31 まさゆきさん：ひとり親の家族も選べるように）、2人ならお父さんとお母さん。子どもは1人目が男の子、2人目が女の子（2026-10-29 まさゆきさん決定）、
 // 3人目が青い服の男の子、4人目が紫の服の女の子（2026-10-31 まさゆきさん）。左から お父さん・子ども・お母さん の順に並べる（見本の並び）
 const KIDS = ["boy", "girl", "boy2", "girl2"] as const satisfies readonly Person[];
 
-export function familyMembers({ adults, children }: Pick<Conditions, "adults" | "children">): Person[] {
+export function familyMembers({ adults, children, parent }: Pick<Conditions, "adults" | "children" | "parent">): Person[] {
   const kids: Person[] = KIDS.slice(0, Math.max(0, Math.min(children, KIDS.length)));
-  return adults >= 2 ? ["father", ...kids, "mother"] : [...kids, "mother"];
+  if (adults >= 2) return ["father", ...kids, "mother"];
+  return parent === "father" ? ["father", ...kids] : [...kids, "mother"];
 }
 
 // 家族を立たせる背景（えらぶのプレビューと、くらしの場面）

@@ -19,27 +19,36 @@ describe("familyMembers（028 まさゆきさん決定）", () => {
     [2, 4, ["father", "boy", "girl", "boy2", "girl2", "mother"]],
     [1, 4, ["boy", "girl", "boy2", "girl2", "mother"]],
   ] as const)("大人%i人・子ども%i人 → %j", (adults, children, expected) => {
-    expect(familyMembers({ adults, children })).toEqual(expected);
+    expect(familyMembers({ adults, children, parent: "mother" })).toEqual(expected);
+  });
+
+  it("大人1人でお父さんを選んだときは、お父さん・子ども… の順にする", () => {
+    expect(familyMembers({ adults: 1, children: 2, parent: "father" })).toEqual(["father", "boy", "girl"]);
+    expect(familyMembers({ adults: 1, children: 0, parent: "father" })).toEqual(["father"]);
+  });
+
+  it("大人2人のときは、どちらを選んでいてもお父さんとお母さん", () => {
+    expect(familyMembers({ adults: 2, children: 1, parent: "father" })).toEqual(["father", "boy", "mother"]);
   });
 
   it("範囲の外の人数でも、絵に出せる子ども4人までにする", () => {
-    expect(familyMembers({ adults: 2, children: 5 })).toEqual(["father", "boy", "girl", "boy2", "girl2", "mother"]);
+    expect(familyMembers({ adults: 2, children: 5, parent: "mother" })).toEqual(["father", "boy", "girl", "boy2", "girl2", "mother"]);
   });
 });
 
 describe("placeFamily", () => {
   it("5人目からは家族全体を少し小さくし、6人でも横幅は4人のときの1.3倍までに収める", () => {
     const span = (children: number) => {
-      const placements = placeFamily(familyMembers({ adults: 2, children }), "erabu-kamisato-base");
+      const placements = placeFamily(familyMembers({ adults: 2, children, parent: "mother" }), "erabu-kamisato-base");
       return placements.at(-1)!.centerX - placements[0].centerX;
     };
-    const height = (children: number) => placeFamily(familyMembers({ adults: 2, children }), "erabu-kamisato-base")[0].heightPercent("stand");
+    const height = (children: number) => placeFamily(familyMembers({ adults: 2, children, parent: "mother" }), "erabu-kamisato-base")[0].heightPercent("stand");
     expect(span(4)).toBeLessThan(span(2) * 1.3);
     expect(height(3)).toBeLessThan(height(2));
     expect(height(4)).toBeLessThan(height(3));
   });
 
-  const members = familyMembers({ adults: 2, children: 2 });
+  const members = familyMembers({ adults: 2, children: 2, parent: "mother" });
 
   it("左から順に並び、全員が背景の中に収まる", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
@@ -94,7 +103,7 @@ describe("絵の一覧", () => {
 describe("placeHouse（028 見本の 03）", () => {
   it("どの家も背景の中に収まり、家族より奥（足もとより上）に建つ", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
-      const familyFoot = placeFamily(familyMembers({ adults: 2, children: 2 }), background)[0].footY;
+      const familyFoot = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background)[0].footY;
       for (const housing of ["new", "old", "rent"] as const) {
         const { centerX, footY, width, height } = placeHouse(housing, background);
         expect(centerX - width / 2).toBeGreaterThan(0);
@@ -116,7 +125,7 @@ describe("placeCars（028 見本の 04）", () => {
 
   it("車は背景の中に収まり、家族の右・少し奥に、白・青の順で横に並ぶ（車どうしの重なりは少しだけ）", () => {
     for (const background of ["erabu-kamisato-base", "erabu-iida-overview"] as const) {
-      const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
+      const family = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background);
       const [white, blue] = placeCars(2, background);
       expect(white.centerX).toBeLessThan(blue.centerX);
       expect(white.centerX + white.width / 2 - (blue.centerX - blue.width / 2)).toBeLessThan(white.width * 0.25);
@@ -136,7 +145,7 @@ describe("05 の背景（2026-10-29 まさゆきさん）", () => {
   const background = "erabu-kamisato-priorities";
 
   it("見本どおり、家と車は家族の左に収まる（家族は広場のいちばん奥に立つ。2026-10-30 まさゆきさん）", () => {
-    const family = placeFamily(familyMembers({ adults: 2, children: 2 }), background);
+    const family = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background);
     for (const housing of ["new", "old", "rent"] as const) {
       const { centerX, footY, height } = placeHouse(housing, background);
       expect(centerX).toBeLessThan(family[0].centerX);

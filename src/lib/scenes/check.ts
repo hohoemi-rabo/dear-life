@@ -73,6 +73,7 @@ export function sceneConditionCombinations(): Conditions[] {
         district: "kanae" as const,
         adults: 2,
         children: withChildren ? 1 : 0,
+        parent: "mother" as const,
         housing,
         car,
         priorities: [],

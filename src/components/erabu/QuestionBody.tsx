@@ -15,9 +15,11 @@ import {
   HOUSING_LABELS,
   KARTE_CARD_LABELS,
   PRIORITIES,
+  SINGLE_PARENT_LABELS,
   type CarCount,
   type Housing,
   type Priority,
+  type SingleParent,
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
@@ -32,6 +34,8 @@ import {
   PROP_WIDTHS,
   propSrc,
   propSrcSet,
+  spriteId,
+  spriteSrc,
 } from "@/lib/illust/assets";
 import { landmarkAssetId } from "@/lib/pixel/assets";
 import { MAP_PATH } from "@/lib/site";
@@ -147,7 +151,8 @@ function CheckMark({ className, sizeClassName = "size-6 text-sm" }: { className:
 }
 
 // 家族の人数（028 見本）：大人・子どもの「−・＋」を横に並べ、下に「人数を変えると、家族も変わります。」の絵。
-// 家族の絵そのものは上のプレビューに出る
+// 家族の絵そのものは上のプレビューに出る。大人1人のときは、お母さん・お父さんを選べるようにする
+// （ひとり親の家族も多いので。2026-10-31 まさゆきさん）
 function FamilyCounter({ conditions, onChange }: ChoiceProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -155,7 +160,45 @@ function FamilyCounter({ conditions, onChange }: ChoiceProps) {
         <Counter label="大人" value={conditions.adults} range={ADULTS_RANGE} onChange={(adults) => onChange({ adults })} />
         <Counter label="子ども" value={conditions.children} range={CHILDREN_RANGE} onChange={(children) => onChange({ children })} />
       </div>
+      {conditions.adults === 1 && <ParentChoice parent={conditions.parent} onChange={(parent) => onChange({ parent })} />}
       <FamilyHint />
+    </div>
+  );
+}
+
+const SINGLE_PARENTS: readonly SingleParent[] = ["mother", "father"];
+
+// 大人1人のときの大人。人物の絵と名前を並べ、選んだほうは枠を緑にして ✓ を付ける（家・地区のカードと同じ印）
+function ParentChoice({ parent, onChange }: { parent: SingleParent; onChange: (parent: SingleParent) => void }) {
+  return (
+    <div className="flex items-center gap-3 rounded-card bg-kinari-deep px-3 py-2">
+      <span id="erabu-single-parent" className="shrink-0 font-bold">
+        大人1人は
+      </span>
+      <ul className="grid flex-1 grid-cols-2 gap-2" aria-labelledby="erabu-single-parent">
+        {SINGLE_PARENTS.map((id) => {
+          const selected = parent === id;
+          return (
+            <li key={id}>
+              <button
+                type="button"
+                aria-pressed={selected}
+                onClick={() => onChange(id)}
+                className={[
+                  "relative flex min-h-11 w-full items-center justify-center gap-1.5 rounded-card border-2 bg-surface px-2 py-1 font-bold transition duration-150 active:scale-[0.98]",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                  selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
+                ].join(" ")}
+              >
+                {selected && <CheckMark className="-right-1.5 -top-1.5" sizeClassName="size-5 text-xs" />}
+                {/* eslint-disable-next-line @next/next/no-img-element -- 切り出した小さな WebP をそのまま出す（FamilyHint と同じ） */}
+                <img src={spriteSrc(spriteId(id, "stand"))} alt="" draggable={false} className="h-10 w-auto select-none" />
+                <span className="whitespace-nowrap">{SINGLE_PARENT_LABELS[id]}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -390,7 +433,7 @@ function ChosenConditions({ conditions }: { conditions: Conditions }) {
   if (conditions.district === null) return null;
   const items: { icon: ReactNode; label: string }[] = [
     { icon: <MountainGlyph />, label: DISTRICT_NAMES[conditions.district] },
-    { icon: <PeopleGlyph />, label: familyLabel(conditions.adults, conditions.children) },
+    { icon: <PeopleGlyph />, label: familyLabel(conditions) },
   ];
   if (conditions.car !== null) items.push({ icon: <CarGlyph />, label: `車${CAR_LABELS[conditions.car]}` });
   return (

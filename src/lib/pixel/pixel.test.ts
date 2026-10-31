@@ -125,10 +125,14 @@ describe("絵の一覧", () => {
     for (const id of iconIds) expect([DRAW[id]().width, DRAW[id]().height]).toEqual([16, 16]);
   });
 
-  it("家族の id は大人1〜2人・子ども0〜2人のすべてがある", () => {
+  it("家族の id は大人1〜2人（大人1人はお母さん・お父さん）・子ども0〜4人のすべてがある", () => {
     for (const adults of [1, 2] as const) {
-      for (const children of [0, 1, 2] as const) expect(PIXEL_ASSETS[familyAssetId(adults, children)]).toBeDefined();
+      for (const parent of ["mother", "father"] as const) {
+        for (const children of [0, 1, 2, 3, 4] as const) expect(PIXEL_ASSETS[familyAssetId(adults, children, parent)]).toBeDefined();
+      }
     }
+    expect(familyAssetId(1, 2, "father")).toBe("family-a1f-c2");
+    expect(familyAssetId(2, 2, "father")).toBe("family-a2-c2");
   });
 
   it("4地区それぞれに、季節ごとの目印がある（冬は雪の積もった絵）", () => {
@@ -150,15 +154,15 @@ describe("絵の一覧", () => {
   });
 
   it("家族は大人1〜2人・子ども0〜4人で並べられ、足元がそろう", () => {
-    for (const adults of [1, 2] as const) {
+    for (const grownUps of ["mother", "father", "both"] as const) {
       for (let children = 0; children <= 4; children++) {
-        const canvas = familyCanvas(adults, children);
+        const canvas = familyCanvas(grownUps, children);
         const bottom = toRows(canvas).at(-1)!;
         expect(bottom.replaceAll(".", "").length).toBeGreaterThan(0);
         expect(canvas.height).toBe(21);
       }
     }
-    expect(() => familyCanvas(2, 5)).toThrow(RangeError);
+    expect(() => familyCanvas("both", 5)).toThrow(RangeError);
   });
 });
 

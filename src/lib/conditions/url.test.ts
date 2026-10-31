@@ -11,6 +11,7 @@ describe("parseConditions", () => {
       district: null,
       adults: 2,
       children: 1,
+      parent: "mother",
       housing: "new",
       car: null,
       priorities: [],
@@ -18,10 +19,11 @@ describe("parseConditions", () => {
   });
 
   it("すべての条件を読む", () => {
-    expect(parse("d=igara&a=1&k=2&h=old&c=0&p=disaster,housing")).toEqual({
+    expect(parse("d=igara&a=1&k=2&o=father&h=old&c=0&p=disaster,housing")).toEqual({
       district: "igara",
       adults: 1,
       children: 2,
+      parent: "father",
       housing: "old",
       car: 0,
       priorities: ["housing", "disaster"],
@@ -36,6 +38,8 @@ describe("parseConditions", () => {
     ["a=２", "adults", 2],
     ["a=1e1", "adults", 2],
     ["k=abc", "children", 1],
+    ["o=grandma", "parent", "mother"],
+    ["o=", "parent", "mother"],
     ["h=buy", "housing", "new"],
     ["c=3", "car", null],
     ["c=-0", "car", null],
@@ -75,6 +79,7 @@ describe("writeConditions", () => {
     district: "chushin",
     adults: 1,
     children: 0,
+    parent: "father",
     housing: "rent",
     car: 0,
     priorities: ["population", "childcare"],
@@ -82,12 +87,16 @@ describe("writeConditions", () => {
 
   it("短いパラメータ名で書き、読み直すと同じ条件に戻る", () => {
     const params = writeConditions(conditions);
-    expect(Object.fromEntries(params)).toEqual({ d: "chushin", a: "1", k: "0", h: "rent", c: "0", p: "childcare,population" });
+    expect(Object.fromEntries(params)).toEqual({ d: "chushin", a: "1", k: "0", o: "father", h: "rent", c: "0", p: "childcare,population" });
     expect(parseConditions(params)).toEqual({ ...conditions, priorities: ["childcare", "population"] });
   });
 
   it("未選択の地区・車と、空の大切にしたいことは書かない。家族と家は初期値でも書く", () => {
     expect(Object.fromEntries(writeConditions(DEFAULT_CONDITIONS))).toEqual({ a: "2", k: "1", h: "new" });
+  });
+
+  it("大人2人のときは、大人1人のときの大人（o）を書かない", () => {
+    expect(writeConditions({ ...DEFAULT_CONDITIONS, parent: "father" }).has("o")).toBe(false);
   });
 
   it("条件以外のパラメータは残し、古い条件は消す", () => {

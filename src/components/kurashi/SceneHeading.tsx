@@ -44,7 +44,7 @@ export function SceneHeading({
       <p className="flex min-h-tap items-center gap-2 rounded-full bg-surface/90 py-0.5 pl-3 pr-0.5 text-sm shadow-card lg:hidden">
         <FamilyIcon />
         <span>
-          {name}・{familyLabel(conditions.adults, conditions.children)}
+          {name}・{familyLabel(conditions)}
         </span>
         <button
           type="button"

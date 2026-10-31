@@ -36,7 +36,7 @@ export function HomeCard({ conditions, onChangeConditions }: { conditions: Condi
           );
         })}
       </div>
-      <p className="text-center text-sm">{familyLabel(conditions.adults, conditions.children)}</p>
+      <p className="text-center text-sm">{familyLabel(conditions)}</p>
       <ul className="flex flex-col gap-2 border-t border-line pt-3 text-sm">
         <Row icon={<PlaceIcon />}>{DISTRICT_NAMES[conditions.district]}</Row>
         <Row icon={<HouseIcon />}>{HOUSING_LABELS[conditions.housing]}</Row>
