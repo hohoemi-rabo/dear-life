@@ -116,17 +116,17 @@ function InlineCount({ label, unit, state }: { label: string; unit: string; stat
   );
 }
 
-// 出典を1行で出し（見本）、対象時点・確認日は開いて見る（要件：すべての情報に出典・対象時点・確認日）
+// 出典はカードの右下の小さな「出典 ›」だけにし、押すと出典・対象時点・確認日を開く
+// （2026-10-31 まさゆきさん：カードに出典の行はいらない。要件の「すべての情報に出典・対象時点・確認日」は開いた中で守る）
 function CompactSources({ states }: { states: readonly DataState<unknown>[] }) {
   const sources = states.flatMap((state) => (state.status === "unavailable" ? [] : [state.source]));
   const unique = sources.filter((source, index) => sources.findIndex(({ id }) => id === source.id) === index);
   if (unique.length === 0) return null;
-  const publishers = [...new Set(unique.map(({ publisher }) => publisher))].join("・");
   return (
     <details className="group text-xs text-ink-muted">
-      <summary className="flex min-h-tap cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
-        出典：{publishers}「{unique.map(({ name }) => name).join("」「")}」
-        <span className="whitespace-nowrap font-bold text-primary underline-offset-2 group-open:hidden">対象時点・確認日 ›</span>
+      <summary className="ml-auto flex min-h-tap min-w-tap w-fit cursor-pointer justify-end pl-3 list-none items-center font-bold text-primary [&::-webkit-details-marker]:hidden">
+        <span className="group-open:hidden">出典 ›</span>
+        <span className="hidden group-open:inline">出典を閉じる</span>
       </summary>
       <div className="flex flex-col gap-2 pb-1">
         {unique.map((source) => (

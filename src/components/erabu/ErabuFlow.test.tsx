@@ -225,13 +225,16 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
   });
 
-  it("子ども1人以上：保育園・幼稚園等と小学校の数と出典。子ども0人にすると返事を消す", async () => {
+  it("子ども1人以上：保育園・幼稚園等と小学校の数。出典は「出典 ›」を開いて見る。子ども0人にすると返事を消す", async () => {
     await open("d=kamisato&k=1&q=family");
     expect(reply()).toHaveTextContent("上郷の子育て・学校");
     expect(reply()).toHaveTextContent("保育園・幼稚園等 2か所");
     expect(reply()).toHaveTextContent("小学校 1校");
-    expect(reply()).toHaveTextContent("出典：提供元「iida_childcare の名前」「iida_education の名前」");
-    expect(within(reply()).getAllByText("確認日")).toHaveLength(2);
+    const details = within(reply()).getByText("出典 ›").closest("details")!;
+    expect(details).not.toHaveAttribute("open");
+    expect(within(details).getByText(/iida_childcare の名前/)).toBeInTheDocument();
+    expect(within(details).getByText(/iida_education の名前/)).toBeInTheDocument();
+    expect(within(details).getAllByText("確認日")).toHaveLength(2);
     await tap("子どもを1人減らす");
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
   });
