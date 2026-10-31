@@ -2,7 +2,7 @@
 
 import type { Season } from "@/lib/conditions/scene";
 import type { DistrictEvent } from "@/lib/data/screen-data";
-import type { KurashiPictureId } from "@/lib/illust/assets";
+import { eventIllustFor, type KurashiPictureId } from "@/lib/illust/assets";
 import type { PinSpot } from "@/lib/kurashi/pins";
 import { EventIcon } from "./EventIcon";
 import { PinThumbnail } from "./PinSheetContent";
@@ -19,7 +19,8 @@ export function EventCard({
 }: {
   season: Season;
   events: readonly DistrictEvent[];
-  // 風景の絵がある場面は、風景の行事の場所を切り出す。ない場面は行事のドット絵
+  // 風景の絵がある場面は、風景の行事の場所を切り出す。ない場面は行事のドット絵。
+  // 行事ごとの絵がある行事は、どちらの場面でもその絵を出す（2026-10-31 まさゆきさん）
   thumbnail: { picture: KurashiPictureId; spot: PinSpot } | null;
   onOpen: () => void;
   // PC は上に「春の楽しみを見つけよう」の見出しを出す（見本）
@@ -36,11 +37,13 @@ export function EventCard({
           onClick={onOpen}
           className="flex w-full items-center gap-3 rounded-card border border-line bg-surface p-2 pr-3 text-left shadow-card transition duration-150 hover:border-ink-muted active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          {thumbnail ? (
+          {thumbnail && !eventIllustFor(event.name) ? (
             <PinThumbnail picture={thumbnail.picture} spot={thumbnail.spot} className="w-24 shrink-0 lg:w-36" />
           ) : (
-            <span className="flex aspect-[3/2] w-24 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
-              <EventIcon event={event} />
+            <span
+              className={`flex aspect-[3/2] w-24 shrink-0 items-center justify-center overflow-hidden rounded-button lg:w-36 ${eventIllustFor(event.name) ? "bg-kinari-deep" : "bg-pixel-sky"}`}
+            >
+              <EventIcon event={event} sizeClassName="size-full p-1" sizes="(min-width: 1024px) 144px, 96px" />
             </span>
           )}
           <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
