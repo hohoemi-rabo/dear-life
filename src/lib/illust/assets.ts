@@ -126,8 +126,17 @@ export function houseSrc(housing: Housing, width: number): string {
 
 // 車・バス停などの小物（04 車。2026-10-29 受け取り。4地区で使い回す）。家と同じく、少し透けたところを不透明にそろえ、
 // 透明なふちを切り落とす。car.png は1枚に白い車・青い車・横長の駅とバス停が並んでいるので、index（左から何番目か、0始まり）で切り分ける
-// reply-school はえらぶ 02 の子育て・学校の返事のカードの絵（2026-10-31 受け取り。カルテなどの学校のドット絵はそのまま）
-export const PROPS = ["car-white", "car-blue", "bus-stop", "station-wide", "reply-school"] as const;
+// reply-school はえらぶ 02 の子育て・学校の返事のカードの絵（2026-10-31 受け取り。カルテなどの学校のドット絵はそのまま）。
+// event-* は行事ごとの絵（2026-10-31 受け取り。EVENT_ILLUSTS で行事の名前から引く）
+export const PROPS = [
+  "car-white",
+  "car-blue",
+  "bus-stop",
+  "station-wide",
+  "reply-school",
+  "event-kuroda-ningyo",
+  "event-kamisato-aruko",
+] as const;
 export type PropId = (typeof PROPS)[number];
 
 export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt: string }> = {
@@ -136,11 +145,24 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "bus-stop": { source: "bus-stop.png", alt: "駅の建物とバス停の標識・待合所" },
   "station-wide": { source: "car.png", index: 2, alt: "横に並んだ駅の建物とバス停の標識・待合所" },
   "reply-school": { source: "reply-school.png", alt: "時計台のある2階建ての校舎と植え込み" },
+  "event-kuroda-ningyo": { source: "event-kuroda-ningyo.png", alt: "屋根のある舞台で、黒衣が操る着物姿の人形" },
+  "event-kamisato-aruko": { source: "event-kamisato-aruko.png", alt: "リュックを背負って歩く大人と子ども" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
 // 返事のカード（約80px）で使い、端末に選ばせる
 export const PROP_WIDTHS = [240, 480] as const;
+
+// 行事ごとの絵（行事の名前 district_events.name → 絵）。ここにない行事は、種類ごとのドット絵（EVENT_ART_ASSET）で出す。
+// 行事のピンの場所（src/lib/kurashi/pins.ts の EVENT_PINS）と同じく名前で引くので、Table Editor で名前を変えたらここも直す
+export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
+  黒田人形奉納上演: "event-kuroda-ningyo",
+  上郷歩こう会: "event-kamisato-aruko",
+};
+
+export function eventIllustFor(name: string): PropId | null {
+  return Object.hasOwn(EVENT_ILLUSTS, name) ? EVENT_ILLUSTS[name] : null;
+}
 
 export function propSrc(prop: PropId, width: number): string {
   return `/${ILLUST_DIR}/${prop}-${width}.webp`;

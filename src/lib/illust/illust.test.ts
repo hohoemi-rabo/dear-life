@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DISTRICTS } from "../conditions/labels";
-import { ERABU_BASES, PEOPLE, POSES, SPRITE_SOURCES, erabuBaseFor, spriteId } from "./assets";
+import { ERABU_BASES, PEOPLE, POSES, PROP_SOURCES, SPRITE_SOURCES, erabuBaseFor, eventIllustFor, spriteId } from "./assets";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, hiddenChildren, placeFamily } from "./family";
 import { placeCars } from "./car";
@@ -187,5 +187,14 @@ describe("placePriorityMarks（028 見本の 05）", () => {
     expect(mark.x).toBe(house.centerX);
     expect(mark.y).toBeGreaterThan(house.footY - house.height);
     expect(mark.y).toBeLessThan(house.footY);
+  });
+});
+
+describe("行事ごとの絵（2026-10-31）", () => {
+  it("名前で引き、絵のない行事は null（種類ごとのドット絵で出す）", () => {
+    expect(eventIllustFor("上郷歩こう会")).toBe("event-kamisato-aruko");
+    expect(PROP_SOURCES[eventIllustFor("黒田人形奉納上演")!].source).toBe("event-kuroda-ningyo.png");
+    expect(eventIllustFor("鼎地区運動会")).toBeNull();
+    expect(eventIllustFor("constructor")).toBeNull();
   });
 });

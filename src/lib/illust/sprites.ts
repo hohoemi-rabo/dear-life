@@ -38,4 +38,6 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "bus-stop": { width: 1095, height: 842 },
   "station-wide": { width: 825, height: 331 },
   "reply-school": { width: 1437, height: 802 },
+  "event-kuroda-ningyo": { width: 1075, height: 1174 },
+  "event-kamisato-aruko": { width: 843, height: 1121 },
 };

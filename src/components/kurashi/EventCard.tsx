@@ -1,11 +1,10 @@
 "use client";
 
-import { PixelImage } from "@/components/pixel/PixelImage";
 import type { Season } from "@/lib/conditions/scene";
 import type { DistrictEvent } from "@/lib/data/screen-data";
 import type { KurashiPictureId } from "@/lib/illust/assets";
 import type { PinSpot } from "@/lib/kurashi/pins";
-import { EVENT_ART_ASSET } from "@/lib/pixel/assets";
+import { EventIcon } from "./EventIcon";
 import { PinThumbnail } from "./PinSheetContent";
 import { SEASON_STYLES } from "./season-styles";
 
@@ -41,7 +40,7 @@ export function EventCard({
             <PinThumbnail picture={thumbnail.picture} spot={thumbnail.spot} className="w-24 shrink-0 lg:w-36" />
           ) : (
             <span className="flex aspect-[3/2] w-24 shrink-0 items-center justify-center overflow-hidden rounded-button bg-pixel-sky lg:w-36">
-              <PixelImage asset={EVENT_ART_ASSET[event.art]} scale={2} decorative />
+              <EventIcon event={event} />
             </span>
           )}
           <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5">

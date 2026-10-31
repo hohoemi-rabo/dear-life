@@ -1,14 +1,13 @@
-import { PixelImage } from "@/components/pixel/PixelImage";
 import type { DistrictEvent } from "@/lib/data/screen-data";
 import { formatJaDate } from "@/lib/format";
-import { EVENT_ART_ASSET } from "@/lib/pixel/assets";
+import { EventIcon } from "./EventIcon";
 
 // 地区の行事1つ（F-13）：名前・時期・範囲・参加と、元の資料・確認日。行事は手で集めた情報なので、確認日と元の資料を添える（要件 7.1・7.2）。
 // くらしの「地域の行事」のシートで使う（028）
 export function EventItem({ event }: { event: DistrictEvent }) {
   return (
     <article className="flex gap-3">
-      <PixelImage asset={EVENT_ART_ASSET[event.art]} scale={2} decorative className="shrink-0 self-start" />
+      <EventIcon event={event} className="shrink-0 self-start" />
       <div className="flex min-w-0 flex-col gap-1">
         <h3 className="font-bold">
           {event.name}
