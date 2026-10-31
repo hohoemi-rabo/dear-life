@@ -4,12 +4,11 @@ import { useState } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { MarketSheetBody } from "@/components/data/MarketSheetBody";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
-import { PixelImage } from "@/components/pixel/PixelImage";
-import { PixelStage } from "@/components/pixel/PixelStage";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import type { Conditions } from "@/lib/conditions/model";
 import type { DataState } from "@/lib/data/screen-data";
 import { erabuReply, type ErabuReply } from "@/lib/erabu/replies";
+import { PROP_WIDTHS, propSrc, propSrcSet } from "@/lib/illust/assets";
 import type { QuestionId } from "@/lib/erabu/questions";
 
 // 選ぶたびの返事（F-10）。実データの側なので、ふつうのフォントで、大きな数字と件数・出典を出す（要件 8.1）。
@@ -71,14 +70,21 @@ function MarketIcon() {
   );
 }
 
-// 子育て・学校の返事（028 見本）：薄いピンクの小さなカードに、数をひと言で。出典は1行で出し、対象時点・確認日は開いて見る
+// 子育て・学校の返事（028 見本）：薄いピンクの小さなカードに、校舎の絵（2026-10-31 まさゆきさんの絵）と数をひと言で。出典は1行で出し、対象時点・確認日は開いて見る
 function ChildrenReply({ reply }: { reply: Extract<ErabuReply, { kind: "children" }> }) {
   const states = [reply.childcare, reply.elementarySchools];
   return (
     <section aria-label="選んだ条件のデータ" className="flex gap-3 rounded-card border border-blush bg-blush-soft p-3">
-      <PixelStage className="h-14 w-16 shrink-0 self-center overflow-hidden rounded-button">
-        <PixelImage asset="facility-school" scale={2} decorative />
-      </PixelStage>
+      {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（えらぶの選択肢の絵と同じ理由） */}
+      <img
+        src={propSrc("reply-school", PROP_WIDTHS[0])}
+        srcSet={propSrcSet("reply-school")}
+        sizes="(min-width: 640px) 96px, 80px"
+        alt=""
+        draggable={false}
+        decoding="async"
+        className="w-20 shrink-0 select-none self-center sm:w-24"
+      />
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="font-bold">{reply.districtName}の子育て・学校</h2>
         <p className="flex flex-wrap items-baseline gap-x-1.5 text-xs">

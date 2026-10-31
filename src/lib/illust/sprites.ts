@@ -37,4 +37,5 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "car-blue": { width: 556, height: 383 },
   "bus-stop": { width: 1095, height: 842 },
   "station-wide": { width: 825, height: 331 },
+  "reply-school": { width: 1437, height: 802 },
 };
