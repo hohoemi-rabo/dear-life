@@ -74,7 +74,7 @@ const GAP = 1;
 
 // 大人と子どもを横に並べ、足元をそろえる。子どもは大人のあいだに入れる（大人2人なら 大人・子ども…・大人）
 export function familyCanvas(adults: 1 | 2, children: number): Canvas {
-  if (!Number.isInteger(children) || children < 0 || children > 3) throw new RangeError(`子どもは0〜3人にしてください: ${children}`);
+  if (!Number.isInteger(children) || children < 0 || children > 4) throw new RangeError(`子どもは0〜4人にしてください: ${children}`);
   const kids = Array.from({ length: children }, () => CHILD);
   const people = adults === 2 ? [ADULT_1, ...kids, ADULT_2] : [ADULT_1, ...kids];
   const width = people.reduce((sum, person) => sum + person.width, 0) + GAP * (people.length - 1);

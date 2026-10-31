@@ -51,9 +51,12 @@ function Prop({ prop, left, width, raise = 0 }: { prop: PropId; left: number; wi
 }
 
 // 家族を並べる。left か right（枠の幅に対する％）で寄せる側を決める。height はお父さん（立つ）の背の高さ（枠の高さに対する％）。
-// 子どもは絵の背の比で小さくなる。4人のときは車やバス停に少し重なる（見本のカードも重なっている）
+// 子どもは絵の背の比で小さくなる。4人のときは車やバス停に少し重なる（見本のカードも重なっている）。
+// 5人目からは1人ふえるごとに小さくし、車やバス停が隠れすぎないようにする（2026-10-31 子どもを4人まで選べるようにしたとき）
 function Family({ members, left, right, height }: { members: readonly Person[]; left?: number; right?: number; height: number }) {
   const reference = SPRITE_SIZES["father-stand"].height;
+  const extra = Math.max(0, members.length - 4);
+  const fatherHeight = height * (1 - 0.12 * extra);
   return (
     <span
       className="absolute bottom-0 flex h-full items-end"
@@ -70,7 +73,7 @@ function Family({ members, left, right, height }: { members: readonly Person[]; 
             draggable={false}
             decoding="async"
             className="w-auto max-w-none select-none"
-            style={{ height: `${(SPRITE_SIZES[id].height / reference) * height}%`, marginLeft: index === 0 ? 0 : "-6%" }}
+            style={{ height: `${(SPRITE_SIZES[id].height / reference) * fatherHeight}%`, marginLeft: index === 0 ? 0 : "-6%" }}
           />
         );
       })}

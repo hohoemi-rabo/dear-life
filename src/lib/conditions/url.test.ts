@@ -48,9 +48,9 @@ describe("parseConditions", () => {
     ["a=0", "adults", 1],
     ["a=3", "adults", 2],
     ["a=10", "adults", 2],
-    ["k=3", "children", 2],
-    ["k=10", "children", 2],
-  ] as const)("範囲の外の人数 %s は、範囲の端に丸める（大人1〜2人・子ども0〜2人）", (query, key, expected) => {
+    ["k=5", "children", 4],
+    ["k=10", "children", 4],
+  ] as const)("範囲の外の人数 %s は、範囲の端に丸める（大人1〜2人・子ども0〜4人）", (query, key, expected) => {
     expect(parse(query)[key]).toBe(expected);
   });
 

@@ -65,18 +65,22 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
-// （2026-10-29 まさゆきさん決定）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）。
+// （2026-10-29 まさゆきさん決定）、3人目は青い服の男の子（boy2）、4人目は紫の服の女の子（girl2）（2026-10-31 まさゆきさん）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）。
 // くらしでも back で、風景の奥を向いて立つ（2026-10-30 まさゆきさん）
-export const PEOPLE = ["father", "mother", "boy", "girl"] as const;
+export const PEOPLE = ["father", "mother", "boy", "girl", "boy2", "girl2"] as const;
 export type Person = (typeof PEOPLE)[number];
 export const POSES = ["stand", "joy", "back"] as const;
 export type Pose = (typeof POSES)[number];
 
 export type SpriteId = `${Person}-${Pose}`;
 
+// シート6の子ども（背 約580px）を、今の子ども（赤い服の男の子 452px・おさげの女の子 419px）と同じくらいの背にする倍率
+const SHEET_6_SCALE = 0.78;
+
 // キャラクターのシートは1枚に4〜6人が並び、人と人のあいだが透明になっている。
-// index は「左から何人目か」（0始まり）。並びは assets/illust/README.md
-export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; alt: string }> = {
+// index は「左から何人目か」（0始まり）。並びは assets/illust/README.md。
+// scale はシートごとの縮め方の差（SPRITE_SCALE に掛ける）。シート6は人が大きく描かれているので、今の子どもと同じ背にそろえる
+export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; alt: string; scale?: number }> = {
   "father-stand": { sheet: "characters-sheet-1.png", index: 0, alt: "緑の上着のお父さん" },
   "father-joy": { sheet: "characters-sheet-2.png", index: 0, alt: "手を振る、緑の上着のお父さん" },
   "mother-stand": { sheet: "characters-sheet-1.png", index: 1, alt: "青いスカートのお母さん" },
@@ -89,6 +93,13 @@ export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; al
   "mother-back": { sheet: "characters-sheet-5.png", index: 1, alt: "右奥を向いた後ろ姿の、青いスカートのお母さん" },
   "boy-back": { sheet: "characters-sheet-5.png", index: 2, alt: "右奥を向いた後ろ姿の、赤い服の男の子" },
   "girl-back": { sheet: "characters-sheet-5.png", index: 5, alt: "右奥を向いた後ろ姿の、おさげの女の子" },
+  // 3人目・4人目はよろこぶポーズの絵がないので、正面の絵のまま出てくる（2026-10-31）
+  "boy2-stand": { sheet: "characters-sheet-6.png", index: 0, alt: "青い服の男の子", scale: SHEET_6_SCALE },
+  "boy2-joy": { sheet: "characters-sheet-6.png", index: 0, alt: "青い服の男の子", scale: SHEET_6_SCALE },
+  "boy2-back": { sheet: "characters-sheet-6.png", index: 1, alt: "右奥を向いた後ろ姿の、青い服の男の子", scale: SHEET_6_SCALE },
+  "girl2-stand": { sheet: "characters-sheet-6.png", index: 2, alt: "紫の服の女の子", scale: SHEET_6_SCALE },
+  "girl2-joy": { sheet: "characters-sheet-6.png", index: 2, alt: "紫の服の女の子", scale: SHEET_6_SCALE },
+  "girl2-back": { sheet: "characters-sheet-6.png", index: 3, alt: "右奥を向いた後ろ姿の、紫の服の女の子", scale: SHEET_6_SCALE },
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）

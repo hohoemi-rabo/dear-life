@@ -1,7 +1,7 @@
 // 生成AIで作った絵（assets/illust/）から、画面用の WebP を public/illust/ に書き出す（チケット 028）。
 // 使い方：npm run illust（元の画像を差しかえたら流し直す）
 //   - 背景・選択肢の絵は、一覧（src/lib/illust/assets.ts）の横幅ごとに縮める（crop があるものは先に切り出す）
-//   - キャラクターのシートは、人と人のあいだの透明な列で1人ずつに切り分け、全員同じ倍率で縮める
+//   - キャラクターのシートは、人と人のあいだの透明な列で1人ずつに切り分け、全員同じ倍率で縮める（シートごとの描き方の差は scale でそろえる）
 //     （人もほんの少し透けているので、家と同じく不透明にそろえる。透けると後ろの柵などが見えてしまう）
 //   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
@@ -118,14 +118,14 @@ async function figuresOf(sheet) {
 }
 
 const sizes = {};
-for (const [id, { sheet, index }] of Object.entries(SPRITE_SOURCES)) {
+for (const [id, { sheet, index, scale = 1 }] of Object.entries(SPRITE_SOURCES)) {
   const { data, info, figures } = await sheetOf(sheet);
   const figure = figures[index];
   if (!figure) throw new Error(`${sheet} に左から${index + 1}人目がいません（${figures.length}人）`);
   const cropWidth = figure.right - figure.left + 1;
   const cropHeight = figure.bottom - figure.top + 1;
-  const outWidth = Math.round(cropWidth * SPRITE_SCALE);
-  const outHeight = Math.round(cropHeight * SPRITE_SCALE);
+  const outWidth = Math.round(cropWidth * SPRITE_SCALE * scale);
+  const outHeight = Math.round(cropHeight * SPRITE_SCALE * scale);
   const file = `person-${id}.webp`;
   const out = await sharp(data, { raw: info })
     .extract({ left: figure.left, top: figure.top, width: cropWidth, height: cropHeight })

@@ -15,16 +15,30 @@ describe("familyMembers（028 まさゆきさん決定）", () => {
     [2, 0, ["father", "mother"]],
     [2, 1, ["father", "boy", "mother"]],
     [2, 2, ["father", "boy", "girl", "mother"]],
+    [2, 3, ["father", "boy", "girl", "boy2", "mother"]],
+    [2, 4, ["father", "boy", "girl", "boy2", "girl2", "mother"]],
+    [1, 4, ["boy", "girl", "boy2", "girl2", "mother"]],
   ] as const)("大人%i人・子ども%i人 → %j", (adults, children, expected) => {
     expect(familyMembers({ adults, children })).toEqual(expected);
   });
 
-  it("範囲の外の人数でも、絵に出せる4人までにする", () => {
-    expect(familyMembers({ adults: 2, children: 5 })).toEqual(["father", "boy", "girl", "mother"]);
+  it("範囲の外の人数でも、絵に出せる子ども4人までにする", () => {
+    expect(familyMembers({ adults: 2, children: 5 })).toEqual(["father", "boy", "girl", "boy2", "girl2", "mother"]);
   });
 });
 
 describe("placeFamily", () => {
+  it("5人目からは家族全体を少し小さくし、6人でも横幅は4人のときの1.3倍までに収める", () => {
+    const span = (children: number) => {
+      const placements = placeFamily(familyMembers({ adults: 2, children }), "erabu-kamisato-base");
+      return placements.at(-1)!.centerX - placements[0].centerX;
+    };
+    const height = (children: number) => placeFamily(familyMembers({ adults: 2, children }), "erabu-kamisato-base")[0].heightPercent("stand");
+    expect(span(4)).toBeLessThan(span(2) * 1.3);
+    expect(height(3)).toBeLessThan(height(2));
+    expect(height(4)).toBeLessThan(height(3));
+  });
+
   const members = familyMembers({ adults: 2, children: 2 });
 
   it("左から順に並び、全員が背景の中に収まる", () => {

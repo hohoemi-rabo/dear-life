@@ -149,16 +149,16 @@ describe("絵の一覧", () => {
     for (const id of Object.values(EVENT_ART_ASSET)) expect(PIXEL_ASSETS[id]).toBeDefined();
   });
 
-  it("家族は大人1〜2人・子ども0〜3人で並べられ、足元がそろう", () => {
+  it("家族は大人1〜2人・子ども0〜4人で並べられ、足元がそろう", () => {
     for (const adults of [1, 2] as const) {
-      for (let children = 0; children <= 3; children++) {
+      for (let children = 0; children <= 4; children++) {
         const canvas = familyCanvas(adults, children);
         const bottom = toRows(canvas).at(-1)!;
         expect(bottom.replaceAll(".", "").length).toBeGreaterThan(0);
         expect(canvas.height).toBe(21);
       }
     }
-    expect(() => familyCanvas(2, 4)).toThrow(RangeError);
+    expect(() => familyCanvas(2, 5)).toThrow(RangeError);
   });
 });
 

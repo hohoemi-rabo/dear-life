@@ -139,17 +139,19 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("どの地区で暮らす？");
   });
 
-  it("家族は大人1〜2人・子ども0〜2人をタップで増減し、プレビューの家族も変わる", async () => {
+  it("家族は大人1〜2人・子ども0〜4人をタップで増減し、プレビューの家族も変わる", async () => {
     await open("d=kamisato&q=family");
     expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "大人を1人増やす" })).toBeDisabled();
     await tap("子どもを1人増やす");
-    expect(params().get("k")).toBe("2");
+    await tap("子どもを1人増やす");
+    await tap("子どもを1人増やす");
+    expect(params().get("k")).toBe("4");
     expect(screen.getByRole("button", { name: "子どもを1人増やす" })).toBeDisabled();
     await tap("大人を1人減らす");
     expect(params().get("a")).toBe("1");
     expect(screen.getByRole("button", { name: "大人を1人減らす" })).toBeDisabled();
-    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人1人・子ども2人の家族" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、大人1人・子ども4人の家族" })).toBeInTheDocument();
   });
 
   it("車は「まだ決めない」で未選択にして次の質問へ進む", async () => {
