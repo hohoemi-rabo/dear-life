@@ -15,7 +15,7 @@ import { kurashiPicturesFor, type KurashiPictures } from "@/lib/illust/assets";
 import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { karteHref } from "@/lib/kurashi/links";
 import { pinSheet } from "@/lib/kurashi/pin-sheets";
-import { PIN_SPOTS, pinsFor, type PinId } from "@/lib/kurashi/pins";
+import { ALL_EVENTS_KEY, openPinSpec, scenePins, type ScenePinSpec } from "@/lib/kurashi/pins";
 import { useSeason } from "@/lib/kurashi/useSeason";
 import { seasonView } from "@/lib/kurashi/view";
 import { ERABU_PATH } from "@/lib/site";
@@ -40,7 +40,8 @@ type Chosen = Conditions & { district: DistrictId };
 export function KurashiView() {
   const { conditions, setConditions } = useConditions();
   const { season, setSeason } = useSeason();
-  const [openPin, setOpenPin] = useState<PinId | null>(null);
+  // 開いているピンの key（行事は行事ごと。下の「春の楽しみ」から開いたときは ALL_EVENTS_KEY）
+  const [openPin, setOpenPin] = useState<string | null>(null);
   const [conditionsOpen, setConditionsOpen] = useState(false);
   const { district } = conditions;
   if (district === null) return <NoDistrict conditions={conditions} />;
@@ -100,7 +101,7 @@ export function KurashiView() {
             pictures={pictures}
             season={season}
             conditions={chosen}
-            onOpenEvents={() => setOpenPin("event")}
+            onOpenEvents={() => setOpenPin(ALL_EVENTS_KEY)}
             onSeasonChange={changeSeason}
           />
         </ScreenDataBoundary>
@@ -140,6 +141,18 @@ function useSeasonView(season: Season, conditions: Chosen) {
   return seasonView(season, conditions, useScreenData());
 }
 
+// 絵の上のピンと、開いているピンのシートの中身。絵がない場面は、下の「春の楽しみ」から開く行事のシートだけ
+function useScenePins(season: Season, conditions: Chosen, pictures: KurashiPictures | null, openPin: string | null) {
+  const view = useSeasonView(season, conditions);
+  const pins = pictures ? scenePins(view.plan, conditions, pictures, view.events) : [];
+  const spec = pictures ? openPinSpec(pins, openPin, view.events) : null;
+  const open: Pick<ScenePinSpec, "kind" | "events"> | null =
+    spec ?? (!pictures && openPin === ALL_EVENTS_KEY ? { kind: "event", events: view.events } : null);
+  const sheet = open ? pinSheet({ pin: open.kind, season, conditions, ...view, events: open.events ?? view.events }) : null;
+  // シートの小さな絵・PC の吹き出しの場所
+  return { view, pins, sheet, spot: spec?.wide ?? null };
+}
+
 // 風景とピン。スマホのシートもここで出す（PC は IllustratedScene の吹き出し）。ScreenDataBoundary の中で使う
 function SceneWithPins({
   pictures,
@@ -151,13 +164,11 @@ function SceneWithPins({
   pictures: KurashiPictures;
   season: Season;
   conditions: Chosen;
-  openPin: PinId | null;
-  onOpenPin: (pin: PinId | null) => void;
+  openPin: string | null;
+  onOpenPin: (pin: string | null) => void;
 }) {
-  const view = useSeasonView(season, conditions);
+  const { view, pins, sheet, spot } = useScenePins(season, conditions, pictures, openPin);
   const wide = useWideScreen();
-  const pins = pinsFor(view.plan, conditions);
-  const sheet = openPin ? pinSheet({ pin: openPin, season, conditions, ...view }) : null;
   const label = `${view.district.name}の${season}の風景（イメージ）。家族：${familyLabel(conditions)}。場所を押すと、その場所のデータが出ます`;
   return (
     <>
@@ -170,12 +181,13 @@ function SceneWithPins({
         openPin={openPin}
         onOpenPin={onOpenPin}
         popover={
-          wide && sheet
+          wide && sheet && spot
             ? {
+                spot,
                 eyebrow: "暮らしの発見",
                 title: sheet.title,
                 content: (
-                  <PinSheetContent sheet={sheet} season={season} conditions={conditions} thumbnail={{ picture: pictures.wide, spot: PIN_SPOTS[pictures.wide][sheet.id] }} compact />
+                  <PinSheetContent sheet={sheet} season={season} conditions={conditions} thumbnail={{ picture: pictures.wide, spot }} compact />
                 ),
               }
             : null
@@ -194,14 +206,13 @@ function PinBottomSheet({
   conditions,
   onClose,
 }: {
-  pin: PinId | null;
+  pin: string | null;
   pictures: KurashiPictures | null;
   season: Season;
   conditions: Chosen;
   onClose: () => void;
 }) {
-  const view = useSeasonView(season, conditions);
-  const sheet = pin ? pinSheet({ pin, season, conditions, ...view }) : null;
+  const { sheet, spot } = useScenePins(season, conditions, pictures, pin);
   return (
     <BottomSheet open={sheet !== null} onClose={onClose} title={sheet?.title ?? ""} eyebrow="暮らしの発見" variant="discovery" closeLabel="風景にもどる">
       {sheet && (
@@ -209,7 +220,7 @@ function PinBottomSheet({
           sheet={sheet}
           season={season}
           conditions={conditions}
-          thumbnail={pictures ? { picture: pictures.wide, spot: PIN_SPOTS[pictures.wide][sheet.id] } : null}
+          thumbnail={pictures && spot ? { picture: pictures.wide, spot } : null}
         />
       )}
     </BottomSheet>
@@ -231,14 +242,15 @@ function BelowScene({
   onOpenEvents: () => void;
   onSeasonChange: (season: Season) => void;
 }) {
-  const { events } = useSeasonView(season, conditions);
+  const { view, spot } = useScenePins(season, conditions, pictures, ALL_EVENTS_KEY);
+  const { events } = view;
   const karte = karteHref(conditions, season);
   return (
     <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)] lg:items-center lg:gap-5 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:p-4 lg:shadow-card">
       <EventCard
         season={season}
         events={events}
-        thumbnail={pictures ? { picture: pictures.wide, spot: PIN_SPOTS[pictures.wide].event } : null}
+        thumbnail={pictures && spot ? { picture: pictures.wide, spot } : null}
         onOpen={onOpenEvents}
         heading
       />

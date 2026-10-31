@@ -6,7 +6,7 @@ import { availableFixture, screenDataFixture, sourceFixture } from "@/test/scree
 import { gofreelyHref } from "./gofreely";
 import { karteHref } from "./links";
 import { scenePictureLayers } from "./picture";
-import { PIN_SPOTS, pinsFor, scenePinFor, thumbnailPosition } from "./pins";
+import { ALL_EVENTS_KEY, EVENT_PINS, PIN_SPOTS, openPinSpec, scenePinFor, scenePins, thumbnailPosition } from "./pins";
 import { parseSeason } from "./season";
 
 describe("parseSeason", () => {
@@ -144,17 +144,43 @@ describe("gofreelyHref", () => {
 describe("くらしのピン（028）", () => {
   const plan = (season: "春" | "夏", children: number) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children });
 
+  const pictures = { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" } as const;
+  const kuroda = event("祭り", { season: "春", name: "黒田人形奉納上演" });
+  const walk = event("その他", { season: "春", name: "上郷歩こう会" });
+  const other = event("その他", { season: "春", name: "まだ場所を決めていない行事" });
+  const labels = (pins: { label: string }[]) => pins.map(({ label }) => label);
+
   it("学校・地域の行事・住まいはいつも出し、子どもなしの春だけ公共施設を足す", () => {
-    expect(pinsFor(plan("春", 1), { children: 1 })).toEqual(["school", "event", "housing"]);
-    expect(pinsFor(plan("春", 0), { children: 0 })).toEqual(["school", "event", "housing", "public"]);
+    expect(labels(scenePins(plan("春", 1), { children: 1 }, pictures, []))).toEqual(["学校", "地域の行事", "住まい"]);
+    expect(labels(scenePins(plan("春", 0), { children: 0 }, pictures, []))).toEqual(["学校", "地域の行事", "住まい", "公共施設"]);
     expect(scenePinFor(plan("春", 1))).toBe("school");
     expect(scenePinFor(plan("春", 0))).toBe("public");
     expect(scenePinFor(plan("夏", 1))).toBeNull();
   });
 
+  it("場所の決まった行事は行事ごとにピンを立て、そのピンのシートにはその行事だけを出す（2026-10-31）", () => {
+    const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, walk]);
+    expect(labels(pins)).toEqual(["学校", "黒田人形", "歩こう会", "住まい"]);
+    expect(pins[2]).toMatchObject({ kind: "event", events: [walk], tall: EVENT_PINS["上郷歩こう会"].spots[pictures.tall] });
+  });
+
+  it("場所の決まっていない行事は「地域の行事」のピンにまとめる", () => {
+    const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, other]);
+    expect(labels(pins)).toEqual(["学校", "黒田人形", "地域の行事", "住まい"]);
+    expect(pins[2].events).toEqual([other]);
+  });
+
+  it("「春の楽しみ」から開くときは、行事すべてを最初の行事のピンの場所で出す", () => {
+    const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, walk]);
+    expect(openPinSpec(pins, ALL_EVENTS_KEY, [kuroda, walk])).toMatchObject({ kind: "event", events: [kuroda, walk], wide: pins[1].wide });
+    expect(openPinSpec(pins, "event-上郷歩こう会", [kuroda, walk])?.events).toEqual([walk]);
+    expect(openPinSpec(pins, null, [])).toBeNull();
+  });
+
   it("札をどちらに伸ばすかは、スマホと PC で同じ", () => {
     const [wide, tall] = Object.values(PIN_SPOTS);
     for (const pin of Object.keys(wide) as (keyof typeof wide)[]) expect(tall[pin].side).toBe(wide[pin].side);
+    for (const { spots } of Object.values(EVENT_PINS)) expect(spots[pictures.tall]?.side).toBe(spots[pictures.wide]?.side);
   });
 
   it("小さな絵は、ピンの場所が枠の真ん中に来るように切り出し、絵の外にははみ出さない", () => {

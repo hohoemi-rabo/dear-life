@@ -2,7 +2,8 @@
 // どのピンを出すかと、絵の上のどこに置くかをここで決める。位置は絵に対する割合（％）で持ち、画面の幅が変わってもずれないようにする
 import { hasChildren, type Conditions } from "../conditions/model.ts";
 import type { ScenePlan } from "../conditions/scene.ts";
-import type { KurashiPictureId } from "../illust/assets.ts";
+import type { DistrictEvent } from "../data/screen-data.ts";
+import type { KurashiPictureId, KurashiPictures } from "../illust/assets.ts";
 
 export type PinId = "school" | "event" | "housing" | "public";
 
@@ -17,29 +18,97 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
 // side は同じピンならスマホと PC でそろえる（ピンは1つのボタンで、並びの向きは切りかえない）
 export type PinSpot = { x: number; y: number; side: "right" | "left" };
 
-// 場所はまさゆきさんの指示（2026-10-30）：学校＝左中央の校舎、地域の行事（黒田人形奉納上演）＝右上の石段と神社、
-// 住まい＝奥の谷の町並み、公共施設＝右中央の公民館
+// 場所はまさゆきさんの指示（2026-10-30）：学校＝左中央の校舎、地域の行事＝右上の石段と神社、
+// 住まい＝奥の谷の町並み、公共施設＝右中央の公民館（2026-10-31 に、同じ公民館の屋根を指す「歩こう会」のピンと重ならないよう、正面を指すように下げた）。
+// 場所の決まっている行事は EVENT_PINS で行事ごとに立てる
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
   "kurashi-kamisato-spring-wide": {
     school: { x: 27.3, y: 48, side: "right" },
     event: { x: 87, y: 38.5, side: "left" },
     housing: { x: 47, y: 38, side: "left" },
-    public: { x: 77.5, y: 58, side: "left" },
+    public: { x: 75, y: 66, side: "left" },
   },
   "kurashi-kamisato-spring-tall": {
     school: { x: 27.6, y: 49, side: "right" },
     event: { x: 85, y: 40, side: "left" },
     housing: { x: 51, y: 39.5, side: "left" },
-    public: { x: 77, y: 60, side: "left" },
+    public: { x: 72, y: 69.5, side: "left" },
   },
 };
 
+// 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
+// 絵は地区ごとなので、名前が同じでもほかの地区の行事とは混ざらない。label はピンの札の短い名前。
+// ここにない行事（名前を Table Editor で変えたときも）は、PIN_SPOTS の event（「地域の行事」）のピンにまとめる
+export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial<Record<KurashiPictureId, PinSpot>> }>> = {
+  // 下黒田諏訪神社（右上の石段と神社）
+  黒田人形奉納上演: {
+    label: "黒田人形",
+    spots: {
+      "kurashi-kamisato-spring-wide": { x: 87, y: 38.5, side: "left" },
+      "kurashi-kamisato-spring-tall": { x: 85, y: 40, side: "left" },
+    },
+  },
+  // 分館ごとに歩く（右中央の公民館）。公民館の屋根を指す。公共施設のピン（同じ公民館の正面）とは上下・左右をずらして札を重ねない
+  上郷歩こう会: {
+    label: "歩こう会",
+    spots: {
+      "kurashi-kamisato-spring-wide": { x: 82, y: 58.5, side: "left" },
+      "kurashi-kamisato-spring-tall": { x: 80, y: 60.5, side: "left" },
+    },
+  },
+};
+
+// 絵の上に立てるピン1本。kind はシートの中身の種類、key はピンごとに分かれる名前（行事は行事ごと）。
+// 行事のピンは、そのピンの行事だけをシートに出す
+export type ScenePinSpec = {
+  key: string;
+  kind: PinId;
+  label: string;
+  tall: PinSpot;
+  wide: PinSpot;
+  events: readonly DistrictEvent[] | null;
+};
+
+// 下の「春の楽しみ」のカードから開く、その季節の行事すべてのシート。絵の上にはピンを立てない
+export const ALL_EVENTS_KEY = "events";
+
+function pinOf(kind: PinId, pictures: KurashiPictures, events: readonly DistrictEvent[] | null = null): ScenePinSpec {
+  return { key: kind, kind, label: PIN_LABELS[kind], tall: PIN_SPOTS[pictures.tall][kind], wide: PIN_SPOTS[pictures.wide][kind], events };
+}
+
+// 行事のピン：場所の決まっている行事は1つずつ、それ以外は「地域の行事」に1本にまとめる（行事がまだないときも「準備中」を出すため1本立てる）
+function eventPins(pictures: KurashiPictures, events: readonly DistrictEvent[]): ScenePinSpec[] {
+  const placed: ScenePinSpec[] = [];
+  const rest: DistrictEvent[] = [];
+  for (const event of events) {
+    const pin = Object.hasOwn(EVENT_PINS, event.name) ? EVENT_PINS[event.name] : undefined;
+    const tall = pin?.spots[pictures.tall];
+    const wide = pin?.spots[pictures.wide];
+    if (pin && tall && wide) placed.push({ key: `event-${event.name}`, kind: "event", label: pin.label, tall, wide, events: [event] });
+    else rest.push(event);
+  }
+  return rest.length > 0 || placed.length === 0 ? [...placed, pinOf("event", pictures, rest)] : placed;
+}
+
 // 出すピンと並び（読み上げ・キーボードで移る順）。学校は子どもがいなくてもいつも出す（2026-10-30 まさゆきさん：
 // これから子どもを考えている家族もいるため）。子どもなしの春の場面の文（地区の公共施設）は、公共施設のピンに出す
-export function pinsFor(plan: ScenePlan, conditions: Pick<Conditions, "children">): PinId[] {
-  const pins: PinId[] = ["school", "event", "housing"];
-  if (!hasChildren(conditions) && plan.axis === "spring-public-facility") pins.push("public");
+export function scenePins(
+  plan: ScenePlan,
+  conditions: Pick<Conditions, "children">,
+  pictures: KurashiPictures,
+  events: readonly DistrictEvent[],
+): ScenePinSpec[] {
+  const pins = [pinOf("school", pictures), ...eventPins(pictures, events), pinOf("housing", pictures)];
+  if (!hasChildren(conditions) && plan.axis === "spring-public-facility") pins.push(pinOf("public", pictures));
   return pins;
+}
+
+// 開いているピン。「春の楽しみ」から開いたときは、行事すべてを最初の行事のピンの場所（吹き出し・小さな絵）で出す
+export function openPinSpec(pins: readonly ScenePinSpec[], key: string | null, events: readonly DistrictEvent[]): ScenePinSpec | null {
+  if (key === null) return null;
+  if (key !== ALL_EVENTS_KEY) return pins.find((pin) => pin.key === key) ?? null;
+  const first = pins.find((pin) => pin.kind === "event");
+  return first ? { ...first, key: ALL_EVENTS_KEY, label: PIN_LABELS.event, events } : null;
 }
 
 // 場面の文（ひな形）をどのピンのシートに出すか。春の場面の軸ごとに1つ

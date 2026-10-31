@@ -330,6 +330,20 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(screen.getByRole("dialog", { name: "上郷の春の行事" })).toHaveTextContent("この季節の行事は準備中です。");
   });
 
+  it("行事は行われる場所にピンを分けて立て、押すとその行事だけを出す（2026-10-31）", async () => {
+    const events = [event("黒田人形奉納上演", { season: "春", art: "祭り" }), event("上郷歩こう会", { season: "春", timingNote: "例年5月中旬" })];
+    screenData = { ...screenData, districts: { ...screenData.districts, kamisato: { ...screenData.districts.kamisato, events } } };
+    await open("d=kamisato&a=2&k=1&h=new");
+    expect(pin("黒田人形")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "地域の行事" })).not.toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(pin("歩こう会"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷の春の行事" });
+    expect(sheet).toHaveTextContent("上郷歩こう会");
+    expect(sheet).not.toHaveTextContent("黒田人形奉納上演");
+  });
+
   it("上郷でもほかの季節は、今のドット絵と場面の文で出す（ピンはない）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&s=summer");
     expect(sceneWindow()).toHaveTextContent("大雨と避難");

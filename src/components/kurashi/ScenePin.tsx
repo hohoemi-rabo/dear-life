@@ -1,13 +1,13 @@
 "use client";
 
 import { forwardRef, type CSSProperties } from "react";
-import { PIN_LABELS, type PinId, type PinSpot } from "@/lib/kurashi/pins";
+import type { PinSpot } from "@/lib/kurashi/pins";
 
 // 風景の上のピン（028 見本）：白い札に、場所の印と名前。押すとその場所のデータが開く。
 // 位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ボタンは1つだけにして、読み上げで2回出さない）。
 // ピンの先（札の下の三角）が場所を指す。押せると分かるよう、ゆっくり上下にゆれる（「動きを減らす」では動かさない）
-export const ScenePin = forwardRef<HTMLButtonElement, { pin: PinId; tall: PinSpot; wide: PinSpot; active: boolean; onOpen: () => void }>(
-  function ScenePin({ pin, tall, wide, active, onOpen }, ref) {
+export const ScenePin = forwardRef<HTMLButtonElement, { label: string; tall: PinSpot; wide: PinSpot; active: boolean; onOpen: () => void }>(
+  function ScenePin({ label, tall, wide, active, onOpen }, ref) {
     // 札をどちらに伸ばすかは、スマホと PC で同じにする（PIN_SPOTS の決めごと）。左に伸ばすときは印を右に置き、先を印の下にそろえる
     const left = tall.side === "left";
     const style = {
@@ -39,7 +39,7 @@ export const ScenePin = forwardRef<HTMLButtonElement, { pin: PinId; tall: PinSpo
               ].join(" ")}
             >
               <PinMark active={active} />
-              {PIN_LABELS[pin]}
+              {label}
               {/* 札の下の三角（場所を指す）。飾り */}
               <span
                 aria-hidden="true"

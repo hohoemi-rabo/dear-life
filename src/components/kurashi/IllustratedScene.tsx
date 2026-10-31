@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
-import { PIN_SPOTS, type PinId, type PinSpot } from "@/lib/kurashi/pins";
+import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
 import { ScenePin } from "./ScenePin";
 
 // 生成AIで描いた季節の風景（028 見本。まず上郷・春）。スマホは縦長、PC は横長の絵を出しわけ、
@@ -25,21 +25,20 @@ export function IllustratedScene({
   members: readonly Person[];
   // 絵に出せない5人目からの子ども（「＋N人」の札で出す）
   hiddenChildren: number;
-  pins: readonly PinId[];
-  openPin: PinId | null;
-  onOpenPin: (pin: PinId | null) => void;
+  pins: readonly ScenePinSpec[];
+  // 開いているピンの key
+  openPin: string | null;
+  onOpenPin: (pin: string | null) => void;
   // PC の吹き出し（開いているピンの中身）。スマホでは null
-  popover: { eyebrow: string; title: string; content: ReactNode } | null;
+  popover: { eyebrow: string; title: string; content: ReactNode; spot: PinSpot } | null;
 }) {
-  const pinRefs = useRef(new Map<PinId, HTMLButtonElement>());
+  const pinRefs = useRef(new Map<string, HTMLButtonElement>());
   const closePopover = () => {
     const pin = openPin;
     onOpenPin(null);
     // 吹き出しを閉じたら、開いたピンに戻る（キーボードで続けて選べるように）
     if (pin) pinRefs.current.get(pin)?.focus();
   };
-  const wide = PIN_SPOTS[pictures.wide];
-  const tall = PIN_SPOTS[pictures.tall];
 
   return (
     <figure role="group" aria-label={label} className="relative isolate aspect-[1122/1402] overflow-hidden bg-pixel-sky lg:aspect-[3/2]">
@@ -52,20 +51,20 @@ export function IllustratedScene({
       </div>
       {pins.map((pin) => (
         <ScenePin
-          key={pin}
+          key={pin.key}
           ref={(element) => {
-            if (element) pinRefs.current.set(pin, element);
-            else pinRefs.current.delete(pin);
+            if (element) pinRefs.current.set(pin.key, element);
+            else pinRefs.current.delete(pin.key);
           }}
-          pin={pin}
-          tall={tall[pin]}
-          wide={wide[pin]}
-          active={openPin === pin}
-          onOpen={() => onOpenPin(openPin === pin ? null : pin)}
+          label={pin.label}
+          tall={pin.tall}
+          wide={pin.wide}
+          active={openPin === pin.key}
+          onOpen={() => onOpenPin(openPin === pin.key ? null : pin.key)}
         />
       ))}
       {popover && openPin && (
-        <PinPopover key={openPin} spot={wide[openPin]} eyebrow={popover.eyebrow} title={popover.title} onClose={closePopover}>
+        <PinPopover key={openPin} spot={popover.spot} eyebrow={popover.eyebrow} title={popover.title} onClose={closePopover}>
           {popover.content}
         </PinPopover>
       )}
@@ -103,7 +102,7 @@ function ScenePicture({ pictures }: { pictures: KurashiPictures }) {
 }
 
 // PC の吹き出し（見本）：ピンの横に出し、×・Esc・吹き出しの外を押すと閉じる。開いたら中に移り、閉じたらピンに戻る（closePopover）。
-// ピンが絵の右半分にあるときは左に出して、はみ出さないようにする。上半分のピンは下に向けて出し、高さは絵の中に収める
+// ピンが絵の右半分にあるときは左に出して、はみ出さないようにする。高さは絵の中に収める
 function PinPopover({
   spot,
   eyebrow,
@@ -143,11 +142,14 @@ function PinPopover({
 
   const toLeft = spot.x > 55;
   const below = spot.y < 50;
+  // 上半分のピンは、ピンのすぐ横から下に向けて出す。下半分のピンは、上に向けると絵に重ねた見出し・季節の切りかえ
+  // （絵の上端から 160px。PC の幅によらない）の下にもぐるので、その下から出し、ピンの札（最大で約 8rem）にかからないよう横にずらす
+  const gap = below ? "1rem" : "9rem";
   const style = {
-    ...(toLeft ? { right: `calc(${100 - spot.x}% + 1rem)` } : { left: `calc(${spot.x}% + 1rem)` }),
+    ...(toLeft ? { right: `calc(${100 - spot.x}% + ${gap})` } : { left: `calc(${spot.x}% + ${gap})` }),
     ...(below
       ? { top: `calc(${spot.y}% + 0.5rem)`, maxHeight: `calc(${100 - spot.y}% - 1.5rem)` }
-      : { bottom: `calc(${100 - spot.y}% + 3.5rem)`, maxHeight: `calc(${spot.y}% - 4.5rem)` }),
+      : { top: "10.5rem", maxHeight: "calc(100% - 11.5rem)" }),
   };
 
   return (
