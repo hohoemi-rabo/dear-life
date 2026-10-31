@@ -1,25 +1,16 @@
 import type { CarCount } from "@/lib/conditions/labels";
-import { PROP_SIZES, SPRITE_SIZES } from "@/lib/illust/sprites";
-import { PROP_WIDTHS, propSrc, propSrcSet, spriteId, spriteSrc, type Person, type PropId } from "@/lib/illust/assets";
+import { PROP_SIZES } from "@/lib/illust/sprites";
+import { PROP_WIDTHS, propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
 
-// 車の選択肢のカードの絵（028 見本の 04）。用意された小物と人物を組み合わせて作る（2026-10-29 まさゆきさん）：
-// 0台はバス停と家族、1台は白い車と家族、2台以上は白い車と青い車を横に並べる。家族は選んだ人数のまま（立つポーズ）。
+// 車の選択肢のカードの絵（028 見本の 04）。用意された小物を組み合わせて作る（2026-10-29 まさゆきさん）：
+// 0台はバス停、1台は白い車、2台以上は白い車と青い車を横に並べる。
+// 見本では家族もいたが、子どもを4人まで選べるようにしたら車やバス停が隠れたので、カードには家族を出さない（2026-10-31 まさゆきさん）。
 // 置き場所は絵の枠（正方形〜4:3）に対する％。絵は飾りで、カードの名前で読み上げる
-export function CarChoicePicture({ car, members }: { car: CarCount; members: readonly Person[] }) {
+export function CarChoicePicture({ car }: { car: CarCount }) {
   return (
     <span aria-hidden="true" className="relative block size-full">
-      {car === 0 && (
-        <>
-          <Prop prop="bus-stop" left={28} width={72} />
-          <Family members={members} left={0} height={74} />
-        </>
-      )}
-      {car === 1 && (
-        <>
-          <Prop prop="car-white" left={0} width={66} />
-          <Family members={members} right={0} height={72} />
-        </>
-      )}
+      {car === 0 && <Prop prop="bus-stop" left={14} width={72} />}
+      {car === 1 && <Prop prop="car-white" left={20} width={60} />}
       {car === 2 && (
         <>
           <Prop prop="car-white" left={2} width={50} />
@@ -30,8 +21,8 @@ export function CarChoicePicture({ car, members }: { car: CarCount; members: rea
   );
 }
 
-// 小物（車・バス停）。left・width は枠の幅に対する％、raise は下からの高さ（％）。高さは絵の縦横の比のまま
-function Prop({ prop, left, width, raise = 0 }: { prop: PropId; left: number; width: number; raise?: number }) {
+// 小物（車・バス停）。left・width は枠の幅に対する％。高さは絵の縦横の比のまま
+function Prop({ prop, left, width }: { prop: PropId; left: number; width: number }) {
   const size = PROP_SIZES[prop];
   return (
     // eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由）
@@ -44,39 +35,8 @@ function Prop({ prop, left, width, raise = 0 }: { prop: PropId; left: number; wi
       height={size.height}
       draggable={false}
       decoding="async"
-      className="absolute h-auto select-none"
-      style={{ left: `${left}%`, bottom: `${raise}%`, width: `${width}%` }}
+      className="absolute bottom-0 h-auto select-none"
+      style={{ left: `${left}%`, width: `${width}%` }}
     />
-  );
-}
-
-// 家族を並べる。left か right（枠の幅に対する％）で寄せる側を決める。height はお父さん（立つ）の背の高さ（枠の高さに対する％）。
-// 子どもは絵の背の比で小さくなる。4人のときは車やバス停に少し重なる（見本のカードも重なっている）。
-// 5人目からは1人ふえるごとに小さくし、車やバス停が隠れすぎないようにする（2026-10-31 子どもを4人まで選べるようにしたとき）
-function Family({ members, left, right, height }: { members: readonly Person[]; left?: number; right?: number; height: number }) {
-  const reference = SPRITE_SIZES["father-stand"].height;
-  const extra = Math.max(0, members.length - 4);
-  const fatherHeight = height * (1 - 0.12 * extra);
-  return (
-    <span
-      className="absolute bottom-0 flex h-full items-end"
-      style={right === undefined ? { left: `${left ?? 0}%` } : { right: `${right}%` }}
-    >
-      {members.map((person, index) => {
-        const id = spriteId(person, "stand");
-        return (
-          // eslint-disable-next-line @next/next/no-img-element -- 切り出した小さな WebP をそのまま出す（高さを割合で決めるため）
-          <img
-            key={person}
-            src={spriteSrc(id)}
-            alt=""
-            draggable={false}
-            decoding="async"
-            className="w-auto max-w-none select-none"
-            style={{ height: `${(SPRITE_SIZES[id].height / reference) * fatherHeight}%`, marginLeft: index === 0 ? 0 : "-6%" }}
-          />
-        );
-      })}
-    </span>
   );
 }

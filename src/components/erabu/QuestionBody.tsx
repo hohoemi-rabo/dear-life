@@ -33,7 +33,6 @@ import {
   propSrc,
   propSrcSet,
 } from "@/lib/illust/assets";
-import { familyMembers } from "@/lib/illust/family";
 import { landmarkAssetId } from "@/lib/pixel/assets";
 import { MAP_PATH } from "@/lib/site";
 
@@ -256,7 +255,6 @@ const CAR_STAGES: Readonly<Record<CarCount, string>> = {
 // 車の選択肢（028 見本）：絵、下に台数。選んだものは右上に ✓。もう一度押すと未選択に戻す（任意の質問なので）。
 // 下に選んだ台数の帯（未選択なら出さない）と、地図でバス停を見るカード（台数によらず出す）
 function CarChoices({ conditions, onChange }: ChoiceProps) {
-  const members = familyMembers(conditions);
   return (
     <div className="flex flex-col gap-3">
       <ul className="grid grid-cols-3 gap-2" aria-label="車の台数">
@@ -267,7 +265,7 @@ function CarChoices({ conditions, onChange }: ChoiceProps) {
               onSelect={() => onChange({ car: conditions.car === car ? null : car })}
               check="right"
               pictureClassName="aspect-[5/4] px-1 pb-1"
-              picture={<CarChoicePicture car={car} members={members} />}
+              picture={<CarChoicePicture car={car} />}
               label={CAR_LABELS[car]}
               labelClassName="order-first pr-5 pt-1 text-base min-[400px]:pr-0 min-[400px]:text-lg"
             />
