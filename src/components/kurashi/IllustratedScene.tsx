@@ -5,6 +5,7 @@ import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
 import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
+import { PinIcon } from "./PinIcon";
 import { ScenePin } from "./ScenePin";
 
 // 生成AIで描いた季節の風景（028 見本。まず上郷・春）。スマホは縦長、PC は横長の絵を出しわけ、
@@ -57,6 +58,7 @@ export function IllustratedScene({
             else pinRefs.current.delete(pin.key);
           }}
           label={pin.label}
+          icon={<PinIcon pin={pin} />}
           tall={pin.tall}
           wide={pin.wide}
           active={openPin === pin.key}

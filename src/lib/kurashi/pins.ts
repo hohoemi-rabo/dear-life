@@ -77,7 +77,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   春季スポーツ交流会: {
     label: "スポーツ",
     spots: {
-      "kurashi-kamisato-summer-wide": { x: 50, y: 56, side: "left" },
+      "kurashi-kamisato-summer-wide": { x: 47.5, y: 57, side: "left" },
       "kurashi-kamisato-summer-tall": { x: 54, y: 58.5, side: "left" },
     },
   },

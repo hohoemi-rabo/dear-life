@@ -381,6 +381,11 @@ describe("KurashiView：上郷・夏の風景とピン（028）", () => {
     expect(screen.getByRole("group", { name: /上郷の夏の風景（イメージ）/ })).toBeInTheDocument();
     for (const name of ["学校", "避難場所", "人形劇", "スポーツ", "住まい"]) expect(pin(name)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "地域の行事" })).not.toBeInTheDocument();
+    // ピンの丸の中は場所の絵（2026-10-31 まさゆきさん）：大切なことの絵と行事ごとの絵
+    const icon = (name: string) => pin(name).querySelector("img")?.getAttribute("src");
+    expect(icon("避難場所")).toContain("priority-disaster");
+    expect(icon("学校")).toContain("priority-childcare");
+    expect(icon("スポーツ")).toContain("event-sports-koryu");
     // 場面の文は風景の下ではなく、避難場所のピンのシートに出す
     expect(screen.queryByText(/強い雨が降りつづく日があります/)).not.toBeInTheDocument();
   });
