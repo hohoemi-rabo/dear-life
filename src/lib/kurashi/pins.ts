@@ -5,13 +5,14 @@ import type { ScenePlan } from "../conditions/scene.ts";
 import type { DistrictEvent } from "../data/screen-data.ts";
 import type { KurashiPictureId, KurashiPictures } from "../illust/assets.ts";
 
-export type PinId = "school" | "event" | "housing" | "public";
+export type PinId = "school" | "event" | "housing" | "public" | "evacuation";
 
 export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   school: "学校",
   event: "地域の行事",
   housing: "住まい",
   public: "公共施設",
+  evacuation: "避難場所",
 };
 
 // x・y はピンの先が指す場所。side は札をピンのどちら側に伸ばすか（絵の右の端では左に伸ばして、はみ出さないようにする）。
@@ -20,20 +21,28 @@ export type PinSpot = { x: number; y: number; side: "right" | "left" };
 
 // 場所はまさゆきさんの指示（2026-10-30）：学校＝左中央の校舎、地域の行事＝右上の石段と神社、
 // 住まい＝奥の谷の町並み、公共施設＝右中央の公民館（2026-10-31 に、同じ公民館の屋根を指す「歩こう会」のピンと重ならないよう、正面を指すように下げた）。
-// 場所の決まっている行事は EVENT_PINS で行事ごとに立てる
+// 避難場所（夏）＝真ん中の体育館の屋根（2026-10-31。上郷の大雨の避難場所の例が上郷小学校体育館のため）。
+// 上郷の春と夏の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
+const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 27.3, y: 48, side: "right" },
+  event: { x: 87, y: 38.5, side: "left" },
+  housing: { x: 47, y: 38, side: "left" },
+  public: { x: 75, y: 66, side: "left" },
+  evacuation: { x: 55, y: 50, side: "right" },
+};
+const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 27.6, y: 49, side: "right" },
+  event: { x: 85, y: 40, side: "left" },
+  housing: { x: 51, y: 39.5, side: "left" },
+  public: { x: 72, y: 69.5, side: "left" },
+  evacuation: { x: 68, y: 51, side: "right" },
+};
+
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
-  "kurashi-kamisato-spring-wide": {
-    school: { x: 27.3, y: 48, side: "right" },
-    event: { x: 87, y: 38.5, side: "left" },
-    housing: { x: 47, y: 38, side: "left" },
-    public: { x: 75, y: 66, side: "left" },
-  },
-  "kurashi-kamisato-spring-tall": {
-    school: { x: 27.6, y: 49, side: "right" },
-    event: { x: 85, y: 40, side: "left" },
-    housing: { x: 51, y: 39.5, side: "left" },
-    public: { x: 72, y: 69.5, side: "left" },
-  },
+  "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
+  "kurashi-kamisato-spring-tall": KAMISATO_TALL,
+  "kurashi-kamisato-summer-wide": KAMISATO_WIDE,
+  "kurashi-kamisato-summer-tall": KAMISATO_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -54,6 +63,22 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kamisato-spring-wide": { x: 82, y: 58.5, side: "left" },
       "kurashi-kamisato-spring-tall": { x: 80, y: 60.5, side: "left" },
+    },
+  },
+  // 夏（2026-10-31 まさゆきさん）。会場は地区内の複数か所なので、代表して右中央の公民館（春の歩こう会と同じ屋根）に立てる
+  "いいだ人形劇フェスタ 上郷地区公演": {
+    label: "人形劇",
+    spots: {
+      "kurashi-kamisato-summer-wide": { x: 82, y: 58.5, side: "left" },
+      "kurashi-kamisato-summer-tall": { x: 80, y: 60.5, side: "left" },
+    },
+  },
+  // 夏（2026-10-31 まさゆきさん）。真ん中の体育館。屋根を指す避難場所のピンと重ならないよう、正面を指して札を左に伸ばす
+  春季スポーツ交流会: {
+    label: "スポーツ",
+    spots: {
+      "kurashi-kamisato-summer-wide": { x: 50, y: 56, side: "left" },
+      "kurashi-kamisato-summer-tall": { x: 54, y: 58.5, side: "left" },
     },
   },
 };
@@ -98,7 +123,9 @@ export function scenePins(
   pictures: KurashiPictures,
   events: readonly DistrictEvent[],
 ): ScenePinSpec[] {
-  const pins = [pinOf("school", pictures), ...eventPins(pictures, events), pinOf("housing", pictures)];
+  // 夏の場面（大雨と避難）の文は避難場所のピンに出す
+  const evacuation = plan.axis === "summer-evacuation" ? [pinOf("evacuation", pictures)] : [];
+  const pins = [pinOf("school", pictures), ...evacuation, ...eventPins(pictures, events), pinOf("housing", pictures)];
   if (!hasChildren(conditions) && plan.axis === "spring-public-facility") pins.push(pinOf("public", pictures));
   return pins;
 }
@@ -111,13 +138,15 @@ export function openPinSpec(pins: readonly ScenePinSpec[], key: string | null, e
   return first ? { ...first, key: ALL_EVENTS_KEY, label: PIN_LABELS.event, events } : null;
 }
 
-// 場面の文（ひな形）をどのピンのシートに出すか。春の場面の軸ごとに1つ
+// 場面の文（ひな形）をどのピンのシートに出すか。絵のある場面の軸ごとに1つ
 export function scenePinFor(plan: ScenePlan): PinId | null {
   switch (plan.axis) {
     case "spring-school":
       return "school";
     case "spring-public-facility":
       return "public";
+    case "summer-evacuation":
+      return "evacuation";
     default:
       return null;
   }

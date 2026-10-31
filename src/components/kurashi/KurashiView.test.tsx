@@ -344,9 +344,78 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).not.toHaveTextContent("黒田人形奉納上演");
   });
 
-  it("上郷でもほかの季節は、今のドット絵と場面の文で出す（ピンはない）", async () => {
-    await open("d=kamisato&a=2&k=1&h=new&s=summer");
-    expect(sceneWindow()).toHaveTextContent("大雨と避難");
+  it("上郷でも絵のない季節は、今のドット絵と場面の文で出す（ピンはない）", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
+    expect(sceneWindow()).toHaveTextContent("地区の行事");
     expect(screen.queryByRole("button", { name: "学校" })).not.toBeInTheDocument();
+  });
+});
+
+const EVACUATION = sourceFixture("iida_evacuation", { name: "指定緊急避難場所一覧", publisher: "飯田市", checkedOn: "2026-10-26", fetchedOn: null });
+
+describe("KurashiView：上郷・夏の風景とピン（028）", () => {
+  const SUMMER_EVENTS = [
+    event("いいだ人形劇フェスタ 上郷地区公演", { season: "夏", art: "祭り", timingNote: "例年8月上旬" }),
+    event("春季スポーツ交流会", { season: "夏", timingNote: "例年6月上旬" }),
+  ];
+
+  beforeEach(() => {
+    const kamisato: Partial<DistrictData> = {
+      ...KAMISATO,
+      evacuationSites: availableFixture(
+        [
+          { name: "上郷小学校体育館", subkind: null, address: "上郷飯沼3118", hazards: ["flood", "landslide", "earthquake"] },
+          { name: "上郷小学校グラウンド", subkind: null, address: "上郷飯沼3118", hazards: ["earthquake"] },
+        ],
+        EVACUATION,
+      ),
+      events: SUMMER_EVENTS,
+    };
+    screenData = { ...published(), districts: { ...published().districts, kamisato: { ...published().districts.kamisato, ...kamisato } } };
+  });
+
+  const pin = (name: string) => screen.getByRole("button", { name, expanded: false });
+
+  it("夏の風景に学校・避難場所・行事ごと・住まいのピンを立てる", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=summer");
+    expect(screen.getByRole("group", { name: /上郷の夏の風景（イメージ）/ })).toBeInTheDocument();
+    for (const name of ["学校", "避難場所", "人形劇", "スポーツ", "住まい"]) expect(pin(name)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "地域の行事" })).not.toBeInTheDocument();
+    // 場面の文は風景の下ではなく、避難場所のピンのシートに出す
+    expect(screen.queryByText(/強い雨が降りつづく日があります/)).not.toBeInTheDocument();
+  });
+
+  it("避難場所のピンを押すと、避難場所の数を見出しにしたシートに場面の文・出典・カルテの防災へのボタンを出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=summer");
+    await act(async () => {
+      fireEvent.click(pin("避難場所"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷の避難場所は2か所" });
+    expect(within(sheet).getByText(/夏、強い雨が降りつづく日があります。/)).toHaveTextContent("想定");
+    expect(sheet).toHaveTextContent("洪水と土砂災害の両方に使える場所は1か所で、たとえば上郷小学校体育館");
+    expect(sheet).toHaveTextContent("出典：飯田市「指定緊急避難場所一覧」");
+    expect(within(sheet).getByRole("link", { name: /避難場所を確かめる/ })).toHaveAttribute(
+      "href",
+      "/karte?s=summer&d=kamisato&a=2&k=1&h=new#karte-disaster",
+    );
+  });
+
+  it("避難場所の数が出せないときは、見出しから数を外して「データ未取得」と出す", async () => {
+    screenData = published();
+    await open("d=kamisato&a=2&k=1&h=new&s=summer");
+    await act(async () => {
+      fireEvent.click(pin("避難場所"));
+    });
+    expect(screen.getByRole("dialog", { name: "上郷の避難場所" })).toHaveTextContent("データ未取得");
+  });
+
+  it("行事のピンを押すと、その行事だけを出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=summer");
+    await act(async () => {
+      fireEvent.click(pin("スポーツ"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷の夏の行事" });
+    expect(sheet).toHaveTextContent("春季スポーツ交流会");
+    expect(sheet).not.toHaveTextContent("人形劇フェスタ");
   });
 });

@@ -40,4 +40,6 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "reply-school": { width: 1437, height: 802 },
   "event-kuroda-ningyo": { width: 1075, height: 1174 },
   "event-kamisato-aruko": { width: 843, height: 1121 },
+  "event-ningyo-festa": { width: 1150, height: 1046 },
+  "event-sports-koryu": { width: 945, height: 1160 },
 };

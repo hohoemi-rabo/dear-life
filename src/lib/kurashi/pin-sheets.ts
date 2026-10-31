@@ -65,7 +65,7 @@ function countTitle(state: DataState<number>, base: string, unit: string): { tit
   return state.status === "available" ? { title: `${base}は${state.value}${unit}`, missing: null } : { title: base, missing: state };
 }
 
-// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設）
+// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所）
 function sceneParts(input: Input): { lines: readonly SceneLine[]; notices: readonly string[]; sources: SheetSource[] } {
   if (!input.scene || scenePinFor(input.plan) !== input.pin) return { lines: [], notices: [], sources: [] };
   return {
@@ -125,6 +125,20 @@ export function pinSheet(input: Input): PinSheet {
         sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
         karteCard: "public_facilities",
         action: "公共施設を確かめる",
+      };
+    }
+    case "evacuation": {
+      const count = countOf(district.evacuationSites);
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        ...countTitle(count, `${district.name}の避難場所`, "か所"),
+        intro: "大雨や地震のときに逃げる場所を、カルテと地図で確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
+        karteCard: "disaster",
+        action: "避難場所を確かめる",
       };
     }
     case "event":

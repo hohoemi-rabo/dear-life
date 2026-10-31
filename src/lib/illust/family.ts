@@ -35,6 +35,9 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   // くらし：斜め後ろ姿で、広場の奥（柵の手前）から町を見る（2026-10-30 まさゆきさん：斜めのキャラにして奥に）
   "kurashi-kamisato-spring-wide": { footY: 90, adultHeight: 20, centerX: 40 },
   "kurashi-kamisato-spring-tall": { footY: 95, adultHeight: 15, centerX: 45 },
+  // 夏は春と同じ構図なので、立ち位置も同じ
+  "kurashi-kamisato-summer-wide": { footY: 90, adultHeight: 20, centerX: 40 },
+  "kurashi-kamisato-summer-tall": { footY: 95, adultHeight: 15, centerX: 45 },
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）

@@ -131,6 +131,7 @@ export function KurashiView() {
 // スマホの縦長の絵のいちばん上の空の色。絵の上に足す帯を、切れ目なく絵につなげる
 const SKY_COLORS: Partial<Record<KurashiPictures["tall"], string>> = {
   "kurashi-kamisato-spring-tall": "#35A2FC",
+  "kurashi-kamisato-summer-tall": "#2AA1FC",
 };
 
 function skyStyle(pictures: KurashiPictures): CSSProperties {

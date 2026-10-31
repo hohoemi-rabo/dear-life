@@ -155,7 +155,17 @@ describe("くらしのピン（028）", () => {
     expect(labels(scenePins(plan("春", 0), { children: 0 }, pictures, []))).toEqual(["学校", "地域の行事", "住まい", "公共施設"]);
     expect(scenePinFor(plan("春", 1))).toBe("school");
     expect(scenePinFor(plan("春", 0))).toBe("public");
-    expect(scenePinFor(plan("夏", 1))).toBeNull();
+    expect(scenePinFor(plan("夏", 1))).toBe("evacuation");
+  });
+
+  it("夏は避難場所のピンを足し、夏の行事は体育館と公民館に立てる（2026-10-31）", () => {
+    const summer = { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" } as const;
+    const festa = event("祭り", { season: "夏", name: "いいだ人形劇フェスタ 上郷地区公演" });
+    const sports = event("運動会", { season: "夏", name: "春季スポーツ交流会" });
+    const pins = scenePins(plan("夏", 0), { children: 0 }, summer, [festa, sports]);
+    expect(labels(pins)).toEqual(["学校", "避難場所", "人形劇", "スポーツ", "住まい"]);
+    expect(pins[1]).toMatchObject({ kind: "evacuation", wide: PIN_SPOTS[summer.wide].evacuation });
+    expect(pins[3]).toMatchObject({ kind: "event", events: [sports] });
   });
 
   it("場所の決まった行事は行事ごとにピンを立て、そのピンのシートにはその行事だけを出す（2026-10-31）", () => {
@@ -178,9 +188,12 @@ describe("くらしのピン（028）", () => {
   });
 
   it("札をどちらに伸ばすかは、スマホと PC で同じ", () => {
-    const [wide, tall] = Object.values(PIN_SPOTS);
-    for (const pin of Object.keys(wide) as (keyof typeof wide)[]) expect(tall[pin].side).toBe(wide[pin].side);
-    for (const { spots } of Object.values(EVENT_PINS)) expect(spots[pictures.tall]?.side).toBe(spots[pictures.wide]?.side);
+    for (const { wide, tall } of [pictures, { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" } as const]) {
+      for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {
+        expect(PIN_SPOTS[tall][pin].side).toBe(PIN_SPOTS[wide][pin].side);
+      }
+      for (const { spots } of Object.values(EVENT_PINS)) expect(spots[tall]?.side).toBe(spots[wide]?.side);
+    }
   });
 
   it("小さな絵は、ピンの場所が枠の真ん中に来るように切り出し、絵の外にははみ出さない", () => {
