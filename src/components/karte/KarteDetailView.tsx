@@ -12,7 +12,7 @@ import { karteLayout } from "@/lib/conditions/karte-order";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
-import type { DataState, DistrictData, SourceInfo } from "@/lib/data/screen-data";
+import type { DistrictData, SourceInfo } from "@/lib/data/screen-data";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
@@ -24,8 +24,7 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 import { HousingPriceCard, useHousingTab, type HousingTab } from "./HousingCard";
 import { CARD_PICTURES, KARTE_CARD_ICONS } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
-import { ChildcareCard, DisasterCard, PopulationCard, PublicFacilitiesCard, SupportCard } from "./OtherCards";
-import { TransportCard } from "./TransportCard";
+import { OtherDetailCard, detailTabs, useDetailTab, type DetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
 
@@ -179,27 +178,26 @@ function DetailBody({
 }) {
   const data = useScreenData();
   const district = data.districts[conditions.district];
-  const [tab, setTab] = useHousingTab(conditions.housing);
-
-  const main: Record<KarteCard, ReactNode> = {
-    housing: <HousingPriceCard district={district} housing={conditions.housing} tab={tab} onTabChange={setTab} />,
-    childcare: <ChildcareCard district={district} />,
-    transport: <TransportCard district={district} noCar={hasNoCar(conditions)} />,
-    disaster: <DisasterCard district={district} />,
-    population: <PopulationCard district={district} />,
-    public_facilities: <PublicFacilitiesCard district={district} />,
-    support: <SupportCard programs={data.supportPrograms} />,
-  };
-  const knows = card === "housing" && tab.category ? housingKnows(tab.category) : texts.knows;
+  const noCar = hasNoCar(conditions);
+  const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
+  const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
+  const [otherTab, setOtherTab] = useDetailTab(tabs);
+  const knows = card === "housing" && housingTab.category ? housingKnows(housingTab.category) : texts.knows;
 
   return (
     <div className="flex flex-col gap-4">
       {card === "housing" ? (
-        main.housing
+        <HousingPriceCard district={district} housing={conditions.housing} tab={housingTab} onTabChange={setHousingTab} />
       ) : (
-        <section aria-label={KARTE_CARD_LABELS[card]} className="rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
-          {main[card]}
-        </section>
+        <OtherDetailCard
+          card={card}
+          tabs={tabs}
+          tab={otherTab}
+          onTabChange={setOtherTab}
+          district={district}
+          supportPrograms={data.supportPrograms}
+          noCar={noCar}
+        />
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -240,7 +238,10 @@ function DetailBody({
         </Box>
       </div>
 
-      <Basis card={card} district={district} districtName={districtName} tab={tab} note={texts.basisNote} />
+      <Basis
+        rows={card === "housing" ? housingBasisRows(district, districtName, housingTab) : otherBasisRows(card, otherTab)}
+        note={texts.basisNote}
+      />
     </div>
   );
 }
@@ -275,22 +276,9 @@ function Box({ title, icon, tone, children }: { title: string; icon: "icon-bulb"
 }
 
 // 「数字の根拠を見る」（見本）：出典・集計対象・対象期間・取得日。PC は最初から開き、スマホは閉じておく
-function Basis({
-  card,
-  district,
-  districtName,
-  tab,
-  note,
-}: {
-  card: KarteCard;
-  district: DistrictData;
-  districtName: string;
-  tab: HousingTab;
-  note?: string;
-}) {
+function Basis({ rows, note }: { rows: BasisRow[][]; note?: string }) {
   const wide = useWideScreen();
   const [open, setOpen] = useState<boolean | null>(null);
-  const rows = basisRows(card, district, districtName, tab);
   return (
     <details
       open={open ?? wide}
@@ -343,24 +331,27 @@ function sourceRows(source: SourceInfo, period?: string): BasisRow[] {
   ];
 }
 
-// 項目ごとの出典の表。同じ出典は1回だけ出す。住まいは、今見ているタブの集計対象と期間を出す
-export function basisRows(card: KarteCard, district: DistrictData, districtName: string, tab: HousingTab): BasisRow[][] {
-  if (card === "housing") {
-    // 借りるの「選んだ家」（家賃の情報なし）は、となりのタブと同じ相場の出典を出す
-    const category = tab.category ?? "house_built_within_20y";
-    const state = district.market[category];
-    if (state.status === "unavailable") return [];
-    const period = state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined;
-    const [source, , ...dates] = sourceRows(state.source, period);
-    return [
-      [
-        source,
-        ["集計対象", `${districtName}・${MARKET_CATEGORY_PHRASES[category]}`],
-        ["対象期間", period ?? state.source.periodLabel ?? "記載なし"],
-        ...dates,
-      ],
-    ];
-  }
+// 住まいの出典の表。今見ているタブの集計対象と期間を出す
+function housingBasisRows(district: DistrictData, districtName: string, tab: HousingTab): BasisRow[][] {
+  // 借りるの「選んだ家」（家賃の情報なし）は、となりのタブと同じ相場の出典を出す
+  const category = tab.category ?? "house_built_within_20y";
+  const state = district.market[category];
+  if (state.status === "unavailable") return [];
+  const period = state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined;
+  const [source, , ...dates] = sourceRows(state.source, period);
+  return [
+    [
+      source,
+      ["集計対象", `${districtName}・${MARKET_CATEGORY_PHRASES[category]}`],
+      ["対象期間", period ?? state.source.periodLabel ?? "記載なし"],
+      ...dates,
+    ],
+  ];
+}
+
+// 住まい以外の出典の表。今見ているタブで使っているデータの出典を、同じ出典は1回だけ出す。
+// 支援制度は制度ごとのページが出典で、確認日は一覧の制度ごとに出している
+function otherBasisRows(card: Exclude<KarteCard, "housing">, tab: DetailTab): BasisRow[][] {
   if (card === "support")
     return [
       [
@@ -368,22 +359,9 @@ export function basisRows(card: KarteCard, district: DistrictData, districtName:
         ["確認日", "制度ごとに記載"],
       ],
     ];
-  const states: Record<Exclude<KarteCard, "housing" | "support">, readonly DataState<unknown>[]> = {
-    childcare: [
-      district.elementarySchoolDistricts,
-      district.juniorHighSchoolDistricts,
-      district.schools,
-      district.childcare,
-      district.afterSchoolClubs,
-    ],
-    transport: [district.busStops, district.trainStations, district.trainDepartures, district.busOuting, district.trainOuting],
-    disaster: [district.evacuationSites],
-    population: [district.population],
-    public_facilities: [district.publicFacilities],
-  };
   const seen = new Set<string>();
   const groups: BasisRow[][] = [];
-  for (const state of states[card]) {
+  for (const state of tab.states) {
     if (state.status === "unavailable" || seen.has(state.source.id)) continue;
     seen.add(state.source.id);
     groups.push(sourceRows(state.source));

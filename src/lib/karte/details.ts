@@ -68,14 +68,14 @@ const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, 
   public_facilities: {
     question: { long: "身近な施設は、どこにある？", short: "身近な施設は？" },
     knows: "{district}にある公民館・図書館・公園などです。",
-    tip: { title: "ふだん使う場所を思い浮かべて。", body: "開いている日と時間は、施設のページで確かめましょう。" },
+    tip: { title: "ふだん使う場所を思い浮かべて。", body: "家からの道のりも、あわせて確かめましょう。" },
     checkTitle: "現地で確かめたいこと",
     checks: ["よく使いそうな施設までの道", "開いている日と時間", "子どもが遊べる場所"],
   },
   support: {
     question: { long: "使える支援制度は、どんなもの？", short: "使える支援制度は？" },
     knows: "飯田市の移住・子育ての支援制度です。地区によらず、市全体の制度です。",
-    tip: { title: "対象になるかは窓口で。", body: "条件や期限は、公式ページと窓口で確かめましょう。" },
+    tip: { title: "暮らしの計画といっしょに。", body: "引っ越しの時期や家の買い方で、使える制度が変わることがあります。" },
     checkTitle: "窓口で確かめたいこと",
     checks: ["申し込みの時期と期限", "対象になる条件", "相談できる窓口"],
   },
@@ -99,6 +99,16 @@ export function detailTexts(card: KarteCard, options: { housing: Housing; transp
 export function withDistrict(text: string, districtName: string): string {
   return text.replaceAll("{district}", districtName);
 }
+
+// 詳細のいちばん上のカードの注意書き（住まいの「現在の売り出し価格ではなく…」の箱）。
+// 子育て・学校、交通（車0台）、支援制度は NOTICES の決まった文を使う
+export const DETAIL_NOTICES = {
+  disaster: {
+    title: "避難するときは、市の最新の情報に従ってください。",
+    body: "ここに出すのは、市の「指定緊急避難場所一覧」の内容です。",
+  },
+  public_facilities: { title: "開いている日と時間は、施設のページで確かめてください。" },
+} as const;
 
 // 図鑑の番号（「01」）。一覧の並び（karteLayout）で何番目か
 export function entryNumber(cards: readonly KarteCard[], card: KarteCard): string {

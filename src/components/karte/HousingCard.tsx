@@ -3,7 +3,6 @@
 import { useId, useState } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { PixelImage } from "@/components/pixel/PixelImage";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { CountLabel } from "@/components/ui/CountBadge";
 import type { Housing } from "@/lib/conditions/labels";
 import type { DistrictData, MarketCategory, MarketStat } from "@/lib/data/screen-data";
@@ -11,6 +10,7 @@ import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { houseSrc } from "@/lib/illust/assets";
 import { EXAMPLE_LAND_AREA, MARKET_CATEGORY_LABELS, NO_RENT_DATA, landEstimates, marketCategoryOrder } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
+import { DetailTabs, NoticeBox } from "./DetailCard";
 
 // 住まいの詳細のタブ。「選んだ家」は選んだ家にいちばん近い相場、借りるは家賃の情報がないことを出す
 export type HousingTab = {
@@ -86,50 +86,16 @@ export function HousingPriceCard({
         </div>
         {tab.category !== null && (
           // スマホはカードの幅いっぱい、PC は値段の列にそろえる（見本）
-          <div className="flex gap-2 rounded-button bg-warm-soft p-3 md:ml-[9.25rem]">
-            <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold font-bold text-white">
-              !
-            </span>
-            <p className="flex flex-col text-sm">
-              <span className="font-bold text-kind-local">{NOTICES.market}</span>
-              <span>この数字は、ご家族の条件に合わせた見積もりではありません。</span>
-            </p>
-          </div>
+          <NoticeBox title={NOTICES.market} body="この数字は、ご家族の条件に合わせた見積もりではありません。" className="md:ml-[9.25rem]" />
         )}
       </div>
-      <div
-        role="tablist"
-        aria-label="相場の種類"
-        className="grid gap-2"
-        style={{
-          gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {tabs.map((item) => {
-          const selected = item.id === tab.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={panelId}
-              onClick={() => onTabChange(item)}
-              className={[
-                "relative flex min-h-tap items-center justify-center gap-1 whitespace-nowrap rounded-button border px-0.5 text-[11px] font-bold sm:gap-1.5 sm:text-sm",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                selected ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
-              ].join(" ")}
-            >
-              <PixelIcon icon={item.icon} size="sm" />
-              {item.label}
-              {selected && (
-                <span aria-hidden="true" className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 bg-primary" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <DetailTabs
+        label="相場の種類"
+        tabs={tabs}
+        selectedId={tab.id}
+        panelId={panelId}
+        onSelect={(id) => onTabChange(tabs.find((item) => item.id === id) ?? tabs[0])}
+      />
       <p className="text-center text-xs text-ink-muted">建物の広さや状態などにより、実際の価格は異なります。</p>
     </section>
   );

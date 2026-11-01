@@ -3,7 +3,8 @@ import type { KarteCard } from "@/lib/conditions/labels";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
-import { karteScreenData } from "@/test/karte-fixture";
+import { KANAE, karteScreenData } from "@/test/karte-fixture";
+import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { KarteDetailView } from "./KarteDetailView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -119,71 +120,143 @@ describe("KarteDetailView：住まい（5章）", () => {
   });
 });
 
-describe("KarteDetailView：住まい以外", () => {
-  it("車0台の交通は、注意書きと冬の場面の便、gofreely へのリンクを出す", async () => {
+describe("KarteDetailView：住まい以外（住まいと同じ形：大きい数字・注意書き・タブ）", () => {
+  const card = (name: string) => screen.getByRole("region", { name });
+  const figure = () => screen.getByRole("tabpanel");
+  const tabNames = () => screen.getAllByRole("tab").map((tab) => tab.textContent);
+  const choose = async (name: RegExp) => {
+    await act(async () => {
+      fireEvent.click(screen.getByRole("tab", { name }));
+    });
+  };
+
+  it("車0台の交通は、冬のおでかけのタブから開き、本数・注意書き・便・gofreely へのリンクを出す", async () => {
     await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("車なしで、どう動く？");
-    const main = screen.getByRole("region", { name: "交通" });
-    expect(main).toHaveTextContent(NOTICES.carFree);
+    expect(tabNames()).toEqual(["冬のおでかけ", "バス停", "電車"]);
+    expect(screen.getByRole("tab", { name: /冬のおでかけ/ })).toHaveAttribute("aria-selected", "true");
+    expect(figure()).toHaveTextContent("鼎公民館前から飯田駅前へ乗りかえなしで行くバス（1日）");
+    expect(figure()).toHaveTextContent("17本");
+    expect(figure()).toHaveTextContent(NOTICES.carFree);
+    const main = card("交通");
     expect(main).toHaveTextContent("2027年1月16日（土）の時刻表");
     expect(main).toHaveTextContent("10:01 鼎公民館前発 → 10:11 飯田駅前着");
-    expect(
-      within(main)
-        .getByRole("link", { name: /この便を gofreely で調べる/ })
-        .getAttribute("href"),
-    ).toContain("from=");
+    expect(within(main).getByRole("link", { name: /この便を gofreely で調べる/ }).getAttribute("href")).toContain("from=");
+    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("GTFSデータリポジトリ「南信州のバス」");
   });
 
-  it("車1台以上は冬の便を出さない", async () => {
+  it("車1台以上は冬のおでかけのタブを出さず、バス停から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
     await open("transport", "d=kanae&k=1&c=1");
-    expect(screen.getByRole("region", { name: "交通" })).not.toHaveTextContent("冬の場面で使ったバスの便");
+    expect(tabNames()).toEqual(["バス停", "電車"]);
+    expect(figure()).toHaveTextContent("地区のバス停2か所");
+    expect(figure()).not.toHaveTextContent(NOTICES.carFree);
+    await choose(/電車/);
+    expect(figure()).toHaveTextContent("地区の駅1か所");
+    expect(card("交通")).toHaveTextContent("駅ごとの1日の本数（特急を除く）データ未取得");
+    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("SENA「JR飯田線の駅」");
   });
 
-  it("防災・人口は値と出典・対象・確認日を出す", async () => {
+  it("電車の本数があれば、いちばん本数の多い駅の上り・下りの合計を大きく出す", async () => {
+    screenData = screenDataFixture({
+      kanae: {
+        ...KANAE,
+        trainDepartures: availableFixture(
+          [
+            { stationName: "鼎", direction: "上り", tripsPerDay: 20, firstDeparture: "06:13", lastDeparture: "23:52" },
+            { stationName: "鼎", direction: "下り", tripsPerDay: 18, firstDeparture: "05:06", lastDeparture: "23:04" },
+          ],
+          sourceFixture("iida_jr_timetable"),
+        ),
+      },
+    });
+    await open("transport", "d=kanae&k=1&c=1");
+    await choose(/電車/);
+    expect(figure()).toHaveTextContent("鼎駅を出る電車（1日・特急を除く）38本上り・下りの合計");
+    expect(card("交通")).toHaveTextContent("下り（辰野方面）18本5:0623:04");
+  });
+
+  it("防災は災害の種類のタブで避難場所を絞る。大規模な火事は使える場所がなければタブにしない", async () => {
     await open("disaster", "d=kanae&k=1");
-    const disaster = screen.getByRole("region", { name: "防災" });
-    expect(disaster).toHaveTextContent("飯田市「指定緊急避難場所一覧」");
-    expect(disaster).toHaveTextContent("確認日2026年10月26日");
-    expect(disaster).toHaveTextContent("洪水・土砂災害");
-    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「指定緊急避難場所一覧」");
+    expect(tabNames()).toEqual(["すべて1", "洪水1", "土砂災害1", "地震0"]);
+    expect(figure()).toHaveTextContent("地区の指定緊急避難場所1か所");
+    expect(card("防災")).toHaveTextContent("使える災害：洪水・土砂災害");
+    await choose(/地震/);
+    expect(figure()).toHaveTextContent("地震のときに使える指定緊急避難場所0か所");
+    expect(card("防災")).not.toHaveTextContent("鼎小学校");
+    const table = within(basis());
+    expect(table.getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「指定緊急避難場所一覧」");
+    expect(table.getByRole("row", { name: /確認日/ })).toHaveTextContent("2026年10月26日");
   });
 
-  it("人口は人数と年齢の割合、対象時点", async () => {
+  it("人口はタブなしで、人数・対象時点と年齢の割合", async () => {
     await open("population", "d=kanae&k=1");
-    const population = screen.getByRole("region", { name: "人口" });
-    expect(population).toHaveTextContent("12,000人");
-    expect(population).toHaveTextContent("12.5%");
-    expect(population).toHaveTextContent("2020年10月1日時点");
+    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+    expect(figure()).toHaveTextContent("地区の人口（2020年10月1日時点）12,000人");
+    expect(card("人口")).toHaveTextContent("14歳以下1,500人12.5%");
+  });
+
+  it("子育て・学校は学区から開き、学校のタブは数と種類ごとの内訳・一覧", async () => {
+    const education = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
+    screenData = screenDataFixture({
+      kanae: {
+        ...KANAE,
+        elementarySchoolDistricts: availableFixture(["鼎小学校"], sourceFixture("reinfolib_xkt004")),
+        schools: availableFixture(
+          [
+            { name: "鼎小学校", subkind: "小学校", address: null },
+            { name: "鼎中学校", subkind: "中学校", address: null },
+          ],
+          education,
+        ),
+      },
+    });
+    await open("childcare", "d=kanae&k=1");
+    expect(tabNames()).toEqual(["学区", "学校", "保育園など", "放課後クラブ"]);
+    expect(figure()).toHaveTextContent("小学校鼎小学校");
+    expect(figure()).toHaveTextContent("中学校データ未取得");
+    expect(figure()).toHaveTextContent(NOTICES.schoolDistrict);
+    await choose(/学校/);
+    expect(figure()).toHaveTextContent("地区にある学校2校小学校1・中学校1");
+    expect(card("子育て・学校")).toHaveTextContent("学校の一覧（2か所）");
+    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「教育機関一覧」");
   });
 
   it("出典が未公開なら「データ未取得」、駅のない地区は「地区内に駅はありません。」", async () => {
-    for (const card of ["childcare", "transport", "disaster", "population", "public_facilities", "support"] as const) {
-      await open(card, "d=igara&k=1");
-      expect(screen.getByRole("region", { name: /./ })).toHaveTextContent("データ未取得");
-      if (card === "transport") expect(screen.getByRole("region", { name: "交通" })).toHaveTextContent("地区内に駅はありません。");
+    for (const item of ["childcare", "transport", "disaster", "population", "public_facilities", "support"] as const) {
+      await open(item, "d=igara&k=1");
+      expect(figure()).toHaveTextContent("データ未取得");
+      if (item === "transport") {
+        await choose(/電車/);
+        expect(figure()).toHaveTextContent("地区内に駅はありません。");
+      }
       document.body.innerHTML = "";
     }
   });
 
-  it("支援制度は制度名・概要・公式リンク・確認日と、公式で確認する注意書きを出す", async () => {
+  it("支援制度は種類のタブで絞り、制度名・概要・公式リンク・確認日と、公式で確認する注意書きを出す", async () => {
     screenData = {
       ...screenData,
       supportPrograms: [
         {
           name: "移住支援金",
           summary: "東京圏から移住した人への支援金",
-          category: "住まい",
+          category: "移住",
           officialUrl: "https://www.city.iida.lg.jp/x",
           checkedOn: "2026-10-26",
         },
+        { name: "子育て応援", summary: "子育ての支援", category: "子育て", officialUrl: "https://www.city.iida.lg.jp/y", checkedOn: "2026-10-26" },
       ],
     };
     await open("support", "d=kanae&k=1");
-    const support = screen.getByRole("region", { name: "支援制度" });
+    expect(tabNames()).toEqual(["すべて2", "移住1", "子育て1"]);
+    const support = card("支援制度");
     expect(within(support).getByRole("link", { name: /移住支援金/ })).toHaveAttribute("href", "https://www.city.iida.lg.jp/x");
-    expect(support).toHaveTextContent(NOTICES.support);
+    expect(figure()).toHaveTextContent(NOTICES.support);
     expect(support).toHaveTextContent("2026年10月26日");
     expect(support).not.toHaveTextContent("対象になります");
+    await choose(/子育て/);
+    expect(figure()).toHaveTextContent("子育ての支援制度（飯田市全体）1件");
+    expect(within(support).queryByRole("link", { name: /移住支援金/ })).toBeNull();
   });
 });
 
