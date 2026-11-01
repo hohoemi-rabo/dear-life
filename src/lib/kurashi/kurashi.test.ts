@@ -142,7 +142,7 @@ describe("gofreelyHref", () => {
 });
 
 describe("くらしのピン（028）", () => {
-  const plan = (season: "春" | "夏" | "秋", children: number) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children });
+  const plan = (season: "春" | "夏" | "秋" | "冬", children: number, car?: 0 | 1) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children, ...(car === undefined ? {} : { car }) });
 
   const pictures = { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" } as const;
   const kuroda = event("祭り", { season: "春", name: "黒田人形奉納上演" });
@@ -179,6 +179,17 @@ describe("くらしのピン（028）", () => {
     expect(scenePinFor(plan("秋", 0))).toBe("population");
   });
 
+  it("冬は駅・バス停のピンをいつも出し、車ありだけ雪の道のピンを足す。冬の行事は体育館に立てる（2026-11-01）", () => {
+    const winter = { wide: "kurashi-kamisato-winter-wide", tall: "kurashi-kamisato-winter-tall" } as const;
+    const sports = event("運動会", { season: "冬", name: "冬季スポーツ交流会" });
+    expect(labels(scenePins(plan("冬", 1, 0), { children: 1 }, winter, [sports]))).toEqual(["学校", "バス・電車", "スポーツ", "住まい"]);
+    const withCar = scenePins(plan("冬", 1, 1), { children: 1 }, winter, [sports]);
+    expect(labels(withCar)).toEqual(["学校", "バス・電車", "スポーツ", "住まい", "雪の道"]);
+    expect(withCar[4]).toMatchObject({ kind: "snow", wide: PIN_SPOTS[winter.wide].snow });
+    expect(scenePinFor(plan("冬", 1, 0))).toBe("transit");
+    expect(scenePinFor(plan("冬", 1, 1))).toBe("snow");
+  });
+
   it("場所の決まった行事は行事ごとにピンを立て、そのピンのシートにはその行事だけを出す（2026-10-31）", () => {
     const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, walk]);
     expect(labels(pins)).toEqual(["学校", "黒田人形", "歩こう会", "住まい"]);
@@ -203,6 +214,7 @@ describe("くらしのピン（028）", () => {
       pictures,
       { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" },
       { wide: "kurashi-kamisato-autumn-wide", tall: "kurashi-kamisato-autumn-tall" },
+      { wide: "kurashi-kamisato-winter-wide", tall: "kurashi-kamisato-winter-tall" },
     ] as const;
     for (const { wide, tall } of seasons) {
       for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {

@@ -58,13 +58,7 @@ export function ScenePanel({ season, conditions }: Props) {
 function SceneBody({ scene, season, conditions }: { scene: Scene } & Props) {
   const sourceNumbers = new Map(scene.sources.map((source, index) => [source.id, index + 1]));
   const cards = [...new Set(scene.lines.flatMap((line) => (line.karteCard ? [line.karteCard] : [])))];
-  // いつの時刻表かは、バス・電車それぞれ最初の文にだけ添える（おでかけはバス2文・電車1文に分かれている）
-  const timetableNoteAt = new Map<TransitRef["mode"], number>();
-  for (const line of scene.lines) {
-    if (line.status === "shown" && line.transit && !timetableNoteAt.has(line.transit.mode)) {
-      timetableNoteAt.set(line.transit.mode, line.position);
-    }
-  }
+  const timetableNoteAt = timetableNotePositions(scene.lines);
   return (
     <>
       <ul className="flex flex-col gap-2">
@@ -73,7 +67,7 @@ function SceneBody({ scene, season, conditions }: { scene: Scene } & Props) {
             <SceneLineView
               line={line}
               sourceNumbers={sourceNumbers}
-              withTimetableNote={line.status === "shown" && line.transit !== null && timetableNoteAt.get(line.transit.mode) === line.position}
+              withTimetableNote={timetableNoteAt.has(line.position)}
             />
           </li>
         ))}
@@ -85,6 +79,16 @@ function SceneBody({ scene, season, conditions }: { scene: Scene } & Props) {
       <SceneSources sources={scene.sources} />
     </>
   );
+}
+
+// いつの時刻表か（と gofreely へのリンク）は、バス・電車それぞれ最初の文にだけ添える（おでかけはバス2文・電車1文に分かれている）。
+// 添える文の position を返す。くらしの場面の文とピンのシート（028）で使う
+export function timetableNotePositions(lines: readonly SceneLine[]): ReadonlySet<number> {
+  const firstOf = new Map<TransitRef["mode"], number>();
+  for (const line of lines) {
+    if (line.status === "shown" && line.transit && !firstOf.has(line.transit.mode)) firstOf.set(line.transit.mode, line.position);
+  }
+  return new Set(firstOf.values());
 }
 
 export function SceneLineView({

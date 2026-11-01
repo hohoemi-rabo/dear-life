@@ -344,8 +344,8 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).not.toHaveTextContent("黒田人形奉納上演");
   });
 
-  it("上郷でも絵のない季節は、今のドット絵と場面の文で出す（ピンはない）", async () => {
-    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+  it("絵のない地区は、今のドット絵と場面の文で出す（ピンはない）", async () => {
+    await open("d=kanae&a=2&k=1&h=new&s=winter");
     expect(sceneWindow()).toHaveTextContent("雪・凍結と車の移動");
     expect(screen.queryByRole("button", { name: "学校" })).not.toBeInTheDocument();
   });
@@ -489,5 +489,79 @@ describe("KurashiView：上郷・秋の風景とピン（028）", () => {
     const sheet = screen.getByRole("dialog", { name: "上郷の秋の行事" });
     expect(sheet).toHaveTextContent("上郷地区文化祭");
     expect(sheet).not.toHaveTextContent("上郷地区大運動会");
+  });
+});
+
+describe("KurashiView：上郷・冬の風景とピン（028）", () => {
+  beforeEach(() => {
+    const kamisato: Partial<DistrictData> = {
+      ...KAMISATO,
+      busStops: availableFixture(
+        [
+          { name: "上郷公民館前", subkind: null, address: null },
+          { name: "飯沼", subkind: null, address: null },
+        ],
+        BUS,
+      ),
+      busOuting: availableFixture(BUS_OUTING, BUS),
+      events: [event("冬季スポーツ交流会", { season: "冬", timingNote: "例年2月上旬" })],
+    };
+    screenData = { ...published(), districts: { ...published().districts, kamisato: { ...published().districts.kamisato, ...kamisato } } };
+  });
+
+  const pin = (name: string) => screen.getByRole("button", { name, expanded: false });
+
+  it("車0台：学校・バス・電車・行事・住まいのピンを立て、雪の道のピンは出さない", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
+    expect(screen.getByRole("group", { name: /上郷の冬の風景（イメージ）/ })).toBeInTheDocument();
+    for (const name of ["学校", "バス・電車", "スポーツ", "住まい"]) expect(pin(name)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "雪の道" })).not.toBeInTheDocument();
+  });
+
+  it("車0台：バス・電車のピンのシートに、本物の便・いつの時刻表か・gofreely へのリンク・カルテの交通へのボタンを出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("バス・電車"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷のバス停は2か所" });
+    expect(sheet).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
+    expect(within(sheet).getByText("2027年1月16日（土）の時刻表")).toBeInTheDocument();
+    expect(within(sheet).getByRole("link", { name: /この便を gofreely で調べる/ })).toHaveAttribute("target", "_blank");
+    expect(sheet).toHaveTextContent("出典：GTFSデータリポジトリ「南信州のバス」");
+    expect(within(sheet).getByRole("link", { name: /バスと電車を確かめる/ })).toHaveAttribute(
+      "href",
+      "/karte?s=winter&d=kamisato&a=2&k=1&h=new&c=0#karte-transport",
+    );
+  });
+
+  it("車あり：雪の道のピンを足し、雪と凍結の場面の文はそこに出す。バス・電車のピンはバス停の数だけ", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    for (const name of ["学校", "バス・電車", "スポーツ", "住まい", "雪の道"]) expect(pin(name)).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(pin("雪の道"));
+    });
+    const snow = screen.getByRole("dialog", { name: "冬の朝は、路面が凍ります" });
+    expect(snow).toHaveTextContent("スタッドレスタイヤが欠かせないとされています");
+    expect(within(snow).getByRole("link", { name: /交通を確かめる/ })).toHaveAttribute(
+      "href",
+      "/karte?s=winter&d=kamisato&a=2&k=1&h=new#karte-transport",
+    );
+    cleanup();
+
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("バス・電車"));
+    });
+    const transit = screen.getByRole("dialog", { name: "上郷のバス停は2か所" });
+    expect(transit).not.toHaveTextContent("10:01に出るバス");
+  });
+
+  it("バス停の数が出せないときは、見出しから数を外して「データ未取得」と出す", async () => {
+    screenData = published();
+    await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("バス・電車"));
+    });
+    expect(screen.getByRole("dialog", { name: "上郷のバス停" })).toHaveTextContent("データ未取得");
   });
 });

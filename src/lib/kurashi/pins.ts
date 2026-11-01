@@ -5,7 +5,7 @@ import type { ScenePlan } from "../conditions/scene.ts";
 import type { DistrictEvent } from "../data/screen-data.ts";
 import type { KurashiPictureId, KurashiPictures } from "../illust/assets.ts";
 
-export type PinId = "school" | "event" | "housing" | "public" | "evacuation" | "population";
+export type PinId = "school" | "event" | "housing" | "public" | "evacuation" | "population" | "transit" | "snow";
 
 export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   school: "学校",
@@ -14,6 +14,8 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   public: "公共施設",
   evacuation: "避難場所",
   population: "人口",
+  transit: "バス・電車",
+  snow: "雪の道",
 };
 
 // x・y はピンの先が指す場所。side は札をピンのどちら側に伸ばすか（絵の右の端では左に伸ばして、はみ出さないようにする）。
@@ -25,7 +27,8 @@ export type PinSpot = { x: number; y: number; side: "right" | "left" };
 // 避難場所（夏）＝真ん中の体育館の屋根（2026-10-31。上郷の大雨の避難場所の例が上郷小学校体育館のため）。
 // 人口（秋）＝奥の谷の町並み（2026-11-01 まさゆきさん、案A）。人口には決まった場所がないので、地区に住む人の暮らす町並みを指す。
 // 同じ谷を指す住まいのピンとは、右上にずらして札を反対側（右）に伸ばす。
-// 上郷の春・夏・秋の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
+// バス・電車（冬）＝右下の駅（2026-11-01 まさゆきさん）。雪の道（冬・車あり）＝手前の橋。家族の頭にかからないよう、橋の左寄りを指す。
+// 上郷の春・夏・秋・冬の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
 const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 27.3, y: 48, side: "right" },
   event: { x: 87, y: 38.5, side: "left" },
@@ -33,6 +36,8 @@ const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
   public: { x: 75, y: 66, side: "left" },
   evacuation: { x: 55, y: 50, side: "right" },
   population: { x: 57, y: 35.5, side: "right" },
+  transit: { x: 85, y: 69, side: "left" },
+  snow: { x: 26, y: 76, side: "right" },
 };
 const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 27.6, y: 49, side: "right" },
@@ -41,6 +46,8 @@ const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
   public: { x: 72, y: 69.5, side: "left" },
   evacuation: { x: 68, y: 51, side: "right" },
   population: { x: 65, y: 41, side: "right" },
+  transit: { x: 82, y: 71.5, side: "left" },
+  snow: { x: 22, y: 77.5, side: "right" },
 };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
@@ -50,6 +57,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kamisato-summer-tall": KAMISATO_TALL,
   "kurashi-kamisato-autumn-wide": KAMISATO_WIDE,
   "kurashi-kamisato-autumn-tall": KAMISATO_TALL,
+  "kurashi-kamisato-winter-wide": KAMISATO_WIDE,
+  "kurashi-kamisato-winter-tall": KAMISATO_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -104,6 +113,14 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
       "kurashi-kamisato-autumn-tall": { x: 80, y: 60.5, side: "left" },
     },
   },
+  // 冬（2026-11-01 まさゆきさん）。真ん中の体育館の正面（夏の春季スポーツ交流会と同じ場所）
+  冬季スポーツ交流会: {
+    label: "スポーツ",
+    spots: {
+      "kurashi-kamisato-winter-wide": { x: 47.5, y: 57, side: "left" },
+      "kurashi-kamisato-winter-tall": { x: 54, y: 58.5, side: "left" },
+    },
+  },
 };
 
 // 絵の上に立てるピン1本。kind はシートの中身の種類、key はピンごとに分かれる名前（行事は行事ごと）。
@@ -146,10 +163,23 @@ export function scenePins(
   pictures: KurashiPictures,
   events: readonly DistrictEvent[],
 ): ScenePinSpec[] {
-  // 夏の場面（大雨と避難）の文は避難場所のピンに、秋の場面（地区の行事）の文は人口のピンに出す
+  // 夏の場面（大雨と避難）の文は避難場所のピンに、秋の場面（地区の行事）の文は人口のピンに出す。
+  // 冬は駅・バス停のピンを車があってもいつも出し（2026-11-01 まさゆきさん）、車0台の場面の文（バスと電車の便）をそこに出す。
+  // 車ありの場面の文（雪と路面の凍結）は雪の道のピンに出す
+  const isWinter = plan.axis === "winter-transit" || plan.axis === "winter-car";
   const evacuation = plan.axis === "summer-evacuation" ? [pinOf("evacuation", pictures)] : [];
+  const transit = isWinter ? [pinOf("transit", pictures)] : [];
   const population = plan.axis === "autumn-events" ? [pinOf("population", pictures)] : [];
-  const pins = [pinOf("school", pictures), ...evacuation, ...eventPins(pictures, events), pinOf("housing", pictures), ...population];
+  const snow = plan.axis === "winter-car" ? [pinOf("snow", pictures)] : [];
+  const pins = [
+    pinOf("school", pictures),
+    ...evacuation,
+    ...transit,
+    ...eventPins(pictures, events),
+    pinOf("housing", pictures),
+    ...population,
+    ...snow,
+  ];
   if (!hasChildren(conditions) && plan.axis === "spring-public-facility") pins.push(pinOf("public", pictures));
   return pins;
 }
@@ -173,6 +203,10 @@ export function scenePinFor(plan: ScenePlan): PinId | null {
       return "evacuation";
     case "autumn-events":
       return "population";
+    case "winter-transit":
+      return "transit";
+    case "winter-car":
+      return "snow";
     default:
       return null;
   }

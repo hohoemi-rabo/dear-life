@@ -65,7 +65,7 @@ function countTitle(state: DataState<number>, base: string, unit: string): { tit
   return state.status === "available" ? { title: `${base}は${state.value}${unit}`, missing: null } : { title: base, missing: state };
 }
 
-// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所。秋：人口）
+// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所。秋：人口。冬：車0台＝バス・電車、車あり＝雪の道）
 function sceneParts(input: Input): { lines: readonly SceneLine[]; notices: readonly string[]; sources: SheetSource[] } {
   if (!input.scene || scenePinFor(input.plan) !== input.pin) return { lines: [], notices: [], sources: [] };
   return {
@@ -159,6 +159,36 @@ export function pinSheet(input: Input): PinSheet {
         sources: uniqueSources([...sourcesOf(state).map((source) => ({ source })), ...scene.sources]),
         karteCard: "population",
         action: "人口を確かめる",
+      };
+    }
+    case "transit": {
+      // 冬は車があってもいつも出す。場面の文（本物のバスと電車の便）は車0台のときだけ
+      const count = countOf(district.busStops);
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        ...countTitle(count, `${district.name}のバス停`, "か所"),
+        intro: "バス停や駅の場所と、バス・電車の便を、カルテと地図で確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
+        karteCard: "transport",
+        action: "バスと電車を確かめる",
+      };
+    }
+    case "snow": {
+      // 雪と凍結は数のデータがないので、見出しは場面の文の要点にする（車ありのときだけ立つピン）
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        title: "冬の朝は、路面が凍ります",
+        missing: null,
+        intro: "車で出かける冬の朝のようすです。バスや電車の便は、カルテの交通で確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources(scene.sources),
+        karteCard: "transport",
+        action: "交通を確かめる",
       };
     }
     case "event":

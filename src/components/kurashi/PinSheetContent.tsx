@@ -15,7 +15,7 @@ import type { PinSheet, SheetSource } from "@/lib/kurashi/pin-sheets";
 import { thumbnailPosition, type PinSpot } from "@/lib/kurashi/pins";
 import { buttonClassName } from "@/components/ui/Button";
 import { EventItem } from "./EventItem";
-import { SceneLineView } from "./ScenePanel";
+import { SceneLineView, timetableNotePositions } from "./ScenePanel";
 
 // シートの小さな絵は、横長の風景をこの倍率に拡大して、ピンの場所のまわりを切り出す
 const THUMBNAIL_ZOOM = 3.2;
@@ -38,6 +38,8 @@ export function PinSheetContent({
   compact?: boolean;
 }) {
   const sourceNumbers = new Map(sheet.sources.map(({ source }, index) => [source.id, index + 1]));
+  // バス・電車の文には、いつの時刻表かと gofreely へのリンクを添える（冬・車0台。場面の文と同じ）
+  const timetableNoteAt = timetableNotePositions(sheet.lines);
   return (
     <div className="flex flex-col gap-3">
       <div className={compact ? "flex flex-col gap-2" : "flex items-center gap-3"}>
@@ -51,7 +53,7 @@ export function PinSheetContent({
         <ul className="flex flex-col gap-1.5">
           {sheet.lines.map((line) => (
             <li key={line.position}>
-              <SceneLineView line={line} sourceNumbers={sourceNumbers} withTimetableNote={false} />
+              <SceneLineView line={line} sourceNumbers={sourceNumbers} withTimetableNote={timetableNoteAt.has(line.position)} />
             </li>
           ))}
         </ul>
