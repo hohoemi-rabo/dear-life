@@ -23,7 +23,7 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 import { ConditionsSheet } from "./ConditionsSheet";
 import { EventCard } from "./EventCard";
 import { HomeCard } from "./HomeCard";
-import { IllustratedScene } from "./IllustratedScene";
+import { IllustratedScene, preloadScenePicture } from "./IllustratedScene";
 import { KurashiTabBar } from "./KurashiTabBar";
 import { PinSheetContent } from "./PinSheetContent";
 import { SCENE_WIDTH_CLASS, ScenePanel } from "./ScenePanel";
@@ -48,6 +48,7 @@ export function KurashiView() {
 
   const chosen: Chosen = { ...conditions, district };
   const pictures = kurashiPicturesFor(district, season);
+  if (pictures) preloadScenePicture(pictures);
   const changeSeason = (next: Season) => {
     setOpenPin(null);
     setSeason(next);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { preload } from "react-dom";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
@@ -82,18 +83,50 @@ export function IllustratedScene({
   );
 }
 
+// 横長（PC）に切りかえる幅と、絵の表示幅。<picture> と先読み（preloadScenePicture）で同じものを使う（違うと別の版を2回読む）
+const WIDE_MEDIA = "(min-width: 1024px)";
+const TALL_MEDIA = "(max-width: 1023.98px)";
+const WIDE_SIZES = "(min-width: 1400px) 1150px, 80vw";
+const TALL_SIZES = "100vw";
+
+function scenePictureSrcSet(id: KurashiPictureId): string {
+  return ILLUST_PICTURES[id].widths.map((w) => `${illustPictureSrc(id, w)} ${w}w`).join(", ");
+}
+
+function largestSrc(id: KurashiPictureId): string {
+  return illustPictureSrc(id, ILLUST_PICTURES[id].widths.at(-1)!);
+}
+
+// 風景の絵を、画面のデータを待たずに読み始める（絵は地区と季節だけで決まる）。データの読み込み（約1秒）と並べて読むため、
+// ScreenDataBoundary の外（KurashiView）で呼ぶ（2026-11-01 測り直し）。同じ絵を何度呼んでも、先読みは1回だけ
+export function preloadScenePicture(pictures: KurashiPictures) {
+  preload(largestSrc(pictures.tall), {
+    as: "image",
+    imageSrcSet: scenePictureSrcSet(pictures.tall),
+    imageSizes: TALL_SIZES,
+    media: TALL_MEDIA,
+    fetchPriority: "high",
+  });
+  preload(largestSrc(pictures.wide), {
+    as: "image",
+    imageSrcSet: scenePictureSrcSet(pictures.wide),
+    imageSizes: WIDE_SIZES,
+    media: WIDE_MEDIA,
+    fetchPriority: "high",
+  });
+}
+
 // スマホは縦長、PC は横長の絵（<picture> で幅によって選ばせ、両方は読まない）。説明は figure の名前で読むので飾りにする
 function ScenePicture({ pictures }: { pictures: KurashiPictures }) {
-  const srcSet = (id: KurashiPictureId) => ILLUST_PICTURES[id].widths.map((w) => `${illustPictureSrc(id, w)} ${w}w`).join(", ");
   const tall = ILLUST_PICTURES[pictures.tall];
   return (
     <picture>
-      <source media="(min-width: 1024px)" srcSet={srcSet(pictures.wide)} sizes="(min-width: 1400px) 1150px, 80vw" />
+      <source media={WIDE_MEDIA} srcSet={scenePictureSrcSet(pictures.wide)} sizes={WIDE_SIZES} />
       {/* 静的書き出しでは next/image の srcset が使えないので <img>（IllustPicture と同じ） */}
       <img
-        src={illustPictureSrc(pictures.tall, tall.widths.at(-1)!)}
-        srcSet={srcSet(pictures.tall)}
-        sizes="100vw"
+        src={largestSrc(pictures.tall)}
+        srcSet={scenePictureSrcSet(pictures.tall)}
+        sizes={TALL_SIZES}
         width={tall.width}
         height={tall.height}
         alt=""

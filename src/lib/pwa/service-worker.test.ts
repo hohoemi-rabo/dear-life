@@ -8,7 +8,7 @@ import { precacheUrls, serviceWorkerSource } from "./precache";
 const template = readFileSync(join(import.meta.dirname, "service-worker.js"), "utf8");
 
 describe("precacheUrls", () => {
-  it("画面は .html を除いた URL にし、フォントなどの media と 404・sw.js は先に残さない", () => {
+  it("画面は .html を除いた URL にし、フォントなどの media・生成AIの絵と 404・sw.js は先に残さない", () => {
     expect(
       precacheUrls([
         "index.html",
@@ -21,6 +21,7 @@ describe("precacheUrls", () => {
         "pixel/bg-winter.png",
         "_next/static/chunks/a.js",
         "_next/static/media/font.woff2",
+        "illust/kurashi-kamisato-spring-tall-960.webp",
         "maplibre/maplibre-gl-worker.mjs",
       ]),
     ).toEqual([
@@ -117,6 +118,15 @@ describe("Service Worker", () => {
     expect(await (await worker.fetch("/_next/static/media/a.woff2"))?.text()).toBe("network:/_next/static/media/a.woff2");
     network = offline;
     expect(await (await worker.fetch("/_next/static/media/a.woff2"))?.text()).toBe("network:/_next/static/media/a.woff2");
+  });
+
+  it("生成AIの絵は使ったときに残し、次は圏外でも出す（2026-11-01）", async () => {
+    let network = siteNetwork;
+    const worker = startWorker("aaaa0000", [], (url) => network(url));
+    await worker.install();
+    await worker.fetch("/illust/person-father-back.webp");
+    network = offline;
+    expect(await (await worker.fetch("/illust/person-father-back.webp"))?.text()).toBe("network:/illust/person-father-back.webp");
   });
 
   it("残していない画面を圏外で開いたら入口を出す", async () => {

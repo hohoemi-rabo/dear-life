@@ -30,6 +30,8 @@ export function HomeCard({ conditions, onChangeConditions }: { conditions: Condi
               key={person}
               src={spriteSrc(id)}
               alt=""
+              // スマホでは「わが家」を隠しているので、見えるまで読まない（2026-11-01 測り直し）
+              loading="lazy"
               draggable={false}
               style={{ height: `${(SPRITE_SIZES[id].height / reference) * FATHER_HEIGHT}px` }}
               className={`w-auto select-none ${index > 0 ? "-ml-2" : ""}`}

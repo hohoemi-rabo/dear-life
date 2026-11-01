@@ -12,6 +12,9 @@ import { SEASON_STYLES } from "./season-styles";
 
 // PC：場面の下の4季節の絵（028 見本）。押すとその季節に切り替わる。風景の絵がある季節はその絵、ない季節は今のドット絵。
 // ScreenDataBoundary の中で使う
+// 縦長（4:5）の枠に横長（3:2）の絵を object-cover で出すので、絵の表示幅は枠の幅（PC で約120px）の約1.9倍になる
+const SEASON_THUMBNAIL_SIZES = "225px";
+
 export function SeasonThumbnails({
   season,
   conditions,
@@ -42,7 +45,7 @@ export function SeasonThumbnails({
             >
               {/* 絵の説明は大きい場面のほうで読むので、ここではボタンの名前だけを読ませる */}
               {pictures ? (
-                <IllustPicture picture={pictures.wide} sizes="120px" decorative className="block aspect-[4/5] w-full object-cover" />
+                <IllustPicture picture={pictures.wide} sizes={SEASON_THUMBNAIL_SIZES} decorative className="block aspect-[4/5] w-full object-cover" />
               ) : (
                 <div aria-hidden="true" className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-pixel-sky">
                   <PixelScene layers={seasonView(item, conditions, data).layers} widthClassName="w-[320px] max-w-none shrink-0" />

@@ -36,13 +36,15 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1412],
     alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
   },
-  // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
+  // くらしの絵の書き出す横幅（2026-11-01 測り直し）：横長の 240・480 は PC の下の季節の絵（約225px）、縦長の 720 は
+// 幅 375px・密度2倍のスマホ用（960 だと約430KB で、絵が出るまで約8秒かかっていた）
+// くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
   // PC 用は見本どおり見出しを空の上に重ねるので、上の1/4 は空と遠くの雪山だけ（2026-10-30 作り直し）
   "kurashi-kamisato-spring-wide": {
     source: "kurashi-kamisato-spring-wide.png",
     width: 1536,
     height: 1024,
-    widths: [960, 1440],
+    widths: [240, 480, 960, 1440],
     alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   // スマホ用も見出し・条件の札・季節の切りかえを空の上に重ねるので、上の約3割は空と遠くの雪山だけ（2026-10-30 作り直し。4:5）
@@ -50,7 +52,7 @@ export const ILLUST_PICTURES = {
     source: "kurashi-kamisato-spring-tall.png",
     width: 1122,
     height: 1402,
-    widths: [480, 960],
+    widths: [480, 720, 960],
     alt: "桜の咲く上郷の春。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   // くらし・上郷・夏（2026-10-31 受け取り）。春と同じ大きさ・同じ構図で、緑の濃い夏の景色。ピンの場所は春と同じ
@@ -58,14 +60,14 @@ export const ILLUST_PICTURES = {
     source: "kurashi-kamisato-summer-wide.png",
     width: 1536,
     height: 1024,
-    widths: [960, 1440],
+    widths: [240, 480, 960, 1440],
     alt: "緑の濃い上郷の夏。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   "kurashi-kamisato-summer-tall": {
     source: "kurashi-kamisato-summer-tall.png",
     width: 1122,
     height: 1402,
-    widths: [480, 960],
+    widths: [480, 720, 960],
     alt: "緑の濃い上郷の夏。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   // くらし・上郷・秋（2026-11-01 受け取り）。春・夏と同じ大きさ・同じ構図で、紅葉の景色。ピンの場所も同じ
@@ -73,14 +75,14 @@ export const ILLUST_PICTURES = {
     source: "kurashi-kamisato-autumn-wide.png",
     width: 1536,
     height: 1024,
-    widths: [960, 1440],
+    widths: [240, 480, 960, 1440],
     alt: "紅葉した上郷の秋。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   "kurashi-kamisato-autumn-tall": {
     source: "kurashi-kamisato-autumn-tall.png",
     width: 1122,
     height: 1402,
-    widths: [480, 960],
+    widths: [480, 720, 960],
     alt: "紅葉した上郷の秋。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   // くらし・上郷・冬（2026-11-01 受け取り）。春〜秋と同じ大きさ・同じ構図の雪景色。ピンの場所も同じ
@@ -88,14 +90,14 @@ export const ILLUST_PICTURES = {
     source: "kurashi-kamisato-winter-wide.png",
     width: 1536,
     height: 1024,
-    widths: [960, 1440],
+    widths: [240, 480, 960, 1440],
     alt: "雪の積もった上郷の冬。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   "kurashi-kamisato-winter-tall": {
     source: "kurashi-kamisato-winter-tall.png",
     width: 1122,
     height: 1402,
-    widths: [480, 960],
+    widths: [480, 720, 960],
     alt: "雪の積もった上郷の冬。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
   "district-kamisato": {

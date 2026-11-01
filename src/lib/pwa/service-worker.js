@@ -46,6 +46,10 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(respond(request, url));
 });
 
+function isCachedOnUse(pathname) {
+  return pathname.startsWith("/_next/static/") || pathname.startsWith("/illust/");
+}
+
 async function respond(request, url) {
   const cache = await caches.open(STATIC_CACHE);
   // 画面は条件の URL パラメータ（F-02）、画面の移動で読む .txt は ?_rsc= が付くので、パラメータを除いて探す
@@ -54,8 +58,9 @@ async function respond(request, url) {
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    // フォントなど、先に残さなかった部品は使ったときに残す（ファイル名に中身の印が付いているので、版の中では変わらない）
-    if (response.ok && url.pathname.startsWith("/_next/static/")) await cache.put(request, response.clone());
+    // フォント・生成AIの絵など、先に残さなかった部品は使ったときに残す（フォントはファイル名に中身の印が付いている。
+    // 絵は名前が同じでも、差しかえると版が変わり、古い版の入れ物ごと消えるので、版の中では変わらない）
+    if (response.ok && isCachedOnUse(url.pathname)) await cache.put(request, response.clone());
     return response;
   } catch (error) {
     // 残していない画面を圏外で開いたときは入口を出す（前に見た画面へ戻るボタンがある）

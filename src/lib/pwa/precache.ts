@@ -1,9 +1,10 @@
 // Service Worker（024）が入れるときに端末に残すファイルの一覧と、sw.js の組み立て。scripts/build-sw.mjs とテストが使う。
 // 残すのは、画面（HTML と、画面の移動で読む .txt）・JS と CSS・ドット絵・アイコン・地図の部品。
-// _next/static/media（フォントの分割ファイル約120個と、MapLibre の使わない写し）は大きいので先に残さず、使ったときに残す（service-worker.js）
+// _next/static/media（フォントの分割ファイル約120個と、MapLibre の使わない写し）と、生成AIの絵（illust/。端末の幅ごとの版が
+// すべて入っていて約11MB。2026-11-01 測り直し）は大きいので先に残さず、使ったときに残す（service-worker.js）
 export function precacheUrl(file: string): string | null {
   if (file === "sw.js" || file === "404.html") return null;
-  if (file.startsWith("_next/static/media/")) return null;
+  if (file.startsWith("_next/static/media/") || file.startsWith("illust/")) return null;
   if (file === "index.html") return "/";
   // 静的書き出しの karte.html は /karte で配る（Cloudflare の静的アセットの既定）。.html を付けると /karte に転送される
   if (file.endsWith(".html")) return `/${file.slice(0, -".html".length)}`;
