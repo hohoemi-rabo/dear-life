@@ -82,6 +82,8 @@ export const PIXEL_ASSETS = {
   "icon-support": { width: 16, height: 16, alt: "手で包んだハート" },
   "icon-info": { width: 16, height: 16, alt: "丸の中の i の印" },
   "icon-document": { width: 16, height: 16, alt: "文字の並んだ書類" },
+  "icon-bulb": { width: 16, height: 16, alt: "光る電球" },
+  "icon-checklist": { width: 16, height: 16, alt: "チェックの付いた表" },
   // ロゴと飾り（027）
   logo: { width: 24, height: 20, alt: "赤い屋根の家と芽" },
   "deco-grass": { width: 48, height: 10, alt: "花の咲いた草むら" },

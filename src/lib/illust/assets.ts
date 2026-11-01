@@ -117,7 +117,8 @@ export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 export const PEOPLE = ["father", "mother", "boy", "girl", "boy2", "girl2"] as const;
 export type Person = (typeof PEOPLE)[number];
 // back-summer などは季節ごとの服の斜め後ろ姿（くらしの夏・秋・冬。2026-11-01 まさゆきさん：季節で服を変える）。春は back のまま
-export const POSES = ["stand", "joy", "back", "back-summer", "back-autumn", "back-winter"] as const;
+// walk はカルテの下の「次は、現地で確かめよう」で、右へ歩く横向きの姿（2026-11-01 受け取り）
+export const POSES = ["stand", "joy", "back", "back-summer", "back-autumn", "back-winter", "walk"] as const;
 export type Pose = (typeof POSES)[number];
 
 const SEASONAL_BACK_POSES: Readonly<Record<Season, Pose>> = {
@@ -175,6 +176,27 @@ function seasonalBackSources(): Record<`${Person}-${SeasonalBackPose}`, SpriteSo
 
 type SpriteSource = { sheet: string; index: number; alt: string; scale?: number; matchHeight?: SpriteId };
 
+// 右へ歩く横向きの姿（karte-next-step.png。2026-11-01 受け取り）。2段に4人ずつ並び、index は上の段の左から通し番号。
+// 上の段：お父さん・お母さん・男の子・赤・男の子・黄（使わない）、下の段：女の子・ボブ（使わない）・女の子・おさげ・男の子・青・女の子・紫。
+// シートの人の大きさがほかと違うので、立つ姿（stand）と同じ背にそろえる
+const WALK_INDEX: Readonly<Record<Person, { index: number; who: string }>> = {
+  father: { index: 0, who: "緑の上着のお父さん" },
+  mother: { index: 1, who: "青いスカートのお母さん" },
+  boy: { index: 2, who: "赤い服の男の子" },
+  girl: { index: 5, who: "おさげの女の子" },
+  boy2: { index: 6, who: "青い服の男の子" },
+  girl2: { index: 7, who: "紫の服の女の子" },
+};
+
+function walkSources(): Record<`${Person}-walk`, SpriteSource> {
+  const entries = PEOPLE.map((person) => {
+    const { index, who } = WALK_INDEX[person];
+    const source: SpriteSource = { sheet: "karte-next-step.png", index, alt: `右へ歩く、${who}`, matchHeight: spriteId(person, "stand") };
+    return [spriteId(person, "walk"), source] as const;
+  });
+  return Object.fromEntries(entries) as Record<`${Person}-walk`, SpriteSource>;
+}
+
 // キャラクターのシートは1枚に2〜6人が並び、人と人のあいだが透明になっている。
 // index は「左から何人目か」（0始まり）。並びは assets/illust/README.md。
 // scale はシートごとの縮め方の差（SPRITE_SCALE に掛ける）。シート6は人が大きく描かれているので、今の子どもと同じ背にそろえる。
@@ -200,6 +222,7 @@ export const SPRITE_SOURCES: Record<SpriteId, SpriteSource> = {
   "girl2-joy": { sheet: "characters-sheet-6.png", index: 2, alt: "紫の服の女の子", scale: SHEET_6_SCALE },
   "girl2-back": { sheet: "characters-sheet-6.png", index: 3, alt: "右奥を向いた後ろ姿の、紫の服の女の子", scale: SHEET_6_SCALE },
   ...seasonalBackSources(),
+  ...walkSources(),
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
@@ -241,10 +264,20 @@ export const PROPS = [
   "event-undokai",
   "event-bunkasai",
   "event-winter-sports",
+  "karte-header-wide",
+  "karte-header-tall",
+  "karte-childcare",
+  "karte-transport",
+  "karte-disaster",
+  "karte-population",
+  "karte-public",
+  "karte-support",
+  "karte-check",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
-export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt: string }> = {
+// widths を書くと、PROP_WIDTHS の代わりにその横幅で書き出す
+export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt: string; widths?: readonly number[] }> = {
   "car-white": { source: "car.png", index: 0, alt: "白い軽自動車" },
   "car-blue": { source: "car.png", index: 1, alt: "青い軽自動車" },
   "bus-stop": { source: "bus-stop.png", alt: "駅の建物とバス停の標識・待合所" },
@@ -257,6 +290,20 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "event-undokai": { source: "event-undokai.png", alt: "つるしたパンに口をのばす、体操服の大人と子ども" },
   "event-bunkasai": { source: "event-bunkasai.png", alt: "トランペット・サックス・チューバを吹く3人" },
   "event-winter-sports": { source: "event-winter-sports.png", alt: "体育館で、木の棒を投げてピンを倒す子どもと見守る大人" },
+  // カルテ（2026-11-01 受け取り。春の絵を4地区で使い回す）。見出しの風景は PC で約500px、スマホで約160px に出す
+  "karte-header-wide": {
+    source: "karte-header-wide.png",
+    alt: "山すその町並みと、川をわたる電車の風景",
+    widths: [480, 960],
+  },
+  "karte-header-tall": { source: "karte-header-tall.png", alt: "山すその町並みと、川をわたる電車の風景" },
+  "karte-childcare": { source: "karte-childcare.png", alt: "時計台のある校舎の前を、ランドセルで歩く子ども3人" },
+  "karte-transport": { source: "karte-transport.png", alt: "停留所に止まる緑のバスと、待つ親子" },
+  "karte-disaster": { source: "karte-disaster.png", alt: "「避難所」の看板のある建物" },
+  "karte-population": { source: "karte-population.png", alt: "おばあさん・おじいさんと、両親と子どもの家族" },
+  "karte-public": { source: "karte-public.png", alt: "すべり台とぶらんこのある公園と、街灯・ベンチ" },
+  "karte-support": { source: "karte-support.png", alt: "窓口で、職員に相談する親子" },
+  "karte-check": { source: "karte-check.png", alt: "家の前で、メモを持って確かめる人" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
@@ -283,8 +330,14 @@ export function propSrc(prop: PropId, width: number): string {
   return `/${ILLUST_DIR}/${prop}-${width}.webp`;
 }
 
+export function propWidths(prop: PropId): readonly number[] {
+  return PROP_SOURCES[prop].widths ?? PROP_WIDTHS;
+}
+
 export function propSrcSet(prop: PropId): string {
-  return PROP_WIDTHS.map((width) => `${propSrc(prop, width)} ${width}w`).join(", ");
+  return propWidths(prop)
+    .map((width) => `${propSrc(prop, width)} ${width}w`)
+    .join(", ");
 }
 
 // 大切にしたいことの絵（05。2026-10-29 受け取り。4地区で使い回す）。選択肢のカードとプレビューの印で使う。

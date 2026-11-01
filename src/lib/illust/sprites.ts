@@ -40,6 +40,12 @@ export const SPRITE_SIZES: Record<SpriteId, { width: number; height: number }> =
   "girl-back-winter": { width: 121, height: 218 },
   "boy2-back-winter": { width: 105, height: 227 },
   "girl2-back-winter": { width: 110, height: 213 },
+  "father-walk": { width: 172, height: 310 },
+  "mother-walk": { width: 166, height: 290 },
+  "boy-walk": { width: 123, height: 226 },
+  "girl-walk": { width: 135, height: 210 },
+  "boy2-walk": { width: 126, height: 227 },
+  "girl2-walk": { width: 135, height: 213 },
 };
 
 // ふちを切り落とした家の大きさ（元の画像の px）。縦横の比を画面で使う
@@ -63,4 +69,13 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "event-undokai": { width: 1030, height: 1005 },
   "event-bunkasai": { width: 1197, height: 981 },
   "event-winter-sports": { width: 1177, height: 1143 },
+  "karte-header-wide": { width: 2172, height: 424 },
+  "karte-header-tall": { width: 1536, height: 691 },
+  "karte-childcare": { width: 1207, height: 835 },
+  "karte-transport": { width: 1429, height: 640 },
+  "karte-disaster": { width: 1475, height: 549 },
+  "karte-population": { width: 1111, height: 916 },
+  "karte-public": { width: 1474, height: 553 },
+  "karte-support": { width: 1190, height: 785 },
+  "karte-check": { width: 1047, height: 830 },
 };

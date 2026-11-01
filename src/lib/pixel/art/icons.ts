@@ -482,6 +482,46 @@ const DOCUMENT = [
   "................",
 ];
 
+// 電球（カルテの詳細「この数字から分かること」。028）
+const BULB = [
+  ".......o........",
+  "..o....o....o...",
+  "...o.......o....",
+  "......kkkk......",
+  ".....kyyyyk.....",
+  "o...kyywyyyk...o",
+  "....kywyyyyk....",
+  "....kyyyyyyk....",
+  "....kyyyyyyk....",
+  ".....kyyyyk.....",
+  "......kyyk......",
+  "......kaak......",
+  "......kwwk......",
+  "......kaak......",
+  ".......kk.......",
+  "................",
+];
+
+// チェック表（カルテの詳細「現地で確かめたいこと」。028）
+const CHECKLIST = [
+  "......kkkk......",
+  "..kkkkaaaakkkk..",
+  "..knnkkkkkknnk..",
+  "..knwwwwwwwwnk..",
+  "..knwkkwwwwwnk..",
+  "..knwkgwaaawnk..",
+  "..knwkkwwwwwnk..",
+  "..knwwwwwwwwnk..",
+  "..knwkkwwwwwnk..",
+  "..knwkgwaaawnk..",
+  "..knwkkwwwwwnk..",
+  "..knwwwwwwwwnk..",
+  "..knwkkwaaawnk..",
+  "..knwwwwwwwwnk..",
+  "..knnnnnnnnnnk..",
+  "..kkkkkkkkkkkk..",
+];
+
 // ロゴの絵：赤い屋根の家と芽（24×20）
 const LOGO = [
   "........................",
@@ -561,6 +601,8 @@ export const building = (): Canvas => parseSprite(BUILDING);
 export const support = (): Canvas => parseSprite(SUPPORT);
 export const info = (): Canvas => parseSprite(INFO);
 export const documentIcon = (): Canvas => parseSprite(DOCUMENT);
+export const bulb = (): Canvas => parseSprite(BULB);
+export const checklist = (): Canvas => parseSprite(CHECKLIST);
 export const logo = (): Canvas => parseSprite(LOGO);
 export const grass = (): Canvas => parseSprite(GRASS);
 export const smallTree = (): Canvas => parseSprite(TREE);

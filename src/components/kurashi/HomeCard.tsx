@@ -3,10 +3,7 @@
 import type { ReactNode } from "react";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, familyLabel } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
-import { spriteId, spriteSrc } from "@/lib/illust/assets";
-import { ExtraChildrenBadge } from "@/components/illust/ExtraChildrenBadge";
-import { familyMembers, hiddenChildren } from "@/lib/illust/family";
-import { SPRITE_SIZES } from "@/lib/illust/sprites";
+import { FamilyRow } from "@/components/illust/FamilyRow";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 // お父さん（立つ）の絵の高さ（px）。ほかの人はこれに合わせて縮める（背の比をえらぶと同じにする）
@@ -14,32 +11,13 @@ const FATHER_HEIGHT = 104;
 
 // PC の左の「わが家」（028 見本）：選んだ家族の絵と条件、「選び直す」。条件はえらぶで選んだもの
 export function HomeCard({ conditions, onChangeConditions }: { conditions: Conditions & { district: DistrictId }; onChangeConditions: () => void }) {
-  const members = familyMembers(conditions);
-  const reference = SPRITE_SIZES["father-stand"].height;
   return (
     <section aria-labelledby="home-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
       <h2 id="home-title" className="font-bold">
         わが家
       </h2>
-      <div aria-hidden="true" className={`relative flex items-end justify-center ${hiddenChildren(conditions) > 0 ? "pt-7" : ""}`}>
-        {members.map((person, index) => {
-          const id = spriteId(person, "stand");
-          return (
-            // eslint-disable-next-line @next/next/no-img-element -- 切り出した小さな WebP をそのまま出す（FamilyLayer と同じ）
-            <img
-              key={person}
-              src={spriteSrc(id)}
-              alt=""
-              // スマホでは「わが家」を隠しているので、見えるまで読まない（2026-11-01 測り直し）
-              loading="lazy"
-              draggable={false}
-              style={{ height: `${(SPRITE_SIZES[id].height / reference) * FATHER_HEIGHT}px` }}
-              className={`w-auto select-none ${index > 0 ? "-ml-2" : ""}`}
-            />
-          );
-        })}
-        <ExtraChildrenBadge count={hiddenChildren(conditions)} className="absolute right-0 top-0" />
-      </div>
+      {/* スマホでは「わが家」を隠しているので、見えるまで読まない（2026-11-01 測り直し） */}
+      <FamilyRow conditions={conditions} fatherHeight={FATHER_HEIGHT} lazy />
       <p className="text-center text-sm">{familyLabel(conditions)}</p>
       <ul className="flex flex-col gap-2 border-t border-line pt-3 text-sm">
         <Row icon={<PlaceIcon />}>{DISTRICT_NAMES[conditions.district]}</Row>

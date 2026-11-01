@@ -7,9 +7,9 @@ import { PixelImage } from "@/components/pixel/PixelImage";
 import { CAR_LABELS, DISTRICTS, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type CarCount, type Housing } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
-import { ExtraChildrenBadge } from "@/components/illust/ExtraChildrenBadge";
-import { hiddenChildren } from "@/lib/illust/family";
-import { familyArtFor, landmarkAssetId } from "@/lib/pixel/assets";
+import { FamilyRow } from "@/components/illust/FamilyRow";
+import { DISTRICT_PICTURES, illustPictureSrc } from "@/lib/illust/assets";
+import { landmarkAssetId } from "@/lib/pixel/assets";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
@@ -48,26 +48,19 @@ function carText(conditions: Conditions): string {
   return conditions.car === null ? "未選択" : CAR_LABELS[conditions.car];
 }
 
-const CHIP = "flex min-h-tap items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-sm";
-
-// スマホ：地区の切り替え（F-04）と、選んだ条件のチップ。くらしは地区と家族だけ、カルテは住まい・車も出す（デザインイメージ）。
-// action（カルテの「条件を変える」）を渡すと、地区の右に置き、ほかのチップは次の行に回す
-export function ConditionChips({
-  conditions,
-  onConditionsChange,
-  showAll = true,
-  action,
-}: Props & { showAll?: boolean; action?: ReactNode }) {
+// スマホ：家族の絵と選んだ条件の帯（028 見本 karte-mobile.png）。地区はその場で切りかえられる（F-04）。
+// action（「条件を変える」）は右に置く
+export function ConditionsStrip({ conditions, onConditionsChange, action }: Props & { action?: ReactNode }) {
   return (
-    <ul aria-label="選んだ条件" className="flex flex-wrap items-center gap-2">
-      <li>
-        <label className="flex min-h-tap items-center gap-1 rounded-full border-2 border-primary bg-surface pl-3 text-sm font-bold">
-          <PixelIcon icon="icon-pin" size="sm" />
+    <section aria-label="選んだ条件" className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-card">
+      <FamilyRow conditions={conditions} fatherHeight={44} className="shrink-0" />
+      <div className="flex min-w-0 flex-1 flex-col text-[13px] leading-snug">
+        <label className="inline-flex items-center self-start">
           <span className="sr-only">地区を切り替える</span>
           <select
             value={conditions.district}
             onChange={(event) => onConditionsChange({ district: event.target.value as DistrictId })}
-            className="min-h-tap rounded-full bg-transparent pr-2 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+            className="min-h-tap rounded-button bg-transparent pr-1 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
           >
             {DISTRICTS.map(({ id, name }) => (
               <option key={id} value={id}>
@@ -76,29 +69,13 @@ export function ConditionChips({
             ))}
           </select>
         </label>
-      </li>
-      {action && (
-        <>
-          <li className="ml-auto">{action}</li>
-          <li aria-hidden="true" className="basis-full" />
-        </>
-      )}
-      <li className={CHIP}>
-        <PixelIcon icon="icon-family" size="sm" />
-        {familyLabel(conditions)}
-      </li>
-      {showAll && (
-        <>
-          <li className={CHIP}>
-            <PixelIcon icon="icon-house" size="sm" />
-            {HOUSING_LABELS[conditions.housing]}
-          </li>
-          <li className={CHIP}>
-            <PixelIcon icon="icon-car" size="sm" />車{carText(conditions)}
-          </li>
-        </>
-      )}
-    </ul>
+        <p className="font-bold">{familyLabel(conditions)}</p>
+        <p>
+          {HOUSING_LABELS[conditions.housing]} / 車{carText(conditions)}
+        </p>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </section>
   );
 }
 
@@ -113,10 +90,8 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
           <PixelIcon icon="icon-sprout" />
           わが家の設定
         </h2>
-        <div className="flex items-start justify-center gap-1">
-          <PixelImage asset={familyArtFor(conditions)} scale={3} decorative />
-          <ExtraChildrenBadge count={hiddenChildren(conditions)} />
-        </div>
+        {/* 家族はくらしの「わが家」と同じ人物（028 まさゆきさん）。スマホではこの欄を隠しているので、見えるまで読まない */}
+        <FamilyRow conditions={conditions} fatherHeight={72} lazy />
         <p className="text-center font-bold">{familyLabel(conditions)}</p>
         <div className="flex flex-col gap-2 text-sm">
           <SettingRow icon={<PixelIcon icon="icon-pin" />} label="地区">
@@ -177,7 +152,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
                     selected ? "border-primary bg-primary-soft text-primary" : "border-line hover:border-ink-muted",
                   ].join(" ")}
                 >
-                  <PixelImage asset={landmarkAssetId(id, "spring")} scale={1} decorative className="shrink-0" />
+                  <DistrictThumb district={id} />
                   <span className="whitespace-nowrap">{breakableName(name)}</span>
                 </button>
               </li>
@@ -186,11 +161,27 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
         </ul>
       </section>
 
-      <p className="flex items-center gap-2 rounded-card bg-kinari-deep px-4 py-3 text-sm">
+      <p className="flex items-center gap-2 whitespace-nowrap rounded-card bg-kinari-deep px-3 py-3 text-[13px]">
         <PixelIcon icon="icon-sprout" />
         登録不要でお試しいただけます
       </p>
     </div>
+  );
+}
+
+// 地区の絵（028）。生成AIの絵がある地区（今は上郷）はそれを、ない地区は今のドット絵の目印を出す。飾り
+function DistrictThumb({ district }: { district: DistrictId }) {
+  const picture = DISTRICT_PICTURES[district];
+  if (!picture) return <PixelImage asset={landmarkAssetId(district, "spring")} scale={1} decorative className="shrink-0" />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+    <img
+      src={illustPictureSrc(picture, 480)}
+      alt=""
+      loading="lazy"
+      draggable={false}
+      className="h-8 w-12 shrink-0 select-none rounded object-cover"
+    />
   );
 }
 

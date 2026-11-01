@@ -27,7 +27,7 @@ describe("karteHref", () => {
   });
 
   it("カードを指定すると、そのカードのアンカーを付ける", () => {
-    expect(karteHref(conditions, "夏", "disaster")).toBe("/karte?s=summer&d=kanae&a=2&k=1&h=new&c=0#karte-disaster");
+    expect(karteHref(conditions, "夏", "disaster")).toBe("/karte/disaster?s=summer&d=kanae&a=2&k=1&h=new&c=0");
   });
 });
 

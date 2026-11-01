@@ -75,6 +75,8 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   "icon-support": icons.support,
   "icon-info": icons.info,
   "icon-document": icons.documentIcon,
+  "icon-bulb": icons.bulb,
+  "icon-checklist": icons.checklist,
   logo: icons.logo,
   "deco-grass": icons.grass,
   "deco-tree": icons.smallTree,

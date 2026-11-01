@@ -147,7 +147,7 @@ describe("KurashiView：場面（F-12）", () => {
     expect(within(scene).getByText(/データ未取得/)).toBeInTheDocument();
     expect(within(scene).getByRole("link", { name: /子育て・学校をカルテで確認/ })).toHaveAttribute(
       "href",
-      "/karte?s=spring&d=kanae&a=2&k=1&h=new#karte-childcare",
+      "/karte/childcare?s=spring&d=kanae&a=2&k=1&h=new",
     );
     expect(within(scene).getByText(NOTICES.schoolDistrict)).toBeInTheDocument();
 
@@ -166,7 +166,7 @@ describe("KurashiView：場面（F-12）", () => {
     expect(within(scene).getByText(NOTICES.carFree)).toBeInTheDocument();
     expect(within(scene).getByRole("link", { name: /交通をカルテで確認/ })).toHaveAttribute(
       "href",
-      "/karte?s=winter&d=kanae&a=2&k=1&h=new&c=0#karte-transport",
+      "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0",
     );
   });
 
@@ -288,7 +288,7 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("出典：飯田市「教育機関一覧」");
     expect(within(sheet).getByRole("link", { name: /学区と場所を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=spring&d=kamisato&a=2&k=1&h=new#karte-childcare",
+      "/karte/childcare?s=spring&d=kamisato&a=2&k=1&h=new",
     );
     await act(async () => {
       fireEvent.click(within(sheet).getByRole("button", { name: "風景にもどる" }));
@@ -318,7 +318,7 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("データ未取得");
     expect(within(sheet).getByRole("link", { name: /住まいの相場を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=spring&d=kamisato&a=2&k=1&h=rent#karte-housing",
+      "/karte/housing?s=spring&d=kamisato&a=2&k=1&h=rent",
     );
   });
 
@@ -401,7 +401,7 @@ describe("KurashiView：上郷・夏の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("出典：飯田市「指定緊急避難場所一覧」");
     expect(within(sheet).getByRole("link", { name: /避難場所を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=summer&d=kamisato&a=2&k=1&h=new#karte-disaster",
+      "/karte/disaster?s=summer&d=kamisato&a=2&k=1&h=new",
     );
   });
 
@@ -468,7 +468,7 @@ describe("KurashiView：上郷・秋の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("出典：総務省統計局「国勢調査 小地域集計」");
     expect(within(sheet).getByRole("link", { name: /人口を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=autumn&d=kamisato&a=2&k=1&h=new#karte-population",
+      "/karte/population?s=autumn&d=kamisato&a=2&k=1&h=new",
     );
   });
 
@@ -530,7 +530,7 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("出典：GTFSデータリポジトリ「南信州のバス」");
     expect(within(sheet).getByRole("link", { name: /バスと電車を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=winter&d=kamisato&a=2&k=1&h=new&c=0#karte-transport",
+      "/karte/transport?s=winter&d=kamisato&a=2&k=1&h=new&c=0",
     );
   });
 
@@ -544,7 +544,7 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     expect(snow).toHaveTextContent("スタッドレスタイヤが欠かせないとされています");
     expect(within(snow).getByRole("link", { name: /交通を確かめる/ })).toHaveAttribute(
       "href",
-      "/karte?s=winter&d=kamisato&a=2&k=1&h=new#karte-transport",
+      "/karte/transport?s=winter&d=kamisato&a=2&k=1&h=new",
     );
     cleanup();
 

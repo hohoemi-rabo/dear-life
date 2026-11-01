@@ -1,3 +1,5 @@
+import { detailTexts, entryNumber, withDistrict } from "./details.ts";
+import { KARTE_DETAIL_SLUGS, karteCardFromSlug, karteDetailPath, splitKarteCards, transportQuestion } from "./entries.ts";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
 import { ageShares, groupBySubkind } from "./facilities";
@@ -53,5 +55,36 @@ describe("kurashiHref", () => {
 
   it("季節がなければ付けない", () => {
     expect(kurashiHref({ ...DEFAULT_CONDITIONS, district: "igara" }, new URLSearchParams())).toBe("/kurashi?d=igara&a=2&k=1&h=new");
+  });
+});
+
+describe("カルテの図鑑の形（028）", () => {
+  it("並び順を保ったまま、大きいカードと小さいカードに分ける", () => {
+    expect(splitKarteCards(["population", "childcare", "housing", "support", "transport", "public_facilities", "disaster"])).toEqual({
+      main: ["childcare", "housing", "transport", "disaster"],
+      minor: ["population", "support", "public_facilities"],
+    });
+  });
+
+  it("7項目の詳細のページの名前は、行きと帰りで同じ項目に戻る", () => {
+    for (const [card, slug] of Object.entries(KARTE_DETAIL_SLUGS)) {
+      expect(karteCardFromSlug(slug)).toBe(card);
+      expect(karteDetailPath(card as keyof typeof KARTE_DETAIL_SLUGS)).toBe(`/karte/${slug}`);
+    }
+    expect(karteCardFromSlug("unknown")).toBeNull();
+  });
+
+  it("交通の問いは車の台数で変わる", () => {
+    expect(transportQuestion(null)).toBe("毎日、どう動く？");
+    expect(transportQuestion(0)).toBe("車なしで、どう動く？");
+    expect(transportQuestion(1)).toBe("車1台で、どう動く？");
+    expect(transportQuestion(2)).toBe("車2台以上で、どう動く？");
+  });
+
+  it("図鑑の番号は一覧の並びで決まり、文の {district} は地区名になる", () => {
+    expect(entryNumber(["childcare", "housing"], "housing")).toBe("02");
+    expect(withDistrict(detailTexts("childcare", { housing: "new", transportQuestion: "" }).knows, "鼎")).toBe(
+      "鼎にある学校・保育施設と、主な学区です。",
+    );
   });
 });

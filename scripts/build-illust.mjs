@@ -1,7 +1,7 @@
 // 生成AIで作った絵（assets/illust/）から、画面用の WebP を public/illust/ に書き出す（チケット 028）。
 // 使い方：npm run illust（元の画像を差しかえたら流し直す）
 //   - 背景・選択肢の絵は、一覧（src/lib/illust/assets.ts）の横幅ごとに縮める（crop があるものは先に切り出す）
-//   - キャラクターのシートは、人と人のあいだの透明な列で1人ずつに切り分け、全員同じ倍率で縮める（シートごとの描き方の差は scale でそろえる）
+//   - キャラクターのシートは、人と人のあいだの透明な列（2段のシートは先に透明な行で段に分ける）で1人ずつに切り分け、全員同じ倍率で縮める（シートごとの描き方の差は scale でそろえる）
 //     （人もほんの少し透けているので、家と同じく不透明にそろえる。透けると後ろの柵などが見えてしまう）
 //   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
@@ -35,6 +35,8 @@ const ALPHA_THRESHOLD = 16;
 const MIN_FIGURE_WIDTH = 40;
 // 腕と体のあいだなど、人の中の細い隙間はつなげる
 const MAX_GAP_INSIDE_FIGURE = 12;
+// 人の段の中の横一列の隙間（帽子と頭のあいだなど）はつなげる。段と段のあいだはこれより広い（karte-next-step.png は23行）
+const MAX_GAP_INSIDE_BAND = 16;
 const WEBP_QUALITY = 82;
 // 人・家・小物の絵で、これより濃いところは絵そのもの（透明度 250 前後で、ほんの少し透けている）として不透明にする。
 // これより薄いところは輪郭のにじみなので、そのまま残す
@@ -61,12 +63,27 @@ for (const [id, picture] of Object.entries(ILLUST_PICTURES)) {
   }
 }
 
-// シートの列ごとに「人がいるか」を見て、左から順に人の左右の端を返す
-function figureColumns(data, width, height, channels) {
+// シートの行ごとに「人がいるか」を見て、上から順に人の段の上下の端を返す（2段に並んだシート。karte-next-step.png）。
+// 1段のシートは段が1つになるだけなので、今までと同じに切り分ける
+function figureBands(data, width, height, channels) {
+  const bands = [];
+  for (let y = 0; y < height; y++) {
+    let found = false;
+    for (let x = 0; x < width && !found; x++) found = data[(y * width + x) * channels + 3] > ALPHA_THRESHOLD;
+    if (!found) continue;
+    const last = bands.at(-1);
+    if (last && y - last.bottom <= MAX_GAP_INSIDE_BAND) last.bottom = y;
+    else bands.push({ top: y, bottom: y });
+  }
+  return bands.filter((band) => band.bottom - band.top + 1 >= MIN_FIGURE_WIDTH);
+}
+
+// 段の中の列ごとに「人がいるか」を見て、左から順に人の左右の端を返す
+function figureColumns(data, width, channels, band) {
   const filled = [];
   for (let x = 0; x < width; x++) {
     let found = false;
-    for (let y = 0; y < height && !found; y++) found = data[(y * width + x) * channels + 3] > ALPHA_THRESHOLD;
+    for (let y = band.top; y <= band.bottom && !found; y++) found = data[(y * width + x) * channels + 3] > ALPHA_THRESHOLD;
     filled.push(found);
   }
   const runs = [];
@@ -79,10 +96,10 @@ function figureColumns(data, width, height, channels) {
   return runs.filter((run) => run.right - run.left + 1 >= MIN_FIGURE_WIDTH);
 }
 
-function figureRows(data, width, channels, left, right, height) {
-  let top = height;
+function figureRows(data, width, channels, left, right, band) {
+  let top = band.bottom + 1;
   let bottom = -1;
-  for (let y = 0; y < height; y++) {
+  for (let y = band.top; y <= band.bottom; y++) {
     for (let x = left; x <= right; x++) {
       if (data[(y * width + x) * channels + 3] > ALPHA_THRESHOLD) {
         top = Math.min(top, y);
@@ -106,8 +123,14 @@ async function sheetOf(sheet) {
   if (!sheets.has(sheet)) {
     const { data, info } = await sharp(join(sourceDir, sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     makeOpaque(data, info.channels);
-    const columns = figureColumns(data, info.width, info.height, info.channels);
-    const figures = columns.map(({ left, right }) => ({ left, right, ...figureRows(data, info.width, info.channels, left, right, info.height) }));
+    // 上の段から順に、段の中は左から順に並べる（index は通し番号）
+    const figures = figureBands(data, info.width, info.height, info.channels).flatMap((band) =>
+      figureColumns(data, info.width, info.channels, band).map(({ left, right }) => ({
+        left,
+        right,
+        ...figureRows(data, info.width, info.channels, left, right, band),
+      })),
+    );
     sheets.set(sheet, { data, info, figures });
   }
   return sheets.get(sheet);
@@ -180,14 +203,14 @@ for (const [housing, { source }] of Object.entries(HOUSE_SOURCES)) {
 }
 
 const propSizes = {};
-for (const [prop, { source, index }] of Object.entries(PROP_SOURCES)) {
+for (const [prop, { source, index, widths = PROP_WIDTHS }] of Object.entries(PROP_SOURCES)) {
   let columns = null;
   if (index !== undefined) {
     const figures = await figuresOf(source);
     columns = figures[index];
     if (!columns) throw new Error(`${source} に左から${index + 1}番目の絵がありません（${figures.length}個）`);
   }
-  propSizes[prop] = await writeOpaqueCrop(source, columns, prop, PROP_WIDTHS);
+  propSizes[prop] = await writeOpaqueCrop(source, columns, prop, widths);
 }
 
 // 大切にしたいことの絵：1枚に並んだ5つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）
