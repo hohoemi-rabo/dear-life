@@ -75,7 +75,7 @@ export function NoticeBox({ title, body, className = "" }: { title: string; body
 // 見出しの左の絵（見本の家の絵の場所）。生成AIの絵（2026-11-01 受け取りの detail-*）を水色の箱に入れる
 export function DetailPicture({ asset }: { asset: PropId }) {
   return (
-    <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-button bg-pixel-sky md:h-24 md:w-32">
+    <div className="flex h-20 w-24 shrink-0 items-center justify-center rounded-button bg-pixel-sky md:h-24 md:w-32">
       {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
       <img
         src={propSrc(asset, 240)}

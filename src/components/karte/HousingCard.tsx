@@ -2,7 +2,6 @@
 
 import { useId, useState } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
-import { PixelImage } from "@/components/pixel/PixelImage";
 import { CountLabel } from "@/components/ui/CountBadge";
 import type { Housing } from "@/lib/conditions/labels";
 import type { DistrictData, MarketCategory, MarketStat } from "@/lib/data/screen-data";
@@ -10,7 +9,7 @@ import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { houseSrc } from "@/lib/illust/assets";
 import { EXAMPLE_LAND_AREA, MARKET_CATEGORY_LABELS, NO_RENT_DATA, landEstimates, marketCategoryOrder } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
-import { DetailTabs, NoticeBox } from "./DetailCard";
+import { DetailPicture, DetailTabs, NoticeBox } from "./DetailCard";
 
 // 住まいの詳細のタブ。「選んだ家」は選んだ家にいちばん近い相場、借りるは家賃の情報がないことを出す
 export type HousingTab = {
@@ -109,13 +108,7 @@ export function useHousingTab(housing: Housing): [HousingTab, (tab: HousingTab) 
 }
 
 function TabPicture({ housing, category }: { housing: Housing; category: MarketCategory | null }) {
-  if (category === "land") {
-    return (
-      <div className="flex h-20 w-24 shrink-0 items-center justify-center rounded-button bg-pixel-sky md:h-24 md:w-32">
-        <PixelImage asset="icon-districts" scale={3} decorative />
-      </div>
-    );
-  }
+  if (category === "land") return <DetailPicture asset="detail-land" />;
   const shown: Housing = category === "house_built_over_20y" ? "old" : category === "house_built_within_20y" ? "new" : housing;
   return (
     // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
@@ -164,22 +157,22 @@ function MarketValue({ category, district }: { category: MarketCategory; distric
 function LandDetails({ stat }: { stat: MarketStat }) {
   const { perTsubo, forExampleArea } = landEstimates(stat.median);
   return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+    <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1 text-sm max-sm:grid-cols-1 max-sm:gap-y-0">
       {stat.p25 !== null && stat.p75 !== null && (
         <>
           <dt className="text-ink-muted">幅（下位25%〜上位25%）</dt>
-          <dd className="font-bold tabular-nums">
+          <dd className="font-bold tabular-nums max-sm:mb-1">
             {formatManYen(stat.p25)}〜{formatManYen(stat.p75)}／{SQUARE_METER}
           </dd>
         </>
       )}
       <dt className="text-ink-muted">坪単価</dt>
-      <dd className="font-bold tabular-nums">約{formatManYen(perTsubo)}／坪</dd>
+      <dd className="font-bold tabular-nums max-sm:mb-1">約{formatManYen(perTsubo)}／坪</dd>
       <dt className="text-ink-muted">
         {EXAMPLE_LAND_AREA}
         {SQUARE_METER}（約60坪）なら
       </dt>
-      <dd className="font-bold tabular-nums">約{formatManYen(forExampleArea)}</dd>
+      <dd className="font-bold tabular-nums max-sm:mb-1">約{formatManYen(forExampleArea)}</dd>
     </dl>
   );
 }

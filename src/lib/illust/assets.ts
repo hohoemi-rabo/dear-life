@@ -283,6 +283,8 @@ export const PROPS = [
   "detail-nursery",
   "detail-afterschool",
   "detail-train",
+  "detail-land",
+  "pin-snow-road",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -325,6 +327,9 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "detail-nursery": { source: "detail-nursery.png", alt: "オレンジの屋根の保育園と、すべり台で遊ぶ子ども" },
   "detail-afterschool": { source: "detail-afterschool.png", alt: "夕方の部屋で、ランドセルを置いて宿題や遊びをする小学生" },
   "detail-train": { source: "detail-train.png", alt: "緑の帯の銀色の電車" },
+  "detail-land": { source: "detail-land.png", alt: "杭とロープで区切った更地" },
+  // くらしの冬の「雪の道」のピンの丸の中の絵
+  "pin-snow-road": { source: "pin-snow-road.png", alt: "青い雪の結晶" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
