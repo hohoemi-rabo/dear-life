@@ -273,6 +273,13 @@ export const PROPS = [
   "karte-public",
   "karte-support",
   "karte-check",
+  "detail-school",
+  "detail-bus",
+  "detail-bus-winter",
+  "detail-shelter",
+  "detail-population",
+  "detail-public",
+  "detail-support",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -304,6 +311,14 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "karte-public": { source: "karte-public.png", alt: "すべり台とぶらんこのある公園と、街灯・ベンチ" },
   "karte-support": { source: "karte-support.png", alt: "窓口で、職員に相談する親子" },
   "karte-check": { source: "karte-check.png", alt: "家の前で、メモを持って確かめる人" },
+  // カルテの詳細の、大きい数字の左の絵（2026-11-01 受け取り。4地区で使い回す）
+  "detail-school": { source: "detail-school.png", alt: "時計台のある校舎" },
+  "detail-bus": { source: "detail-bus.png", alt: "緑の帯の路線バス" },
+  "detail-bus-winter": { source: "detail-bus-winter.png", alt: "屋根に雪の積もった路線バス" },
+  "detail-shelter": { source: "detail-shelter.png", alt: "非常口の印のある避難所の建物" },
+  "detail-population": { source: "detail-population.png", alt: "おばあさんと、お父さん・女の子" },
+  "detail-public": { source: "detail-public.png", alt: "本の印のある公民館の建物と植え込み" },
+  "detail-support": { source: "detail-support.png", alt: "書類と、両手で包んだハート" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・

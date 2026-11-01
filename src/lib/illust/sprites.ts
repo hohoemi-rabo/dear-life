@@ -78,4 +78,11 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "karte-public": { width: 1474, height: 553 },
   "karte-support": { width: 1190, height: 785 },
   "karte-check": { width: 1047, height: 830 },
+  "detail-school": { width: 1175, height: 873 },
+  "detail-bus": { width: 1227, height: 734 },
+  "detail-bus-winter": { width: 1229, height: 767 },
+  "detail-shelter": { width: 1098, height: 835 },
+  "detail-population": { width: 1192, height: 903 },
+  "detail-public": { width: 1205, height: 905 },
+  "detail-support": { width: 943, height: 973 },
 };

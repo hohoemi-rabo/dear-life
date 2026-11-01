@@ -22,6 +22,7 @@
 | `characters-back-{summer,autumn,winter}-{1,2}.png` | くらしの夏・秋・冬 | 季節の服の斜め後ろ姿（透過。1枚目 2172×724、2枚目 1774×887）。春の後ろ姿（シート5・6）と同じ人で、書き出すときに春の同じ人と同じ背にそろえる。4地区で使い回す |
 | `karte-header-wide.png`・`karte-header-tall.png` | カルテの見出しの右（PC・スマホ） | 山すその町並みと、川をわたる電車の風景（透過。2172×724・1536×1024）。4地区で使い回す |
 | `karte-childcare.png`・`karte-transport.png`・`karte-disaster.png`・`karte-population.png`・`karte-public.png`・`karte-support.png` | カルテの一覧のカードと詳細の見出し | 校舎とランドセルの子ども・停留所のバスと親子・「避難所」の建物・おばあさんたちと家族・公園の遊具・窓口で相談する親子（透過）。4地区で使い回す |
+| `detail-school.png`・`detail-bus.png`・`detail-bus-winter.png`・`detail-shelter.png`・`detail-population.png`・`detail-public.png`・`detail-support.png` | カルテの詳細の、大きい数字の左の絵 | 時計台の校舎・緑の帯の路線バス・屋根に雪の積もった同じバス・非常口の印のある避難所・おばあさんとお父さんと女の子・本の印のある公民館・書類と両手で包んだハート（透過、1254×1254）。4地区で使い回す |
 | `karte-check.png` | カルテの詳細「現地で確かめたいこと」 | 家の前でメモを持つ人（透過、1254×1254） |
 | `karte-next-step.png` | カルテの下の「次は、現地で確かめよう」 | 右へ歩く横向きの人8人（透過、1536×1024）。2段に4人ずつ並ぶ。人物の表の「歩く」 |
 | `priority-icons.png` | えらぶ 05 の選択肢とプレビューの印 | 家・校舎・バス・非常口の印・3人（透過、2172×724）。透明な隙間で5つに切り分ける。4地区で使い回す |

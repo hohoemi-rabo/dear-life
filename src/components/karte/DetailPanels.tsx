@@ -19,8 +19,7 @@ import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { NOTICES } from "@/lib/notices";
-import type { PixelAssetId } from "@/lib/pixel/assets";
-import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
+import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailPictureId, type DetailTabItem } from "./DetailCard";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -126,7 +125,7 @@ const CARD_LABELS: Readonly<Record<OtherCard, string>> = {
   support: "支援制度",
 };
 
-type PanelContent = { picture: PixelAssetId; title: string; figure: ReactNode; notice?: { title: string; body?: string }; list?: ReactNode };
+type PanelContent = { picture: DetailPictureId; title: string; figure: ReactNode; notice?: { title: string; body?: string }; list?: ReactNode };
 
 export function OtherDetailCard({
   card,
@@ -202,7 +201,7 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
   switch (tabId) {
     case "schools":
       return {
-        picture: "facility-school",
+        picture: "detail-school",
         title: "地区にある学校",
         figure: countOrMessage(district.schools, "校", (schools) => <SubkindBreakdown facilities={schools} />),
         notice,
@@ -224,7 +223,7 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
       };
     default:
       return {
-        picture: "facility-school",
+        picture: "detail-school",
         title: "主な小学校区・中学校区",
         figure: (
           <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1">
@@ -258,7 +257,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
   const notice = noCar ? { title: NOTICES.carFree } : undefined;
   if (tabId === "bus") {
     return {
-      picture: "vehicle-bus",
+      picture: "detail-bus",
       title: "地区のバス停",
       figure: countOrMessage(district.busStops, "か所"),
       notice,
@@ -296,7 +295,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
   }
   const outing = district.busOuting;
   return {
-    picture: "vehicle-bus",
+    picture: "detail-bus-winter",
     title:
       outing.status === "available"
         ? `${outing.value.originName}から${outing.value.destinationName}へ乗りかえなしで行くバス（1日）`
@@ -428,7 +427,7 @@ function disasterContent(tabId: string, state: DataState<readonly EvacuationSite
   const hazard = HAZARDS.find((item) => item === tabId);
   const sites = state.status === "available" ? state.value.filter((site) => !hazard || site.hazards.includes(hazard)) : [];
   return {
-    picture: "facility-shelter",
+    picture: "detail-shelter",
     title: hazard ? `${HAZARD_LABELS[hazard]}のときに使える指定緊急避難場所` : "地区の指定緊急避難場所",
     figure: state.status === "available" ? <BigCount count={sites.length} unit="か所" /> : <DataStateMessage state={state} />,
     notice: DETAIL_NOTICES.disaster,
@@ -449,12 +448,12 @@ function disasterContent(tabId: string, state: DataState<readonly EvacuationSite
 
 function populationContent(state: DistrictData["population"]): PanelContent {
   if (state.status !== "available") {
-    return { picture: "icon-population", title: "地区の人口", figure: <DataStateMessage state={state} /> };
+    return { picture: "detail-population", title: "地区の人口", figure: <DataStateMessage state={state} /> };
   }
   const population = state.value;
   const shares = ageShares(population);
   return {
-    picture: "icon-population",
+    picture: "detail-population",
     title: `地区の人口（${formatJaDate(population.asOf)}時点）`,
     figure: <BigCount count={population.total} unit="人" />,
     list: shares.length > 0 && (
@@ -495,7 +494,7 @@ function AgeBar({ shares }: { shares: ReturnType<typeof ageShares> }) {
 
 function publicContent(state: DataState<readonly Facility[]>): PanelContent {
   return {
-    picture: "facility-public",
+    picture: "detail-public",
     title: "地区の公共施設",
     figure: countOrMessage(state, "か所"),
     notice: DETAIL_NOTICES.public_facilities,
@@ -520,7 +519,7 @@ function supportContent(tabId: string, programs: readonly SupportProgram[]): Pan
   const category = SUPPORT_CATEGORIES.find((item) => item === tabId);
   const shown = programs.filter((program) => !category || program.category === category);
   return {
-    picture: "icon-support",
+    picture: "detail-support",
     title: category ? `${category}の支援制度（飯田市全体）` : "飯田市の支援制度（市全体）",
     figure: programs.length === 0 ? <DataStateMessage state={{ status: "unavailable" }} /> : <BigCount count={shown.length} unit="件" />,
     notice: { title: NOTICES.support },
