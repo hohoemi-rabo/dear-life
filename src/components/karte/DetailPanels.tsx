@@ -16,10 +16,11 @@ import type {
   SupportProgram,
 } from "@/lib/data/screen-data";
 import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/format";
+import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { NOTICES } from "@/lib/notices";
-import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailPictureId, type DetailTabItem } from "./DetailCard";
+import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -125,7 +126,7 @@ const CARD_LABELS: Readonly<Record<OtherCard, string>> = {
   support: "支援制度",
 };
 
-type PanelContent = { picture: DetailPictureId; title: string; figure: ReactNode; notice?: { title: string; body?: string }; list?: ReactNode };
+type PanelContent = { picture: PropId; title: string; figure: ReactNode; notice?: { title: string; body?: string }; list?: ReactNode };
 
 export function OtherDetailCard({
   card,
@@ -209,14 +210,14 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
       };
     case "childcare":
       return {
-        picture: "facility-nursery",
+        picture: "detail-nursery",
         title: "地区にある保育園・幼稚園など",
         figure: countOrMessage(district.childcare, "か所", (items) => <SubkindBreakdown facilities={items} />),
         list: <FacilityListing state={district.childcare} label="保育園・幼稚園など" />,
       };
     case "clubs":
       return {
-        picture: "facility-nursery",
+        picture: "detail-afterschool",
         title: "地区にある放課後児童クラブ",
         figure: countOrMessage(district.afterSchoolClubs, "か所"),
         list: <FacilityListing state={district.afterSchoolClubs} label="放課後児童クラブ" />,
@@ -268,13 +269,13 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
     const stations = district.trainStations;
     const departures = district.trainDepartures;
     if (stations.status === "none") {
-      return { picture: "vehicle-train", title: "地区の駅", figure: <p className="text-lg font-bold">地区内に駅はありません。</p>, notice };
+      return { picture: "detail-train", title: "地区の駅", figure: <p className="text-lg font-bold">地区内に駅はありません。</p>, notice };
     }
     if (stations.status === "available" && departures.status === "available" && departures.value.length > 0) {
       // いちばん本数の多い駅を大きく出し、駅・方面ごとの本数は下の表に出す
       const busiest = busiestStation(departures.value);
       return {
-        picture: "vehicle-train",
+        picture: "detail-train",
         title: `${busiest.stationName}駅を出る電車（1日・特急を除く）`,
         figure: <BigCount count={busiest.trips} unit="本" after={<span className="text-sm">上り・下りの合計</span>} />,
         notice,
@@ -282,7 +283,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
       };
     }
     return {
-      picture: "vehicle-train",
+      picture: "detail-train",
       title: "地区の駅",
       figure: countOrMessage(stations, "か所"),
       notice,

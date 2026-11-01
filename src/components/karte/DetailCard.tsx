@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import { PixelIcon, type IconId } from "@/components/pixel/PixelIcon";
-import { PixelImage } from "@/components/pixel/PixelImage";
-import { PROPS, propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
-import { PIXEL_ASSETS, type PixelAssetId } from "@/lib/pixel/assets";
+import { propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
 
 // カルテの詳細のいちばん上のカード（028 見本 karte-detail-housing.png）の部品。住まいもほかの6つも同じ形にする：
 // 絵・見出し・大きい数字 → 注意書き → タブ → タブの中の一覧
@@ -74,37 +72,19 @@ export function NoticeBox({ title, body, className = "" }: { title: string; body
   );
 }
 
-// 見出しの左の絵（見本の家の絵の場所）。生成AIの絵（2026-11-01 受け取り）があればそれを、まだないもの（保育園・放課後クラブ・電車）は
-// ドット絵を、箱に入るいちばん大きい整数倍で出す
-export type DetailPictureId = PropId | PixelAssetId;
-
-const PICTURE_BOX = "flex h-20 w-28 shrink-0 items-center justify-center rounded-button bg-pixel-sky md:h-24 md:w-32";
-const PIXEL_PICTURE_WIDTH = 104;
-
-function isProp(id: DetailPictureId): id is PropId {
-  return (PROPS as readonly string[]).includes(id);
-}
-
-export function DetailPicture({ asset }: { asset: DetailPictureId }) {
-  if (isProp(asset)) {
-    return (
-      <div className={PICTURE_BOX}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
-        <img
-          src={propSrc(asset, 240)}
-          srcSet={propSrcSet(asset)}
-          sizes="128px"
-          alt=""
-          draggable={false}
-          className="size-full select-none object-contain p-1.5"
-        />
-      </div>
-    );
-  }
-  const scale = Math.min(4, Math.max(1, Math.floor(PIXEL_PICTURE_WIDTH / PIXEL_ASSETS[asset].width))) as 1 | 2 | 3 | 4;
+// 見出しの左の絵（見本の家の絵の場所）。生成AIの絵（2026-11-01 受け取りの detail-*）を水色の箱に入れる
+export function DetailPicture({ asset }: { asset: PropId }) {
   return (
-    <div className={PICTURE_BOX}>
-      <PixelImage asset={asset} scale={scale} decorative />
+    <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-button bg-pixel-sky md:h-24 md:w-32">
+      {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+      <img
+        src={propSrc(asset, 240)}
+        srcSet={propSrcSet(asset)}
+        sizes="128px"
+        alt=""
+        draggable={false}
+        className="size-full select-none object-contain p-1.5"
+      />
     </div>
   );
 }

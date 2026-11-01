@@ -85,4 +85,7 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "detail-population": { width: 1192, height: 903 },
   "detail-public": { width: 1205, height: 905 },
   "detail-support": { width: 943, height: 973 },
+  "detail-nursery": { width: 1171, height: 714 },
+  "detail-afterschool": { width: 1206, height: 1010 },
+  "detail-train": { width: 821, height: 870 },
 };

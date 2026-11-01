@@ -280,6 +280,9 @@ export const PROPS = [
   "detail-population",
   "detail-public",
   "detail-support",
+  "detail-nursery",
+  "detail-afterschool",
+  "detail-train",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -319,6 +322,9 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "detail-population": { source: "detail-population.png", alt: "おばあさんと、お父さん・女の子" },
   "detail-public": { source: "detail-public.png", alt: "本の印のある公民館の建物と植え込み" },
   "detail-support": { source: "detail-support.png", alt: "書類と、両手で包んだハート" },
+  "detail-nursery": { source: "detail-nursery.png", alt: "オレンジの屋根の保育園と、すべり台で遊ぶ子ども" },
+  "detail-afterschool": { source: "detail-afterschool.png", alt: "夕方の部屋で、ランドセルを置いて宿題や遊びをする小学生" },
+  "detail-train": { source: "detail-train.png", alt: "緑の帯の銀色の電車" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
