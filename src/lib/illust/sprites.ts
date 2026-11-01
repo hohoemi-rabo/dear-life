@@ -42,4 +42,6 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "event-kamisato-aruko": { width: 843, height: 1121 },
   "event-ningyo-festa": { width: 1150, height: 1046 },
   "event-sports-koryu": { width: 945, height: 1160 },
+  "event-undokai": { width: 1030, height: 1005 },
+  "event-bunkasai": { width: 1197, height: 981 },
 };

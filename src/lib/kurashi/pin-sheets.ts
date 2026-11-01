@@ -65,7 +65,7 @@ function countTitle(state: DataState<number>, base: string, unit: string): { tit
   return state.status === "available" ? { title: `${base}は${state.value}${unit}`, missing: null } : { title: base, missing: state };
 }
 
-// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所）
+// 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所。秋：人口）
 function sceneParts(input: Input): { lines: readonly SceneLine[]; notices: readonly string[]; sources: SheetSource[] } {
   if (!input.scene || scenePinFor(input.plan) !== input.pin) return { lines: [], notices: [], sources: [] };
   return {
@@ -139,6 +139,26 @@ export function pinSheet(input: Input): PinSheet {
         sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
         karteCard: "disaster",
         action: "避難場所を確かめる",
+      };
+    }
+    case "population": {
+      // 見出しは「上郷に住んでいる人は13,524人」。人口は1つの値なので、数が出せないときは「上郷に住んでいる人」にする
+      const state = district.population;
+      const subject = `${district.name}に住んでいる人`;
+      const heading =
+        state.status === "available"
+          ? { title: `${subject}は${state.value.total.toLocaleString("ja-JP")}人`, missing: null }
+          : { title: subject, missing: state };
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        ...heading,
+        intro: "地区の人口と年齢の構成を、カルテで確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources([...sourcesOf(state).map((source) => ({ source })), ...scene.sources]),
+        karteCard: "population",
+        action: "人口を確かめる",
       };
     }
     case "event":

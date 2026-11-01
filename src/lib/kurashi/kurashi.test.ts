@@ -142,7 +142,7 @@ describe("gofreelyHref", () => {
 });
 
 describe("くらしのピン（028）", () => {
-  const plan = (season: "春" | "夏", children: number) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children });
+  const plan = (season: "春" | "夏" | "秋", children: number) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children });
 
   const pictures = { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" } as const;
   const kuroda = event("祭り", { season: "春", name: "黒田人形奉納上演" });
@@ -168,6 +168,17 @@ describe("くらしのピン（028）", () => {
     expect(pins[3]).toMatchObject({ kind: "event", events: [sports] });
   });
 
+  it("秋は人口のピンを足し、場面の文はそこに出す。秋の行事は校庭と公民館に立てる（2026-11-01）", () => {
+    const autumn = { wide: "kurashi-kamisato-autumn-wide", tall: "kurashi-kamisato-autumn-tall" } as const;
+    const undokai = event("運動会", { season: "秋", name: "上郷地区大運動会" });
+    const bunkasai = event("文化祭", { season: "秋", name: "上郷地区文化祭" });
+    const pins = scenePins(plan("秋", 1), { children: 1 }, autumn, [undokai, bunkasai]);
+    expect(labels(pins)).toEqual(["学校", "大運動会", "文化祭", "住まい", "人口"]);
+    expect(pins[1]).toMatchObject({ kind: "event", events: [undokai], wide: EVENT_PINS["上郷地区大運動会"].spots[autumn.wide] });
+    expect(pins[4]).toMatchObject({ kind: "population", tall: PIN_SPOTS[autumn.tall].population });
+    expect(scenePinFor(plan("秋", 0))).toBe("population");
+  });
+
   it("場所の決まった行事は行事ごとにピンを立て、そのピンのシートにはその行事だけを出す（2026-10-31）", () => {
     const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, walk]);
     expect(labels(pins)).toEqual(["学校", "黒田人形", "歩こう会", "住まい"]);
@@ -188,7 +199,12 @@ describe("くらしのピン（028）", () => {
   });
 
   it("札をどちらに伸ばすかは、スマホと PC で同じ", () => {
-    for (const { wide, tall } of [pictures, { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" } as const]) {
+    const seasons = [
+      pictures,
+      { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" },
+      { wide: "kurashi-kamisato-autumn-wide", tall: "kurashi-kamisato-autumn-tall" },
+    ] as const;
+    for (const { wide, tall } of seasons) {
       for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {
         expect(PIN_SPOTS[tall][pin].side).toBe(PIN_SPOTS[wide][pin].side);
       }

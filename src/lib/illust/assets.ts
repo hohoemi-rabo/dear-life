@@ -68,6 +68,21 @@ export const ILLUST_PICTURES = {
     widths: [480, 960],
     alt: "緑の濃い上郷の夏。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
   },
+  // くらし・上郷・秋（2026-11-01 受け取り）。春・夏と同じ大きさ・同じ構図で、紅葉の景色。ピンの場所も同じ
+  "kurashi-kamisato-autumn-wide": {
+    source: "kurashi-kamisato-autumn-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [960, 1440],
+    alt: "紅葉した上郷の秋。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
+  },
+  "kurashi-kamisato-autumn-tall": {
+    source: "kurashi-kamisato-autumn-tall.png",
+    width: 1122,
+    height: 1402,
+    widths: [480, 960],
+    alt: "紅葉した上郷の秋。山すその公園、校庭のある学校、体育館、公民館、石段の上の神社、駅とバス停、川と橋が見える",
+  },
   "district-kamisato": {
     source: "district-kamisato.png",
     width: 1672,
@@ -142,7 +157,7 @@ export function houseSrc(housing: Housing, width: number): string {
 // 車・バス停などの小物（04 車。2026-10-29 受け取り。4地区で使い回す）。家と同じく、少し透けたところを不透明にそろえ、
 // 透明なふちを切り落とす。car.png は1枚に白い車・青い車・横長の駅とバス停が並んでいるので、index（左から何番目か、0始まり）で切り分ける
 // reply-school はえらぶ 02 の子育て・学校の返事のカードの絵（2026-10-31 受け取り。カルテなどの学校のドット絵はそのまま）。
-// event-* は行事ごとの絵（2026-10-31 受け取り。春の2つのあとに夏の2つ。EVENT_ILLUSTS で行事の名前から引く）
+// event-* は行事ごとの絵（2026-10-31 受け取り。春の2つ、夏の2つ、秋の2つ（2026-11-01）の順。EVENT_ILLUSTS で行事の名前から引く）
 export const PROPS = [
   "car-white",
   "car-blue",
@@ -153,6 +168,8 @@ export const PROPS = [
   "event-kamisato-aruko",
   "event-ningyo-festa",
   "event-sports-koryu",
+  "event-undokai",
+  "event-bunkasai",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -166,6 +183,8 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "event-kamisato-aruko": { source: "event-kamisato-aruko.png", alt: "リュックを背負って歩く大人と子ども" },
   "event-ningyo-festa": { source: "event-ningyo-festa.png", alt: "うさぎや小人の人形を手に笑う、花の帽子の人たち" },
   "event-sports-koryu": { source: "event-sports-koryu.png", alt: "芝の上でボールを打つ大人と、よろこぶ子ども" },
+  "event-undokai": { source: "event-undokai.png", alt: "つるしたパンに口をのばす、体操服の大人と子ども" },
+  "event-bunkasai": { source: "event-bunkasai.png", alt: "トランペット・サックス・チューバを吹く3人" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
@@ -179,6 +198,8 @@ export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
   上郷歩こう会: "event-kamisato-aruko",
   "いいだ人形劇フェスタ 上郷地区公演": "event-ningyo-festa",
   春季スポーツ交流会: "event-sports-koryu",
+  上郷地区大運動会: "event-undokai",
+  上郷地区文化祭: "event-bunkasai",
 };
 
 export function eventIllustFor(name: string): PropId | null {
@@ -242,18 +263,21 @@ export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "b
   return bases?.[scene] ?? bases?.base ?? "erabu-iida-overview";
 }
 
-// くらしの場面の絵（028）。上郷の春・夏。ない地区・季節は今のドット絵の場面（ScenePanel）で出す
+// くらしの場面の絵（028）。上郷の春・夏・秋。ない地区・季節は今のドット絵の場面（ScenePanel）で出す
 export type KurashiPictureId =
   | "kurashi-kamisato-spring-wide"
   | "kurashi-kamisato-spring-tall"
   | "kurashi-kamisato-summer-wide"
-  | "kurashi-kamisato-summer-tall";
+  | "kurashi-kamisato-summer-tall"
+  | "kurashi-kamisato-autumn-wide"
+  | "kurashi-kamisato-autumn-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
   kamisato: {
     春: { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" },
     夏: { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" },
+    秋: { wide: "kurashi-kamisato-autumn-wide", tall: "kurashi-kamisato-autumn-tall" },
   },
 };
 

@@ -345,8 +345,8 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
   });
 
   it("上郷でも絵のない季節は、今のドット絵と場面の文で出す（ピンはない）", async () => {
-    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
-    expect(sceneWindow()).toHaveTextContent("地区の行事");
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    expect(sceneWindow()).toHaveTextContent("雪・凍結と車の移動");
     expect(screen.queryByRole("button", { name: "学校" })).not.toBeInTheDocument();
   });
 });
@@ -422,5 +422,72 @@ describe("KurashiView：上郷・夏の風景とピン（028）", () => {
     const sheet = screen.getByRole("dialog", { name: "上郷の夏の行事" });
     expect(sheet).toHaveTextContent("春季スポーツ交流会");
     expect(sheet).not.toHaveTextContent("人形劇フェスタ");
+  });
+});
+
+const CENSUS = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
+
+describe("KurashiView：上郷・秋の風景とピン（028）", () => {
+  const AUTUMN_EVENTS = [
+    event("上郷地区大運動会", { timingNote: "例年10月下旬" }),
+    event("上郷地区文化祭", { art: "文化祭", timingNote: "例年11月中旬" }),
+  ];
+
+  beforeEach(() => {
+    const kamisato: Partial<DistrictData> = {
+      ...KAMISATO,
+      population: {
+        status: "available",
+        value: { asOf: "2020-10-01", total: 13524, age0to14: 1890, age15to64: 7800, age65plus: 3834 },
+        source: CENSUS,
+      },
+      events: AUTUMN_EVENTS,
+    };
+    screenData = { ...published(), districts: { ...published().districts, kamisato: { ...published().districts.kamisato, ...kamisato } } };
+  });
+
+  const pin = (name: string) => screen.getByRole("button", { name, expanded: false });
+
+  it("秋の風景に学校・行事ごと・住まい・人口のピンを立てる", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
+    expect(screen.getByRole("group", { name: /上郷の秋の風景（イメージ）/ })).toBeInTheDocument();
+    for (const name of ["学校", "大運動会", "文化祭", "住まい", "人口"]) expect(pin(name)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "地域の行事" })).not.toBeInTheDocument();
+    // 場面の文は風景の下ではなく、人口のピンのシートに出す
+    expect(screen.queryByText(/秋、地区の行事の季節です。/)).not.toBeInTheDocument();
+  });
+
+  it("人口のピンを押すと、人口を見出しにしたシートに場面の文・出典・カルテの人口へのボタンを出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
+    await act(async () => {
+      fireEvent.click(pin("人口"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷に住んでいる人は13,524人" });
+    expect(within(sheet).getByText(/秋、地区の行事の季節です。/)).toHaveTextContent("想定");
+    expect(sheet).toHaveTextContent("そのうち14歳以下は1,890人です（2020年10月1日時点）");
+    expect(sheet).toHaveTextContent("出典：総務省統計局「国勢調査 小地域集計」");
+    expect(within(sheet).getByRole("link", { name: /人口を確かめる/ })).toHaveAttribute(
+      "href",
+      "/karte?s=autumn&d=kamisato&a=2&k=1&h=new#karte-population",
+    );
+  });
+
+  it("人口が出せないときは、見出しから数を外して「データ未取得」と出す", async () => {
+    screenData = published();
+    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
+    await act(async () => {
+      fireEvent.click(pin("人口"));
+    });
+    expect(screen.getByRole("dialog", { name: "上郷に住んでいる人" })).toHaveTextContent("データ未取得");
+  });
+
+  it("行事のピンを押すと、その行事だけを出す", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=autumn");
+    await act(async () => {
+      fireEvent.click(pin("文化祭"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "上郷の秋の行事" });
+    expect(sheet).toHaveTextContent("上郷地区文化祭");
+    expect(sheet).not.toHaveTextContent("上郷地区大運動会");
   });
 });

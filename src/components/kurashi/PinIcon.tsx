@@ -3,12 +3,13 @@ import type { Priority } from "@/lib/conditions/labels";
 import { eventIllustFor, PRIORITY_ICON_WIDTHS, priorityIconSrc, priorityIconSrcSet, PROP_WIDTHS, propSrc, propSrcSet } from "@/lib/illust/assets";
 import type { ScenePinSpec } from "@/lib/kurashi/pins";
 
-// ピンの丸の中の絵（2026-10-31 まさゆきさん）。えらぶ 05 の大切なことの絵（家・校舎・非常口の印）と行事ごとの絵を使い回す。
+// ピンの丸の中の絵（2026-10-31 まさゆきさん）。えらぶ 05 の大切なことの絵（家・校舎・非常口の印・3人）と行事ごとの絵を使い回す。
 // 合う絵のないもの（公共施設、行事ごとの絵のない行事）はドット絵のアイコン。名前はピンの aria-label で読むので飾りにする
 const PRIORITY_OF: Partial<Record<ScenePinSpec["kind"], Priority>> = {
   school: "childcare",
   housing: "housing",
   evacuation: "disaster",
+  population: "population",
 };
 
 export function PinIcon({ pin }: { pin: Pick<ScenePinSpec, "kind" | "events"> }) {

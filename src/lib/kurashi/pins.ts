@@ -5,7 +5,7 @@ import type { ScenePlan } from "../conditions/scene.ts";
 import type { DistrictEvent } from "../data/screen-data.ts";
 import type { KurashiPictureId, KurashiPictures } from "../illust/assets.ts";
 
-export type PinId = "school" | "event" | "housing" | "public" | "evacuation";
+export type PinId = "school" | "event" | "housing" | "public" | "evacuation" | "population";
 
 export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   school: "学校",
@@ -13,6 +13,7 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   housing: "住まい",
   public: "公共施設",
   evacuation: "避難場所",
+  population: "人口",
 };
 
 // x・y はピンの先が指す場所。side は札をピンのどちら側に伸ばすか（絵の右の端では左に伸ばして、はみ出さないようにする）。
@@ -22,13 +23,16 @@ export type PinSpot = { x: number; y: number; side: "right" | "left" };
 // 場所はまさゆきさんの指示（2026-10-30）：学校＝左中央の校舎、地域の行事＝右上の石段と神社、
 // 住まい＝奥の谷の町並み、公共施設＝右中央の公民館（2026-10-31 に、同じ公民館の屋根を指す「歩こう会」のピンと重ならないよう、正面を指すように下げた）。
 // 避難場所（夏）＝真ん中の体育館の屋根（2026-10-31。上郷の大雨の避難場所の例が上郷小学校体育館のため）。
-// 上郷の春と夏の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
+// 人口（秋）＝奥の谷の町並み（2026-11-01 まさゆきさん、案A）。人口には決まった場所がないので、地区に住む人の暮らす町並みを指す。
+// 同じ谷を指す住まいのピンとは、右上にずらして札を反対側（右）に伸ばす。
+// 上郷の春・夏・秋の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
 const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 27.3, y: 48, side: "right" },
   event: { x: 87, y: 38.5, side: "left" },
   housing: { x: 47, y: 38, side: "left" },
   public: { x: 75, y: 66, side: "left" },
   evacuation: { x: 55, y: 50, side: "right" },
+  population: { x: 57, y: 35.5, side: "right" },
 };
 const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 27.6, y: 49, side: "right" },
@@ -36,6 +40,7 @@ const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
   housing: { x: 51, y: 39.5, side: "left" },
   public: { x: 72, y: 69.5, side: "left" },
   evacuation: { x: 68, y: 51, side: "right" },
+  population: { x: 65, y: 41, side: "right" },
 };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
@@ -43,6 +48,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kamisato-spring-tall": KAMISATO_TALL,
   "kurashi-kamisato-summer-wide": KAMISATO_WIDE,
   "kurashi-kamisato-summer-tall": KAMISATO_TALL,
+  "kurashi-kamisato-autumn-wide": KAMISATO_WIDE,
+  "kurashi-kamisato-autumn-tall": KAMISATO_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -79,6 +86,22 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kamisato-summer-wide": { x: 47.5, y: 57, side: "left" },
       "kurashi-kamisato-summer-tall": { x: 54, y: 58.5, side: "left" },
+    },
+  },
+  // 秋（2026-11-01 まさゆきさん）。左中央の小学校の校庭。校舎を指す学校のピンと重ならないよう、校庭のまん中を指す
+  上郷地区大運動会: {
+    label: "大運動会",
+    spots: {
+      "kurashi-kamisato-autumn-wide": { x: 30.5, y: 63.5, side: "right" },
+      "kurashi-kamisato-autumn-tall": { x: 33, y: 62.5, side: "right" },
+    },
+  },
+  // 秋（2026-11-01 まさゆきさん）。右中央の公民館（春の歩こう会・夏の人形劇と同じ屋根）
+  上郷地区文化祭: {
+    label: "文化祭",
+    spots: {
+      "kurashi-kamisato-autumn-wide": { x: 82, y: 58.5, side: "left" },
+      "kurashi-kamisato-autumn-tall": { x: 80, y: 60.5, side: "left" },
     },
   },
 };
@@ -123,9 +146,10 @@ export function scenePins(
   pictures: KurashiPictures,
   events: readonly DistrictEvent[],
 ): ScenePinSpec[] {
-  // 夏の場面（大雨と避難）の文は避難場所のピンに出す
+  // 夏の場面（大雨と避難）の文は避難場所のピンに、秋の場面（地区の行事）の文は人口のピンに出す
   const evacuation = plan.axis === "summer-evacuation" ? [pinOf("evacuation", pictures)] : [];
-  const pins = [pinOf("school", pictures), ...evacuation, ...eventPins(pictures, events), pinOf("housing", pictures)];
+  const population = plan.axis === "autumn-events" ? [pinOf("population", pictures)] : [];
+  const pins = [pinOf("school", pictures), ...evacuation, ...eventPins(pictures, events), pinOf("housing", pictures), ...population];
   if (!hasChildren(conditions) && plan.axis === "spring-public-facility") pins.push(pinOf("public", pictures));
   return pins;
 }
@@ -147,6 +171,8 @@ export function scenePinFor(plan: ScenePlan): PinId | null {
       return "public";
     case "summer-evacuation":
       return "evacuation";
+    case "autumn-events":
+      return "population";
     default:
       return null;
   }
