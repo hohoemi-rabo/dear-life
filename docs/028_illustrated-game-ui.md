@@ -549,6 +549,10 @@
   - 中心市街地の場所は `assets/illust/iida-districts-guide.png` の青い囲い。市街地の地区（丸山・東野・橋北・橋南など）の行事は `chushin_area` で分かれている
   - 絵を受け取ったら `ILLUST_PICTURES` と `DISTRICT_PICTURES` に足し、`npm run illust` で書き出す。375px と PC のスクショで、上郷の札と並べて確かめてもらう
 - 始める前に、このチケットの「決めたこと」、`docs/design/` の見本、絶対ルール（見本どおり・許可をもらってから実装・1段階1セッション）を読み直す
+- **2026-11-01 決まったこと**：
+  - `district-chushin.png` の中身（まさゆきさんが作る）：上郷と同じ 1672×941 前後の横長で、見どころを真ん中に寄せる。見本の札のとおり、通りの高さから見た町並み（手前に3〜5階建ての店やビル、奥に雪山、上は青空）。目印はりんご並木（今のドット絵の目印と同じ）。上郷に合わせて桜を少しだけ。上郷と同じドット絵風
+  - 絵を受け取ったら：`ILLUST_PICTURES`・`DISTRICT_PICTURES`・`assets/illust/README.md` に足し、`npm run illust` で書き出し、えらぶ 01・対象の4地区・条件の欄を上郷と並べて 375px と PC でスクショを撮って見てもらう
+  - `assets/illust/` のフォルダ分けは、中心市街地を作って1地区に要る枚数が分かってから相談する。使っていない `characters-sheet-3.png`・`characters-sheet-4.png` は、まだ消さない（まさゆきさん）
 
 ## 完了条件
 
