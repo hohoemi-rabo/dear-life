@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
+import type { Season } from "@/lib/conditions/scene";
 import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
 import { PinIcon } from "./PinIcon";
 import { ScenePin } from "./ScenePin";
@@ -12,6 +13,7 @@ import { ScenePin } from "./ScenePin";
 // 広場の奥に選んだ家族を斜め後ろ姿で重ね、場所にピンを立てる。PC はピンを押すと絵の上に吹き出しを出す（スマホは下からのシートで、KurashiView が出す）
 export function IllustratedScene({
   pictures,
+  season,
   label,
   members,
   hiddenChildren,
@@ -21,6 +23,8 @@ export function IllustratedScene({
   popover,
 }: {
   pictures: KurashiPictures;
+  // 家族の服の季節（2026-11-01 まさゆきさん）
+  season: Season;
   // 風景の説明（読み上げ）。家族の構成も入れる
   label: string;
   members: readonly Person[];
@@ -45,10 +49,10 @@ export function IllustratedScene({
     <figure role="group" aria-label={label} className="relative isolate aspect-[1122/1402] overflow-hidden bg-pixel-sky lg:aspect-[3/2]">
       <ScenePicture pictures={pictures} />
       <div className="absolute inset-0 lg:hidden">
-        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.tall} facing="back" />
+        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.tall} facing="back" season={season} />
       </div>
       <div className="absolute inset-0 hidden lg:block">
-        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.wide} facing="back" />
+        <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.wide} facing="back" season={season} />
       </div>
       {pins.map((pin) => (
         <ScenePin

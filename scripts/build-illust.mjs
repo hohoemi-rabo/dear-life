@@ -118,14 +118,17 @@ async function figuresOf(sheet) {
 }
 
 const sizes = {};
-for (const [id, { sheet, index, scale = 1 }] of Object.entries(SPRITE_SOURCES)) {
+for (const [id, { sheet, index, scale = 1, matchHeight }] of Object.entries(SPRITE_SOURCES)) {
   const { data, info, figures } = await sheetOf(sheet);
   const figure = figures[index];
   if (!figure) throw new Error(`${sheet} に左から${index + 1}人目がいません（${figures.length}人）`);
   const cropWidth = figure.right - figure.left + 1;
   const cropHeight = figure.bottom - figure.top + 1;
-  const outWidth = Math.round(cropWidth * SPRITE_SCALE * scale);
-  const outHeight = Math.round(cropHeight * SPRITE_SCALE * scale);
+  // matchHeight：同じ人の別の絵と同じ背にそろえる（季節の服の後ろ姿。シートごとに人の大きさが違うため）
+  if (matchHeight && !sizes[matchHeight]) throw new Error(`${id} の背をそろえる ${matchHeight} が、先に書き出されていません`);
+  const ratio = matchHeight ? sizes[matchHeight].height / cropHeight : SPRITE_SCALE * scale;
+  const outWidth = Math.round(cropWidth * ratio);
+  const outHeight = Math.round(cropHeight * ratio);
   const file = `person-${id}.webp`;
   const out = await sharp(data, { raw: info })
     .extract({ left: figure.left, top: figure.top, width: cropWidth, height: cropHeight })

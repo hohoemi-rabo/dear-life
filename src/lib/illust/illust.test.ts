@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DISTRICTS } from "../conditions/labels";
-import { ERABU_BASES, PEOPLE, POSES, PROP_SOURCES, SPRITE_SOURCES, erabuBaseFor, eventIllustFor, spriteId } from "./assets";
+import { ERABU_BASES, PEOPLE, POSES, PROP_SOURCES, SPRITE_SOURCES, backPose, erabuBaseFor, eventIllustFor, spriteId } from "./assets";
+import { SEASONS } from "../conditions/scene";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, hiddenChildren, placeFamily } from "./family";
 import { placeCars } from "./car";
@@ -81,6 +82,17 @@ describe("絵の一覧", () => {
         const id = spriteId(person, pose);
         expect(SPRITE_SOURCES[id]).toBeDefined();
         expect(SPRITE_SIZES[id].width).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("季節の服の後ろ姿（2026-11-01）：6人×4季節がそろい、どの季節も春と同じ背で、季節ごとに別の絵を使う", () => {
+    expect(backPose()).toBe("back");
+    for (const person of PEOPLE) {
+      const ids = SEASONS.map((season) => spriteId(person, backPose(season)));
+      expect(new Set(ids.map((id) => SPRITE_SOURCES[id].sheet)).size).toBe(SEASONS.length);
+      for (const id of ids) {
+        expect(SPRITE_SIZES[id].height).toBe(SPRITE_SIZES[spriteId(person, "back")].height);
       }
     }
   });

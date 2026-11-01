@@ -114,18 +114,70 @@ export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 // くらしでも back で、風景の奥を向いて立つ（2026-10-30 まさゆきさん）
 export const PEOPLE = ["father", "mother", "boy", "girl", "boy2", "girl2"] as const;
 export type Person = (typeof PEOPLE)[number];
-export const POSES = ["stand", "joy", "back"] as const;
+// back-summer などは季節ごとの服の斜め後ろ姿（くらしの夏・秋・冬。2026-11-01 まさゆきさん：季節で服を変える）。春は back のまま
+export const POSES = ["stand", "joy", "back", "back-summer", "back-autumn", "back-winter"] as const;
 export type Pose = (typeof POSES)[number];
+
+const SEASONAL_BACK_POSES: Readonly<Record<Season, Pose>> = {
+  春: "back",
+  夏: "back-summer",
+  秋: "back-autumn",
+  冬: "back-winter",
+};
+
+// 斜め後ろ姿のポーズ。季節がない場面（えらぶ 05）は春の服
+export function backPose(season: Season | null = null): Pose {
+  return season ? SEASONAL_BACK_POSES[season] : "back";
+}
 
 export type SpriteId = `${Person}-${Pose}`;
 
 // シート6の子ども（背 約580px）を、今の子ども（赤い服の男の子 452px・おさげの女の子 419px）と同じくらいの背にする倍率
 const SHEET_6_SCALE = 0.78;
 
-// キャラクターのシートは1枚に4〜6人が並び、人と人のあいだが透明になっている。
+// 季節の服の斜め後ろ姿（2026-11-01 受け取り）。季節ごとに2枚あり、並びは季節すべて共通。
+// 1枚目は シート5 と同じ並び（お父さん・お母さん・男の子・赤・男の子・黄・女の子・ボブ・女の子・おさげ）、
+// 2枚目は 3人目・4人目の子ども（男の子・青・女の子・紫）。服の色は季節で変わるので、人はシートと左からの位置で決める
+const SEASONAL_BACK_SHEETS = {
+  "back-summer": { name: "summer", label: "夏服" },
+  "back-autumn": { name: "autumn", label: "秋の服" },
+  "back-winter": { name: "winter", label: "冬服" },
+} as const;
+const SEASONAL_BACK_INDEX: Readonly<Record<Person, { sheet: 1 | 2; index: number; who: string }>> = {
+  father: { sheet: 1, index: 0, who: "お父さん" },
+  mother: { sheet: 1, index: 1, who: "お母さん" },
+  boy: { sheet: 1, index: 2, who: "男の子" },
+  girl: { sheet: 1, index: 5, who: "おさげの女の子" },
+  boy2: { sheet: 2, index: 0, who: "3人目の男の子" },
+  girl2: { sheet: 2, index: 1, who: "一つ結びの女の子" },
+};
+
+// 季節の後ろ姿は、シートごとに人の大きさが違う（2枚目は大きい・冬の1枚目も少し大きい）ので、倍率を手で決めず、
+// 春の同じ人（back）と同じ背の高さにそろえて書き出す（matchHeight）。季節を変えても家族の大きさが変わらないように
+type SeasonalBackPose = keyof typeof SEASONAL_BACK_SHEETS;
+function seasonalBackSources(): Record<`${Person}-${SeasonalBackPose}`, SpriteSource> {
+  const entries = Object.entries(SEASONAL_BACK_SHEETS).flatMap(([pose, { name, label }]) =>
+    PEOPLE.map((person) => {
+      const { sheet, index, who } = SEASONAL_BACK_INDEX[person];
+      const source: SpriteSource = {
+        sheet: `characters-back-${name}-${sheet}.png`,
+        index,
+        alt: `${label}で右奥を向いた後ろ姿の、${who}`,
+        matchHeight: spriteId(person, "back"),
+      };
+      return [spriteId(person, pose as SeasonalBackPose), source] as const;
+    }),
+  );
+  return Object.fromEntries(entries) as Record<`${Person}-${SeasonalBackPose}`, SpriteSource>;
+}
+
+type SpriteSource = { sheet: string; index: number; alt: string; scale?: number; matchHeight?: SpriteId };
+
+// キャラクターのシートは1枚に2〜6人が並び、人と人のあいだが透明になっている。
 // index は「左から何人目か」（0始まり）。並びは assets/illust/README.md。
-// scale はシートごとの縮め方の差（SPRITE_SCALE に掛ける）。シート6は人が大きく描かれているので、今の子どもと同じ背にそろえる
-export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; alt: string; scale?: number }> = {
+// scale はシートごとの縮め方の差（SPRITE_SCALE に掛ける）。シート6は人が大きく描かれているので、今の子どもと同じ背にそろえる。
+// matchHeight があるものは、その人物と同じ背の高さにそろえる（先に書き出すものを指す）
+export const SPRITE_SOURCES: Record<SpriteId, SpriteSource> = {
   "father-stand": { sheet: "characters-sheet-1.png", index: 0, alt: "緑の上着のお父さん" },
   "father-joy": { sheet: "characters-sheet-2.png", index: 0, alt: "手を振る、緑の上着のお父さん" },
   "mother-stand": { sheet: "characters-sheet-1.png", index: 1, alt: "青いスカートのお母さん" },
@@ -145,6 +197,7 @@ export const SPRITE_SOURCES: Record<SpriteId, { sheet: string; index: number; al
   "girl2-stand": { sheet: "characters-sheet-6.png", index: 2, alt: "紫の服の女の子", scale: SHEET_6_SCALE },
   "girl2-joy": { sheet: "characters-sheet-6.png", index: 2, alt: "紫の服の女の子", scale: SHEET_6_SCALE },
   "girl2-back": { sheet: "characters-sheet-6.png", index: 3, alt: "右奥を向いた後ろ姿の、紫の服の女の子", scale: SHEET_6_SCALE },
+  ...seasonalBackSources(),
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）

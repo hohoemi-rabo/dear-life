@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { spriteId, spriteSrc, type Person, type Pose } from "@/lib/illust/assets";
+import type { Season } from "@/lib/conditions/scene";
+import { backPose, spriteId, spriteSrc, type Person, type Pose } from "@/lib/illust/assets";
 import { placeFamily, type FamilyStageId, type Placement } from "@/lib/illust/family";
 import { ExtraChildrenBadge } from "./ExtraChildrenBadge";
 import { Sparkles, type SparklePoint } from "./Sparkles";
@@ -14,6 +15,7 @@ const JOY_MS = 1200;
 // 動きはすべて motion-safe: に付け、端末の「動きを減らす」では動かさない（ポーズは変わる）。
 // 絵は飾りで、家族の構成はプレビューの枠の名前で読み上げる。
 // facing="back" は斜め後ろ姿で町を見わたす形（えらぶ 05・くらし）。よろこぶポーズにはせず、後ろ姿のままぽんと出る。
+// 後ろ姿の服は season で変わる（くらし。2026-11-01 まさゆきさん）。季節がない場面（えらぶ 05）は春の服
 // 絵に出せない5人目からの子ども（hiddenChildren）は、いちばん右の子どもの頭の上に「＋N人」の札で出し、
 // 増やしたときは今いる子どもたちがよろこんで跳ねる（2026-10-31 まさゆきさん）
 export function FamilyLayer({
@@ -21,21 +23,24 @@ export function FamilyLayer({
   hiddenChildren = 0,
   background,
   facing = "front",
+  season = null,
 }: {
   members: readonly Person[];
   hiddenChildren?: number;
   background: FamilyStageId;
   facing?: Facing;
+  season?: Season | null;
 }) {
   const placements = placeFamily(members, background);
   const leaving = useLeavingItems(placements, personOf);
   const cheer = useCheer(hiddenChildren);
   const lastChild = placements.findLast(({ person }) => !ADULTS.has(person));
-  const pose: Pose = facing === "back" ? "back" : "stand";
+  const back = backPose(season);
+  const pose: Pose = facing === "back" ? back : "stand";
   return (
     <div aria-hidden="true" className="absolute inset-0 z-10">
       {placements.map((placement) => (
-        <PersonSprite key={placement.person} placement={placement} facing={facing} cheer={ADULTS.has(placement.person) ? 0 : cheer} />
+        <PersonSprite key={placement.person} placement={placement} facing={facing} back={back} cheer={ADULTS.has(placement.person) ? 0 : cheer} />
       ))}
       {lastChild && hiddenChildren > 0 && (
         <span
@@ -46,7 +51,7 @@ export function FamilyLayer({
         </span>
       )}
       {leaving.map((placement) => (
-        <PersonSprite key={`leaving-${placement.person}`} placement={placement} facing={facing} leaving />
+        <PersonSprite key={`leaving-${placement.person}`} placement={placement} facing={facing} back={back} leaving />
       ))}
     </div>
   );
@@ -83,11 +88,14 @@ const SPARKLES: readonly SparklePoint[] = [
 function PersonSprite({
   placement,
   facing,
+  back,
   leaving = false,
   cheer = 0,
 }: {
   placement: Placement;
   facing: Facing;
+  // 後ろ姿のときのポーズ（季節の服）
+  back: Pose;
   leaving?: boolean;
   cheer?: number;
 }) {
@@ -104,7 +112,7 @@ function PersonSprite({
     const timer = setTimeout(() => setEntered(true), JOY_MS);
     return () => clearTimeout(timer);
   }, [leaving, entered]);
-  const pose: Pose = facing === "back" ? "back" : entered ? "stand" : "joy";
+  const pose: Pose = facing === "back" ? back : entered ? "stand" : "joy";
   const hopping = cheer !== cheerAtEntry;
   const motion = leaving ? "motion-safe:animate-pop-out" : hopping ? "motion-safe:animate-hop" : "motion-safe:animate-pop-in";
 

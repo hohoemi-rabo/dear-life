@@ -177,6 +177,7 @@ function SceneWithPins({
     <>
       <IllustratedScene
         pictures={pictures}
+        season={season}
         label={label}
         members={familyMembers(conditions)}
         hiddenChildren={hiddenChildren(conditions)}
