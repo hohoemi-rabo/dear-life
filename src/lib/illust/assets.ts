@@ -24,6 +24,13 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1536],
     alt: "上郷の高台の広場から見た、家並みと南アルプスの風景",
   },
+  "erabu-chushin-base": {
+    source: "erabu-chushin-base.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152, 1536],
+    alt: "中心市街地の高台の広場から見た、ロータリーと町並みと山の風景",
+  },
   // えらぶ 05 だけの背景（2026-10-29 まさゆきさん）。家族が後ろから町を見わたし、学校・駅・避難場所に印を付ける。
   // 元の絵は 16:9 なので、プレビューの枠（3:2）に合わせて切り出す。右の広場の避難場所の標識が入るよう、左を多めに落とす
   "erabu-kamisato-priorities": {
@@ -411,11 +418,13 @@ export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
 
 // えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）。
 // 05 大切なことだけは、町を見わたす別の背景にする（2026-10-29 まさゆきさん）。05 の背景がない地区は 02〜04 と同じ背景
-export type ErabuBaseId = "erabu-kamisato-base" | "erabu-kamisato-priorities" | "erabu-iida-overview";
+export type ErabuBaseId = "erabu-kamisato-base" | "erabu-kamisato-priorities" | "erabu-chushin-base" | "erabu-iida-overview";
 export type ErabuScene = "base" | "priorities";
 
 export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, ErabuBaseId>>>> = {
   kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
+  // 05 は上郷と同じく専用の背景を使う（2026-11-02 まさゆきさん）。届くまでは、前と同じ飯田市全体の絵のまま
+  chushin: { base: "erabu-chushin-base", priorities: "erabu-iida-overview" },
 };
 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {
