@@ -50,6 +50,30 @@ const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
   snow: { x: 22, y: 77.5, side: "right" },
 };
 
+// 中心市街地（2026-11-02 まさゆきさんと決めた案）：バス・電車＝左の赤い屋根の駅、学校＝右奥の時計塔の校舎、
+// 避難場所＝真ん中のアーチ屋根の建物、公共施設＝アーチ屋根の左の白い大きな建物（飯田駅の近くの建物が実際に公共施設で公民館でもある）、
+// 住まい＝右寄りの家並み、雪の道＝手前の柵のすぐ奥の道路。人口は上郷と同じく奥の町並み
+const CHUSHIN_WIDE: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 87.5, y: 36, side: "left" },
+  event: { x: 54, y: 60, side: "right" },
+  housing: { x: 76, y: 53, side: "left" },
+  public: { x: 42, y: 50, side: "right" },
+  evacuation: { x: 59, y: 45.5, side: "right" },
+  population: { x: 45.5, y: 33.5, side: "right" },
+  transit: { x: 17.5, y: 47, side: "right" },
+  snow: { x: 62, y: 73, side: "right" },
+};
+const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 84, y: 40, side: "left" },
+  event: { x: 57, y: 65, side: "right" },
+  housing: { x: 84, y: 57, side: "left" },
+  public: { x: 47, y: 50, side: "right" },
+  evacuation: { x: 64.5, y: 48.5, side: "right" },
+  population: { x: 40, y: 38.5, side: "right" },
+  transit: { x: 19, y: 50, side: "right" },
+  snow: { x: 71, y: 76, side: "right" },
+};
+
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
   "kurashi-kamisato-spring-tall": KAMISATO_TALL,
@@ -59,6 +83,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kamisato-autumn-tall": KAMISATO_TALL,
   "kurashi-kamisato-winter-wide": KAMISATO_WIDE,
   "kurashi-kamisato-winter-tall": KAMISATO_TALL,
+  "kurashi-chushin-spring-wide": CHUSHIN_WIDE,
+  "kurashi-chushin-spring-tall": CHUSHIN_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -119,6 +145,23 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kamisato-winter-wide": { x: 47.5, y: 57, side: "left" },
       "kurashi-kamisato-winter-tall": { x: 54, y: 58.5, side: "left" },
+    },
+  },
+  // 中心市街地の行事は、実際の場所ではなく絵の中の近い種類の場所に立てる（2026-11-02 まさゆきさん）。元の地区名はシートに出す。
+  // 春（橋南）。小学生が防火標語を読み上げて町を歩く行事なので、手前の町の通り
+  おひまち: {
+    label: "おひまち",
+    spots: {
+      "kurashi-chushin-spring-wide": { x: 54, y: 60, side: "right" },
+      "kurashi-chushin-spring-tall": { x: 57, y: 65, side: "right" },
+    },
+  },
+  // 春（東野）。白い大きな建物（公民館）の左側。右側を指す公共施設のピンとは札を反対に伸ばして重ねない
+  子ども寺子屋ひがしの: {
+    label: "寺子屋",
+    spots: {
+      "kurashi-chushin-spring-wide": { x: 34, y: 50, side: "left" },
+      "kurashi-chushin-spring-tall": { x: 33, y: 50, side: "left" },
     },
   },
 };
