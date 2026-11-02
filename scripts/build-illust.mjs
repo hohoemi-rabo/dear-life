@@ -26,6 +26,19 @@ import {
 
 const root = join(import.meta.dirname, "..");
 const sourceDir = join(root, "assets/illust");
+// 元の画像は地区ごとのフォルダ（common・kamisato・chushin など）に分けて置く。一覧（src/lib/illust/assets.ts）はファイル名だけで書くので、
+// フォルダを移しても一覧を直さなくてよい。同じ名前が2つあると、どちらを使うか分からないので止める
+const sourcePaths = new Map();
+for (const entry of readdirSync(sourceDir, { recursive: true, withFileTypes: true })) {
+  if (!entry.isFile() || !entry.name.endsWith(".png")) continue;
+  if (sourcePaths.has(entry.name)) throw new Error(`assets/illust に同じ名前の画像が2つあります：${entry.name}`);
+  sourcePaths.set(entry.name, join(entry.parentPath, entry.name));
+}
+function sourcePath(name) {
+  const path = sourcePaths.get(name);
+  if (!path) throw new Error(`assets/illust に画像がありません：${name}`);
+  return path;
+}
 const outDir = join(root, "public", ILLUST_DIR);
 mkdirSync(outDir, { recursive: true });
 
@@ -45,7 +58,7 @@ const HOUSE_OPAQUE_ALPHA = 224;
 const written = new Set();
 
 for (const [id, picture] of Object.entries(ILLUST_PICTURES)) {
-  const source = sharp(join(sourceDir, picture.source));
+  const source = sharp(sourcePath(picture.source));
   const { width, height } = await source.metadata();
   const expectedWidth = picture.sourceWidth ?? picture.width;
   const expectedHeight = picture.sourceHeight ?? picture.height;
@@ -121,7 +134,7 @@ function makeOpaque(data, channels) {
 const sheets = new Map();
 async function sheetOf(sheet) {
   if (!sheets.has(sheet)) {
-    const { data, info } = await sharp(join(sourceDir, sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const { data, info } = await sharp(sourcePath(sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     makeOpaque(data, info.channels);
     // 上の段から順に、段の中は左から順に並べる（index は通し番号）
     const figures = figureBands(data, info.width, info.height, info.channels).flatMap((band) =>
@@ -166,7 +179,7 @@ for (const [id, { sheet, index, scale = 1, matchHeight }] of Object.entries(SPRI
 // 家・小物：濃いところを不透明にし、透明なふちを切り落とす。columns を渡すと、その列の範囲だけを見る（1枚に並んだ小物）。
 // 大きさは縦横の比を画面で使うため、切り落とした元の大きさを返す
 async function writeOpaqueCrop(source, columns, name, widths) {
-  const { data, info } = await sharp(join(sourceDir, source)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(sourcePath(source)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { left: fromX, right: toX } = columns ?? { left: 0, right: info.width - 1 };
   let left = info.width;
   let right = -1;
