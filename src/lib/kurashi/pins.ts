@@ -154,12 +154,12 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     },
   },
   // 中心市街地の行事は、実際の場所ではなく絵の中の近い種類の場所に立てる（2026-11-02 まさゆきさん）。元の地区名はシートに出す。
-  // 春（橋南）。小学生が防火標語を読み上げて町を歩く行事なので、手前の町の通り
+  // 春（橋南）。小学生が防火標語を読み上げて町を歩く行事なので、真ん中の道路を指す（2026-11-03 まさゆきさん）。ロータリーから奥へのびる道。札は右の住まいの札を避けて左に伸ばす
   おひまち: {
     label: "おひまち",
     spots: {
-      "kurashi-chushin-spring-wide": { x: 54, y: 60, side: "right" },
-      "kurashi-chushin-spring-tall": { x: 57, y: 65, side: "right" },
+      "kurashi-chushin-spring-wide": { x: 44, y: 60, side: "left" },
+      "kurashi-chushin-spring-tall": { x: 47, y: 60.5, side: "left" },
     },
   },
   // 春（東野）。白い大きな建物（公民館）の左側。右側を指す公共施設のピンとは札を反対に伸ばして重ねない
