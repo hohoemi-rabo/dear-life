@@ -22,6 +22,10 @@ export function familyMembers({ adults, children, parent }: Pick<Conditions, "ad
 // 家族を立たせる背景（えらぶのプレビューと、くらしの場面）
 export type FamilyStageId = ErabuBaseId | KurashiPictureId;
 
+// くらし・中心市街地の立ち位置。4季節とも同じ構図なので1つにまとめる
+const CHUSHIN_KURASHI_WIDE = { footY: 83.5, adultHeight: 20, centerX: 40 };
+const CHUSHIN_KURASHI_TALL = { footY: 84, adultHeight: 15, centerX: 45 };
+
 // 背景ごとの立ち位置。footY は足もとの高さ、adultHeight はお父さん（立つ）の背の高さ（どちらも背景の高さに対する割合）
 const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number }> = {
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
@@ -46,13 +50,13 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-kamisato-autumn-tall": { footY: 95, adultHeight: 15, centerX: 45 },
   "kurashi-kamisato-winter-wide": { footY: 90, adultHeight: 20, centerX: 40 },
   "kurashi-kamisato-winter-tall": { footY: 95, adultHeight: 15, centerX: 45 },
-  // 手前に広場と柵があるのは上郷と同じなので、立ち位置も同じ
-  "kurashi-chushin-spring-wide": { footY: 90, adultHeight: 20, centerX: 40 },
-  "kurashi-chushin-spring-tall": { footY: 95, adultHeight: 15, centerX: 45 },
-  "kurashi-chushin-summer-wide": { footY: 90, adultHeight: 20, centerX: 40 },
-  "kurashi-chushin-summer-tall": { footY: 95, adultHeight: 15, centerX: 45 },
-  "kurashi-chushin-autumn-wide": { footY: 90, adultHeight: 20, centerX: 40 },
-  "kurashi-chushin-autumn-tall": { footY: 95, adultHeight: 15, centerX: 45 },
+  // 中心市街地は柵が上郷より高いところにあるので、足もとを広場の奥の端から同じ距離（上郷と同じ約3.5%）にそろえて、柵のすぐ手前に立たせる（2026-11-02 まさゆきさん）。背の高さと横の位置は上郷と同じ
+  "kurashi-chushin-spring-wide": CHUSHIN_KURASHI_WIDE,
+  "kurashi-chushin-spring-tall": CHUSHIN_KURASHI_TALL,
+  "kurashi-chushin-summer-wide": CHUSHIN_KURASHI_WIDE,
+  "kurashi-chushin-summer-tall": CHUSHIN_KURASHI_TALL,
+  "kurashi-chushin-autumn-wide": CHUSHIN_KURASHI_WIDE,
+  "kurashi-chushin-autumn-tall": CHUSHIN_KURASHI_TALL,
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）
