@@ -66,9 +66,9 @@ const CHUSHIN_WIDE: Readonly<Record<PinId, PinSpot>> = {
 const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 84, y: 40, side: "left" },
   event: { x: 57, y: 65, side: "right" },
-  housing: { x: 84, y: 57, side: "left" },
+  housing: { x: 84, y: 59, side: "left" },
   public: { x: 47, y: 50, side: "right" },
-  evacuation: { x: 64.5, y: 48.5, side: "right" },
+  evacuation: { x: 64.5, y: 50, side: "right" },
   population: { x: 40, y: 38.5, side: "right" },
   transit: { x: 19, y: 50, side: "right" },
   snow: { x: 71, y: 76, side: "right" },
@@ -85,6 +85,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kamisato-winter-tall": KAMISATO_TALL,
   "kurashi-chushin-spring-wide": CHUSHIN_WIDE,
   "kurashi-chushin-spring-tall": CHUSHIN_TALL,
+  "kurashi-chushin-summer-wide": CHUSHIN_WIDE,
+  "kurashi-chushin-summer-tall": CHUSHIN_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -162,6 +164,22 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-chushin-spring-wide": { x: 34, y: 50, side: "left" },
       "kurashi-chushin-spring-tall": { x: 33, y: 50, side: "left" },
+    },
+  },
+  // 夏（丸山）。人形劇は公民館でする行事なので白い大きな建物の正面。札は、右のアーチ屋根の避難場所のピンにかからないよう左に伸ばす
+  "いいだ人形劇フェスタ 丸山地区公演": {
+    label: "人形劇",
+    spots: {
+      "kurashi-chushin-summer-wide": { x: 42, y: 52, side: "left" },
+      "kurashi-chushin-summer-tall": { x: 42, y: 55, side: "left" },
+    },
+  },
+  // 夏（橋北）。同じ白い大きな建物の屋根。人形劇のピンとは上下にずらして札を重ねない
+  橋北地区文化祭: {
+    label: "文化祭",
+    spots: {
+      "kurashi-chushin-summer-wide": { x: 34, y: 45, side: "left" },
+      "kurashi-chushin-summer-tall": { x: 33, y: 45, side: "left" },
     },
   },
 };

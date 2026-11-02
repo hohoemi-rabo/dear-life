@@ -133,6 +133,21 @@ export const ILLUST_PICTURES = {
     widths: [480, 720, 960],
     alt: "桜の咲く中心市街地の春。赤い屋根の駅とロータリー、大きな白い建物、アーチ屋根の体育館、時計塔のある学校と校庭、町並み、公園が見える",
   },
+  // くらし・中心市街地・夏（2026-11-02 受け取り）。春と同じ大きさ・同じ構図で、緑の濃い夏の景色
+  "kurashi-chushin-summer-wide": {
+    source: "kurashi-chushin-summer-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [240, 480, 960, 1440],
+    alt: "緑の濃い中心市街地の夏。赤い屋根の駅とロータリー、大きな白い建物、アーチ屋根の体育館、時計塔のある学校と校庭、町並み、公園が見える",
+  },
+  "kurashi-chushin-summer-tall": {
+    source: "kurashi-chushin-summer-tall.png",
+    width: 1122,
+    height: 1402,
+    widths: [480, 720, 960],
+    alt: "緑の濃い中心市街地の夏。赤い屋根の駅とロータリー、大きな白い建物、アーチ屋根の体育館、時計塔のある学校と校庭、町並み、公園が見える",
+  },
   "district-kamisato": {
     source: "district-kamisato.png",
     width: 1672,
@@ -473,7 +488,9 @@ export type KurashiPictureId =
   | "kurashi-kamisato-winter-wide"
   | "kurashi-kamisato-winter-tall"
   | "kurashi-chushin-spring-wide"
-  | "kurashi-chushin-spring-tall";
+  | "kurashi-chushin-spring-tall"
+  | "kurashi-chushin-summer-wide"
+  | "kurashi-chushin-summer-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
@@ -485,6 +502,7 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
   },
   chushin: {
     春: { wide: "kurashi-chushin-spring-wide", tall: "kurashi-chushin-spring-tall" },
+    夏: { wide: "kurashi-chushin-summer-wide", tall: "kurashi-chushin-summer-tall" },
   },
 };
 
