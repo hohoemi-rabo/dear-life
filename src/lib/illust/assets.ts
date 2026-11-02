@@ -349,6 +349,14 @@ export const PROPS = [
   "event-undokai",
   "event-bunkasai",
   "event-winter-sports",
+  "event-chushin-ohimachi",
+  "event-chushin-terakoya",
+  "event-chushin-ningyo-festa",
+  "event-chushin-kyohoku-bunkasai",
+  "event-chushin-undokai",
+  "event-chushin-maruyama-bunkasai",
+  "event-chushin-mochitsuki",
+  "event-chushin-kakizome",
   "karte-header-wide",
   "karte-header-tall",
   "karte-childcare",
@@ -387,6 +395,14 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "event-undokai": { source: "event-undokai.png", alt: "つるしたパンに口をのばす、体操服の大人と子ども" },
   "event-bunkasai": { source: "event-bunkasai.png", alt: "トランペット・サックス・チューバを吹く3人" },
   "event-winter-sports": { source: "event-winter-sports.png", alt: "体育館で、木の棒を投げてピンを倒す子どもと見守る大人" },
+  "event-chushin-ohimachi": { source: "event-chushin-ohimachi.png", alt: "青い法被で拍子木を持って町を歩く小学生たち" },
+  "event-chushin-terakoya": { source: "event-chushin-terakoya.png", alt: "お坊さんの話を聞きながら机に向かう子どもたち" },
+  "event-chushin-ningyo-festa": { source: "event-chushin-ningyo-festa.png", alt: "キツネ・羊・ひまわり・小鳥の手作りの人形を手に笑う大人と子ども" },
+  "event-chushin-kyohoku-bunkasai": { source: "event-chushin-kyohoku-bunkasai.png", alt: "舞台で太鼓をたたき、踊り、歌う人たち" },
+  "event-chushin-undokai": { source: "event-chushin-undokai.png", alt: "たすきをかけてバトンを持って走る人たち" },
+  "event-chushin-maruyama-bunkasai": { source: "event-chushin-maruyama-bunkasai.png", alt: "舞台で楽器を吹く人たちと、石窯でピザを焼く人たち" },
+  "event-chushin-mochitsuki": { source: "event-chushin-mochitsuki.png", alt: "もちをつく大人と子ども、羽根つきとこまで遊ぶ子どもたち" },
+  "event-chushin-kakizome": { source: "event-chushin-kakizome.png", alt: "書初めとかるたをする子どもたちとおばあさん" },
   // カルテ（2026-11-01 受け取り。春の絵を4地区で使い回す）。見出しの風景は PC で約500px、スマホで約160px に出す
   "karte-header-wide": {
     source: "karte-header-wide.png",
@@ -431,6 +447,15 @@ export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
   上郷地区大運動会: "event-undokai",
   上郷地区文化祭: "event-bunkasai",
   冬季スポーツ交流会: "event-winter-sports",
+  // 中心市街地（2026-11-02 受け取り）
+  おひまち: "event-chushin-ohimachi",
+  子ども寺子屋ひがしの: "event-chushin-terakoya",
+  "いいだ人形劇フェスタ 丸山地区公演": "event-chushin-ningyo-festa",
+  橋北地区文化祭: "event-chushin-kyohoku-bunkasai",
+  東野区民大運動会: "event-chushin-undokai",
+  丸山地区文化祭: "event-chushin-maruyama-bunkasai",
+  "お正月遊び・もちつき大会": "event-chushin-mochitsuki",
+  "書初め・お正月遊び": "event-chushin-kakizome",
 };
 
 export function eventIllustFor(name: string): PropId | null {
