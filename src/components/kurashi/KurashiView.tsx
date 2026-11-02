@@ -137,6 +137,7 @@ const SKY_COLORS: Partial<Record<KurashiPictures["tall"], string>> = {
   "kurashi-kamisato-winter-tall": "#0490FC",
   "kurashi-chushin-spring-tall": "#1A9AFD",
   "kurashi-chushin-summer-tall": "#1A97FC",
+  "kurashi-chushin-autumn-tall": "#0990FC",
 };
 
 function skyStyle(pictures: KurashiPictures): CSSProperties {

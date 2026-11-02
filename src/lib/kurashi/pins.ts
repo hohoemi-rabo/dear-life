@@ -87,6 +87,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-spring-tall": CHUSHIN_TALL,
   "kurashi-chushin-summer-wide": CHUSHIN_WIDE,
   "kurashi-chushin-summer-tall": CHUSHIN_TALL,
+  "kurashi-chushin-autumn-wide": CHUSHIN_WIDE,
+  "kurashi-chushin-autumn-tall": CHUSHIN_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -180,6 +182,22 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-chushin-summer-wide": { x: 34, y: 45, side: "left" },
       "kurashi-chushin-summer-tall": { x: 33, y: 45, side: "left" },
+    },
+  },
+  // 秋（東野）。右奥の校庭。校舎を指す学校のピンと重ならないよう、スマホは校庭の左下の端を指す
+  東野区民大運動会: {
+    label: "大運動会",
+    spots: {
+      "kurashi-chushin-autumn-wide": { x: 83, y: 44, side: "left" },
+      "kurashi-chushin-autumn-tall": { x: 72, y: 47, side: "left" },
+    },
+  },
+  // 秋（丸山）。白い大きな建物の正面（夏の人形劇と同じ場所）
+  丸山地区文化祭: {
+    label: "文化祭",
+    spots: {
+      "kurashi-chushin-autumn-wide": { x: 42, y: 52, side: "left" },
+      "kurashi-chushin-autumn-tall": { x: 42, y: 55, side: "left" },
     },
   },
 };
