@@ -70,8 +70,8 @@ const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
   public: { x: 47, y: 50, side: "right" },
   evacuation: { x: 64.5, y: 50, side: "right" },
   population: { x: 40, y: 38.5, side: "right" },
-  transit: { x: 19, y: 50, side: "right" },
-  snow: { x: 71, y: 76, side: "right" },
+  transit: { x: 19, y: 49, side: "right" },
+  snow: { x: 61, y: 75, side: "right" },
 };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
@@ -89,6 +89,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-summer-tall": CHUSHIN_TALL,
   "kurashi-chushin-autumn-wide": CHUSHIN_WIDE,
   "kurashi-chushin-autumn-tall": CHUSHIN_TALL,
+  "kurashi-chushin-winter-wide": CHUSHIN_WIDE,
+  "kurashi-chushin-winter-tall": CHUSHIN_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -198,6 +200,22 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-chushin-autumn-wide": { x: 42, y: 52, side: "left" },
       "kurashi-chushin-autumn-tall": { x: 42, y: 55, side: "left" },
+    },
+  },
+  // 冬（丸山）。もちつきは外でもする行事なので、右手前の公園
+  "お正月遊び・もちつき大会": {
+    label: "もちつき",
+    spots: {
+      "kurashi-chushin-winter-wide": { x: 88, y: 66, side: "left" },
+      "kurashi-chushin-winter-tall": { x: 92, y: 70, side: "left" },
+    },
+  },
+  // 冬（橋北）。白い大きな建物の正面。札は、駅のピンの札にかからないよう低めに、左へ伸ばす
+  "書初め・お正月遊び": {
+    label: "書初め",
+    spots: {
+      "kurashi-chushin-winter-wide": { x: 42, y: 52, side: "left" },
+      "kurashi-chushin-winter-tall": { x: 46, y: 56.5, side: "left" },
     },
   },
 };

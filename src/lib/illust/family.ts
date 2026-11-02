@@ -57,6 +57,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-chushin-summer-tall": CHUSHIN_KURASHI_TALL,
   "kurashi-chushin-autumn-wide": CHUSHIN_KURASHI_WIDE,
   "kurashi-chushin-autumn-tall": CHUSHIN_KURASHI_TALL,
+  "kurashi-chushin-winter-wide": CHUSHIN_KURASHI_WIDE,
+  "kurashi-chushin-winter-tall": CHUSHIN_KURASHI_TALL,
 };
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）
