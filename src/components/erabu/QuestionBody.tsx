@@ -65,7 +65,7 @@ export function QuestionBody({ question, conditions, onChange }: Props) {
 type ChoiceProps = Omit<Props, "question">;
 
 // 地区の選択肢（028 見本）：上半分に地区の絵、下に名前。選んだものは枠を緑にして左上に ✓。
-// 絵があるのはまず上郷だけで、ほかの3地区は用意できるまで今のドット絵（仮）
+// 絵がまだない地区は、用意できるまで今のドット絵（仮）
 function DistrictChoices({ conditions, onChange }: ChoiceProps) {
   return (
     <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="住む地区">

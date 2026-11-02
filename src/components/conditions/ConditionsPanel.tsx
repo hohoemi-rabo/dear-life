@@ -169,7 +169,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
   );
 }
 
-// 地区の絵（028）。生成AIの絵がある地区（今は上郷）はそれを、ない地区は今のドット絵の目印を出す。飾り
+// 地区の絵（028）。生成AIの絵がある地区はそれを、ない地区は今のドット絵の目印を出す。飾り
 function DistrictThumb({ district }: { district: DistrictId }) {
   const picture = DISTRICT_PICTURES[district];
   if (!picture) return <PixelImage asset={landmarkAssetId(district, "spring")} scale={1} decorative className="shrink-0" />;
