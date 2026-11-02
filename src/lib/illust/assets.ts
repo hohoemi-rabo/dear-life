@@ -359,6 +359,8 @@ export const PROPS = [
   "event-chushin-kakizome",
   "karte-header-wide",
   "karte-header-tall",
+  "karte-header-chushin-wide",
+  "karte-header-chushin-tall",
   "karte-childcare",
   "karte-transport",
   "karte-disaster",
@@ -410,6 +412,13 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
     widths: [480, 960],
   },
   "karte-header-tall": { source: "karte-header-tall.png", alt: "山すその町並みと、川をわたる電車の風景" },
+  // 中心市街地の見出しの絵（2026-11-03 受け取り）
+  "karte-header-chushin-wide": {
+    source: "karte-header-chushin-wide.png",
+    alt: "赤い屋根の駅とバス、ビルの並ぶ通り、アーチ屋根の建物、時計塔のある学校",
+    widths: [480, 960],
+  },
+  "karte-header-chushin-tall": { source: "karte-header-chushin-tall.png", alt: "赤い屋根の駅とバス、ビルの並ぶ通り、アーチ屋根の建物、時計塔のある学校" },
   "karte-childcare": { source: "karte-childcare.png", alt: "時計台のある校舎の前を、ランドセルで歩く子ども3人" },
   "karte-transport": { source: "karte-transport.png", alt: "停留所に止まる緑のバスと、待つ親子" },
   "karte-disaster": { source: "karte-disaster.png", alt: "「避難所」の看板のある建物" },
@@ -460,6 +469,15 @@ export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
 
 export function eventIllustFor(name: string): PropId | null {
   return Object.hasOwn(EVENT_ILLUSTS, name) ? EVENT_ILLUSTS[name] : null;
+}
+
+// カルテの見出しの絵。地区の絵がまだない地区は、今の絵（山すその町並み）を使う
+const KARTE_HEADERS: Partial<Record<DistrictId, { wide: PropId; tall: PropId }>> = {
+  chushin: { wide: "karte-header-chushin-wide", tall: "karte-header-chushin-tall" },
+};
+
+export function karteHeaderFor(district: DistrictId): { wide: PropId; tall: PropId } {
+  return KARTE_HEADERS[district] ?? { wide: "karte-header-wide", tall: "karte-header-tall" };
 }
 
 export function propSrc(prop: PropId, width: number): string {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DISTRICTS } from "../conditions/labels";
-import { ERABU_BASES, PEOPLE, POSES, PROP_SOURCES, SPRITE_SOURCES, backPose, erabuBaseFor, eventIllustFor, spriteId } from "./assets";
+import { ERABU_BASES, PEOPLE, POSES, PROP_SOURCES, SPRITE_SOURCES, backPose, erabuBaseFor, eventIllustFor, karteHeaderFor, spriteId } from "./assets";
 import { SEASONS } from "../conditions/scene";
 import { DISTRICT_LABEL_POSITIONS } from "./districts";
 import { familyMembers, hiddenChildren, placeFamily } from "./family";
@@ -211,5 +211,12 @@ describe("行事ごとの絵（2026-10-31）", () => {
     expect(eventIllustFor("書初め・お正月遊び")).toBe("event-chushin-kakizome");
     expect(eventIllustFor("鼎地区運動会")).toBeNull();
     expect(eventIllustFor("constructor")).toBeNull();
+  });
+});
+
+describe("カルテの見出しの絵", () => {
+  it("中心市街地は専用の絵、絵のまだない地区は今の絵を使う", () => {
+    expect(karteHeaderFor("chushin")).toEqual({ wide: "karte-header-chushin-wide", tall: "karte-header-chushin-tall" });
+    expect(karteHeaderFor("kanae")).toEqual({ wide: "karte-header-wide", tall: "karte-header-tall" });
   });
 });

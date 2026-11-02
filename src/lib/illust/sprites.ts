@@ -79,6 +79,8 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "event-chushin-kakizome": { width: 1224, height: 1151 },
   "karte-header-wide": { width: 2172, height: 424 },
   "karte-header-tall": { width: 1536, height: 691 },
+  "karte-header-chushin-wide": { width: 2172, height: 384 },
+  "karte-header-chushin-tall": { width: 1536, height: 560 },
   "karte-childcare": { width: 1207, height: 835 },
   "karte-transport": { width: 1429, height: 640 },
   "karte-disaster": { width: 1475, height: 549 },

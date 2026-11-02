@@ -27,6 +27,7 @@
 | `kurashi-chushin-autumn-wide.png`・`kurashi-chushin-autumn-tall.png` | くらし・中心市街地・秋の風景（PC・スマホ） | 人のいない中心市街地の秋（1536×1024・1122×1402）。春・夏と同じ構図の紅葉で、ピンの場所も同じ |
 | `kurashi-chushin-winter-wide.png`・`kurashi-chushin-winter-tall.png` | くらし・中心市街地・冬の風景（PC・スマホ） | 人のいない中心市街地の冬（1536×1024・1122×1402）。春〜秋と同じ構図の雪景色で、ピンの場所も同じ。バス・電車のピンは左の駅、雪の道のピンは手前の柵のすぐ奥の道路 |
 | `event-chushin-ohimachi.png`・`event-chushin-terakoya.png`・`event-chushin-ningyo-festa.png`・`event-chushin-kyohoku-bunkasai.png`・`event-chushin-undokai.png`・`event-chushin-maruyama-bunkasai.png`・`event-chushin-mochitsuki.png`・`event-chushin-kakizome.png` | くらしの行事のシート・吹き出し（中心市街地の行事ごとの絵） | おひまち・子ども寺子屋ひがしの・いいだ人形劇フェスタ 丸山地区公演・橋北地区文化祭・東野区民大運動会・丸山地区文化祭・お正月遊び・もちつき大会・書初め・お正月遊び。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
+| `karte-header-chushin-wide.png`・`karte-header-chushin-tall.png` | カルテの見出しの右（中心市街地。PC・スマホ） | 中心市街地の町並みの風景（透過。2172×724・1536×1024）。ほかの地区は `karte-header-wide.png`・`karte-header-tall.png` |
 | `house-new.png`・`house-old.png`・`house-rent.png` | えらぶ 03 のプレビューと選択肢 | 買う・新しめ／買う・古め／借りる の家（透過、1536×1024）。4地区で使い回す |
 | `car.png` | えらぶ 04 のプレビューと選択肢・地図のカード | 白い車・青い車・横長の駅とバス停（透過、2172×724）。透明な隙間で3つに切り分ける。4地区で使い回す |
 | `bus-stop.png` | えらぶ 04 の「0台」の選択肢 | 駅の建物とバス停の標識・待合所（透過、1254×1254） |

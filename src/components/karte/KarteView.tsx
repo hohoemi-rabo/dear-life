@@ -15,7 +15,7 @@ import { DISTRICT_NAMES } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
-import { propSrc, propSrcSet } from "@/lib/illust/assets";
+import { karteHeaderFor, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
@@ -67,6 +67,7 @@ export function KarteView() {
 // 見出し（見本）：家族の絵（PC）・本の印・「わが家のカルテ」・地区の一文・並びの一文と、右に風景の絵。
 // 並びの一文は、条件がどう並びに反映されたかを必ず伝えるもの（要件 4章）
 function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readonly string[] }) {
+  const header = karteHeaderFor(conditions.district);
   return (
     <header className="flex items-center gap-3 md:gap-4">
       <FamilyRow conditions={conditions} fatherHeight={64} lazy className="hidden shrink-0 xl:flex" />
@@ -87,10 +88,10 @@ function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readon
         </div>
       </div>
       <picture className="w-28 shrink-0 sm:w-48 lg:w-[min(40%,520px)]">
-        <source media="(min-width: 1024px)" srcSet={propSrcSet("karte-header-wide")} sizes="min(40vw, 520px)" />
+        <source media="(min-width: 1024px)" srcSet={propSrcSet(header.wide)} sizes="min(40vw, 520px)" />
         <img
-          src={propSrc("karte-header-tall", 240)}
-          srcSet={propSrcSet("karte-header-tall")}
+          src={propSrc(header.tall, 240)}
+          srcSet={propSrcSet(header.tall)}
           sizes="(min-width: 640px) 192px, 112px"
           alt=""
           draggable={false}
