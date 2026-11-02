@@ -17,6 +17,7 @@ const PARKING: Record<ErabuBaseId, { single: number; white: number; blue: number
   // 05 の背景。見本どおり左の家の前に置く（家族と重ならないよう、2台目も家族の左に収める）。
   // 家族は奥に下げ、車は家の前の少し手前に置く（2026-10-30 まさゆきさん：キャラと車のバランス、車はもう少し手前で大きく）
   "erabu-kamisato-priorities": { single: 26, white: 17, blue: 31.5, footY: 84, width: 16 },
+  "erabu-chushin-priorities": { single: 26, white: 17, blue: 31.5, footY: 89, width: 16 },
   "erabu-iida-overview": { single: 70, white: 70, blue: 83.5, footY: 91, width: 16 },
 };
 

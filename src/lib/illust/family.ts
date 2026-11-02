@@ -32,6 +32,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   // 05 の背景。05 の主役は町（印）なので、家族は広場のいちばん奥（川べりの手前）に小さめに立たせる
   // （2026-10-30 まさゆきさん：キャラを小さく、いちばん奥まで）
   "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
+  // 広場の奥の端が上郷より下にあるので、そのぶん下げる（家・車も同じ）
+  "erabu-chushin-priorities": { footY: 78, adultHeight: 20, centerX: 50 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
   // くらし：斜め後ろ姿で、広場の奥（柵の手前）から町を見る（2026-10-30 まさゆきさん：斜めのキャラにして奥に）

@@ -43,6 +43,17 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1412],
     alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
   },
+  // 中心市街地の 05 の背景（2026-11-02 受け取り）。上郷と同じ 16:9 なので同じように切り出す。駅が切れないよう、左を落とす
+  "erabu-chushin-priorities": {
+    source: "erabu-chushin-priorities.png",
+    sourceWidth: 1672,
+    sourceHeight: 941,
+    crop: { left: 230, top: 0 },
+    width: 1412,
+    height: 941,
+    widths: [768, 1152, 1412],
+    alt: "中心市街地の高台の広場から見た、学校・駅・ロータリーと山の風景",
+  },
   // くらしの絵の書き出す横幅（2026-11-01 測り直し）：横長の 240・480 は PC の下の季節の絵（約225px）、縦長の 720 は
 // 幅 375px・密度2倍のスマホ用（960 だと約430KB で、絵が出るまで約8秒かかっていた）
 // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
@@ -418,13 +429,17 @@ export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
 
 // えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）。
 // 05 大切なことだけは、町を見わたす別の背景にする（2026-10-29 まさゆきさん）。05 の背景がない地区は 02〜04 と同じ背景
-export type ErabuBaseId = "erabu-kamisato-base" | "erabu-kamisato-priorities" | "erabu-chushin-base" | "erabu-iida-overview";
+export type ErabuBaseId =
+  | "erabu-kamisato-base"
+  | "erabu-kamisato-priorities"
+  | "erabu-chushin-base"
+  | "erabu-chushin-priorities"
+  | "erabu-iida-overview";
 export type ErabuScene = "base" | "priorities";
 
 export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, ErabuBaseId>>>> = {
   kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
-  // 05 は上郷と同じく専用の背景を使う（2026-11-02 まさゆきさん）。届くまでは、前と同じ飯田市全体の絵のまま
-  chushin: { base: "erabu-chushin-base", priorities: "erabu-iida-overview" },
+  chushin: { base: "erabu-chushin-base", priorities: "erabu-chushin-priorities" },
 };
 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {

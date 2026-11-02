@@ -15,6 +15,13 @@ const SPOTS: Record<ErabuBaseId, Record<Exclude<Priority, "housing">, Spot>> = {
     disaster: { x: 92, y: 30 },
     population: { x: 60, y: 21 },
   },
+  // 05 の背景：左奥の校舎・右の駅・右奥の公園の避難場所の標識・奥の町並み
+  "erabu-chushin-priorities": {
+    childcare: { x: 14, y: 16 },
+    transport: { x: 75, y: 36 },
+    disaster: { x: 89, y: 24 },
+    population: { x: 57, y: 18 },
+  },
   // 05 の背景がない地区（02〜04 と同じ背景で 05 を出す）。上郷は 05 の背景があるので今は使わない
   "erabu-kamisato-base": {
     childcare: { x: 72, y: 30 },
