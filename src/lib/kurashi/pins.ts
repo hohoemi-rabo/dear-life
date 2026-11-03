@@ -121,6 +121,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kanae-summer-tall": KANAE_TALL,
   "kurashi-kanae-autumn-wide": KANAE_WIDE,
   "kurashi-kanae-autumn-tall": KANAE_TALL,
+  "kurashi-kanae-winter-wide": KANAE_WIDE,
+  "kurashi-kanae-winter-tall": KANAE_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -279,6 +281,14 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kanae-autumn-wide": { x: 60, y: 80, side: "right" },
       "kurashi-kanae-autumn-tall": { x: 72, y: 74, side: "right" },
+    },
+  },
+  // 冬（2026-11-03。案の段階）。ボッチャは屋内でもできる競技なので、右の体育館の正面。冬は避難場所のピンが出ないので空いている
+  冬季スポーツ大会: {
+    label: "スポーツ",
+    spots: {
+      "kurashi-kanae-winter-wide": { x: 85, y: 46, side: "left" },
+      "kurashi-kanae-winter-tall": { x: 86, y: 48, side: "left" },
     },
   },
   "鼎地区体育祭（ペタンク大会）": {

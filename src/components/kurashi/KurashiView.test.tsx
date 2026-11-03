@@ -97,7 +97,7 @@ function published(kanae: Partial<DistrictData> = KANAE): ScreenData {
   return { ...screenDataFixture({ kanae }), sources: [WINTER], sceneTemplates: templates };
 }
 
-// 生成AIの絵がまだない地区（伊賀良）の、ドット絵の場面を確かめるためのデータ。鼎の春には絵が入ったので、春のドット絵はこちらで見る
+// 生成AIの絵がまだない地区（伊賀良）の、ドット絵の場面を確かめるためのデータ。鼎には4季節の絵が入ったので、ドット絵はこちらで見る
 function publishedIgara(): ScreenData {
   return { ...screenDataFixture({ igara: KANAE }), sources: [WINTER], sceneTemplates: published().sceneTemplates };
 }
@@ -164,7 +164,8 @@ describe("KurashiView：場面（F-12）", () => {
   });
 
   it("冬・車0台：本物の便と、いつの時刻表かを出す", async () => {
-    await open("d=kanae&c=0&s=winter");
+    screenData = publishedIgara();
+    await open("d=igara&c=0&s=winter");
     const scene = sceneWindow();
     expect(scene).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
     expect(within(scene).getByText("2027年1月16日（土）の時刻表")).toBeInTheDocument();
@@ -174,7 +175,7 @@ describe("KurashiView：場面（F-12）", () => {
     expect(within(scene).getByText(NOTICES.carFree)).toBeInTheDocument();
     expect(within(scene).getByRole("link", { name: /交通をカルテで確認/ })).toHaveAttribute(
       "href",
-      "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0",
+      "/karte/transport?s=winter&d=igara&a=2&k=1&h=new&c=0",
     );
   });
 
@@ -353,7 +354,8 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
   });
 
   it("絵のない地区は、今のドット絵と場面の文で出す（ピンはない）", async () => {
-    await open("d=kanae&a=2&k=1&h=new&s=winter");
+    screenData = publishedIgara();
+    await open("d=igara&a=2&k=1&h=new&s=winter");
     expect(sceneWindow()).toHaveTextContent("雪・凍結と車の移動");
     expect(screen.queryByRole("button", { name: "学校" })).not.toBeInTheDocument();
   });
