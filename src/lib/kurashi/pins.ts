@@ -24,7 +24,7 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
 // side は同じピンならスマホと PC でそろえる（ピンは1つのボタンで、並びの向きは切りかえない）
 export type PinSpot = { x: number; y: number; side: "right" | "left" };
 
-// 上郷・中心市街地は今のところ「バス・電車」（transit）1本、鼎は「バス」「電車」の2本（2026-11-03 まさゆきさん）
+// 上郷・中心市街地は「バス・電車」（transit）1本、鼎は「バス」「電車」の2本（2026-11-03 まさゆきさん）
 type TransitPinId = "transit" | "bus" | "train";
 type PinSpots = Readonly<Record<Exclude<PinId, TransitPinId>, PinSpot> & Partial<Record<TransitPinId, PinSpot>>>;
 
