@@ -118,8 +118,10 @@ beforeEach(() => {
 
 describe("KurashiView：季節の切り替え（F-11）", () => {
   it("最初は春。季節のボタンで切り替え、季節は URL の s に入る", async () => {
-    await open("d=kanae&a=2&k=1&h=new");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^鼎で、わが家の春(がはじまる)?。$/);
+    // 夏の場面の文を絵の下に出すのはドット絵の地区だけなので、絵のない伊賀良で見る
+    screenData = publishedIgara();
+    await open("d=igara&a=2&k=1&h=new");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^伊賀良で、わが家の春(がはじまる)?。$/);
     expect(screen.getByRole("group", { name: "季節" })).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "季節" })).getByRole("button", { name: "春" })).toHaveAttribute("aria-pressed", "true");
 
@@ -127,8 +129,8 @@ describe("KurashiView：季節の切り替え（F-11）", () => {
       fireEvent.click(within(screen.getByRole("group", { name: "季節" })).getByRole("button", { name: "夏" }));
     });
     expect(params().get("s")).toBe("summer");
-    expect(params().get("d")).toBe("kanae");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^鼎で、わが家の夏(がはじまる)?。$/);
+    expect(params().get("d")).toBe("igara");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^伊賀良で、わが家の夏(がはじまる)?。$/);
     expect(sceneWindow()).toHaveTextContent("大雨と避難");
   });
 

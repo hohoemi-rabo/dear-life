@@ -117,6 +117,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-winter-tall": CHUSHIN_TALL,
   "kurashi-kanae-spring-wide": KANAE_WIDE,
   "kurashi-kanae-spring-tall": KANAE_TALL,
+  "kurashi-kanae-summer-wide": KANAE_WIDE,
+  "kurashi-kanae-summer-tall": KANAE_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -250,6 +252,23 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kanae-spring-wide": { x: 26, y: 68.5, side: "right" },
       "kurashi-kanae-spring-tall": { x: 31.5, y: 64, side: "right" },
+    },
+  },
+  // 夏（2026-11-03。案の段階）。会場は地区内の複数か所なので、上郷と同じように代表して公民館に立てる。
+  // スマホは避難場所の札を隠さないよう、公民館の左寄りを指す。札は左へ伸ばす（向きはスマホと PC でそろえる）
+  "いいだ人形劇フェスタ 鼎地区公演": {
+    label: "人形劇",
+    spots: {
+      "kurashi-kanae-summer-wide": { x: 66, y: 46, side: "left" },
+      "kurashi-kanae-summer-tall": { x: 58, y: 43, side: "left" },
+    },
+  },
+  // 夏（2026-11-03。案の段階）。ペタンクは外でする競技なので、左の公園の広場。校庭は学校・住まいのピンと重なって隠れる
+  "鼎地区体育祭（ペタンク大会）": {
+    label: "ペタンク",
+    spots: {
+      "kurashi-kanae-summer-wide": { x: 15, y: 62, side: "right" },
+      "kurashi-kanae-summer-tall": { x: 13, y: 59, side: "right" },
     },
   },
 };

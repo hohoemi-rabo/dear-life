@@ -227,6 +227,24 @@ export const ILLUST_PICTURES = {
     widths: [480, 720, 960],
     alt: "桜の咲く鼎の春。広い道路と歩道、道沿いの店とバス停、公民館と体育館、時計の校舎と校庭、公園、奥の町並みと小さな駅が見える",
   },
+  // くらし・鼎・夏（2026-11-03 受け取り）。春と同じ構図で、スマホの絵は春と同じ大きさなので同じように空を落とす
+  "kurashi-kanae-summer-wide": {
+    source: "kurashi-kanae-summer-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [240, 480, 960, 1440],
+    alt: "夏の青空と緑の鼎。ひまわりと花の咲く広い道路と歩道、道沿いの店とバス停、公民館と体育館、時計の校舎と校庭、公園、奥の町並みと小さな駅が見える",
+  },
+  "kurashi-kanae-summer-tall": {
+    source: "kurashi-kanae-summer-tall.png",
+    sourceWidth: 1072,
+    sourceHeight: 1467,
+    crop: { left: 0, top: 127 },
+    width: 1072,
+    height: 1340,
+    widths: [480, 720, 960],
+    alt: "夏の青空と緑の鼎。ひまわりと花の咲く広い道路と歩道、道沿いの店とバス停、公民館と体育館、時計の校舎と校庭、公園、奥の町並みと小さな駅が見える",
+  },
   "district-kanae": {
     source: "district-kanae.png",
     width: 1672,
@@ -615,7 +633,9 @@ export type KurashiPictureId =
   | "kurashi-chushin-winter-wide"
   | "kurashi-chushin-winter-tall"
   | "kurashi-kanae-spring-wide"
-  | "kurashi-kanae-spring-tall";
+  | "kurashi-kanae-spring-tall"
+  | "kurashi-kanae-summer-wide"
+  | "kurashi-kanae-summer-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
@@ -633,6 +653,7 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
   },
   kanae: {
     春: { wide: "kurashi-kanae-spring-wide", tall: "kurashi-kanae-spring-tall" },
+    夏: { wide: "kurashi-kanae-summer-wide", tall: "kurashi-kanae-summer-tall" },
   },
 };
 

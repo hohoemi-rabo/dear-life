@@ -28,6 +28,10 @@ const CHUSHIN_KURASHI_TALL = { footY: 84, adultHeight: 15, centerX: 45 };
 
 // 背景ごとの立ち位置。footY は足もとの高さ、adultHeight はお父さん（立つ）の背の高さ（どちらも背景の高さに対する割合）
 // mirrorBack は、後ろ姿の絵を左右反転して左奥を向かせる背景
+// 鼎は広場と柵がなく、手前の歩道に立たせる。6人そろったときに歩道の真ん中に来る位置（2026-11-03 まさゆきさん）
+const KANAE_KURASHI_WIDE = { footY: 92, adultHeight: 20, centerX: 30 };
+const KANAE_KURASHI_TALL = { footY: 88, adultHeight: 15, centerX: 40 };
+
 const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number; mirrorBack?: boolean }> = {
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
   // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
@@ -65,9 +69,10 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-chushin-autumn-tall": CHUSHIN_KURASHI_TALL,
   "kurashi-chushin-winter-wide": CHUSHIN_KURASHI_WIDE,
   "kurashi-chushin-winter-tall": CHUSHIN_KURASHI_TALL,
-  // 鼎は広場と柵がなく、手前の歩道に立たせる。6人そろったときに歩道の真ん中に来る位置（2026-11-03 まさゆきさん）
-  "kurashi-kanae-spring-wide": { footY: 92, adultHeight: 20, centerX: 30 },
-  "kurashi-kanae-spring-tall": { footY: 88, adultHeight: 15, centerX: 40 },
+  "kurashi-kanae-spring-wide": KANAE_KURASHI_WIDE,
+  "kurashi-kanae-spring-tall": KANAE_KURASHI_TALL,
+  "kurashi-kanae-summer-wide": KANAE_KURASHI_WIDE,
+  "kurashi-kanae-summer-tall": KANAE_KURASHI_TALL,
 };
 
 export function mirrorsBackView(background: FamilyStageId): boolean {
