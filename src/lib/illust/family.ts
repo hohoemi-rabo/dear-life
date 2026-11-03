@@ -27,7 +27,8 @@ const CHUSHIN_KURASHI_WIDE = { footY: 83.5, adultHeight: 20, centerX: 40 };
 const CHUSHIN_KURASHI_TALL = { footY: 84, adultHeight: 15, centerX: 45 };
 
 // 背景ごとの立ち位置。footY は足もとの高さ、adultHeight はお父さん（立つ）の背の高さ（どちらも背景の高さに対する割合）
-const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number }> = {
+// mirrorBack は、後ろ姿の絵を左右反転して左奥を向かせる背景
+const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number; mirrorBack?: boolean }> = {
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
   // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
   "erabu-kamisato-base": { footY: 94, adultHeight: 32, centerX: 50 },
@@ -40,6 +41,9 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
   // 広場の奥の端が上郷より下にあるので、そのぶん下げる（家・車も同じ）
   "erabu-chushin-priorities": { footY: 78, adultHeight: 20, centerX: 50 },
+  // 家と車を左の砂利に置くので右に寄せ、バス停を隠さないよう手前に立たせる（頭がバスの下の高さ）。
+  // この絵は町が左奥へ続くので、後ろ姿を左右反転して左奥を向かせる（2026-11-03 まさゆきさん）
+  "erabu-kanae-priorities": { footY: 90, adultHeight: 20, centerX: 64, mirrorBack: true },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
   // くらし：斜め後ろ姿で、広場の奥（柵の手前）から町を見る（2026-10-30 まさゆきさん：斜めのキャラにして奥に）
@@ -62,6 +66,10 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-chushin-winter-wide": CHUSHIN_KURASHI_WIDE,
   "kurashi-chushin-winter-tall": CHUSHIN_KURASHI_TALL,
 };
+
+export function mirrorsBackView(background: FamilyStageId): boolean {
+  return STAGES[background].mirrorBack === true;
+}
 
 // 隣の人と少し重ねて、家族らしく寄せる（立つポーズの幅に対する割合）
 const OVERLAP = 0.12;

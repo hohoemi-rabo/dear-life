@@ -36,7 +36,14 @@ const SPOTS: Record<ErabuBaseId, Record<Exclude<Priority, "housing">, Spot>> = {
     disaster: { x: 86, y: 60 },
     population: { x: 10, y: 54 },
   },
-  // 鼎の 05 は、05 の背景が届くまで飯田市全体の絵を使うので今は使わない。この絵に学校・駅・避難場所は描かれていない（左の店・交差点・右の店・奥の町並み）
+  // 05 の背景：左奥の時計の校舎・手前のバス停・右奥の避難場所の標識・奥のマンションと家並み
+  "erabu-kanae-priorities": {
+    childcare: { x: 20, y: 20 },
+    transport: { x: 62, y: 56 },
+    disaster: { x: 91, y: 22 },
+    population: { x: 58, y: 20 },
+  },
+  // 05 には専用の背景を使うので今は使わない（上郷の erabu-kamisato-base と同じ）。左の店・交差点・右の店・奥の町並み
   "erabu-kanae-base": {
     childcare: { x: 20, y: 40 },
     transport: { x: 22, y: 66 },

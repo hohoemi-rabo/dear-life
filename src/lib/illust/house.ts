@@ -15,6 +15,8 @@ const LOTS: Record<ErabuBaseId, { centerX: number; footY: number; width: number 
   // 05 の背景（町を見わたす）。町の学校・駅を隠さないよう、見本どおり左の端に寄せて小さめに建てる
   "erabu-kamisato-priorities": { centerX: 12, footY: 74, width: 40 },
   "erabu-chushin-priorities": { centerX: 12, footY: 82, width: 40 },
+  // 左の手前のブロック塀と植え込み（土台の高さで幅の 13% まで）にかからないよう、砂利の上に収める（2026-11-03 まさゆきさん）
+  "erabu-kanae-priorities": { centerX: 31, footY: 86, width: 36 },
   // 上郷以外の地区の仮の背景。街並みを隠しすぎないよう少し小さめに
   "erabu-iida-overview": { centerX: 58, footY: 84, width: 52 },
 };

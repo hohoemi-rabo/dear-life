@@ -103,7 +103,7 @@ describe("絵の一覧", () => {
     expect(erabuBaseFor("chushin")).toBe("erabu-chushin-base");
     expect(erabuBaseFor("chushin", "priorities")).toBe("erabu-chushin-priorities");
     expect(erabuBaseFor("kanae")).toBe("erabu-kanae-base");
-    expect(erabuBaseFor("kanae", "priorities")).toBe("erabu-iida-overview");
+    expect(erabuBaseFor("kanae", "priorities")).toBe("erabu-kanae-priorities");
     expect(erabuBaseFor("igara", "priorities")).toBe("erabu-iida-overview");
     expect(erabuBaseFor("igara")).toBe("erabu-iida-overview");
     expect(erabuBaseFor(null)).toBe("erabu-iida-overview");
@@ -182,9 +182,31 @@ describe("05 の背景（2026-10-29 まさゆきさん）", () => {
   });
 });
 
+describe("鼎の 05 の背景（2026-11-03 まさゆきさん）", () => {
+  const background = "erabu-kanae-priorities";
+  // 左の手前のブロック塀と植え込みの右端（背景の幅に対する％）
+  const WALL_RIGHT = 13;
+
+  it("家と車は左の塀にかからず、家族の左に収まる", () => {
+    const family = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background);
+    const leftEdge = family[0].centerX;
+    for (const housing of ["new", "old", "rent"] as const) {
+      const { centerX, width } = placeHouse(housing, background);
+      expect(centerX - width / 2).toBeGreaterThanOrEqual(WALL_RIGHT);
+      expect(centerX + width / 2).toBeLessThan(leftEdge);
+    }
+    for (const car of [1, 2] as const) {
+      for (const { centerX, width } of placeCars(car, background)) {
+        expect(centerX - width / 2).toBeGreaterThanOrEqual(WALL_RIGHT);
+        expect(centerX + width / 2).toBeLessThan(leftEdge);
+      }
+    }
+  });
+});
+
 describe("placePriorityMarks（028 見本の 05）", () => {
   it("選んだものだけを、カルテの並びで、背景の中に置く", () => {
-    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kanae-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
       const marks = placePriorityMarks(["population", "housing", "childcare", "transport", "disaster"], "old", background);
       expect(marks.map(({ priority }) => priority)).toEqual(["housing", "childcare", "transport", "disaster", "population"]);
       for (const { x, y } of marks) {

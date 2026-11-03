@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Season } from "@/lib/conditions/scene";
 import { backPose, spriteId, spriteSrc, type Person, type Pose } from "@/lib/illust/assets";
-import { placeFamily, type FamilyStageId, type Placement } from "@/lib/illust/family";
+import { mirrorsBackView, placeFamily, type FamilyStageId, type Placement } from "@/lib/illust/family";
 import { ExtraChildrenBadge } from "./ExtraChildrenBadge";
 import { Sparkles, type SparklePoint } from "./Sparkles";
 import { useLeavingItems } from "./useLeavingItems";
@@ -37,10 +37,11 @@ export function FamilyLayer({
   const lastChild = placements.findLast(({ person }) => !ADULTS.has(person));
   const back = backPose(season);
   const pose: Pose = facing === "back" ? back : "stand";
+  const mirrored = facing === "back" && mirrorsBackView(background);
   return (
     <div aria-hidden="true" className="absolute inset-0 z-10">
       {placements.map((placement) => (
-        <PersonSprite key={placement.person} placement={placement} facing={facing} back={back} cheer={ADULTS.has(placement.person) ? 0 : cheer} />
+        <PersonSprite key={placement.person} placement={placement} facing={facing} back={back} mirrored={mirrored} cheer={ADULTS.has(placement.person) ? 0 : cheer} />
       ))}
       {lastChild && hiddenChildren > 0 && (
         <span
@@ -51,7 +52,7 @@ export function FamilyLayer({
         </span>
       )}
       {leaving.map((placement) => (
-        <PersonSprite key={`leaving-${placement.person}`} placement={placement} facing={facing} back={back} leaving />
+        <PersonSprite key={`leaving-${placement.person}`} placement={placement} facing={facing} back={back} mirrored={mirrored} leaving />
       ))}
     </div>
   );
@@ -89,6 +90,7 @@ function PersonSprite({
   placement,
   facing,
   back,
+  mirrored = false,
   leaving = false,
   cheer = 0,
 }: {
@@ -96,6 +98,8 @@ function PersonSprite({
   facing: Facing;
   // 後ろ姿のときのポーズ（季節の服）
   back: Pose;
+  // 左右反転して左奥を向かせる
+  mirrored?: boolean;
   leaving?: boolean;
   cheer?: number;
 }) {
@@ -118,7 +122,7 @@ function PersonSprite({
 
   return (
     <span
-      className="absolute -translate-x-1/2 transition-[left] duration-300 ease-out motion-reduce:transition-none"
+      className={`absolute -translate-x-1/2 transition-[left] duration-300 ease-out motion-reduce:transition-none ${mirrored ? "-scale-x-100" : ""}`}
       style={{ left: `${placement.centerX}%`, bottom: `${100 - placement.footY}%`, height: `${placement.heightPercent(pose)}%` }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- 切り出した小さな WebP をそのまま出す（高さを割合で決めるため） */}

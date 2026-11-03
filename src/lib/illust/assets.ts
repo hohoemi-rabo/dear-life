@@ -62,6 +62,14 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1412],
     alt: "中心市街地の高台の広場から見た、学校・駅・ロータリーと山の風景",
   },
+  // 鼎の 05 の背景（2026-11-03 受け取り）。切り出しなしで枠（3:2）に収まる
+  "erabu-kanae-priorities": {
+    source: "erabu-kanae-priorities.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152, 1536],
+    alt: "鼎の広場から見た、バス停と広い道路、学校・店と避難場所の標識、山の風景",
+  },
   // くらしの絵の書き出す横幅（2026-11-01 測り直し）：横長の 240・480 は PC の下の季節の絵（約225px）、縦長の 720 は
 // 幅 375px・密度2倍のスマホ用（960 だと約430KB で、絵が出るまで約8秒かかっていた）
 // くらし・上郷・春（2026-10-30 受け取り）。PC は横長、スマホは縦長を出しわける。人は入っていない（家族は重ねる）
@@ -554,14 +562,14 @@ export type ErabuBaseId =
   | "erabu-chushin-base"
   | "erabu-chushin-priorities"
   | "erabu-kanae-base"
+  | "erabu-kanae-priorities"
   | "erabu-iida-overview";
 export type ErabuScene = "base" | "priorities";
 
 export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, ErabuBaseId>>>> = {
   kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
   chushin: { base: "erabu-chushin-base", priorities: "erabu-chushin-priorities" },
-  // 05 の絵（erabu-kanae-priorities）が届くまで、05 は今までどおり飯田市全体の絵のまま
-  kanae: { base: "erabu-kanae-base", priorities: "erabu-iida-overview" },
+  kanae: { base: "erabu-kanae-base", priorities: "erabu-kanae-priorities" },
 };
 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {

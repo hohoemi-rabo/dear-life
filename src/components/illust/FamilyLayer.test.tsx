@@ -34,4 +34,11 @@ describe("FamilyLayer の後ろ姿の服（2026-11-01 まさゆきさん：季�
     const erabu = render(<FamilyLayer members={["boy"]} background="erabu-kamisato-priorities" facing="back" />);
     expect(spriteSources(erabu.container)).toEqual(["/illust/person-boy-back.webp"]);
   });
+
+  it("反転する背景の後ろ姿だけ、左右反転して左奥を向く", () => {
+    const mirroredSprite = (container: HTMLElement) => container.querySelector("span.-scale-x-100");
+    expect(mirroredSprite(render(<FamilyLayer members={["boy"]} background="erabu-kanae-priorities" facing="back" />).container)).not.toBeNull();
+    expect(mirroredSprite(render(<FamilyLayer members={["boy"]} background="erabu-kanae-priorities" facing="front" />).container)).toBeNull();
+    expect(mirroredSprite(render(<FamilyLayer members={["boy"]} background="erabu-kamisato-priorities" facing="back" />).container)).toBeNull();
+  });
 });
