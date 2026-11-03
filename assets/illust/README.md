@@ -7,7 +7,7 @@
 - `common/`：4地区で使い回す絵（家族・家・車・カルテ・詳細の絵など）と、飯田市全体の絵
 - `kamisato/`：上郷の絵（地区の絵・えらぶ・くらし・行事）
 - `chushin/`：中心市街地の絵（地区の絵・えらぶ・くらし・行事）
-- `kanae/`：鼎の絵（地区の絵・えらぶ・くらし）
+- `kanae/`：鼎の絵（地区の絵・えらぶ・くらし・行事）
 
 | ファイル | 使う場所 | 中身 |
 | --- | --- | --- |
@@ -36,6 +36,7 @@
 | `kurashi-kanae-winter-wide.png`・`kurashi-kanae-winter-tall.png` | くらし・鼎・冬の風景（PC・スマホ） | 人のいない鼎の冬（1536×1024・1072×1467）。春〜秋と同じ構図の雪景色。雪の道のピンは手前の道路、バス・電車のピンは奥の小さな駅。スマホの絵は空を上から 127px 落として切り出す |
 | `event-chushin-ohimachi.png`・`event-chushin-terakoya.png`・`event-chushin-ningyo-festa.png`・`event-chushin-kyohoku-bunkasai.png`・`event-chushin-undokai.png`・`event-chushin-maruyama-bunkasai.png`・`event-chushin-mochitsuki.png`・`event-chushin-kakizome.png` | くらしの行事のシート・吹き出し（中心市街地の行事ごとの絵） | おひまち・子ども寺子屋ひがしの・いいだ人形劇フェスタ 丸山地区公演・橋北地区文化祭・東野区民大運動会・丸山地区文化祭・お正月遊び・もちつき大会・書初め・お正月遊び。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
 | `karte-header-chushin-wide.png`・`karte-header-chushin-tall.png` | カルテの見出しの右（中心市街地。PC・スマホ） | 中心市街地の町並みの風景（透過。2172×724・1536×1024）。ほかの地区は `karte-header-wide.png`・`karte-header-tall.png` |
+| `event-kanae-oneday-march.png`・`event-kanae-ningyo-festa.png`・`event-kanae-petanque.png`・`event-kanae-bunkasai.png`・`event-kanae-ekiden.png`・`event-kanae-winter-sports.png` | くらしの行事のシート・吹き出し（鼎の行事ごとの絵） | ふるさと再発見ワンデーマーチ・いいだ人形劇フェスタ 鼎地区公演・鼎地区体育祭（ペタンク大会）・ふるさと鼎ふれあい広場・文化祭・鼎地区縦断駅伝大会・冬季スポーツ大会。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
 | `house-new.png`・`house-old.png`・`house-rent.png` | えらぶ 03 のプレビューと選択肢 | 買う・新しめ／買う・古め／借りる の家（透過、1536×1024）。4地区で使い回す |
 | `car.png` | えらぶ 04 のプレビューと選択肢・地図のカード | 白い車・青い車・横長の駅とバス停（透過、2172×724）。透明な隙間で3つに切り分ける。4地区で使い回す |
 | `bus-stop.png` | えらぶ 04 の「0台」の選択肢 | 駅の建物とバス停の標識・待合所（透過、1254×1254） |

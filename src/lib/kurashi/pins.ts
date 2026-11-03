@@ -76,10 +76,10 @@ const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
 
 // 鼎（2026-11-03。案の段階で、まさゆきさんの確認待ち）：学校＝左奥の時計の校舎、バス・電車＝奥の小さな駅（まさゆきさんが絵に足した）、
 // 住まい＝駅の手前の町並み、人口＝奥の町並み、公共施設＝真ん中の公民館、避難場所＝右の非常口の印のある体育館、雪の道＝手前の道路。
-// 行事はワンデーマーチのように歩く行事があるので、家族の奥の歩道
+// 行事は公民館の前を通る道の歩道
 const KANAE_WIDE: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 16.6, y: 41, side: "right" },
-  event: { x: 26, y: 68.5, side: "right" },
+  event: { x: 52, y: 58, side: "right" },
   housing: { x: 40, y: 46, side: "left" },
   public: { x: 66, y: 46, side: "right" },
   evacuation: { x: 88, y: 40, side: "left" },
@@ -89,7 +89,7 @@ const KANAE_WIDE: Readonly<Record<PinId, PinSpot>> = {
 };
 const KANAE_TALL: Readonly<Record<PinId, PinSpot>> = {
   school: { x: 20, y: 40.5, side: "right" },
-  event: { x: 31.5, y: 64, side: "right" },
+  event: { x: 56, y: 55, side: "right" },
   housing: { x: 42, y: 50, side: "left" },
   public: { x: 65, y: 44.5, side: "right" },
   evacuation: { x: 87, y: 42, side: "left" },
@@ -97,6 +97,10 @@ const KANAE_TALL: Readonly<Record<PinId, PinSpot>> = {
   transit: { x: 48, y: 42, side: "right" },
   snow: { x: 72, y: 74, side: "right" },
 };
+
+// 夏はペタンクのピンが校庭に立つので、住まいの札を左に出すとそのピンの丸を隠す。夏だけ札を右に出す
+const KANAE_SUMMER_WIDE: Readonly<Record<PinId, PinSpot>> = { ...KANAE_WIDE, housing: { ...KANAE_WIDE.housing, side: "right" } };
+const KANAE_SUMMER_TALL: Readonly<Record<PinId, PinSpot>> = { ...KANAE_TALL, housing: { ...KANAE_TALL.housing, side: "right" } };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
@@ -117,8 +121,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-winter-tall": CHUSHIN_TALL,
   "kurashi-kanae-spring-wide": KANAE_WIDE,
   "kurashi-kanae-spring-tall": KANAE_TALL,
-  "kurashi-kanae-summer-wide": KANAE_WIDE,
-  "kurashi-kanae-summer-tall": KANAE_TALL,
+  "kurashi-kanae-summer-wide": KANAE_SUMMER_WIDE,
+  "kurashi-kanae-summer-tall": KANAE_SUMMER_TALL,
   "kurashi-kanae-autumn-wide": KANAE_WIDE,
   "kurashi-kanae-autumn-tall": KANAE_TALL,
   "kurashi-kanae-winter-wide": KANAE_WIDE,
@@ -250,30 +254,30 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
       "kurashi-chushin-winter-tall": { x: 46, y: 56.5, side: "left" },
     },
   },
-  // 鼎の行事も絵の中の近い種類の場所に立てる。春。分館ごとに歩く行事なので、家族の奥の歩道（2026-11-03。案の段階）
+  // 鼎の行事の場所は 2026-11-03 まさゆきさん。春は公民館の前に集合して道を歩くので、公民館の前を通る道の歩道
   ふるさと再発見ワンデーマーチ: {
     label: "ワンデーマーチ",
     spots: {
-      "kurashi-kanae-spring-wide": { x: 26, y: 68.5, side: "right" },
-      "kurashi-kanae-spring-tall": { x: 31.5, y: 64, side: "right" },
+      "kurashi-kanae-spring-wide": { x: 52, y: 58, side: "right" },
+      "kurashi-kanae-spring-tall": { x: 56, y: 55, side: "right" },
     },
   },
-  // 夏（2026-11-03 まさゆきさん OK）。会場は地区内の複数か所なので、上郷と同じように代表して公民館に立てる。
+  // 夏。公民館の中でやっている（2026-11-03 まさゆきさん）。
   // スマホは避難場所の札を隠さないよう、公民館の左寄りを指す。札は左へ伸ばす（向きはスマホと PC でそろえる）
   "いいだ人形劇フェスタ 鼎地区公演": {
     label: "人形劇",
     spots: {
       "kurashi-kanae-summer-wide": { x: 66, y: 46, side: "left" },
-      "kurashi-kanae-summer-tall": { x: 58, y: 43, side: "left" },
+      "kurashi-kanae-summer-tall": { x: 58, y: 41, side: "left" },
     },
   },
-  // 夏（2026-11-03 まさゆきさん OK）。ペタンクは外でする競技なので、左の公園の広場。校庭は学校・住まいのピンと重なって隠れる
-  // 秋（2026-11-03 まさゆきさん OK）。文化祭は公民館、駅伝は道路を走るので手前の道路。スマホの文化祭は人口の札に当たらないよう、公民館の右寄りを指す
+  // 夏。外の校庭でする（2026-11-03 まさゆきさん）。校舎を指す学校のピンと重ならないよう、校庭の右寄りを指す
+  // 秋（2026-11-03 まさゆきさん）。文化祭は体育館、駅伝は道路を走るので手前の道路
   "ふるさと鼎ふれあい広場・文化祭": {
     label: "文化祭",
     spots: {
-      "kurashi-kanae-autumn-wide": { x: 66, y: 46, side: "right" },
-      "kurashi-kanae-autumn-tall": { x: 70, y: 44.5, side: "right" },
+      "kurashi-kanae-autumn-wide": { x: 85, y: 46, side: "left" },
+      "kurashi-kanae-autumn-tall": { x: 86, y: 48, side: "left" },
     },
   },
   鼎地区縦断駅伝大会: {
@@ -283,7 +287,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
       "kurashi-kanae-autumn-tall": { x: 72, y: 74, side: "right" },
     },
   },
-  // 冬（2026-11-03 まさゆきさん OK）。ボッチャは屋内でもできる競技なので、右の体育館の正面。冬は避難場所のピンが出ないので空いている
+  // 冬。体育館でする（2026-11-03 まさゆきさん）。冬は避難場所のピンが出ないので空いている
   冬季スポーツ大会: {
     label: "スポーツ",
     spots: {
@@ -294,8 +298,8 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   "鼎地区体育祭（ペタンク大会）": {
     label: "ペタンク",
     spots: {
-      "kurashi-kanae-summer-wide": { x: 15, y: 62, side: "right" },
-      "kurashi-kanae-summer-tall": { x: 13, y: 59, side: "right" },
+      "kurashi-kanae-summer-wide": { x: 24, y: 50, side: "left" },
+      "kurashi-kanae-summer-tall": { x: 28, y: 48.5, side: "left" },
     },
   },
 };

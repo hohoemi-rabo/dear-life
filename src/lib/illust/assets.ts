@@ -453,6 +453,12 @@ export const PROPS = [
   "event-chushin-maruyama-bunkasai",
   "event-chushin-mochitsuki",
   "event-chushin-kakizome",
+  "event-kanae-oneday-march",
+  "event-kanae-ningyo-festa",
+  "event-kanae-petanque",
+  "event-kanae-bunkasai",
+  "event-kanae-ekiden",
+  "event-kanae-winter-sports",
   "karte-header-wide",
   "karte-header-tall",
   "karte-header-chushin-wide",
@@ -501,6 +507,12 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "event-chushin-maruyama-bunkasai": { source: "event-chushin-maruyama-bunkasai.png", alt: "舞台で楽器を吹く人たちと、石窯でピザを焼く人たち" },
   "event-chushin-mochitsuki": { source: "event-chushin-mochitsuki.png", alt: "もちをつく大人と子ども、羽根つきとこまで遊ぶ子どもたち" },
   "event-chushin-kakizome": { source: "event-chushin-kakizome.png", alt: "書初めとかるたをする子どもたちとおばあさん" },
+  "event-kanae-oneday-march": { source: "event-kanae-oneday-march.png", alt: "帽子とリュックで、道を笑顔で歩く子どもからお年寄りまでの人たち" },
+  "event-kanae-ningyo-festa": { source: "event-kanae-ningyo-festa.png", alt: "にんじんとうさぎの人形劇の舞台を、床やいすに座って見る人たち" },
+  "event-kanae-petanque": { source: "event-kanae-petanque.png", alt: "外の地面で銀色の球を投げるお年寄りと、まわりで見守る人たち" },
+  "event-kanae-bunkasai": { source: "event-kanae-bunkasai.png", alt: "はっぴ姿で太鼓をたたく大人と子どもと、それを見る人たち" },
+  "event-kanae-ekiden": { source: "event-kanae-ekiden.png", alt: "道路で赤いたすきをつなぐ駅伝の走者と、沿道で応援する人たち" },
+  "event-kanae-winter-sports": { source: "event-kanae-winter-sports.png", alt: "体育館のネットをはさんで、黄色い大きな球を打ち合う人たち" },
   // カルテ（2026-11-01 受け取り。春の絵を4地区で使い回す）。見出しの風景は PC で約500px、スマホで約160px に出す
   "karte-header-wide": {
     source: "karte-header-wide.png",
@@ -561,6 +573,13 @@ export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
   丸山地区文化祭: "event-chushin-maruyama-bunkasai",
   "お正月遊び・もちつき大会": "event-chushin-mochitsuki",
   "書初め・お正月遊び": "event-chushin-kakizome",
+  // 鼎（2026-11-03 受け取り）
+  ふるさと再発見ワンデーマーチ: "event-kanae-oneday-march",
+  "いいだ人形劇フェスタ 鼎地区公演": "event-kanae-ningyo-festa",
+  "鼎地区体育祭（ペタンク大会）": "event-kanae-petanque",
+  "ふるさと鼎ふれあい広場・文化祭": "event-kanae-bunkasai",
+  鼎地区縦断駅伝大会: "event-kanae-ekiden",
+  冬季スポーツ大会: "event-kanae-winter-sports",
 };
 
 export function eventIllustFor(name: string): PropId | null {
