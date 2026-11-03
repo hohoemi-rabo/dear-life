@@ -190,6 +190,15 @@ describe("くらしのピン（028）", () => {
     expect(scenePinFor(plan("冬", 1, 1))).toBe("snow");
   });
 
+  it("バス停と駅が離れている鼎の冬は、バスと電車のピンを別の場所に立てる（2026-11-03）", () => {
+    const winter = { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" } as const;
+    const sports = event("運動会", { season: "冬", name: "冬季スポーツ大会" });
+    const pins = scenePins(plan("冬", 1, 0), { children: 1 }, winter, [sports]);
+    expect(labels(pins)).toEqual(["学校", "バス", "電車", "スポーツ", "住まい"]);
+    expect(pins[1].wide).not.toEqual(pins[2].wide);
+    expect(pins[1].tall).not.toEqual(pins[2].tall);
+  });
+
   it("場所の決まった行事は行事ごとにピンを立て、そのピンのシートにはその行事だけを出す（2026-10-31）", () => {
     const pins = scenePins(plan("春", 1), { children: 1 }, pictures, [kuroda, walk]);
     expect(labels(pins)).toEqual(["学校", "黒田人形", "歩こう会", "住まい"]);
@@ -226,7 +235,7 @@ describe("くらしのピン（028）", () => {
     ] as const;
     for (const { wide, tall } of seasons) {
       for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {
-        expect(PIN_SPOTS[tall][pin].side).toBe(PIN_SPOTS[wide][pin].side);
+        expect(PIN_SPOTS[tall][pin]?.side).toBe(PIN_SPOTS[wide][pin]?.side);
       }
       for (const { spots } of Object.values(EVENT_PINS)) expect(spots[tall]?.side).toBe(spots[wide]?.side);
     }

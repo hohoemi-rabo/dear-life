@@ -5,7 +5,7 @@ import type { ScenePlan } from "../conditions/scene.ts";
 import type { DistrictEvent } from "../data/screen-data.ts";
 import type { KurashiPictureId, KurashiPictures } from "../illust/assets.ts";
 
-export type PinId = "school" | "event" | "housing" | "public" | "evacuation" | "population" | "transit" | "snow";
+export type PinId = "school" | "event" | "housing" | "public" | "evacuation" | "population" | "transit" | "bus" | "train" | "snow";
 
 export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   school: "学校",
@@ -15,12 +15,18 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
   evacuation: "避難場所",
   population: "人口",
   transit: "バス・電車",
+  bus: "バス",
+  train: "電車",
   snow: "雪の道",
 };
 
 // x・y はピンの先が指す場所。side は札をピンのどちら側に伸ばすか（絵の右の端では左に伸ばして、はみ出さないようにする）。
 // side は同じピンならスマホと PC でそろえる（ピンは1つのボタンで、並びの向きは切りかえない）
 export type PinSpot = { x: number; y: number; side: "right" | "left" };
+
+// 上郷・中心市街地は今のところ「バス・電車」（transit）1本、鼎は「バス」「電車」の2本（2026-11-03 まさゆきさん）
+type TransitPinId = "transit" | "bus" | "train";
+type PinSpots = Readonly<Record<Exclude<PinId, TransitPinId>, PinSpot> & Partial<Record<TransitPinId, PinSpot>>>;
 
 // 場所はまさゆきさんの指示（2026-10-30）：学校＝左中央の校舎、地域の行事＝右上の石段と神社、
 // 住まい＝奥の谷の町並み、公共施設＝右中央の公民館（2026-10-31 に、同じ公民館の屋根を指す「歩こう会」のピンと重ならないよう、正面を指すように下げた）。
@@ -29,7 +35,7 @@ export type PinSpot = { x: number; y: number; side: "right" | "left" };
 // 同じ谷を指す住まいのピンとは、右上にずらして札を反対側（右）に伸ばす。
 // バス・電車（冬）＝右下の駅（2026-11-01 まさゆきさん）。雪の道（冬・車あり）＝手前の橋。家族の頭にかからないよう、橋の左寄りを指す。
 // 上郷の春・夏・秋・冬の絵は同じ構図なので、場所も同じものを使う。場所の決まっている行事は EVENT_PINS で行事ごとに立てる
-const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
+const KAMISATO_WIDE: PinSpots = {
   school: { x: 27.3, y: 48, side: "right" },
   event: { x: 87, y: 38.5, side: "left" },
   housing: { x: 47, y: 38, side: "left" },
@@ -39,7 +45,7 @@ const KAMISATO_WIDE: Readonly<Record<PinId, PinSpot>> = {
   transit: { x: 85, y: 69, side: "left" },
   snow: { x: 26, y: 76, side: "right" },
 };
-const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
+const KAMISATO_TALL: PinSpots = {
   school: { x: 27.6, y: 49, side: "right" },
   event: { x: 85, y: 40, side: "left" },
   housing: { x: 51, y: 39.5, side: "left" },
@@ -53,7 +59,7 @@ const KAMISATO_TALL: Readonly<Record<PinId, PinSpot>> = {
 // 中心市街地（2026-11-02 まさゆきさんと決めた案）：バス・電車＝左の赤い屋根の駅、学校＝右奥の時計塔の校舎、
 // 避難場所＝真ん中のアーチ屋根の建物、公共施設＝アーチ屋根の左の白い大きな建物（飯田駅の近くの建物が実際に公共施設で公民館でもある）、
 // 住まい＝右寄りの家並み、雪の道＝手前の柵のすぐ奥の道路。人口は上郷と同じく奥の町並み
-const CHUSHIN_WIDE: Readonly<Record<PinId, PinSpot>> = {
+const CHUSHIN_WIDE: PinSpots = {
   school: { x: 87.5, y: 36, side: "left" },
   event: { x: 54, y: 60, side: "right" },
   housing: { x: 76, y: 53, side: "left" },
@@ -63,7 +69,7 @@ const CHUSHIN_WIDE: Readonly<Record<PinId, PinSpot>> = {
   transit: { x: 17.5, y: 47, side: "right" },
   snow: { x: 62, y: 73, side: "right" },
 };
-const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
+const CHUSHIN_TALL: PinSpots = {
   school: { x: 84, y: 40, side: "left" },
   event: { x: 57, y: 65, side: "right" },
   housing: { x: 84, y: 59, side: "left" },
@@ -74,35 +80,37 @@ const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
   snow: { x: 61, y: 75, side: "right" },
 };
 
-// 鼎（2026-11-03。案の段階で、まさゆきさんの確認待ち）：学校＝左奥の時計の校舎、バス・電車＝奥の小さな駅（まさゆきさんが絵に足した）、
+// 鼎（2026-11-03。案の段階で、まさゆきさんの確認待ち）：学校＝左奥の時計の校舎、バス＝手前のバス停、電車＝奥の小さな駅（まさゆきさんが絵に足した。2026-11-03 まさゆきさんの指示で2本に分けた）、
 // 住まい＝駅の手前の町並み、人口＝奥の町並み、公共施設＝真ん中の公民館、避難場所＝右の非常口の印のある体育館、雪の道＝手前の道路。
 // 行事は公民館の前を通る道の歩道
-const KANAE_WIDE: Readonly<Record<PinId, PinSpot>> = {
+const KANAE_WIDE: PinSpots = {
   school: { x: 16.6, y: 41, side: "right" },
   event: { x: 52, y: 58, side: "right" },
   housing: { x: 40, y: 46, side: "left" },
   public: { x: 66, y: 46, side: "right" },
   evacuation: { x: 88, y: 40, side: "left" },
   population: { x: 50, y: 42, side: "right" },
-  transit: { x: 47, y: 44, side: "right" },
+  bus: { x: 82.4, y: 61, side: "left" },
+  train: { x: 47, y: 44, side: "right" },
   snow: { x: 60, y: 80, side: "right" },
 };
-const KANAE_TALL: Readonly<Record<PinId, PinSpot>> = {
+const KANAE_TALL: PinSpots = {
   school: { x: 20, y: 40.5, side: "right" },
   event: { x: 56, y: 55, side: "right" },
   housing: { x: 42, y: 50, side: "left" },
   public: { x: 65, y: 44.5, side: "right" },
   evacuation: { x: 87, y: 42, side: "left" },
   population: { x: 50, y: 39, side: "right" },
-  transit: { x: 48, y: 42, side: "right" },
+  bus: { x: 85, y: 60, side: "left" },
+  train: { x: 48, y: 42, side: "right" },
   snow: { x: 72, y: 74, side: "right" },
 };
 
-// 夏はペタンクのピンが校庭に立つので、住まいの札を左に出すとそのピンの丸を隠す。夏だけ札を右に出す
-const KANAE_SUMMER_WIDE: Readonly<Record<PinId, PinSpot>> = { ...KANAE_WIDE, housing: { ...KANAE_WIDE.housing, side: "right" } };
-const KANAE_SUMMER_TALL: Readonly<Record<PinId, PinSpot>> = { ...KANAE_TALL, housing: { ...KANAE_TALL.housing, side: "right" } };
+// 夏のペタンクと秋の駅伝はピンが校庭に立つので、住まいの札を左に出すとそのピンの丸を隠す。この2季節は札を右に出す
+const KANAE_SCHOOLYARD_WIDE: PinSpots = { ...KANAE_WIDE, housing: { ...KANAE_WIDE.housing, side: "right" } };
+const KANAE_SCHOOLYARD_TALL: PinSpots = { ...KANAE_TALL, housing: { ...KANAE_TALL.housing, side: "right" } };
 
-export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
+export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
   "kurashi-kamisato-spring-tall": KAMISATO_TALL,
   "kurashi-kamisato-summer-wide": KAMISATO_WIDE,
@@ -121,10 +129,10 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-winter-tall": CHUSHIN_TALL,
   "kurashi-kanae-spring-wide": KANAE_WIDE,
   "kurashi-kanae-spring-tall": KANAE_TALL,
-  "kurashi-kanae-summer-wide": KANAE_SUMMER_WIDE,
-  "kurashi-kanae-summer-tall": KANAE_SUMMER_TALL,
-  "kurashi-kanae-autumn-wide": KANAE_WIDE,
-  "kurashi-kanae-autumn-tall": KANAE_TALL,
+  "kurashi-kanae-summer-wide": KANAE_SCHOOLYARD_WIDE,
+  "kurashi-kanae-summer-tall": KANAE_SCHOOLYARD_TALL,
+  "kurashi-kanae-autumn-wide": KANAE_SCHOOLYARD_WIDE,
+  "kurashi-kanae-autumn-tall": KANAE_SCHOOLYARD_TALL,
   "kurashi-kanae-winter-wide": KANAE_WIDE,
   "kurashi-kanae-winter-tall": KANAE_TALL,
 };
@@ -272,7 +280,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     },
   },
   // 夏。外の校庭でする（2026-11-03 まさゆきさん）。校舎を指す学校のピンと重ならないよう、校庭の右寄りを指す
-  // 秋（2026-11-03 まさゆきさん）。文化祭は体育館、駅伝は道路を走るので手前の道路
+  // 秋（2026-11-03 まさゆきさん）。文化祭は体育館。駅伝は手前の広い道路（アップルロード）ではやらないので校庭
   "ふるさと鼎ふれあい広場・文化祭": {
     label: "文化祭",
     spots: {
@@ -283,8 +291,8 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   鼎地区縦断駅伝大会: {
     label: "駅伝",
     spots: {
-      "kurashi-kanae-autumn-wide": { x: 60, y: 80, side: "right" },
-      "kurashi-kanae-autumn-tall": { x: 72, y: 74, side: "right" },
+      "kurashi-kanae-autumn-wide": { x: 24, y: 50, side: "left" },
+      "kurashi-kanae-autumn-tall": { x: 28, y: 48.5, side: "left" },
     },
   },
   // 冬。体育館でする（2026-11-03 まさゆきさん）。冬は避難場所のピンが出ないので空いている
@@ -318,8 +326,19 @@ export type ScenePinSpec = {
 // 下の「春の楽しみ」のカードから開く、その季節の行事すべてのシート。絵の上にはピンを立てない
 export const ALL_EVENTS_KEY = "events";
 
-function pinOf(kind: PinId, pictures: KurashiPictures, events: readonly DistrictEvent[] | null = null): ScenePinSpec {
+function pinOf(kind: Exclude<PinId, TransitPinId>, pictures: KurashiPictures, events: readonly DistrictEvent[] | null = null): ScenePinSpec {
   return { key: kind, kind, label: PIN_LABELS[kind], tall: PIN_SPOTS[pictures.tall][kind], wide: PIN_SPOTS[pictures.wide][kind], events };
+}
+
+// 駅・バス停のピン。絵に場所のあるものだけを立てる
+function transitPins(pictures: KurashiPictures): ScenePinSpec[] {
+  const pins: ScenePinSpec[] = [];
+  for (const kind of ["transit", "bus", "train"] as const) {
+    const tall = PIN_SPOTS[pictures.tall][kind];
+    const wide = PIN_SPOTS[pictures.wide][kind];
+    if (tall && wide) pins.push({ key: kind, kind, label: PIN_LABELS[kind], tall, wide, events: null });
+  }
+  return pins;
 }
 
 // 行事のピン：場所の決まっている行事は1つずつ、それ以外は「地域の行事」に1本にまとめる（行事がまだないときも「準備中」を出すため1本立てる）
@@ -349,7 +368,7 @@ export function scenePins(
   // 車ありの場面の文（雪と路面の凍結）は雪の道のピンに出す
   const isWinter = plan.axis === "winter-transit" || plan.axis === "winter-car";
   const evacuation = plan.axis === "summer-evacuation" ? [pinOf("evacuation", pictures)] : [];
-  const transit = isWinter ? [pinOf("transit", pictures)] : [];
+  const transit = isWinter ? transitPins(pictures) : [];
   const population = plan.axis === "autumn-events" ? [pinOf("population", pictures)] : [];
   const snow = plan.axis === "winter-car" ? [pinOf("snow", pictures)] : [];
   const pins = [

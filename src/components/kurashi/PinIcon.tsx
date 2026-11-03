@@ -21,10 +21,12 @@ const PRIORITY_OF: Partial<Record<ScenePinSpec["kind"], Priority>> = {
   evacuation: "disaster",
   population: "population",
   transit: "transport",
+  bus: "transport",
 };
 
 const PROP_OF: Partial<Record<ScenePinSpec["kind"], PropId>> = {
   public: "detail-public",
+  train: "detail-train",
   snow: "pin-snow-road",
 };
 

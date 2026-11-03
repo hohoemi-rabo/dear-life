@@ -67,12 +67,28 @@ function countTitle(state: DataState<number>, base: string, unit: string): { tit
 
 // 場面の文はその場面の軸のピンにだけ出す（春：子どもあり＝学校、子どもなし＝公共施設。夏：避難場所。秋：人口。冬：車0台＝バス・電車、車あり＝雪の道）
 function sceneParts(input: Input): { lines: readonly SceneLine[]; notices: readonly string[]; sources: SheetSource[] } {
-  if (!input.scene || scenePinFor(input.plan) !== input.pin) return { lines: [], notices: [], sources: [] };
+  const target = scenePinFor(input.plan);
+  if (input.scene && target === "transit" && (input.pin === "bus" || input.pin === "train")) {
+    // バスと電車のピンが分かれている絵では、それぞれの便の文だけを出す。想定の文はどちらにも出す
+    const pin = input.pin;
+    const lines = input.scene.lines.filter((line) => belongsToTransitPin(line, pin));
+    const sources = lines.flatMap((line) => (line.status === "shown" ? line.sources.map((source) => ({ source })) : []));
+    return { lines, notices: input.scene.notices, sources };
+  }
+  if (!input.scene || target !== input.pin) return { lines: [], notices: [], sources: [] };
   return {
     lines: input.scene.lines,
     notices: input.scene.notices,
     sources: input.scene.sources.map((source) => ({ source })),
   };
+}
+
+function belongsToTransitPin(line: SceneLine, pin: "bus" | "train"): boolean {
+  if (line.status === "shown") {
+    if (line.kind === "想定") return true;
+    return (line.transit?.mode ?? "bus") === pin;
+  }
+  return (line.topic === "trainOuting" ? "train" : "bus") === pin;
 }
 
 // 子どもなしのときの学校のピン：場面の文（子育て・学校）は出ないので、主な学区だけを1文で出す
@@ -174,6 +190,34 @@ export function pinSheet(input: Input): PinSheet {
         sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
         karteCard: "transport",
         action: "バスと電車を確かめる",
+      };
+    }
+    case "bus": {
+      const count = countOf(district.busStops);
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        ...countTitle(count, `${district.name}のバス停`, "か所"),
+        intro: "バス停の場所とバスの便を、カルテと地図で確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
+        karteCard: "transport",
+        action: "バスを確かめる",
+      };
+    }
+    case "train": {
+      const count = countOf(district.trainStations);
+      const scene = sceneParts(input);
+      return {
+        ...base,
+        ...countTitle(count, `${district.name}の駅`, "か所"),
+        intro: "駅の場所と電車の便を、カルテと地図で確かめられます。",
+        lines: scene.lines,
+        notices: scene.notices,
+        sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...scene.sources]),
+        karteCard: "transport",
+        action: "電車を確かめる",
       };
     }
     case "snow": {

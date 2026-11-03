@@ -566,6 +566,32 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     expect(transit).not.toHaveTextContent("10:01に出るバス");
   });
 
+  it("鼎の車0台：バスのピンにはバスの便だけ、電車のピンには電車の話だけを出す。想定の文はどちらにも出す", async () => {
+    screenData = published();
+    await open("d=kanae&a=2&k=1&h=new&c=0&s=winter");
+    expect(screen.queryByRole("button", { name: "バス・電車" })).not.toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(pin("バス"));
+    });
+    const bus = screen.getByRole("dialog", { name: /^鼎のバス停/ });
+    expect(bus).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
+    expect(bus).toHaveTextContent("車を使わずに出かけます");
+    expect(bus).not.toHaveTextContent("電車の便");
+    expect(within(bus).getByRole("link", { name: /この便を gofreely で調べる/ })).toBeInTheDocument();
+    expect(within(bus).getByRole("link", { name: /バスを確かめる/ })).toHaveAttribute("href", "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0");
+    cleanup();
+
+    await open("d=kanae&a=2&k=1&h=new&c=0&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("電車"));
+    });
+    const train = screen.getByRole("dialog", { name: /^鼎の駅/ });
+    expect(train).toHaveTextContent("車を使わずに出かけます");
+    expect(train).not.toHaveTextContent("10:01に出るバス");
+    expect(within(train).queryByRole("link", { name: /gofreely/ })).not.toBeInTheDocument();
+    expect(within(train).getByRole("link", { name: /電車を確かめる/ })).toHaveAttribute("href", "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0");
+  });
+
   it("バス停の数が出せないときは、見出しから数を外して「データ未取得」と出す", async () => {
     screenData = published();
     await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
