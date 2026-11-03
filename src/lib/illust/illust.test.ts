@@ -242,6 +242,7 @@ describe("行事ごとの絵（2026-10-31）", () => {
 describe("カルテの見出しの絵", () => {
   it("中心市街地は専用の絵、絵のまだない地区は今の絵を使う", () => {
     expect(karteHeaderFor("chushin")).toEqual({ wide: "karte-header-chushin-wide", tall: "karte-header-chushin-tall" });
-    expect(karteHeaderFor("kanae")).toEqual({ wide: "karte-header-wide", tall: "karte-header-tall" });
+    expect(karteHeaderFor("kanae")).toEqual({ wide: "karte-header-kanae-wide", tall: "karte-header-kanae-tall" });
+    expect(karteHeaderFor("igara")).toEqual({ wide: "karte-header-wide", tall: "karte-header-tall" });
   });
 });

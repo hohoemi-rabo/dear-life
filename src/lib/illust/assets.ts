@@ -463,6 +463,8 @@ export const PROPS = [
   "karte-header-tall",
   "karte-header-chushin-wide",
   "karte-header-chushin-tall",
+  "karte-header-kanae-wide",
+  "karte-header-kanae-tall",
   "karte-childcare",
   "karte-transport",
   "karte-disaster",
@@ -527,6 +529,8 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
     widths: [480, 960],
   },
   "karte-header-chushin-tall": { source: "karte-header-chushin-tall.png", alt: "赤い屋根の駅とバス、ビルの並ぶ通り、アーチ屋根の建物、時計塔のある学校" },
+  "karte-header-kanae-wide": { source: "karte-header-kanae-wide.png", alt: "山のふもとの住宅と、広い道路沿いに並ぶ店と駐車場の風景" },
+  "karte-header-kanae-tall": { source: "karte-header-kanae-tall.png", alt: "山のふもとの住宅と、広い道路沿いに並ぶ店と駐車場の風景" },
   "karte-childcare": { source: "karte-childcare.png", alt: "時計台のある校舎の前を、ランドセルで歩く子ども3人" },
   "karte-transport": { source: "karte-transport.png", alt: "停留所に止まる緑のバスと、待つ親子" },
   "karte-disaster": { source: "karte-disaster.png", alt: "「避難所」の看板のある建物" },
@@ -589,6 +593,7 @@ export function eventIllustFor(name: string): PropId | null {
 // カルテの見出しの絵。地区の絵がまだない地区は、今の絵（山すその町並み）を使う
 const KARTE_HEADERS: Partial<Record<DistrictId, { wide: PropId; tall: PropId }>> = {
   chushin: { wide: "karte-header-chushin-wide", tall: "karte-header-chushin-tall" },
+  kanae: { wide: "karte-header-kanae-wide", tall: "karte-header-kanae-tall" },
 };
 
 export function karteHeaderFor(district: DistrictId): { wide: PropId; tall: PropId } {
