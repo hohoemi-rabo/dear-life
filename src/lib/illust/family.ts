@@ -73,6 +73,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-kanae-spring-tall": KANAE_KURASHI_TALL,
   "kurashi-kanae-summer-wide": KANAE_KURASHI_WIDE,
   "kurashi-kanae-summer-tall": KANAE_KURASHI_TALL,
+  "kurashi-kanae-autumn-wide": KANAE_KURASHI_WIDE,
+  "kurashi-kanae-autumn-tall": KANAE_KURASHI_TALL,
 };
 
 export function mirrorsBackView(background: FamilyStageId): boolean {

@@ -83,7 +83,7 @@ const KANAE_WIDE: Readonly<Record<PinId, PinSpot>> = {
   housing: { x: 40, y: 46, side: "left" },
   public: { x: 66, y: 46, side: "right" },
   evacuation: { x: 88, y: 40, side: "left" },
-  population: { x: 36.5, y: 41, side: "right" },
+  population: { x: 50, y: 42, side: "right" },
   transit: { x: 47, y: 44, side: "right" },
   snow: { x: 60, y: 80, side: "right" },
 };
@@ -93,7 +93,7 @@ const KANAE_TALL: Readonly<Record<PinId, PinSpot>> = {
   housing: { x: 42, y: 50, side: "left" },
   public: { x: 65, y: 44.5, side: "right" },
   evacuation: { x: 87, y: 42, side: "left" },
-  population: { x: 37, y: 37, side: "right" },
+  population: { x: 50, y: 39, side: "right" },
   transit: { x: 48, y: 42, side: "right" },
   snow: { x: 72, y: 74, side: "right" },
 };
@@ -119,6 +119,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-kanae-spring-tall": KANAE_TALL,
   "kurashi-kanae-summer-wide": KANAE_WIDE,
   "kurashi-kanae-summer-tall": KANAE_TALL,
+  "kurashi-kanae-autumn-wide": KANAE_WIDE,
+  "kurashi-kanae-autumn-tall": KANAE_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -264,6 +266,21 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     },
   },
   // 夏（2026-11-03。案の段階）。ペタンクは外でする競技なので、左の公園の広場。校庭は学校・住まいのピンと重なって隠れる
+  // 秋（2026-11-03。案の段階）。文化祭は公民館、駅伝は道路を走るので手前の道路。スマホの文化祭は人口の札に当たらないよう、公民館の右寄りを指す
+  "ふるさと鼎ふれあい広場・文化祭": {
+    label: "文化祭",
+    spots: {
+      "kurashi-kanae-autumn-wide": { x: 66, y: 46, side: "right" },
+      "kurashi-kanae-autumn-tall": { x: 70, y: 44.5, side: "right" },
+    },
+  },
+  鼎地区縦断駅伝大会: {
+    label: "駅伝",
+    spots: {
+      "kurashi-kanae-autumn-wide": { x: 60, y: 80, side: "right" },
+      "kurashi-kanae-autumn-tall": { x: 72, y: 74, side: "right" },
+    },
+  },
   "鼎地区体育祭（ペタンク大会）": {
     label: "ペタンク",
     spots: {
