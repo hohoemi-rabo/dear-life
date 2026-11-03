@@ -74,6 +74,30 @@ const CHUSHIN_TALL: Readonly<Record<PinId, PinSpot>> = {
   snow: { x: 61, y: 75, side: "right" },
 };
 
+// 鼎（2026-11-03。案の段階で、まさゆきさんの確認待ち）：学校＝左奥の時計の校舎、バス・電車＝奥の小さな駅（まさゆきさんが絵に足した）、
+// 住まい＝駅の手前の町並み、人口＝奥の町並み、公共施設＝真ん中の公民館、避難場所＝右の非常口の印のある体育館、雪の道＝手前の道路。
+// 行事はワンデーマーチのように歩く行事があるので、家族の奥の歩道
+const KANAE_WIDE: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 16.6, y: 41, side: "right" },
+  event: { x: 26, y: 68.5, side: "right" },
+  housing: { x: 40, y: 46, side: "left" },
+  public: { x: 66, y: 46, side: "right" },
+  evacuation: { x: 88, y: 40, side: "left" },
+  population: { x: 36.5, y: 41, side: "right" },
+  transit: { x: 47, y: 44, side: "right" },
+  snow: { x: 60, y: 80, side: "right" },
+};
+const KANAE_TALL: Readonly<Record<PinId, PinSpot>> = {
+  school: { x: 20, y: 40.5, side: "right" },
+  event: { x: 31.5, y: 64, side: "right" },
+  housing: { x: 42, y: 50, side: "left" },
+  public: { x: 65, y: 44.5, side: "right" },
+  evacuation: { x: 87, y: 42, side: "left" },
+  population: { x: 37, y: 37, side: "right" },
+  transit: { x: 48, y: 42, side: "right" },
+  snow: { x: 72, y: 74, side: "right" },
+};
+
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId, PinSpot>>>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
   "kurashi-kamisato-spring-tall": KAMISATO_TALL,
@@ -91,6 +115,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, Readonly<Record<PinId,
   "kurashi-chushin-autumn-tall": CHUSHIN_TALL,
   "kurashi-chushin-winter-wide": CHUSHIN_WIDE,
   "kurashi-chushin-winter-tall": CHUSHIN_TALL,
+  "kurashi-kanae-spring-wide": KANAE_WIDE,
+  "kurashi-kanae-spring-tall": KANAE_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
@@ -216,6 +242,14 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-chushin-winter-wide": { x: 42, y: 52, side: "left" },
       "kurashi-chushin-winter-tall": { x: 46, y: 56.5, side: "left" },
+    },
+  },
+  // 鼎の行事も絵の中の近い種類の場所に立てる。春。分館ごとに歩く行事なので、家族の奥の歩道（2026-11-03。案の段階）
+  ふるさと再発見ワンデーマーチ: {
+    label: "ワンデーマーチ",
+    spots: {
+      "kurashi-kanae-spring-wide": { x: 26, y: 68.5, side: "right" },
+      "kurashi-kanae-spring-tall": { x: 31.5, y: 64, side: "right" },
     },
   },
 };

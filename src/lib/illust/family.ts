@@ -65,6 +65,9 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-chushin-autumn-tall": CHUSHIN_KURASHI_TALL,
   "kurashi-chushin-winter-wide": CHUSHIN_KURASHI_WIDE,
   "kurashi-chushin-winter-tall": CHUSHIN_KURASHI_TALL,
+  // 鼎は広場と柵がなく、手前の歩道に立たせる。6人そろったときに歩道の真ん中に来る位置（2026-11-03 まさゆきさん）
+  "kurashi-kanae-spring-wide": { footY: 92, adultHeight: 20, centerX: 30 },
+  "kurashi-kanae-spring-tall": { footY: 88, adultHeight: 15, centerX: 40 },
 };
 
 export function mirrorsBackView(background: FamilyStageId): boolean {

@@ -97,6 +97,11 @@ function published(kanae: Partial<DistrictData> = KANAE): ScreenData {
   return { ...screenDataFixture({ kanae }), sources: [WINTER], sceneTemplates: templates };
 }
 
+// 生成AIの絵がまだない地区（伊賀良）の、ドット絵の場面を確かめるためのデータ。鼎の春には絵が入ったので、春のドット絵はこちらで見る
+function publishedIgara(): ScreenData {
+  return { ...screenDataFixture({ igara: KANAE }), sources: [WINTER], sceneTemplates: published().sceneTemplates };
+}
+
 async function open(query: string) {
   url.set(`/kurashi?${query}`);
   await act(async () => {
@@ -135,19 +140,20 @@ describe("KurashiView：季節の切り替え（F-11）", () => {
 
 describe("KurashiView：場面（F-12）", () => {
   it("ドット絵1枚と、文の種類ごとの印、出典の番号、カルテの該当カードへのリンクを出す", async () => {
-    await open("d=kanae&a=2&k=1&h=new");
+    screenData = publishedIgara();
+    await open("d=igara&a=2&k=1&h=new");
     expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();
-    expect(screen.getByText("鼎の春")).toBeInTheDocument();
+    expect(screen.getByText("伊賀良の春")).toBeInTheDocument();
 
     const scene = sceneWindow();
     expect(scene).toHaveTextContent("春｜入園・入学の季節");
-    expect(within(scene).getByText(/鼎には、保育園・幼稚園等が2か所あります。/)).toHaveTextContent("出典1");
+    expect(within(scene).getByText(/伊賀良には、保育園・幼稚園等が2か所あります。/)).toHaveTextContent("出典1");
     expect(within(scene).getByText(/春、入園と入学の季節です。/)).toHaveTextContent("想定");
     // 学区はデータ未取得なので、文を出さずに知らせにする
     expect(within(scene).getByText(/データ未取得/)).toBeInTheDocument();
     expect(within(scene).getByRole("link", { name: /子育て・学校をカルテで確認/ })).toHaveAttribute(
       "href",
-      "/karte/childcare?s=spring&d=kanae&a=2&k=1&h=new",
+      "/karte/childcare?s=spring&d=igara&a=2&k=1&h=new",
     );
     expect(within(scene).getByText(NOTICES.schoolDistrict)).toBeInTheDocument();
 
@@ -172,7 +178,7 @@ describe("KurashiView：場面（F-12）", () => {
 
   it("ひな形がまだ公開されていない季節も、絵は出して文章は「準備中」と出す", async () => {
     screenData = { ...published(), sceneTemplates: [] };
-    await open("d=kanae");
+    await open("d=igara");
     expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();
     expect(sceneWindow()).toHaveTextContent("この季節の場面の文章は準備中です。");
   });
