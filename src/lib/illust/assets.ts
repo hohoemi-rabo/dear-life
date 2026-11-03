@@ -192,6 +192,13 @@ export const ILLUST_PICTURES = {
     widths: [480],
     alt: "白い花のりんご並木と桜の並木が通る、中心市街地の街並み",
   },
+  "district-kanae": {
+    source: "district-kanae.png",
+    width: 1672,
+    height: 941,
+    widths: [480],
+    alt: "桜の咲く広い道沿いに店が並ぶ、鼎の街並み",
+  },
 } as const;
 
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
@@ -528,6 +535,7 @@ export function spriteSrc(id: SpriteId): string {
 export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
   kamisato: "district-kamisato",
   chushin: "district-chushin",
+  kanae: "district-kanae",
 };
 
 // えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）。
