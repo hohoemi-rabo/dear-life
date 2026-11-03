@@ -31,6 +31,14 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1536],
     alt: "中心市街地の高台の広場から見た、ロータリーと町並みと山の風景",
   },
+  // 鼎の 02〜04 の背景（2026-11-03 受け取り）。高台のレンガの広場から、交差点と道沿いの店、町並みを見下ろす
+  "erabu-kanae-base": {
+    source: "erabu-kanae-base.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152, 1536],
+    alt: "鼎の高台の広場から見た、交差点と道沿いの店、町並みと山の風景",
+  },
   // えらぶ 05 だけの背景（2026-10-29 まさゆきさん）。家族が後ろから町を見わたし、学校・駅・避難場所に印を付ける。
   // 元の絵は 16:9 なので、プレビューの枠（3:2）に合わせて切り出す。右の広場の避難場所の標識が入るよう、左を多めに落とす
   "erabu-kamisato-priorities": {
@@ -545,12 +553,15 @@ export type ErabuBaseId =
   | "erabu-kamisato-priorities"
   | "erabu-chushin-base"
   | "erabu-chushin-priorities"
+  | "erabu-kanae-base"
   | "erabu-iida-overview";
 export type ErabuScene = "base" | "priorities";
 
 export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, ErabuBaseId>>>> = {
   kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
   chushin: { base: "erabu-chushin-base", priorities: "erabu-chushin-priorities" },
+  // 05 の絵（erabu-kanae-priorities）が届くまで、05 は今までどおり飯田市全体の絵のまま
+  kanae: { base: "erabu-kanae-base", priorities: "erabu-iida-overview" },
 };
 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {
