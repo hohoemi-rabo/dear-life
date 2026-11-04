@@ -335,6 +335,24 @@ export const ILLUST_PICTURES = {
     widths: [480, 720, 960],
     alt: "夏の緑の伊賀良。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、緑の山が見える",
   },
+  // 伊賀良のくらし・秋（2026-11-04 受け取り）。春・夏と同じ構図
+  "kurashi-igara-autumn-wide": {
+    source: "kurashi-igara-autumn-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [240, 480, 960, 1440],
+    alt: "紅葉した伊賀良の秋。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、色づいた山が見える",
+  },
+  "kurashi-igara-autumn-tall": {
+    source: "kurashi-igara-autumn-tall.png",
+    sourceWidth: 1072,
+    sourceHeight: 1467,
+    crop: { left: 0, top: 127 },
+    width: 1072,
+    height: 1340,
+    widths: [480, 720, 960],
+    alt: "紅葉した伊賀良の秋。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、色づいた山が見える",
+  },
   "district-kanae": {
     source: "district-kanae.png",
     width: 1672,
@@ -823,7 +841,9 @@ export type KurashiPictureId =
   | "kurashi-igara-spring-wide"
   | "kurashi-igara-spring-tall"
   | "kurashi-igara-summer-wide"
-  | "kurashi-igara-summer-tall";
+  | "kurashi-igara-summer-tall"
+  | "kurashi-igara-autumn-wide"
+  | "kurashi-igara-autumn-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
@@ -848,6 +868,7 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
   igara: {
     春: { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
     夏: { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" },
+    秋: { wide: "kurashi-igara-autumn-wide", tall: "kurashi-igara-autumn-tall" },
   },
 };
 

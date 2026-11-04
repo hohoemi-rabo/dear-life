@@ -89,6 +89,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-igara-spring-tall": IGARA_KURASHI_TALL,
   "kurashi-igara-summer-wide": IGARA_KURASHI_WIDE,
   "kurashi-igara-summer-tall": IGARA_KURASHI_TALL,
+  "kurashi-igara-autumn-wide": IGARA_KURASHI_WIDE,
+  "kurashi-igara-autumn-tall": IGARA_KURASHI_TALL,
 };
 
 export function usesStraightBack(background: FamilyStageId): boolean {

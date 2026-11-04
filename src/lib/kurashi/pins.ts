@@ -129,7 +129,7 @@ const IGARA_TALL: PinSpots = {
   housing: { x: 49, y: 52, side: "right" },
   public: { x: 78, y: 60.5, side: "left" },
   evacuation: { x: 56, y: 58, side: "left" },
-  population: { x: 51, y: 50.5, side: "right" },
+  population: { x: 76, y: 49, side: "right" },
   bus: { x: 40.4, y: 72.5, side: "left" },
   train: { x: 40.4, y: 72.5, side: "left" },
   snow: { x: 62, y: 80, side: "right" },
@@ -164,6 +164,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-igara-spring-tall": IGARA_TALL,
   "kurashi-igara-summer-wide": IGARA_WIDE,
   "kurashi-igara-summer-tall": IGARA_TALL,
+  "kurashi-igara-autumn-wide": IGARA_WIDE,
+  "kurashi-igara-autumn-tall": IGARA_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
