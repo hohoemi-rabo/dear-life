@@ -192,9 +192,9 @@ describe("くらしのピン（028）", () => {
 
   it("バス停と駅が離れている鼎の冬は、バスと電車のピンを別の場所に立てる（2026-11-03）", () => {
     const winter = { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" } as const;
-    const sports = event("運動会", { season: "冬", name: "冬季スポーツ大会" });
+    const sports = event("運動会", { season: "冬", name: "冬季スポーツ大会（ボッチャ）" });
     const pins = scenePins(plan("冬", 1, 0), { children: 1 }, winter, [sports]);
-    expect(labels(pins)).toEqual(["学校", "バス", "電車", "スポーツ", "住まい"]);
+    expect(labels(pins)).toEqual(["学校", "バス", "電車", "ボッチャ", "住まい"]);
     expect(pins[1].wide).not.toEqual(pins[2].wide);
     expect(pins[1].tall).not.toEqual(pins[2].tall);
   });

@@ -583,7 +583,7 @@ export const EVENT_ILLUSTS: Readonly<Record<string, PropId>> = {
   "鼎地区体育祭（ペタンク大会）": "event-kanae-petanque",
   "ふるさと鼎ふれあい広場・文化祭": "event-kanae-bunkasai",
   鼎地区縦断駅伝大会: "event-kanae-ekiden",
-  冬季スポーツ大会: "event-kanae-winter-sports",
+  "冬季スポーツ大会（ボッチャ）": "event-kanae-winter-sports",
 };
 
 export function eventIllustFor(name: string): PropId | null {

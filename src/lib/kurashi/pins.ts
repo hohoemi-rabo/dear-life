@@ -296,8 +296,8 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     },
   },
   // 冬。体育館でする（2026-11-03 まさゆきさん）。冬は避難場所のピンが出ないので空いている
-  冬季スポーツ大会: {
-    label: "スポーツ",
+  "冬季スポーツ大会（ボッチャ）": {
+    label: "ボッチャ",
     spots: {
       "kurashi-kanae-winter-wide": { x: 85, y: 46, side: "left" },
       "kurashi-kanae-winter-tall": { x: 86, y: 48, side: "left" },

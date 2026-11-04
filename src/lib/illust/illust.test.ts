@@ -233,7 +233,7 @@ describe("行事ごとの絵（2026-10-31）", () => {
     expect(eventIllustFor("上郷歩こう会")).toBe("event-kamisato-aruko");
     expect(PROP_SOURCES[eventIllustFor("黒田人形奉納上演")!].source).toBe("event-kuroda-ningyo.png");
     expect(eventIllustFor("書初め・お正月遊び")).toBe("event-chushin-kakizome");
-    expect(eventIllustFor("冬季スポーツ大会")).toBe("event-kanae-winter-sports");
+    expect(eventIllustFor("冬季スポーツ大会（ボッチャ）")).toBe("event-kanae-winter-sports");
     expect(eventIllustFor("鼎地区運動会")).toBeNull();
     expect(eventIllustFor("constructor")).toBeNull();
   });
