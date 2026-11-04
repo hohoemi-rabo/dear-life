@@ -32,7 +32,11 @@ const CHUSHIN_KURASHI_TALL = { footY: 84, adultHeight: 15, centerX: 45 };
 const KANAE_KURASHI_WIDE = { footY: 92, adultHeight: 20, centerX: 30 };
 const KANAE_KURASHI_TALL = { footY: 88, adultHeight: 15, centerX: 40 };
 
-const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number; mirrorBack?: boolean }> = {
+// 伊賀良は町を正面に見わたす絵なので、真後ろ姿で広場の真ん中に立たせる（2026-11-04 まさゆきさん）。頭がバス乗り場にかからない高さ
+const IGARA_KURASHI_WIDE = { footY: 95.5, adultHeight: 20, centerX: 50, straightBack: true };
+const IGARA_KURASHI_TALL = { footY: 95, adultHeight: 15, centerX: 50, straightBack: true };
+
+const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; centerX: number; mirrorBack?: boolean; straightBack?: boolean }> = {
   // 手前の広場の真ん中に立たせる。04 の車は家族の右奥に置き、家族が手前に少し重なる
   // （2026-10-29 まさゆきさん：家族はいつも真ん中に、もう少し小さく）
   "erabu-kamisato-base": { footY: 94, adultHeight: 32, centerX: 50 },
@@ -81,7 +85,13 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "kurashi-kanae-autumn-tall": KANAE_KURASHI_TALL,
   "kurashi-kanae-winter-wide": KANAE_KURASHI_WIDE,
   "kurashi-kanae-winter-tall": KANAE_KURASHI_TALL,
+  "kurashi-igara-spring-wide": IGARA_KURASHI_WIDE,
+  "kurashi-igara-spring-tall": IGARA_KURASHI_TALL,
 };
+
+export function usesStraightBack(background: FamilyStageId): boolean {
+  return STAGES[background].straightBack === true;
+}
 
 export function mirrorsBackView(background: FamilyStageId): boolean {
   return STAGES[background].mirrorBack === true;

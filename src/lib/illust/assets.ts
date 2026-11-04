@@ -297,6 +297,25 @@ export const ILLUST_PICTURES = {
     widths: [480, 720, 960],
     alt: "雪の積もった鼎の冬。雪の降る広い道路と歩道、道沿いの店とバス停、公民館と体育館、時計の校舎と校庭、公園、奥の町並みと小さな駅が見える",
   },
+  // 伊賀良のくらし・春（2026-11-04 受け取り）。手前の石畳の広場から、柵ごしに町を正面に見わたす。
+  // スマホの絵は枠（1122:1402）より縦長なので、鼎と同じく空を上から 127px 落として使う
+  "kurashi-igara-spring-wide": {
+    source: "kurashi-igara-spring-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [240, 480, 960, 1440],
+    alt: "桜の咲く伊賀良の春。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、雪の山が見える",
+  },
+  "kurashi-igara-spring-tall": {
+    source: "kurashi-igara-spring-tall.png",
+    sourceWidth: 1072,
+    sourceHeight: 1467,
+    crop: { left: 0, top: 127 },
+    width: 1072,
+    height: 1340,
+    widths: [480, 720, 960],
+    alt: "桜の咲く伊賀良の春。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、雪の山が見える",
+  },
   "district-kanae": {
     source: "district-kanae.png",
     width: 1672,
@@ -322,7 +341,8 @@ export const PEOPLE = ["father", "mother", "boy", "girl", "boy2", "girl2"] as co
 export type Person = (typeof PEOPLE)[number];
 // back-summer などは季節ごとの服の斜め後ろ姿（くらしの夏・秋・冬。2026-11-01 まさゆきさん：季節で服を変える）。春は back のまま
 // walk はカルテの下の「次は、現地で確かめよう」で、右へ歩く横向きの姿（2026-11-01 受け取り）
-export const POSES = ["stand", "joy", "back", "back-summer", "back-autumn", "back-winter", "walk"] as const;
+// straight は真後ろ姿（2026-11-04 受け取り）。町を正面に見わたす絵（伊賀良のくらし）で使う。季節の服は straight-summer など
+export const POSES = ["stand", "joy", "back", "back-summer", "back-autumn", "back-winter", "walk", "straight", "straight-summer", "straight-autumn", "straight-winter"] as const;
 export type Pose = (typeof POSES)[number];
 
 const SEASONAL_BACK_POSES: Readonly<Record<Season, Pose>> = {
@@ -332,8 +352,16 @@ const SEASONAL_BACK_POSES: Readonly<Record<Season, Pose>> = {
   冬: "back-winter",
 };
 
-// 斜め後ろ姿のポーズ。季節がない場面（えらぶ 05）は春の服
-export function backPose(season: Season | null = null): Pose {
+const SEASONAL_STRAIGHT_POSES: Readonly<Record<Season, Pose>> = {
+  春: "straight",
+  夏: "straight-summer",
+  秋: "straight-autumn",
+  冬: "straight-winter",
+};
+
+// 後ろ姿のポーズ。ふだんは斜め後ろ姿で、straight のときは真後ろ姿。季節がない場面（えらぶ 05）は春の服
+export function backPose(season: Season | null = null, straight = false): Pose {
+  if (straight) return season ? SEASONAL_STRAIGHT_POSES[season] : "straight";
   return season ? SEASONAL_BACK_POSES[season] : "back";
 }
 
@@ -376,6 +404,51 @@ function seasonalBackSources(): Record<`${Person}-${SeasonalBackPose}`, SpriteSo
     }),
   );
   return Object.fromEntries(entries) as Record<`${Person}-${SeasonalBackPose}`, SpriteSource>;
+}
+
+// 真後ろ姿（2026-11-04 受け取り）。春は シート4 と straight-back-spring-2、夏・秋・冬は1枚に2段4人ずつ並ぶ。
+// 上の段：お父さん・お母さん・男の子・赤・男の子・黄（使わない）、下の段：女の子・ボブ（使わない）・女の子・おさげ・男の子・青・女の子・紫。
+// シートごとに人の大きさが違うので、斜め後ろ姿（back）と同じ背にそろえる
+const STRAIGHT_BACK_WHO: Readonly<Record<Person, string>> = {
+  father: "お父さん",
+  mother: "お母さん",
+  boy: "男の子",
+  girl: "おさげの女の子",
+  boy2: "3人目の男の子",
+  girl2: "一つ結びの女の子",
+};
+const STRAIGHT_BACK_SPRING: Readonly<Record<Person, { sheet: string; index: number }>> = {
+  father: { sheet: "characters-sheet-4.png", index: 0 },
+  mother: { sheet: "characters-sheet-4.png", index: 1 },
+  boy: { sheet: "characters-sheet-4.png", index: 2 },
+  girl: { sheet: "characters-sheet-4.png", index: 5 },
+  boy2: { sheet: "characters-straight-back-spring-2.png", index: 0 },
+  girl2: { sheet: "characters-straight-back-spring-2.png", index: 1 },
+};
+const STRAIGHT_BACK_INDEX: Readonly<Record<Person, number>> = { father: 0, mother: 1, boy: 2, girl: 5, boy2: 6, girl2: 7 };
+const STRAIGHT_BACK_SEASONS = {
+  "straight-summer": { name: "summer", label: "夏服" },
+  "straight-autumn": { name: "autumn", label: "秋の服" },
+  "straight-winter": { name: "winter", label: "冬服" },
+} as const;
+
+function straightBackSources(): Record<`${Person}-${"straight" | keyof typeof STRAIGHT_BACK_SEASONS}`, SpriteSource> {
+  const spring = PEOPLE.map((person) => {
+    const source: SpriteSource = { ...STRAIGHT_BACK_SPRING[person], alt: `真後ろを向いた、${STRAIGHT_BACK_WHO[person]}`, matchHeight: spriteId(person, "back") };
+    return [spriteId(person, "straight"), source] as const;
+  });
+  const seasons = Object.entries(STRAIGHT_BACK_SEASONS).flatMap(([pose, { name, label }]) =>
+    PEOPLE.map((person) => {
+      const source: SpriteSource = {
+        sheet: `characters-straight-back-${name}-1.png`,
+        index: STRAIGHT_BACK_INDEX[person],
+        alt: `${label}で真後ろを向いた、${STRAIGHT_BACK_WHO[person]}`,
+        matchHeight: spriteId(person, "back"),
+      };
+      return [spriteId(person, pose as keyof typeof STRAIGHT_BACK_SEASONS), source] as const;
+    }),
+  );
+  return Object.fromEntries([...spring, ...seasons]) as Record<`${Person}-${"straight" | keyof typeof STRAIGHT_BACK_SEASONS}`, SpriteSource>;
 }
 
 type SpriteSource = { sheet: string; index: number; alt: string; scale?: number; matchHeight?: SpriteId };
@@ -427,6 +500,7 @@ export const SPRITE_SOURCES: Record<SpriteId, SpriteSource> = {
   "girl2-back": { sheet: "characters-sheet-6.png", index: 3, alt: "右奥を向いた後ろ姿の、紫の服の女の子", scale: SHEET_6_SCALE },
   ...seasonalBackSources(),
   ...walkSources(),
+  ...straightBackSources(),
 };
 
 // シートの大きさのまま切り出すと大きすぎるので、全員同じ倍率で縮める（大人と子どもの背の比を保つため）
@@ -726,7 +800,9 @@ export type KurashiPictureId =
   | "kurashi-kanae-autumn-wide"
   | "kurashi-kanae-autumn-tall"
   | "kurashi-kanae-winter-wide"
-  | "kurashi-kanae-winter-tall";
+  | "kurashi-kanae-winter-tall"
+  | "kurashi-igara-spring-wide"
+  | "kurashi-igara-spring-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
@@ -747,6 +823,9 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
     夏: { wide: "kurashi-kanae-summer-wide", tall: "kurashi-kanae-summer-tall" },
     秋: { wide: "kurashi-kanae-autumn-wide", tall: "kurashi-kanae-autumn-tall" },
     冬: { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" },
+  },
+  igara: {
+    春: { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
   },
 };
 

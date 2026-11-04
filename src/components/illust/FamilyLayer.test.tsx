@@ -35,6 +35,13 @@ describe("FamilyLayer の後ろ姿の服（2026-11-01 まさゆきさん：季�
     expect(spriteSources(erabu.container)).toEqual(["/illust/person-boy-back.webp"]);
   });
 
+  it("町を正面に見わたす絵（伊賀良のくらし）は、真後ろ姿で立つ", () => {
+    const spring = render(<FamilyLayer members={["boy"]} background="kurashi-igara-spring-wide" facing="back" season="春" />);
+    expect(spriteSources(spring.container)).toEqual(["/illust/person-boy-straight.webp"]);
+    const summer = render(<FamilyLayer members={["girl2"]} background="kurashi-igara-spring-tall" facing="back" season="夏" />);
+    expect(spriteSources(summer.container)).toEqual(["/illust/person-girl2-straight-summer.webp"]);
+  });
+
   it("反転する背景の後ろ姿だけ、左右反転して左奥を向く", () => {
     const mirroredSprite = (container: HTMLElement) => container.querySelector("span.-scale-x-100");
     expect(mirroredSprite(render(<FamilyLayer members={["boy"]} background="erabu-kanae-priorities" facing="back" />).container)).not.toBeNull();

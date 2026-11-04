@@ -8,7 +8,7 @@
 - `kamisato/`：上郷の絵（地区の絵・えらぶ・くらし・行事）
 - `chushin/`：中心市街地の絵（地区の絵・えらぶ・くらし・行事）
 - `kanae/`：鼎の絵（地区の絵・えらぶ・くらし・行事）
-- `igara/`：伊賀良の絵（地区の絵・えらぶ）
+- `igara/`：伊賀良の絵（地区の絵・えらぶ・くらし）
 
 | ファイル | 使う場所 | 中身 |
 | --- | --- | --- |
@@ -38,6 +38,7 @@
 | `kurashi-kanae-summer-wide.png`・`kurashi-kanae-summer-tall.png` | くらし・鼎・夏の風景（PC・スマホ） | 人のいない鼎の夏（1536×1024・1072×1467）。春と同じ構図で、ピンの場所も同じ。スマホの絵は春と同じく、空を上から 127px 落として切り出す |
 | `kurashi-kanae-autumn-wide.png`・`kurashi-kanae-autumn-tall.png` | くらし・鼎・秋の風景（PC・スマホ） | 人のいない鼎の秋（1536×1024・1072×1467）。春・夏と同じ構図の紅葉。スマホの絵は空を上から 127px 落として切り出す |
 | `kurashi-kanae-winter-wide.png`・`kurashi-kanae-winter-tall.png` | くらし・鼎・冬の風景（PC・スマホ） | 人のいない鼎の冬（1536×1024・1072×1467）。春〜秋と同じ構図の雪景色。雪の道のピンは手前の道路、バス・電車のピンは奥の小さな駅。スマホの絵は空を上から 127px 落として切り出す |
+| `kurashi-igara-spring-wide.png`・`kurashi-igara-spring-tall.png` | くらし・伊賀良・春の風景（PC・スマホ） | 人のいない伊賀良の春（1536×1024・1072×1467）。手前に石畳の広場と木の柵（家族を真後ろ姿で重ねる）、奥に高速バスと路線バスの乗り場、左に飯田IC と高架の道路と神社、真ん中に時計の校舎と校庭と体育館、右に公民館のような建物と公園、奥に町並みと雪の山。駅は描かれていない。スマホの絵は空を上から 127px 落として切り出す |
 | `event-chushin-ohimachi.png`・`event-chushin-terakoya.png`・`event-chushin-ningyo-festa.png`・`event-chushin-kyohoku-bunkasai.png`・`event-chushin-undokai.png`・`event-chushin-maruyama-bunkasai.png`・`event-chushin-mochitsuki.png`・`event-chushin-kakizome.png` | くらしの行事のシート・吹き出し（中心市街地の行事ごとの絵） | おひまち・子ども寺子屋ひがしの・いいだ人形劇フェスタ 丸山地区公演・橋北地区文化祭・東野区民大運動会・丸山地区文化祭・お正月遊び・もちつき大会・書初め・お正月遊び。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
 | `karte-header-chushin-wide.png`・`karte-header-chushin-tall.png` | カルテの見出しの右（中心市街地。PC・スマホ） | 中心市街地の町並みの風景（透過。2172×724・1536×1024）。ほかの地区は `karte-header-wide.png`・`karte-header-tall.png` |
 | `event-kanae-oneday-march.png`・`event-kanae-ningyo-festa.png`・`event-kanae-petanque.png`・`event-kanae-bunkasai.png`・`event-kanae-ekiden.png`・`event-kanae-winter-sports.png` | くらしの行事のシート・吹き出し（鼎の行事ごとの絵） | ふるさと再発見ワンデーマーチ・いいだ人形劇フェスタ 鼎地区公演・鼎地区体育祭（ペタンク大会）・ふるさと鼎ふれあい広場・文化祭・鼎地区縦断駅伝大会・冬季スポーツ大会。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
@@ -48,6 +49,7 @@
 | `event-kuroda-ningyo.png`・`event-kamisato-aruko.png`・`event-ningyo-festa.png`・`event-sports-koryu.png`・`event-undokai.png`・`event-bunkasai.png`・`event-winter-sports.png` | くらしの行事のシート・吹き出し（行事ごとの絵） | 黒田人形奉納上演（舞台と黒衣と人形）・上郷歩こう会（歩く大人と子ども）・いいだ人形劇フェスタ 上郷地区公演（人形を手に笑う人たち）・春季スポーツ交流会（ボールを打つ大人と子ども）・上郷地区大運動会（パン食い競争の大人と子ども）・上郷地区文化祭（金管楽器を吹く3人）・冬季スポーツ交流会（体育館でモルックをする大人と子ども）。透過、1254×1254。行事の名前から `EVENT_ILLUSTS`（`src/lib/illust/assets.ts`）で引く |
 | `characters-sheet-1.png`〜`6.png` | えらぶ 02〜05・くらし | 家族の人物（透過、2172×724）。1枚に4〜6人並んでいて、透明な隙間で切り分ける。4地区で使い回す |
 | `characters-back-{summer,autumn,winter}-{1,2}.png` | くらしの夏・秋・冬 | 季節の服の斜め後ろ姿（透過。1枚目 2172×724、2枚目 1774×887）。春の後ろ姿（シート5・6）と同じ人で、書き出すときに春の同じ人と同じ背にそろえる。4地区で使い回す |
+| `characters-straight-back-spring-2.png`・`characters-straight-back-{summer,autumn,winter}-1.png` | くらし・伊賀良（町を正面に見わたす絵） | 真後ろ姿。春は3人目・4人目の子ども2人（2172×724。ほかの4人はシート 4）。夏・秋・冬は1枚に2段4人ずつ（1312×1199・1536×1024）。並びは下の表 |
 | `karte-header-kanae-wide.png`・`karte-header-kanae-tall.png` | カルテの見出しの右（鼎。PC・スマホ） | 山のふもとの住宅と、広い道路沿いに並ぶ店と駐車場の風景（透過。2172×724・1536×1024） |
 | `karte-header-wide.png`・`karte-header-tall.png` | カルテの見出しの右（PC・スマホ） | 山すその町並みと、川をわたる電車の風景（透過。2172×724・1536×1024）。4地区で使い回す |
 | `karte-childcare.png`・`karte-transport.png`・`karte-disaster.png`・`karte-population.png`・`karte-public.png`・`karte-support.png` | カルテの一覧のカードと詳細の見出し | 校舎とランドセルの子ども・停留所のバスと親子・「避難所」の建物・おばあさんたちと家族・公園の遊具・窓口で相談する親子（透過）。4地区で使い回す |
@@ -71,3 +73,4 @@
 | 季節の後ろ姿 1（夏・秋・冬） | 右奥を向いた斜め後ろ姿：並びはシート5と同じ（お父さん・お母さん・髪の黒い男の子・髪の茶色の男の子（使わない）・ボブの女の子（使わない）・おさげの女の子）。服の色は季節で変わる |
 | 歩く（karte-next-step） | 右へ歩く横向き。上の段：お父さん・お母さん・男の子・赤・男の子・黄（使わない）、下の段：女の子・ボブ（使わない）・女の子・おさげ・男の子・青・女の子・紫。立つ姿と同じ背にそろえて書き出す |
 | 季節の後ろ姿 2（夏・秋・冬） | 3人目・4人目の子どもの斜め後ろ姿：男の子（春は青い服）・一つ結びの女の子（春は紫の服）。人が大きく描かれている |
+| 真後ろ姿（夏・秋・冬） | 上の段：お父さん・お母さん・髪の黒い男の子・髪の茶色の男の子（使わない）、下の段：ボブの女の子（使わない）・おさげの女の子・3人目の男の子・一つ結びの女の子 |

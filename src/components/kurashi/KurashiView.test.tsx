@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
+import { KURASHI_PICTURES } from "@/lib/illust/assets";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { SCENE_TEMPLATE_DRAFTS } from "@/lib/scenes/drafts";
@@ -102,6 +103,15 @@ function publishedIgara(): ScreenData {
   return { ...screenDataFixture({ igara: KANAE }), sources: [WINTER], sceneTemplates: published().sceneTemplates };
 }
 
+// 絵のない季節のドット絵の場面を春で確かめるため、伊賀良の絵を一時的になくす（元に戻すのは afterEach）
+const IGARA_PICTURES = KURASHI_PICTURES.igara;
+function withoutIgaraPictures() {
+  delete KURASHI_PICTURES.igara;
+}
+afterEach(() => {
+  KURASHI_PICTURES.igara = IGARA_PICTURES;
+});
+
 async function open(query: string) {
   url.set(`/kurashi?${query}`);
   await act(async () => {
@@ -143,6 +153,7 @@ describe("KurashiView：季節の切り替え（F-11）", () => {
 describe("KurashiView：場面（F-12）", () => {
   it("ドット絵1枚と、文の種類ごとの印、出典の番号、カルテの該当カードへのリンクを出す", async () => {
     screenData = publishedIgara();
+    withoutIgaraPictures();
     await open("d=igara&a=2&k=1&h=new");
     expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();
     expect(screen.getByText("伊賀良の春")).toBeInTheDocument();
@@ -180,6 +191,7 @@ describe("KurashiView：場面（F-12）", () => {
   });
 
   it("ひな形がまだ公開されていない季節も、絵は出して文章は「準備中」と出す", async () => {
+    withoutIgaraPictures();
     screenData = { ...published(), sceneTemplates: [] };
     await open("d=igara");
     expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Season } from "@/lib/conditions/scene";
 import { backPose, spriteId, spriteSrc, type Person, type Pose } from "@/lib/illust/assets";
-import { mirrorsBackView, placeFamily, type FamilyStageId, type Placement } from "@/lib/illust/family";
+import { mirrorsBackView, placeFamily, usesStraightBack, type FamilyStageId, type Placement } from "@/lib/illust/family";
 import { ExtraChildrenBadge } from "./ExtraChildrenBadge";
 import { Sparkles, type SparklePoint } from "./Sparkles";
 import { useLeavingItems } from "./useLeavingItems";
@@ -35,7 +35,7 @@ export function FamilyLayer({
   const leaving = useLeavingItems(placements, personOf);
   const cheer = useCheer(hiddenChildren);
   const lastChild = placements.findLast(({ person }) => !ADULTS.has(person));
-  const back = backPose(season);
+  const back = backPose(season, usesStraightBack(background));
   const pose: Pose = facing === "back" ? back : "stand";
   const mirrored = facing === "back" && mirrorsBackView(background);
   return (

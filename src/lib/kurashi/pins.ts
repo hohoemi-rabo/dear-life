@@ -110,6 +110,31 @@ const KANAE_TALL: PinSpots = {
 const KANAE_SCHOOLYARD_WIDE: PinSpots = { ...KANAE_WIDE, housing: { ...KANAE_WIDE.housing, side: "right" } };
 const KANAE_SCHOOLYARD_TALL: PinSpots = { ...KANAE_TALL, housing: { ...KANAE_TALL.housing, side: "right" } };
 
+// くらし・伊賀良のピンの場所（Claude の案）。学校＝時計の校舎、避難場所＝体育館、公共施設＝右の大きな建物、行事＝右の公園、バス＝高速バスの乗り場。
+// 伊賀良に駅はないので電車のピンは出ない（型のためバスと同じ場所を入れている）
+const IGARA_WIDE: PinSpots = {
+  school: { x: 34.7, y: 49, side: "left" },
+  event: { x: 90, y: 67, side: "left" },
+  housing: { x: 63, y: 50, side: "right" },
+  public: { x: 76, y: 55, side: "left" },
+  evacuation: { x: 51, y: 51.5, side: "left" },
+  population: { x: 50, y: 42, side: "right" },
+  bus: { x: 43, y: 66, side: "left" },
+  train: { x: 43, y: 66, side: "left" },
+  snow: { x: 62, y: 77, side: "right" },
+};
+const IGARA_TALL: PinSpots = {
+  school: { x: 34.8, y: 56, side: "left" },
+  event: { x: 89.5, y: 73, side: "left" },
+  housing: { x: 49, y: 52, side: "right" },
+  public: { x: 78, y: 60.5, side: "left" },
+  evacuation: { x: 56, y: 58, side: "left" },
+  population: { x: 51, y: 50.5, side: "right" },
+  bus: { x: 40.4, y: 72.5, side: "left" },
+  train: { x: 40.4, y: 72.5, side: "left" },
+  snow: { x: 62, y: 80, side: "right" },
+};
+
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
   "kurashi-kamisato-spring-tall": KAMISATO_TALL,
@@ -135,6 +160,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kanae-autumn-tall": KANAE_SCHOOLYARD_TALL,
   "kurashi-kanae-winter-wide": KANAE_WIDE,
   "kurashi-kanae-winter-tall": KANAE_TALL,
+  "kurashi-igara-spring-wide": IGARA_WIDE,
+  "kurashi-igara-spring-tall": IGARA_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
