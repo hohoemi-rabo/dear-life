@@ -132,4 +132,5 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "detail-train": { width: 821, height: 870 },
   "detail-land": { width: 1198, height: 777 },
   "pin-snow-road": { width: 956, height: 1053 },
+  "pin-highway-bus": { width: 1340, height: 624 },
 };

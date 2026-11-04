@@ -41,6 +41,7 @@
 | `kurashi-igara-spring-wide.png`・`kurashi-igara-spring-tall.png` | くらし・伊賀良・春の風景（PC・スマホ） | 人のいない伊賀良の春（1536×1024・1072×1467）。手前に石畳の広場と木の柵（家族を真後ろ姿で重ねる）、奥に高速バスと路線バスの乗り場、左に飯田IC と高架の道路と神社、真ん中に時計の校舎と校庭と体育館、右に公民館のような建物と公園、奥に町並みと雪の山。駅は描かれていない。スマホの絵は空を上から 127px 落として切り出す |
 | `kurashi-igara-summer-wide.png`・`kurashi-igara-summer-tall.png` | くらし・伊賀良・夏の風景（PC・スマホ） | 人のいない伊賀良の夏（1536×1024・1072×1467）。春と同じ構図で、ピンの場所も同じ。スマホの絵は空を上から 127px 落として切り出す。スマホの絵は、受け取ったあとで太陽を消した（条件の帯の裏に隠れ、光だけがはみ出すため） |
 | `kurashi-igara-autumn-wide.png`・`kurashi-igara-autumn-tall.png` | くらし・伊賀良・秋の風景（PC・スマホ） | 人のいない伊賀良の秋（1536×1024・1072×1467）。春・夏と同じ構図の紅葉で、ピンの場所も同じ。スマホの絵は空を上から 127px 落として切り出す |
+| `kurashi-igara-winter-wide.png`・`kurashi-igara-winter-tall.png` | くらし・伊賀良・冬の風景（PC・スマホ） | 人のいない伊賀良の冬（1536×1024・1072×1467）。春〜秋と同じ構図の雪景色で、ピンの場所も同じ。雪の道のピンは手前の道路、路線バスと高速バスのピンはそれぞれの乗り場の札。スマホの絵は空を上から 127px 落として切り出す |
 | `event-chushin-ohimachi.png`・`event-chushin-terakoya.png`・`event-chushin-ningyo-festa.png`・`event-chushin-kyohoku-bunkasai.png`・`event-chushin-undokai.png`・`event-chushin-maruyama-bunkasai.png`・`event-chushin-mochitsuki.png`・`event-chushin-kakizome.png` | くらしの行事のシート・吹き出し（中心市街地の行事ごとの絵） | おひまち・子ども寺子屋ひがしの・いいだ人形劇フェスタ 丸山地区公演・橋北地区文化祭・東野区民大運動会・丸山地区文化祭・お正月遊び・もちつき大会・書初め・お正月遊び。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
 | `karte-header-chushin-wide.png`・`karte-header-chushin-tall.png` | カルテの見出しの右（中心市街地。PC・スマホ） | 中心市街地の町並みの風景（透過。2172×724・1536×1024）。ほかの地区は `karte-header-wide.png`・`karte-header-tall.png` |
 | `event-kanae-oneday-march.png`・`event-kanae-ningyo-festa.png`・`event-kanae-petanque.png`・`event-kanae-bunkasai.png`・`event-kanae-ekiden.png`・`event-kanae-winter-sports.png` | くらしの行事のシート・吹き出し（鼎の行事ごとの絵） | ふるさと再発見ワンデーマーチ・いいだ人形劇フェスタ 鼎地区公演・鼎地区体育祭（ペタンク大会）・ふるさと鼎ふれあい広場・文化祭・鼎地区縦断駅伝大会・冬季スポーツ大会。透過、1254×1254。行事の名前から `EVENT_ILLUSTS` で引く |
@@ -57,6 +58,7 @@
 | `karte-childcare.png`・`karte-transport.png`・`karte-disaster.png`・`karte-population.png`・`karte-public.png`・`karte-support.png` | カルテの一覧のカードと詳細の見出し | 校舎とランドセルの子ども・停留所のバスと親子・「避難所」の建物・おばあさんたちと家族・公園の遊具・窓口で相談する親子（透過）。4地区で使い回す |
 | `detail-school.png`・`detail-bus.png`・`detail-bus-winter.png`・`detail-shelter.png`・`detail-population.png`・`detail-public.png`・`detail-support.png`・`detail-nursery.png`・`detail-afterschool.png`・`detail-train.png` | カルテの詳細の、大きい数字の左の絵 | 時計台の校舎・緑の帯の路線バス・屋根に雪の積もった同じバス・非常口の印のある避難所・おばあさんとお父さんと女の子・本の印のある公民館・書類と両手で包んだハート・オレンジの屋根の保育園とすべり台・夕方の部屋で宿題や遊びをする小学生とランドセル・緑の帯の銀色の電車（透過、1254×1254）。4地区で使い回す |
 | `detail-land.png` | カルテの詳細の住まいの「土地」タブの絵 | 杭とロープで区切った更地（透過、1254×1254）。4地区で使い回す |
+| `pin-highway-bus.png` | くらしの冬の「高速バス」のピンの丸の中（伊賀良） | クリーム色に赤い帯の高速バス（透過、1536×1024） |
 | `pin-snow-road.png` | くらしの冬の「雪の道」のピンの丸の中 | 青い雪の結晶（透過、1254×1254）。公共施設のピンは `detail-public.png` を使い回す |
 | `karte-check.png` | カルテの詳細「現地で確かめたいこと」 | 家の前でメモを持つ人（透過、1254×1254） |
 | `karte-next-step.png` | カルテの下の「次は、現地で確かめよう」 | 右へ歩く横向きの人8人（透過、1536×1024）。2段に4人ずつ並ぶ。人物の表の「歩く」 |

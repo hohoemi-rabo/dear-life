@@ -190,6 +190,18 @@ describe("くらしのピン（028）", () => {
     expect(scenePinFor(plan("冬", 1, 1))).toBe("snow");
   });
 
+  it("駅のない伊賀良の冬は、路線バスと高速バスのピンを立て、電車のピンは立てない（2026-11-05）", () => {
+    const winter = { wide: "kurashi-igara-winter-wide", tall: "kurashi-igara-winter-tall" } as const;
+    expect(labels(scenePins(plan("冬", 1, 0), { children: 1 }, winter, []))).toEqual(["学校", "路線バス", "高速バス", "地域の行事", "住まい"]);
+  });
+
+  it("伊賀良の高速バスのピンは冬以外の季節にも立ち、路線バスのピンは冬だけ（2026-11-05）", () => {
+    const summer = { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" } as const;
+    const found = labels(scenePins(plan("夏", 1, 1), { children: 1 }, summer, []));
+    expect(found).toContain("高速バス");
+    expect(found).not.toContain("路線バス");
+  });
+
   it("バス停と駅が離れている鼎の冬は、バスと電車のピンを別の場所に立てる（2026-11-03）", () => {
     const winter = { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" } as const;
     const sports = event("運動会", { season: "冬", name: "冬季スポーツ大会（ボッチャ）" });
@@ -235,6 +247,7 @@ describe("くらしのピン（028）", () => {
       { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
       { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" },
       { wide: "kurashi-igara-autumn-wide", tall: "kurashi-igara-autumn-tall" },
+      { wide: "kurashi-igara-winter-wide", tall: "kurashi-igara-winter-tall" },
     ] as const;
     for (const { wide, tall } of seasons) {
       for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {

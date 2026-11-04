@@ -4,7 +4,7 @@ import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { orderedSources, supportCheckedRange } from "@/lib/about/sources";
-import { EVENTS_CREDIT } from "@/lib/credits";
+import { EVENTS_CREDIT, HIGHWAY_BUS_CREDIT } from "@/lib/credits";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { eventSources } from "@/lib/kurabe/compare";
 
@@ -153,6 +153,12 @@ function ManualDataListBody() {
   const support = supportCheckedRange(data);
   return (
     <div className="flex flex-col gap-4">
+      <section aria-labelledby="about-highway-bus" className="flex flex-col gap-2">
+        <h3 id="about-highway-bus" className="font-bold">
+          高速バスの行き先
+        </h3>
+        <p>{HIGHWAY_BUS_CREDIT}</p>
+      </section>
       <section aria-labelledby="about-events" className="flex flex-col gap-2">
         <h3 id="about-events" className="font-bold">
           地区の行事

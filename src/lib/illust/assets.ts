@@ -353,6 +353,24 @@ export const ILLUST_PICTURES = {
     widths: [480, 720, 960],
     alt: "紅葉した伊賀良の秋。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、色づいた山が見える",
   },
+  // 伊賀良のくらし・冬（2026-11-04 受け取り）。春〜秋と同じ構図の雪景色
+  "kurashi-igara-winter-wide": {
+    source: "kurashi-igara-winter-wide.png",
+    width: 1536,
+    height: 1024,
+    widths: [240, 480, 960, 1440],
+    alt: "雪の積もった伊賀良の冬。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、雪の山が見える",
+  },
+  "kurashi-igara-winter-tall": {
+    source: "kurashi-igara-winter-tall.png",
+    sourceWidth: 1072,
+    sourceHeight: 1467,
+    crop: { left: 0, top: 127 },
+    width: 1072,
+    height: 1340,
+    widths: [480, 720, 960],
+    alt: "雪の積もった伊賀良の冬。手前の広場と柵の奥に、高速バスと路線バスの乗り場、飯田IC、時計の校舎と校庭、体育館、公民館、公園と町並み、雪の山が見える",
+  },
   "district-kanae": {
     source: "district-kanae.png",
     width: 1672,
@@ -618,6 +636,7 @@ export const PROPS = [
   "detail-train",
   "detail-land",
   "pin-snow-road",
+  "pin-highway-bus",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -686,6 +705,8 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "detail-land": { source: "detail-land.png", alt: "杭とロープで区切った更地" },
   // くらしの冬の「雪の道」のピンの丸の中の絵
   "pin-snow-road": { source: "pin-snow-road.png", alt: "青い雪の結晶" },
+  // くらしの冬の「高速バス」のピンの丸の中の絵（2026-11-05 受け取り）
+  "pin-highway-bus": { source: "pin-highway-bus.png", alt: "クリーム色に赤い帯の高速バス" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・
@@ -843,7 +864,9 @@ export type KurashiPictureId =
   | "kurashi-igara-summer-wide"
   | "kurashi-igara-summer-tall"
   | "kurashi-igara-autumn-wide"
-  | "kurashi-igara-autumn-tall";
+  | "kurashi-igara-autumn-tall"
+  | "kurashi-igara-winter-wide"
+  | "kurashi-igara-winter-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
 export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
@@ -869,6 +892,7 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
     春: { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
     夏: { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" },
     秋: { wide: "kurashi-igara-autumn-wide", tall: "kurashi-igara-autumn-tall" },
+    冬: { wide: "kurashi-igara-winter-wide", tall: "kurashi-igara-winter-tall" },
   },
 };
 

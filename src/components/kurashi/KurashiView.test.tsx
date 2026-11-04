@@ -176,6 +176,7 @@ describe("KurashiView：場面（F-12）", () => {
   });
 
   it("冬・車0台：本物の便と、いつの時刻表かを出す", async () => {
+    withoutIgaraPictures();
     screenData = publishedIgara();
     await open("d=igara&c=0&s=winter");
     const scene = sceneWindow();
@@ -366,7 +367,19 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).not.toHaveTextContent("黒田人形奉納上演");
   });
 
+  it("伊賀良の高速バスのピンは、行き先と出典だけを出し、本数や時刻とリンクは出さない", async () => {
+    await open("d=igara&a=2&k=1&h=new&s=winter");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "高速バス" }));
+    });
+    const sheet = screen.getByRole("dialog", { name: "高速バスの行き先" });
+    expect(sheet).toHaveTextContent("長野・名古屋・新宿");
+    expect(sheet).toHaveTextContent("飯田市「公共交通機関等のご案内」");
+    expect(within(sheet).queryByRole("link", { name: /公共交通機関等のご案内/ })).not.toBeInTheDocument();
+  });
+
   it("絵のない地区は、今のドット絵と場面の文で出す（ピンはない）", async () => {
+    withoutIgaraPictures();
     screenData = publishedIgara();
     await open("d=igara&a=2&k=1&h=new&s=winter");
     expect(sceneWindow()).toHaveTextContent("雪・凍結と車の移動");

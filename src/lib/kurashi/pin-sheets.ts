@@ -13,6 +13,19 @@ import { scenePinFor, type PinId } from "./pins.ts";
 
 type MissingState = Exclude<DataState<unknown>, { status: "available" }>;
 
+// 高速バスの行き先の出典。data_sources の行ではなく、手で確かめた市のページ
+const HIGHWAY_BUS_SOURCE: SourceInfo = {
+  id: "iida_highway_bus_guide",
+  name: "公共交通機関等のご案内",
+  publisher: "飯田市",
+  url: null,
+  license: null,
+  credit: null,
+  periodLabel: "2026年2月18日更新",
+  checkedOn: "2026-11-05",
+  fetchedOn: null,
+};
+
 // 出典と、出典の対象期間の代わりに出す期間（相場は集計の対象期間）
 export type SheetSource = { source: SourceInfo; period?: string };
 
@@ -206,6 +219,20 @@ export function pinSheet(input: Input): PinSheet {
         action: "バスを確かめる",
       };
     }
+    case "highway":
+      // 本数や時刻は載せず、行き先だけを出す。リンクは貼らない（2026-11-05 まさゆきさん）。行き先は市のページで確かめた。
+      // 市のページは飯田駅前の発着として書いているが、伊賀良で乗れることはまさゆきさんが自分で乗って確かめている。大阪はわからないので載せない
+      return {
+        ...base,
+        title: "高速バスの行き先",
+        missing: null,
+        intro: `${district.name}から、長野・名古屋・新宿へ行く高速バスに乗れます。時刻は、バス会社で確かめてください。`,
+        lines: [],
+        notices: [],
+        sources: [{ source: HIGHWAY_BUS_SOURCE }],
+        karteCard: "transport",
+        action: "交通を確かめる",
+      };
     case "train": {
       const count = countOf(district.trainStations);
       const scene = sceneParts(input);
