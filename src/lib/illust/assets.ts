@@ -39,6 +39,14 @@ export const ILLUST_PICTURES = {
     widths: [768, 1152, 1536],
     alt: "鼎の高台の広場から見た、交差点と道沿いの店、町並みと山の風景",
   },
+  // 伊賀良の 02〜04 の背景（2026-11-04 受け取り、同日差しかえ）。高台の土の広場から、バス停と飯田IC の料金所、高架の道路、神社の山を見下ろす
+  "erabu-igara-base": {
+    source: "erabu-igara-base.png",
+    width: 1536,
+    height: 1024,
+    widths: [768, 1152, 1536],
+    alt: "伊賀良の高台の土の広場から見た、バス停と料金所、高架の道路、神社のある山の風景",
+  },
   // えらぶ 05 だけの背景（2026-10-29 まさゆきさん）。家族が後ろから町を見わたし、学校・駅・避難場所に印を付ける。
   // 元の絵は 16:9 なので、プレビューの枠（3:2）に合わせて切り出す。右の広場の避難場所の標識が入るよう、左を多めに落とす
   "erabu-kamisato-priorities": {
@@ -668,6 +676,7 @@ export type ErabuBaseId =
   | "erabu-chushin-priorities"
   | "erabu-kanae-base"
   | "erabu-kanae-priorities"
+  | "erabu-igara-base"
   | "erabu-iida-overview";
 export type ErabuScene = "base" | "priorities";
 
@@ -675,6 +684,8 @@ export const ERABU_BASES: Partial<Record<DistrictId, Partial<Record<ErabuScene, 
   kamisato: { base: "erabu-kamisato-base", priorities: "erabu-kamisato-priorities" },
   chushin: { base: "erabu-chushin-base", priorities: "erabu-chushin-priorities" },
   kanae: { base: "erabu-kanae-base", priorities: "erabu-kanae-priorities" },
+  // 02〜04 の絵には学校も避難場所もないので、05 は専用の絵が届くまで飯田市全体の絵のまま
+  igara: { base: "erabu-igara-base", priorities: "erabu-iida-overview" },
 };
 
 export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "base"): ErabuBaseId {

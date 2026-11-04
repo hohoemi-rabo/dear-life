@@ -56,7 +56,7 @@ describe("placeFamily", () => {
   const members = familyMembers({ adults: 2, children: 2, parent: "mother" });
 
   it("左から順に並び、全員が背景の中に収まる", () => {
-    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
       const placements = placeFamily(members, background);
       const centers = placements.map(({ centerX }) => centerX);
       expect(centers).toEqual([...centers].sort((a, b) => a - b));
@@ -105,7 +105,7 @@ describe("絵の一覧", () => {
     expect(erabuBaseFor("kanae")).toBe("erabu-kanae-base");
     expect(erabuBaseFor("kanae", "priorities")).toBe("erabu-kanae-priorities");
     expect(erabuBaseFor("igara", "priorities")).toBe("erabu-iida-overview");
-    expect(erabuBaseFor("igara")).toBe("erabu-iida-overview");
+    expect(erabuBaseFor("igara")).toBe("erabu-igara-base");
     expect(erabuBaseFor(null)).toBe("erabu-iida-overview");
   });
 
@@ -122,7 +122,7 @@ describe("絵の一覧", () => {
 
 describe("placeHouse（028 見本の 03）", () => {
   it("どの家も背景の中に収まり、家族より奥（足もとより上）に建つ", () => {
-    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
       const familyFoot = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background)[0].footY;
       for (const housing of ["new", "old", "rent"] as const) {
         const { centerX, footY, width, height } = placeHouse(housing, background);
@@ -144,7 +144,7 @@ describe("placeCars（028 見本の 04）", () => {
   });
 
   it("車は背景の中に収まり、家族の右・少し奥に、白・青の順で横に並ぶ（車どうしの重なりは少しだけ）", () => {
-    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
       const family = placeFamily(familyMembers({ adults: 2, children: 2, parent: "mother" }), background);
       const [white, blue] = placeCars(2, background);
       expect(white.centerX).toBeLessThan(blue.centerX);
@@ -206,7 +206,7 @@ describe("鼎の 05 の背景（2026-11-03 まさゆきさん）", () => {
 
 describe("placePriorityMarks（028 見本の 05）", () => {
   it("選んだものだけを、カルテの並びで、背景の中に置く", () => {
-    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kanae-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kanae-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
       const marks = placePriorityMarks(["population", "housing", "childcare", "transport", "disaster"], "old", background);
       expect(marks.map(({ priority }) => priority)).toEqual(["housing", "childcare", "transport", "disaster", "population"]);
       for (const { x, y } of marks) {

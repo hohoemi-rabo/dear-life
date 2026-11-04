@@ -12,6 +12,8 @@ const LOTS: Record<ErabuBaseId, { centerX: number; footY: number; width: number 
   "erabu-chushin-base": { centerX: 60, footY: 82, width: 68 },
   // 鼎は広場の奥の端が上郷より手前にあるので、家の土台も下げる（2026-11-03 まさゆきさん：もう少し前に）
   "erabu-kanae-base": { centerX: 58, footY: 93, width: 64 },
+  // 伊賀良は上郷と同じ構図（手前に広い広場）なので、建てる場所も同じ
+  "erabu-igara-base": { centerX: 60, footY: 82, width: 68 },
   // 05 の背景（町を見わたす）。町の学校・駅を隠さないよう、見本どおり左の端に寄せて小さめに建てる
   "erabu-kamisato-priorities": { centerX: 12, footY: 74, width: 40 },
   "erabu-chushin-priorities": { centerX: 12, footY: 82, width: 40 },

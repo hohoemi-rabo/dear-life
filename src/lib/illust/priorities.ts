@@ -50,6 +50,13 @@ const SPOTS: Record<ErabuBaseId, Record<Exclude<Priority, "housing">, Spot>> = {
     disaster: { x: 78, y: 36 },
     population: { x: 44, y: 24 },
   },
+  // 05 は飯田市全体の絵を使うので今は使わない（上郷の erabu-kamisato-base と同じ）。左の家・バス停・奥の神社・右の家並み
+  "erabu-igara-base": {
+    childcare: { x: 18, y: 36 },
+    transport: { x: 36, y: 50 },
+    disaster: { x: 40, y: 12 },
+    population: { x: 86, y: 40 },
+  },
   // 上郷以外の地区の仮の背景（飯田市全体の絵）。街並みの上に散らすだけ
   "erabu-iida-overview": {
     childcare: { x: 30, y: 40 },

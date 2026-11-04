@@ -16,6 +16,8 @@ const PARKING: Record<ErabuBaseId, { single: number; white: number; blue: number
   "erabu-chushin-base": { single: 70, white: 70, blue: 84.5, footY: 89, width: 18 },
   // 鼎の広場は奥ほど狭く、上郷と同じ位置だと青い車が右の石垣から出る。少し小さくして手前に置き、左に寄せる（家族の足もと 97.5% より奥のまま）
   "erabu-kanae-base": { single: 64, white: 64, blue: 78, footY: 96, width: 17 },
+  // 伊賀良は上郷と同じ構図なので、置き場所も同じ
+  "erabu-igara-base": { single: 70, white: 70, blue: 84.5, footY: 89, width: 18 },
   // 05 の背景。見本どおり左の家の前に置く（家族と重ならないよう、2台目も家族の左に収める）。
   // 家族は奥に下げ、車は家の前の少し手前に置く（2026-10-30 まさゆきさん：キャラと車のバランス、車はもう少し手前で大きく）
   "erabu-kamisato-priorities": { single: 26, white: 17, blue: 31.5, footY: 84, width: 16 },

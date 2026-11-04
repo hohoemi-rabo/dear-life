@@ -40,6 +40,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "erabu-chushin-base": { footY: 94, adultHeight: 32, centerX: 50 },
   // 鼎は広場の奥の端（84%）が上郷（75%）より手前にある。奥が窮屈に見えないよう、広場のいちばん手前に立たせる（2026-11-03 まさゆきさん）。家・車も同じ
   "erabu-kanae-base": { footY: 97.5, adultHeight: 32, centerX: 45 },
+  // 伊賀良は上郷と同じ構図なので、立ち位置も同じ
+  "erabu-igara-base": { footY: 94, adultHeight: 32, centerX: 50 },
   // 05 の背景。05 の主役は町（印）なので、家族は広場のいちばん奥（川べりの手前）に小さめに立たせる
   // （2026-10-30 まさゆきさん：キャラを小さく、いちばん奥まで）
   "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
