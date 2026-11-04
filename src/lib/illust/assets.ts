@@ -288,6 +288,13 @@ export const ILLUST_PICTURES = {
     widths: [480],
     alt: "桜の咲く広い道沿いに店が並ぶ、鼎の街並み",
   },
+  "district-igara": {
+    source: "district-igara.png",
+    width: 1672,
+    height: 941,
+    widths: [480],
+    alt: "桜の咲く飯田ICの料金所とバス停。カーブする高架の道路の奥に、山すその住宅と神社、雪の山が見える",
+  },
 } as const;
 
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
@@ -649,6 +656,7 @@ export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
   kamisato: "district-kamisato",
   chushin: "district-chushin",
   kanae: "district-kanae",
+  igara: "district-igara",
 };
 
 // えらぶ 02〜05 のプレビューの背景。まだない地区は飯田市全体の絵の上に家族を並べる（028 まさゆきさん了承）。
