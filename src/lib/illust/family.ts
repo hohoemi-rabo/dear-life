@@ -50,6 +50,8 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   // 家と車を左の砂利に置くので右に寄せ、バス停を隠さないよう手前に立たせる（頭がバスの下の高さ）。
   // この絵は町が左奥へ続くので、後ろ姿を左右反転して左奥を向かせる（2026-11-03 まさゆきさん）
   "erabu-kanae-priorities": { footY: 90, adultHeight: 20, centerX: 64, mirrorBack: true },
+  // 土の広場（奥の端は高さ 77%、右の端は幅の約 88%）の中に立たせ、家と車を置く左を空けて右に寄せる
+  "erabu-igara-priorities": { footY: 91, adultHeight: 20, centerX: 66 },
   // 上郷以外の地区の仮の背景。街並みが主役なので少し小さめに
   "erabu-iida-overview": { footY: 95, adultHeight: 28, centerX: 50 },
   // くらし：斜め後ろ姿で、広場の奥（柵の手前）から町を見る（2026-10-30 まさゆきさん：斜めのキャラにして奥に）

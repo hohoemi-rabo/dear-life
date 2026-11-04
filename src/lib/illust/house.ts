@@ -19,6 +19,8 @@ const LOTS: Record<ErabuBaseId, { centerX: number; footY: number; width: number 
   "erabu-chushin-priorities": { centerX: 12, footY: 82, width: 40 },
   // 左の手前のブロック塀と植え込み（土台の高さで幅の 13% まで）にかからないよう、砂利の上に収める（2026-11-03 まさゆきさん）
   "erabu-kanae-priorities": { centerX: 31, footY: 86, width: 36 },
+  // 土の広場（奥の端は高さ 77%、左の端は幅の約 10%）に収める。校舎の時計と「飯田IC」の看板も隠さない（2026-11-04 まさゆきさん：広場を狭くした絵に差しかえ）
+  "erabu-igara-priorities": { centerX: 28, footY: 88, width: 36 },
   // 上郷以外の地区の仮の背景。街並みを隠しすぎないよう少し小さめに
   "erabu-iida-overview": { centerX: 58, footY: 84, width: 52 },
 };

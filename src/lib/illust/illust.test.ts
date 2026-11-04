@@ -104,7 +104,7 @@ describe("絵の一覧", () => {
     expect(erabuBaseFor("chushin", "priorities")).toBe("erabu-chushin-priorities");
     expect(erabuBaseFor("kanae")).toBe("erabu-kanae-base");
     expect(erabuBaseFor("kanae", "priorities")).toBe("erabu-kanae-priorities");
-    expect(erabuBaseFor("igara", "priorities")).toBe("erabu-iida-overview");
+    expect(erabuBaseFor("igara", "priorities")).toBe("erabu-igara-priorities");
     expect(erabuBaseFor("igara")).toBe("erabu-igara-base");
     expect(erabuBaseFor(null)).toBe("erabu-iida-overview");
   });
@@ -206,7 +206,7 @@ describe("鼎の 05 の背景（2026-11-03 まさゆきさん）", () => {
 
 describe("placePriorityMarks（028 見本の 05）", () => {
   it("選んだものだけを、カルテの並びで、背景の中に置く", () => {
-    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kanae-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
+    for (const background of ["erabu-kamisato-priorities", "erabu-chushin-priorities", "erabu-kanae-priorities", "erabu-igara-priorities", "erabu-kamisato-base", "erabu-chushin-base", "erabu-kanae-base", "erabu-igara-base", "erabu-iida-overview"] as const) {
       const marks = placePriorityMarks(["population", "housing", "childcare", "transport", "disaster"], "old", background);
       expect(marks.map(({ priority }) => priority)).toEqual(["housing", "childcare", "transport", "disaster", "population"]);
       for (const { x, y } of marks) {

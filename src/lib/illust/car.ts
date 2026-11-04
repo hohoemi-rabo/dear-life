@@ -24,6 +24,8 @@ const PARKING: Record<ErabuBaseId, { single: number; white: number; blue: number
   "erabu-chushin-priorities": { single: 26, white: 17, blue: 31.5, footY: 89, width: 16 },
   // 左の塀と植え込みにかからないよう、砂利の上に収める（2026-11-03 まさゆきさん）
   "erabu-kanae-priorities": { single: 30, white: 22, blue: 34, footY: 90, width: 14 },
+  // 家の前の少し手前に置く。左下の石（幅の 16% まで）にかからないよう右に寄せ、2台でも家族の左に収める
+  "erabu-igara-priorities": { single: 33, white: 27, blue: 41, footY: 94, width: 14 },
   "erabu-iida-overview": { single: 70, white: 70, blue: 83.5, footY: 91, width: 16 },
 };
 
