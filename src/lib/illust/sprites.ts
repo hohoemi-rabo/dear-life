@@ -82,7 +82,7 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "event-kanae-petanque": { width: 1235, height: 961 },
   "event-kanae-bunkasai": { width: 1249, height: 1136 },
   "event-kanae-ekiden": { width: 1224, height: 1190 },
-  "event-kanae-winter-sports": { width: 1192, height: 1123 },
+  "event-kanae-winter-sports": { width: 1235, height: 1191 },
   "karte-header-wide": { width: 2172, height: 424 },
   "karte-header-tall": { width: 1536, height: 691 },
   "karte-header-chushin-wide": { width: 2172, height: 384 },
