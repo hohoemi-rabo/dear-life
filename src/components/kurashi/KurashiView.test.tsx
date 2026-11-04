@@ -128,7 +128,8 @@ beforeEach(() => {
 
 describe("KurashiView：季節の切り替え（F-11）", () => {
   it("最初は春。季節のボタンで切り替え、季節は URL の s に入る", async () => {
-    // 夏の場面の文を絵の下に出すのはドット絵の地区だけなので、絵のない伊賀良で見る
+    // 夏の場面の文を絵の下に出すのはドット絵の場面だけなので、伊賀良の絵を外して見る
+    withoutIgaraPictures();
     screenData = publishedIgara();
     await open("d=igara&a=2&k=1&h=new");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^伊賀良で、わが家の春(がはじまる)?。$/);

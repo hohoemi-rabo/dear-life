@@ -162,6 +162,8 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kanae-winter-tall": KANAE_TALL,
   "kurashi-igara-spring-wide": IGARA_WIDE,
   "kurashi-igara-spring-tall": IGARA_TALL,
+  "kurashi-igara-summer-wide": IGARA_WIDE,
+  "kurashi-igara-summer-tall": IGARA_TALL,
 };
 
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。

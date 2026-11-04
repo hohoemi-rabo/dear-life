@@ -233,6 +233,7 @@ describe("くらしのピン（028）", () => {
       { wide: "kurashi-kanae-autumn-wide", tall: "kurashi-kanae-autumn-tall" },
       { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" },
       { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
+      { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" },
     ] as const;
     for (const { wide, tall } of seasons) {
       for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {
