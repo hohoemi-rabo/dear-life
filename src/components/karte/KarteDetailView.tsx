@@ -22,7 +22,8 @@ import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { HousingPriceCard, useHousingTab, type HousingTab } from "./HousingCard";
-import { CARD_PICTURES, KARTE_CARD_ICONS } from "./KarteEntries";
+import { KarteCardIcon } from "./KarteCardIcon";
+import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
 import { OtherDetailCard, detailTabs, useDetailTab, type DetailTab } from "./DetailPanels";
 
@@ -117,7 +118,7 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
     <>
       {chosen && (
         <p className="hidden items-center gap-2 self-start rounded-button bg-pixel-sky/60 px-4 py-2 font-bold md:flex">
-          <PixelIcon icon={KARTE_CARD_ICONS[card]} size="sm" />
+          <KarteCardIcon card={card} size="sm" />
           選択中：{chosen}
         </p>
       )}

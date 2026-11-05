@@ -196,3 +196,20 @@ describe("わが家の設定の欄のアイコン（2026-11-05 まさゆきさ�
     }
   });
 });
+
+describe("項目ごとの印（2026-11-05 まさゆきさん）", () => {
+  it("タブは7項目それぞれの絵を出す。住まいはわが家の設定の家の絵で、どの絵のファイルもある", async () => {
+    await open("d=kamisato");
+    const nav = screen.getByRole("navigation", { name: "項目へ移る" });
+    const sources = Array.from(nav.querySelectorAll("img")).map((image) => image.getAttribute("src") ?? "");
+    expect(new Set(sources)).toEqual(
+      new Set([
+        "/illust/settings-housing-64.webp",
+        ...["childcare", "transport", "disaster", "population", "public_facilities", "support"].map((card) => `/illust/karte-icon-${card}-64.webp`),
+      ]),
+    );
+    for (const source of sources) {
+      expect(existsSync(join(process.cwd(), "public", source))).toBe(true);
+    }
+  });
+});

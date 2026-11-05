@@ -15,6 +15,9 @@ import {
   HOUSE_WIDTHS,
   ILLUST_DIR,
   ILLUST_PICTURES,
+  KARTE_ICON_INDEX,
+  KARTE_ICON_SOURCE,
+  KARTE_ICON_WIDTHS,
   PRIORITY_ICON_INDEX,
   PRIORITY_ICON_SOURCE,
   PRIORITY_ICON_WIDTHS,
@@ -243,6 +246,14 @@ for (const [icon, index] of Object.entries(SETTINGS_ICON_INDEX)) {
   const figure = settingsFigures[index];
   if (!figure) throw new Error(`${SETTINGS_ICON_SOURCE} の${index + 1}番目の絵がありません（${settingsFigures.length}個）`);
   await writeOpaqueCrop(SETTINGS_ICON_SOURCE, figure, `settings-${icon}`, SETTINGS_ICON_WIDTHS);
+}
+
+// カルテの項目ごとの印：2段に並んだ6つを切り分ける。大きさは画面で使わない（正方形の枠の中に収めて出す）
+const karteIconFigures = await figuresOf(KARTE_ICON_SOURCE);
+for (const [card, index] of Object.entries(KARTE_ICON_INDEX)) {
+  const figure = karteIconFigures[index];
+  if (!figure) throw new Error(`${KARTE_ICON_SOURCE} の${index + 1}番目の絵がありません（${karteIconFigures.length}個）`);
+  await writeOpaqueCrop(KARTE_ICON_SOURCE, figure, `karte-icon-${card}`, KARTE_ICON_WIDTHS);
 }
 
 const spriteLines = Object.entries(sizes).map(([id, { width, height }]) => `  "${id}": { width: ${width}, height: ${height} },`);

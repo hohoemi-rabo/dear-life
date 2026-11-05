@@ -6,7 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
-import { PixelIcon, type IconId } from "@/components/pixel/PixelIcon";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { KarteCardIcon } from "./KarteCardIcon";
 import { buttonClassName } from "@/components/ui/Button";
 import { CountLabel } from "@/components/ui/CountBadge";
 import { SourceNote } from "@/components/ui/SourceNote";
@@ -34,17 +35,6 @@ import { ABOUT_DATA_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 type Chosen = Conditions & { district: DistrictId };
-
-// 項目ごとの印（タブ・カードの見出し）
-export const KARTE_CARD_ICONS: Readonly<Record<KarteCard, IconId>> = {
-  housing: "icon-house",
-  childcare: "icon-school",
-  transport: "icon-transport",
-  disaster: "icon-disaster",
-  population: "icon-population",
-  public_facilities: "icon-public",
-  support: "icon-support",
-};
 
 // カードの絵（2026-11-01 受け取り。春の絵を4地区で使い回す）。住まいは選んだ家の絵
 export const CARD_PICTURES: Readonly<Record<Exclude<KarteCard, "housing">, PropId>> = {
@@ -138,7 +128,7 @@ export function KarteTabs({ cards }: { cards: readonly KarteCard[] }) {
                   active ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
                 ].join(" ")}
               >
-                <PixelIcon icon={KARTE_CARD_ICONS[card]} size="sm" />
+                <KarteCardIcon card={card} size="sm" />
                 {KARTE_CARD_LABELS[card]}
               </a>
             </li>
@@ -181,7 +171,7 @@ function EntryFrame({
       <div className="flex gap-2 md:gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5 md:gap-2">
           <h2 className="flex items-center gap-2 text-xl font-bold">
-            <PixelIcon icon={KARTE_CARD_ICONS[card]} />
+            <KarteCardIcon card={card} />
             {KARTE_CARD_LABELS[card]}
           </h2>
           <p className="text-base font-bold md:text-lg">{question}</p>
@@ -413,7 +403,7 @@ function MinorEntry({ card, href }: { card: MinorKarteCard; href: string }) {
       className="group flex w-full items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-card hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:flex-col md:items-stretch md:p-4"
     >
       <span className="flex min-w-0 flex-1 items-center gap-3 md:items-start">
-        <PixelIcon icon={KARTE_CARD_ICONS[card]} />
+        <KarteCardIcon card={card} />
         <span className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-start md:justify-between">
           <span className="flex min-w-0 flex-col gap-1">
             <span className="text-lg font-bold">{KARTE_CARD_LABELS[card]}</span>

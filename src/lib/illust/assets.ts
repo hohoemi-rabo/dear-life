@@ -1,7 +1,7 @@
 // 生成AIで作った絵（028）の一覧。元の画像は assets/illust/（まさゆきさんが用意）、画面用の WebP は npm run illust が
 // public/illust/ に書き出す。ドット絵（src/lib/pixel/、コードで描く）とは別のもの。
 // 本当のドットの粒がそろった絵ではないので、整数倍の表示（pixelated）にはせず、ふつうに縮めて出す
-import type { Housing, Priority } from "../conditions/labels.ts";
+import type { Housing, KarteCard, Priority } from "../conditions/labels.ts";
 import type { Season } from "../conditions/scene.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 
@@ -850,6 +850,33 @@ export function settingsIconSrc(icon: SettingsIconId, width: number): string {
 
 export function settingsIconSrcSet(icon: SettingsIconId): string {
   return SETTINGS_ICON_WIDTHS.map((width) => `${settingsIconSrc(icon, width)} ${width}w`).join(", ");
+}
+
+// カルテの項目ごとの印（タブ・カードの見出し。2026-11-05 受け取り）。karte-icons.png に上の段の左から 校舎・バス・ヘルメット、
+// 下の段の左から 3人・本のある建物・手とハート が並んでいる。住まいは「わが家の設定」の家の絵を使う（2026-11-05 まさゆきさん）
+export const KARTE_ICON_SOURCE = "karte-icons.png";
+export const KARTE_ICON_INDEX: Readonly<Record<Exclude<KarteCard, "housing">, number>> = {
+  childcare: 0,
+  transport: 1,
+  disaster: 2,
+  population: 3,
+  public_facilities: 4,
+  support: 5,
+};
+
+// 書き出す横幅。画面では 24px と 32px で出すので、高解像度の画面の分まで用意する
+export const KARTE_ICON_WIDTHS = [64, 128] as const;
+
+function karteIconName(card: KarteCard): string {
+  return card === "housing" ? "settings-housing" : `karte-icon-${card}`;
+}
+
+export function karteIconSrc(card: KarteCard, width: number): string {
+  return `/${ILLUST_DIR}/${karteIconName(card)}-${width}.webp`;
+}
+
+export function karteIconSrcSet(card: KarteCard): string {
+  return KARTE_ICON_WIDTHS.map((width) => `${karteIconSrc(card, width)} ${width}w`).join(", ");
 }
 
 export function illustPictureSrc(id: IllustPictureId, width: number): string {
