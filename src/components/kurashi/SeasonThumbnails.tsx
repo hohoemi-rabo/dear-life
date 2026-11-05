@@ -1,17 +1,13 @@
 "use client";
 
-import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { IllustPicture } from "@/components/illust/IllustPicture";
-import { PixelScene } from "@/components/pixel/PixelScene";
 import type { Conditions } from "@/lib/conditions/model";
 import { SEASONS, type Season } from "@/lib/conditions/scene";
 import { kurashiPicturesFor } from "@/lib/illust/assets";
-import { seasonView } from "@/lib/kurashi/view";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { SEASON_STYLES } from "./season-styles";
 
-// PC：場面の下の4季節の絵（028 見本）。押すとその季節に切り替わる。風景の絵がある季節はその絵、ない季節は今のドット絵。
-// ScreenDataBoundary の中で使う
+// PC：場面の下の4季節の絵（028 見本）。押すとその季節に切り替わる。
 // 縦長（4:5）の枠に横長（3:2）の絵を object-cover で出すので、絵の表示幅は枠の幅（PC で約120px）の約1.9倍になる
 const SEASON_THUMBNAIL_SIZES = "225px";
 
@@ -24,7 +20,6 @@ export function SeasonThumbnails({
   conditions: Conditions & { district: DistrictId };
   onSelect: (season: Season) => void;
 }) {
-  const data = useScreenData();
   return (
     <ul aria-label="季節の場面" className="grid grid-cols-4 gap-2">
       {SEASONS.map((item) => {
@@ -44,13 +39,7 @@ export function SeasonThumbnails({
               ].join(" ")}
             >
               {/* 絵の説明は大きい場面のほうで読むので、ここではボタンの名前だけを読ませる */}
-              {pictures ? (
-                <IllustPicture picture={pictures.wide} sizes={SEASON_THUMBNAIL_SIZES} decorative className="block aspect-[4/5] w-full object-cover" />
-              ) : (
-                <div aria-hidden="true" className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-pixel-sky">
-                  <PixelScene layers={seasonView(item, conditions, data).layers} widthClassName="w-[320px] max-w-none shrink-0" />
-                </div>
-              )}
+              <IllustPicture picture={pictures.wide} sizes={SEASON_THUMBNAIL_SIZES} decorative className="block aspect-[4/5] w-full object-cover" />
             </button>
           </li>
         );

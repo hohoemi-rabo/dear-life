@@ -1,7 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
-import { KURASHI_PICTURES } from "@/lib/illust/assets";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { SCENE_TEMPLATE_DRAFTS } from "@/lib/scenes/drafts";
@@ -98,19 +97,10 @@ function published(kanae: Partial<DistrictData> = KANAE): ScreenData {
   return { ...screenDataFixture({ kanae }), sources: [WINTER], sceneTemplates: templates };
 }
 
-// 生成AIの絵がまだない地区（伊賀良）の、ドット絵の場面を確かめるためのデータ。鼎には4季節の絵が入ったので、ドット絵はこちらで見る
+// 伊賀良の場面を確かめるためのデータ
 function publishedIgara(): ScreenData {
   return { ...screenDataFixture({ igara: KANAE }), sources: [WINTER], sceneTemplates: published().sceneTemplates };
 }
-
-// 絵のない季節のドット絵の場面を春で確かめるため、伊賀良の絵を一時的になくす（元に戻すのは afterEach）
-const IGARA_PICTURES = KURASHI_PICTURES.igara;
-function withoutIgaraPictures() {
-  delete KURASHI_PICTURES.igara;
-}
-afterEach(() => {
-  KURASHI_PICTURES.igara = IGARA_PICTURES;
-});
 
 async function open(query: string) {
   url.set(`/kurashi?${query}`);
@@ -120,7 +110,6 @@ async function open(query: string) {
 }
 
 const params = () => new URLSearchParams(url.query);
-const sceneWindow = () => screen.getByRole("region", { name: /^.｜/ });
 
 beforeEach(() => {
   screenData = published();
@@ -128,8 +117,6 @@ beforeEach(() => {
 
 describe("KurashiView：季節の切り替え（F-11）", () => {
   it("最初は春。季節のボタンで切り替え、季節は URL の s に入る", async () => {
-    // 夏の場面の文を絵の下に出すのはドット絵の場面だけなので、伊賀良の絵を外して見る
-    withoutIgaraPictures();
     screenData = publishedIgara();
     await open("d=igara&a=2&k=1&h=new");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^伊賀良で、わが家の春(がはじまる)?。$/);
@@ -142,7 +129,6 @@ describe("KurashiView：季節の切り替え（F-11）", () => {
     expect(params().get("s")).toBe("summer");
     expect(params().get("d")).toBe("igara");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/^伊賀良で、わが家の夏(がはじまる)?。$/);
-    expect(sceneWindow()).toHaveTextContent("大雨と避難");
   });
 
   it("URL の季節で開く", async () => {
@@ -152,52 +138,35 @@ describe("KurashiView：季節の切り替え（F-11）", () => {
 });
 
 describe("KurashiView：場面（F-12）", () => {
-  it("ドット絵1枚と、文の種類ごとの印、出典の番号、カルテの該当カードへのリンクを出す", async () => {
+  it("4地区4季節のどれも、風景の絵とピンで出す", async () => {
+    for (const [district, name] of [["kamisato", "上郷"], ["kanae", "鼎"], ["igara", "伊賀良"], ["chushin", "中心市街地"]] as const) {
+      for (const [slug, season] of [["spring", "春"], ["summer", "夏"], ["autumn", "秋"], ["winter", "冬"]] as const) {
+        cleanup();
+        await open(`d=${district}&a=2&k=1&h=new&s=${slug}`);
+        expect(screen.getByRole("group", { name: new RegExp(`^${name}の${season}の風景`) })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "学校", expanded: false })).toBeInTheDocument();
+      }
+    }
+  });
+
+  it("学校のピンのシートに、文の種類ごとの印と出典の番号、カルテへのリンクを出す", async () => {
     screenData = publishedIgara();
-    withoutIgaraPictures();
     await open("d=igara&a=2&k=1&h=new");
-    expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();
-    expect(screen.getByText("伊賀良の春")).toBeInTheDocument();
-
-    const scene = sceneWindow();
-    expect(scene).toHaveTextContent("春｜入園・入学の季節");
-    expect(within(scene).getByText(/伊賀良には、保育園・幼稚園等が2か所あります。/)).toHaveTextContent("出典1");
-    expect(within(scene).getByText(/春、入園と入学の季節です。/)).toHaveTextContent("想定");
-    // 学区はデータ未取得なので、文を出さずに知らせにする
-    expect(within(scene).getByText(/データ未取得/)).toBeInTheDocument();
-    expect(within(scene).getByRole("link", { name: /子育て・学校をカルテで確認/ })).toHaveAttribute(
-      "href",
-      "/karte/childcare?s=spring&d=igara&a=2&k=1&h=new",
-    );
-    expect(within(scene).getByText(NOTICES.schoolDistrict)).toBeInTheDocument();
-
-    fireEvent.click(within(scene).getByText("出典・確認日を見る"));
-    expect(within(scene).getByText("飯田市「子育て施設」")).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "学校", expanded: false }));
+    });
+    const sheet = screen.getByRole("dialog");
+    expect(within(sheet).getByText(/伊賀良には、保育園・幼稚園等が2か所あります。/)).toHaveTextContent("出典1");
+    expect(within(sheet).getByText(/春、入園と入学の季節です。/)).toHaveTextContent("想定");
+    expect(within(sheet).getByText("飯田市「子育て施設」")).toBeInTheDocument();
+    expect(within(sheet).getByRole("link", { name: /確かめる/ }).getAttribute("href")).toMatch(/^\/karte\/childcare\?/);
   });
 
-  it("冬・車0台：本物の便と、いつの時刻表かを出す", async () => {
-    withoutIgaraPictures();
-    screenData = publishedIgara();
-    await open("d=igara&c=0&s=winter");
-    const scene = sceneWindow();
-    expect(scene).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
-    expect(within(scene).getByText("2027年1月16日（土）の時刻表")).toBeInTheDocument();
-    const gofreely = within(scene).getByRole("link", { name: /この便を gofreely で調べる/ });
-    expect(gofreely).toHaveAttribute("target", "_blank");
-    expect(gofreely.getAttribute("href")).toMatch(/^https:\/\/gofreely\.rabo-hohoemi\.workers\.dev\/\?from=/);
-    expect(within(scene).getByText(NOTICES.carFree)).toBeInTheDocument();
-    expect(within(scene).getByRole("link", { name: /交通をカルテで確認/ })).toHaveAttribute(
-      "href",
-      "/karte/transport?s=winter&d=igara&a=2&k=1&h=new&c=0",
-    );
-  });
-
-  it("ひな形がまだ公開されていない季節も、絵は出して文章は「準備中」と出す", async () => {
-    withoutIgaraPictures();
+  it("ひな形がまだ公開されていなくても、風景の絵とピンは出す", async () => {
     screenData = { ...published(), sceneTemplates: [] };
     await open("d=igara");
-    expect(screen.getByRole("img", { name: /春の景色/ })).toBeInTheDocument();
-    expect(sceneWindow()).toHaveTextContent("この季節の場面の文章は準備中です。");
+    expect(screen.getByRole("group", { name: /^伊賀良の春の風景/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "学校", expanded: false })).toBeInTheDocument();
   });
 });
 
@@ -376,14 +345,6 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("長野・名古屋・新宿");
     expect(sheet).toHaveTextContent("飯田市「公共交通機関等のご案内」");
     expect(within(sheet).queryByRole("link", { name: /公共交通機関等のご案内/ })).not.toBeInTheDocument();
-  });
-
-  it("絵のない地区は、今のドット絵と場面の文で出す（ピンはない）", async () => {
-    withoutIgaraPictures();
-    screenData = publishedIgara();
-    await open("d=igara&a=2&k=1&h=new&s=winter");
-    expect(sceneWindow()).toHaveTextContent("雪・凍結と車の移動");
-    expect(screen.queryByRole("button", { name: "学校" })).not.toBeInTheDocument();
   });
 });
 

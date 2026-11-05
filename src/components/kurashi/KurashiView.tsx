@@ -15,7 +15,7 @@ import { kurashiPicturesFor, type KurashiPictures } from "@/lib/illust/assets";
 import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { karteHref } from "@/lib/kurashi/links";
 import { pinSheet } from "@/lib/kurashi/pin-sheets";
-import { ALL_EVENTS_KEY, openPinSpec, scenePins, type ScenePinSpec } from "@/lib/kurashi/pins";
+import { ALL_EVENTS_KEY, openPinSpec, scenePins } from "@/lib/kurashi/pins";
 import { useSeason } from "@/lib/kurashi/useSeason";
 import { seasonView } from "@/lib/kurashi/view";
 import { ERABU_PATH } from "@/lib/site";
@@ -26,7 +26,6 @@ import { HomeCard } from "./HomeCard";
 import { IllustratedScene, preloadScenePicture } from "./IllustratedScene";
 import { KurashiTabBar } from "./KurashiTabBar";
 import { PinSheetContent } from "./PinSheetContent";
-import { SCENE_WIDTH_CLASS, ScenePanel } from "./ScenePanel";
 import { SceneHeading } from "./SceneHeading";
 import { SeasonThumbnails } from "./SeasonThumbnails";
 import { useWideScreen } from "./useWideScreen";
@@ -34,8 +33,7 @@ import { useWideScreen } from "./useWideScreen";
 type Chosen = Conditions & { district: DistrictId };
 
 // 02 くらしを見る（F-11〜F-14・F-04。028 見本）。条件と季節は URL パラメータに持つ（F-02）。useSearchParams を使うので <Suspense> の中で使う。
-// 風景の絵がある場面（まず上郷・春）は、風景を主役にしてピンを立て、ピンを押すとその場所のデータを出す（スマホは下からのシート、PC は吹き出し）。
-// 絵がまだない地区・季節は、今のドット絵と場面の文（ScenePanel）を同じ枠の中で出す。
+// 風景を主役にしてピンを立て、ピンを押すとその場所のデータを出す（スマホは下からのシート、PC は吹き出し）。
 // スマホは下に「くらし・カルテ・地区くらべ・地図」のタブ、PC は左に「わが家」を置く
 export function KurashiView() {
   const { conditions, setConditions } = useConditions();
@@ -48,7 +46,7 @@ export function KurashiView() {
 
   const chosen: Chosen = { ...conditions, district };
   const pictures = kurashiPicturesFor(district, season);
-  if (pictures) preloadScenePicture(pictures);
+  preloadScenePicture(pictures);
   const changeSeason = (next: Season) => {
     setOpenPin(null);
     setSeason(next);
@@ -59,7 +57,6 @@ export function KurashiView() {
       season={season}
       onSeasonChange={changeSeason}
       onChangeConditions={() => setConditionsOpen(true)}
-      hasPins={pictures !== null}
     />
   );
 
@@ -70,32 +67,23 @@ export function KurashiView() {
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">
-        {pictures ? (
-          // 風景の絵は画面の端まで広げる（スマホ）。見出し・条件の札・季節の切りかえは絵の空の上に重ねる（見本）。
-          // スマホは重ねるものが多く空からはみ出すので、絵の上に空と同じ色の帯を少し足し、絵を見出しの下にもぐらせる
-          // （もぐらせる量は幅に対する％＝絵の高さの約3割。空と雪山の範囲）
-          <section
-            aria-label="季節の場面"
-            style={skyStyle(pictures)}
-            className="-mx-4 -mt-6 flex flex-col bg-[var(--sky)] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
-          >
-            <div className="relative z-30 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] px-4 pb-3 pt-3 lg:absolute lg:inset-x-0 lg:top-0 lg:pb-8 lg:pt-6">
-              {heading}
-            </div>
-            <div className="-mt-[37%] lg:mt-0">
-              <ScreenDataBoundary fallback={<Skeleton className="aspect-[1122/1402] w-full rounded-none lg:aspect-[3/2]" />}>
-                <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
-              </ScreenDataBoundary>
-            </div>
-          </section>
-        ) : (
-          <section aria-label="季節の場面" className="flex flex-col gap-4">
+        {/* 風景の絵は画面の端まで広げる（スマホ）。見出し・条件の札・季節の切りかえは絵の空の上に重ねる（見本）。
+            スマホは重ねるものが多く空からはみ出すので、絵の上に空と同じ色の帯を少し足し、絵を見出しの下にもぐらせる
+            （もぐらせる量は幅に対する％＝絵の高さの約3割。空と雪山の範囲） */}
+        <section
+          aria-label="季節の場面"
+          style={skyStyle(pictures)}
+          className="-mx-4 -mt-6 flex flex-col bg-[var(--sky)] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
+        >
+          <div className="relative z-30 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] px-4 pb-3 pt-3 lg:absolute lg:inset-x-0 lg:top-0 lg:pb-8 lg:pt-6">
             {heading}
-            <ScreenDataBoundary fallback={<SceneSkeleton />}>
-              <ScenePanel season={season} conditions={chosen} />
+          </div>
+          <div className="-mt-[37%] lg:mt-0">
+            <ScreenDataBoundary fallback={<Skeleton className="aspect-[1122/1402] w-full rounded-none lg:aspect-[3/2]" />}>
+              <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
             </ScreenDataBoundary>
-          </section>
-        )}
+          </div>
+        </section>
 
         <ScreenDataBoundary fallback={<Skeleton className="h-28" />}>
           <BelowScene
@@ -106,13 +94,6 @@ export function KurashiView() {
             onSeasonChange={changeSeason}
           />
         </ScreenDataBoundary>
-
-        {/* 絵がない場面の行事（下の「春の楽しみ」から開く）は、PC でも下からのシートで出す */}
-        {!pictures && (
-          <ScreenDataBoundary fallback={null}>
-            <PinBottomSheet pin={openPin} pictures={null} season={season} conditions={chosen} onClose={() => setOpenPin(null)} />
-          </ScreenDataBoundary>
-        )}
       </div>
 
       <KurashiTabBar conditions={chosen} season={season} />
@@ -157,14 +138,12 @@ function useSeasonView(season: Season, conditions: Chosen) {
   return seasonView(season, conditions, useScreenData());
 }
 
-// 絵の上のピンと、開いているピンのシートの中身。絵がない場面は、下の「春の楽しみ」から開く行事のシートだけ
-function useScenePins(season: Season, conditions: Chosen, pictures: KurashiPictures | null, openPin: string | null) {
+// 絵の上のピンと、開いているピンのシートの中身
+function useScenePins(season: Season, conditions: Chosen, pictures: KurashiPictures, openPin: string | null) {
   const view = useSeasonView(season, conditions);
-  const pins = pictures ? scenePins(view.plan, conditions, pictures, view.events) : [];
-  const spec = pictures ? openPinSpec(pins, openPin, view.events) : null;
-  const open: Pick<ScenePinSpec, "kind" | "events"> | null =
-    spec ?? (!pictures && openPin === ALL_EVENTS_KEY ? { kind: "event", events: view.events } : null);
-  const sheet = open ? pinSheet({ pin: open.kind, season, conditions, ...view, events: open.events ?? view.events }) : null;
+  const pins = scenePins(view.plan, conditions, pictures, view.events);
+  const spec = openPinSpec(pins, openPin, view.events);
+  const sheet = spec ? pinSheet({ pin: spec.kind, season, conditions, ...view, events: spec.events ?? view.events }) : null;
   // シートの小さな絵・PC の吹き出しの場所
   return { view, pins, sheet, spot: spec?.wide ?? null };
 }
@@ -215,7 +194,7 @@ function SceneWithPins({
   );
 }
 
-// ピンの中身を下からのシートで出す（スマホ。絵がない場面の行事は PC でも）
+// ピンの中身を下からのシートで出す（スマホ）
 function PinBottomSheet({
   pin,
   pictures,
@@ -224,7 +203,7 @@ function PinBottomSheet({
   onClose,
 }: {
   pin: string | null;
-  pictures: KurashiPictures | null;
+  pictures: KurashiPictures;
   season: Season;
   conditions: Chosen;
   onClose: () => void;
@@ -237,7 +216,7 @@ function PinBottomSheet({
           sheet={sheet}
           season={season}
           conditions={conditions}
-          thumbnail={pictures && spot ? { picture: pictures.wide, spot } : null}
+          thumbnail={spot ? { picture: pictures.wide, spot } : null}
         />
       )}
     </BottomSheet>
@@ -253,7 +232,7 @@ function BelowScene({
   onOpenEvents,
   onSeasonChange,
 }: {
-  pictures: KurashiPictures | null;
+  pictures: KurashiPictures;
   season: Season;
   conditions: Chosen;
   onOpenEvents: () => void;
@@ -267,7 +246,7 @@ function BelowScene({
       <EventCard
         season={season}
         events={events}
-        thumbnail={pictures && spot ? { picture: pictures.wide, spot } : null}
+        thumbnail={spot ? { picture: pictures.wide, spot } : null}
         onOpen={onOpenEvents}
         heading
       />
@@ -296,16 +275,6 @@ function NoDistrict({ conditions }: { conditions: Conditions }) {
           <span aria-hidden="true">→</span>
         </ButtonLink>
       </Card>
-    </div>
-  );
-}
-
-function SceneSkeleton() {
-  return (
-    <div role="status" aria-busy="true" className="flex flex-col items-center gap-4">
-      <span className="sr-only">場面を読み込んでいます</span>
-      <Skeleton className={`aspect-[16/9] ${SCENE_WIDTH_CLASS}`} />
-      <Skeleton className="h-40 w-full" />
     </div>
   );
 }

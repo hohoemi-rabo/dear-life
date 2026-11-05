@@ -869,7 +869,7 @@ export function erabuBaseFor(district: DistrictId | null, scene: ErabuScene = "b
   return bases?.[scene] ?? bases?.base ?? "erabu-iida-overview";
 }
 
-// くらしの場面の絵（028）。上郷の春・夏・秋・冬。ない地区・季節は今のドット絵の場面（ScenePanel）で出す
+// くらしの場面の絵（028）。4地区の春・夏・秋・冬
 export type KurashiPictureId =
   | "kurashi-kamisato-spring-wide"
   | "kurashi-kamisato-spring-tall"
@@ -905,7 +905,7 @@ export type KurashiPictureId =
   | "kurashi-igara-winter-tall";
 export type KurashiPictures = { wide: KurashiPictureId; tall: KurashiPictureId };
 
-export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season, KurashiPictures>>>> = {
+export const KURASHI_PICTURES: Readonly<Record<DistrictId, Readonly<Record<Season, KurashiPictures>>>> = {
   kamisato: {
     春: { wide: "kurashi-kamisato-spring-wide", tall: "kurashi-kamisato-spring-tall" },
     夏: { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" },
@@ -932,6 +932,6 @@ export const KURASHI_PICTURES: Partial<Record<DistrictId, Partial<Record<Season,
   },
 };
 
-export function kurashiPicturesFor(district: DistrictId, season: Season): KurashiPictures | null {
-  return KURASHI_PICTURES[district]?.[season] ?? null;
+export function kurashiPicturesFor(district: DistrictId, season: Season): KurashiPictures {
+  return KURASHI_PICTURES[district][season];
 }

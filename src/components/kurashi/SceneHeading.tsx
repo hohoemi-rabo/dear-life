@@ -14,14 +14,11 @@ export function SceneHeading({
   season,
   onSeasonChange,
   onChangeConditions,
-  hasPins,
 }: {
   conditions: Conditions & { district: DistrictId };
   season: Season;
   onSeasonChange: (season: Season) => void;
   onChangeConditions: () => void;
-  // ピンのある場面か（ない場面は今のドット絵と文。上郷・春以外）
-  hasPins: boolean;
 }) {
   const name = DISTRICT_NAMES[conditions.district];
   return (
@@ -31,14 +28,8 @@ export function SceneHeading({
         <span className="hidden lg:inline">がはじまる</span>。
       </h1>
       <p className="text-sm text-ink lg:text-base">
-        {hasPins ? (
-          <>
-            <span className="lg:hidden">気になる場所をタップしてみよう。</span>
-            <span className="hidden lg:inline">気になる場所をタップして、暮らしを発見しよう。</span>
-          </>
-        ) : (
-          "季節を選んで、飯田での暮らしをのぞいてみよう。"
-        )}
+        <span className="lg:hidden">気になる場所をタップしてみよう。</span>
+        <span className="hidden lg:inline">気になる場所をタップして、暮らしを発見しよう。</span>
       </p>
       {/* 条件の札（スマホ。PC は左の「わが家」に出す） */}
       <p className="flex min-h-tap items-center gap-2 rounded-full bg-surface/90 py-0.5 pl-3 pr-0.5 text-sm shadow-card lg:hidden">

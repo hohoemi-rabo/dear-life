@@ -2,16 +2,13 @@
 import type { Conditions } from "../conditions/model.ts";
 import { planScene, type ScenePlan, type Season } from "../conditions/scene.ts";
 import type { DistrictData, DistrictEvent, ScreenData } from "../data/screen-data.ts";
-import type { SceneLayer } from "../pixel/scenes.ts";
 import { renderScene, selectSceneEvents, type Scene } from "../scenes/render.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
-import { scenePictureLayers } from "./picture.ts";
 
 export type SeasonView = {
   plan: ScenePlan;
   district: DistrictData;
   events: readonly DistrictEvent[];
-  layers: readonly SceneLayer[];
   // 公開済みのひな形がない季節は null（「この季節の場面の文章は準備中です」）
   scene: Scene | null;
 };
@@ -29,7 +26,6 @@ export function seasonView(
     plan,
     district,
     events,
-    layers: scenePictureLayers({ plan, conditions, district, events }),
     scene: renderScene(season, conditions, data),
   };
 }

@@ -15,7 +15,7 @@ import type { PinSheet, SheetSource } from "@/lib/kurashi/pin-sheets";
 import { thumbnailPosition, type PinSpot } from "@/lib/kurashi/pins";
 import { buttonClassName } from "@/components/ui/Button";
 import { EventItem } from "./EventItem";
-import { SceneLineView, timetableNotePositions } from "./ScenePanel";
+import { SceneLineView, timetableNotePositions } from "./SceneLineView";
 
 // シートの小さな絵は、横長の風景をこの倍率に拡大して、ピンの場所のまわりを切り出す
 const THUMBNAIL_ZOOM = 3.2;
