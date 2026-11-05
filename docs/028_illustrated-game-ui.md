@@ -956,7 +956,7 @@
 
 ## 次のセッションへの引き継ぎ（2026-11-05 伊賀良のカルテの見出しのあと。これが最新）
 
-- **終わったこと**：`karte-header-igara-wide.png`（2172×724）・`-tall.png`（1536×1024）を `KARTE_HEADERS` に足した。スクショは `~/dear-life-screenshots/2026-11-05-karte-header-igara/`。まさゆきさんの確認待ちで、**push していない**
+- **終わったこと**：`karte-header-igara-wide.png`（2172×724）・`-tall.png`（1536×1024）を `KARTE_HEADERS` に足した。スクショは `~/dear-life-screenshots/2026-11-05-karte-header-igara/`。2026-11-05 まさゆきさん OK、push した
 - 絵は、山すその住宅と、飯田ICの料金所、高架の道路、高速バスの乗り場。これで伊賀良の絵はそろう
 - **次にやること**：ドット絵の場面（くらしの `ScenePanel` まわり）を消すかをまさゆきさんに聞く → 地区くらべ → 地図 → 023 → 025
 
