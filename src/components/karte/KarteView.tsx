@@ -6,7 +6,6 @@ import { ChooseAgainLink, ConditionsPanel, ConditionsStrip } from "@/components/
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { FamilyRow } from "@/components/illust/FamilyRow";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
-import { PixelImage } from "@/components/pixel/PixelImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
@@ -65,6 +64,21 @@ export function KarteView() {
   );
 }
 
+// 「わが家のカルテ」の左の本。PC は見出しの横に大きく、スマホは見出しの文字の左に出す。飾りなので読み上げない
+function TitleBook({ className }: { className: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+    <img
+      src={propSrc("karte-title-book", 96)}
+      srcSet={propSrcSet("karte-title-book")}
+      sizes="48px"
+      alt=""
+      draggable={false}
+      className={`shrink-0 select-none object-contain ${className}`}
+    />
+  );
+}
+
 // 見出し（見本）：家族の絵（PC）・本の印・「わが家のカルテ」・地区の一文・並びの一文と、右に風景の絵。
 // 並びの一文は、条件がどう並びに反映されたかを必ず伝えるもの（要件 4章）
 function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readonly string[] }) {
@@ -72,10 +86,10 @@ function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readon
   return (
     <header className="flex items-center gap-3 md:gap-4">
       <FamilyRow conditions={conditions} fatherHeight={64} lazy className="hidden shrink-0 xl:flex" />
-      <PixelImage asset="icon-book" scale={3} decorative className="hidden shrink-0 sm:block" />
+      <TitleBook className="hidden size-12 sm:block" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h1 className="flex items-center gap-2 whitespace-nowrap text-xl font-extrabold sm:text-2xl md:text-3xl">
-          <PixelIcon icon="icon-book" className="sm:hidden" />
+          <TitleBook className="size-8 sm:hidden" />
           わが家のカルテ
         </h1>
         <p className="text-sm md:text-base">

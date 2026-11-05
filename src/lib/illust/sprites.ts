@@ -125,6 +125,7 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "karte-header-kanae-tall": { width: 1536, height: 920 },
   "karte-header-igara-wide": { width: 2141, height: 561 },
   "karte-header-igara-tall": { width: 1522, height: 872 },
+  "karte-title-book": { width: 818, height: 648 },
   "karte-next-step-bg-kamisato": { width: 1983, height: 331 },
   "karte-next-step-bg-kanae": { width: 1983, height: 336 },
   "karte-next-step-bg-igara": { width: 2172, height: 407 },

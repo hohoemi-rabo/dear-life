@@ -224,3 +224,12 @@ describe("下の帯の絵（2026-11-05 まさゆきさん）", () => {
     expect(band.querySelectorAll('img[src*="/person-"]')).toHaveLength(3);
   });
 });
+
+describe("見出しの本の絵（2026-11-05 まさゆきさん）", () => {
+  it("PC 用とスマホ用の本を出し、絵のファイルもある", async () => {
+    await open("d=kamisato");
+    const books = document.querySelectorAll('header img[src="/illust/karte-title-book-96.webp"]');
+    expect(books).toHaveLength(2);
+    expect(existsSync(join(process.cwd(), "public/illust/karte-title-book-96.webp"))).toBe(true);
+  });
+});
