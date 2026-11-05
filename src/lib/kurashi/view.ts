@@ -23,7 +23,8 @@ export function seasonView(
 ): SeasonView {
   const plan = planScene(season, conditions);
   const district = data.districts[conditions.district];
-  const events = selectSceneEvents(district, plan);
+  // ピンとシートには、その季節の公開中の行事を全部出す（2026-11-05 伊賀良の夏3件・秋4件にそれぞれ絵と場所があるため）。場面の文に差し込むのは renderScene の中で最大2つのまま
+  const events = selectSceneEvents(district, plan, Number.POSITIVE_INFINITY);
   return {
     plan,
     district,

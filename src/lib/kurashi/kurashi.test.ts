@@ -8,6 +8,7 @@ import { karteHref } from "./links";
 import { scenePictureLayers } from "./picture";
 import { ALL_EVENTS_KEY, EVENT_PINS, PIN_SPOTS, openPinSpec, scenePinFor, scenePins, thumbnailPosition } from "./pins";
 import { parseSeason } from "./season";
+import { seasonView } from "./view";
 
 describe("parseSeason", () => {
   it("URL の季節を読む。値なし・知らない値は春", () => {
@@ -264,5 +265,17 @@ describe("くらしのピン（028）", () => {
     // 絵の 25% の点 × 幅3倍 = 枠の 0.75 倍の位置。真ん中（0.5）に来るよう (0.75 - 0.5) / (3 - 1) = 12.5%
     expect(x).toBeCloseTo(12.5);
     expect(thumbnailPosition({ x: 1, y: 99 }, 3, 16 / 9, 16 / 9)).toEqual({ x: 0, y: 100 });
+  });
+});
+
+describe("seasonView の行事（2026-11-05）", () => {
+  it("ピンとシートには、その季節の行事を3件以上でも全部渡す", () => {
+    const data = screenDataFixture();
+    const base = data.districts.igara.events[0] ?? ({ season: "夏", chushinArea: null, timingNote: "例年8月", scope: "地区全体", participation: "未確認", participationNote: null, isForChildren: false, art: "祭り", sourceNote: "テスト", checkedOn: "2026-11-05" } as Omit<DistrictEvent, "name"> as DistrictEvent);
+    const events = ["いいだ人形劇フェスタ 伊賀良地区公演", "こども寺子屋", "夏季スポーツ交流会（囲碁ボール）"].map((name) => ({ ...base, season: "夏" as const, name }));
+    const view = seasonView("夏", { ...DEFAULT_CONDITIONS, district: "igara" }, { ...data, districts: { ...data.districts, igara: { ...data.districts.igara, events } } });
+    expect(view.events.map((event) => event.name)).toEqual(events.map((event) => event.name));
+    const pins = scenePins(view.plan, DEFAULT_CONDITIONS, { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" }, view.events);
+    expect(pins.filter((pin) => pin.kind === "event").map((pin) => pin.label)).toEqual(["人形劇", "寺子屋", "囲碁ボール"]);
   });
 });

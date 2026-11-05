@@ -138,6 +138,8 @@ const IGARA_TALL: PinSpots = {
 };
 // スマホの冬は路線バスの札が右に伸びるので、地域の行事を少し上げて札どうしが重ならないようにする
 const IGARA_WINTER_TALL: PinSpots = { ...IGARA_TALL, event: { x: 89.5, y: 66.5, side: "left" } };
+// スマホの夏は体育館と公民館に行事のピンが3本立つので、避難場所を少し左へ寄せて札と重ならないようにする
+const IGARA_SUMMER_TALL: PinSpots = { ...IGARA_TALL, evacuation: { x: 60, y: 60.5, side: "left" } };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
@@ -167,7 +169,7 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-igara-spring-wide": IGARA_WIDE,
   "kurashi-igara-spring-tall": IGARA_TALL,
   "kurashi-igara-summer-wide": IGARA_WIDE,
-  "kurashi-igara-summer-tall": IGARA_TALL,
+  "kurashi-igara-summer-tall": IGARA_SUMMER_TALL,
   "kurashi-igara-autumn-wide": IGARA_WIDE,
   "kurashi-igara-autumn-tall": IGARA_TALL,
   "kurashi-igara-winter-wide": IGARA_WIDE,
@@ -345,6 +347,86 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     spots: {
       "kurashi-kanae-summer-wide": { x: 24, y: 50, side: "left" },
       "kurashi-kanae-summer-tall": { x: 28, y: 48.5, side: "left" },
+    },
+  },
+  // 伊賀良の行事の場所は 2026-11-05 まさゆきさん。春は校舎横の階段あたり
+  ふるさとゲームウォーキング: {
+    label: "ゲームウォーキング",
+    spots: {
+      "kurashi-igara-spring-wide": { x: 52, y: 65, side: "right" },
+      "kurashi-igara-spring-tall": { x: 53.5, y: 71, side: "right" },
+    },
+  },
+  // 夏。公民館
+  "いいだ人形劇フェスタ 伊賀良地区公演": {
+    label: "人形劇",
+    spots: {
+      "kurashi-igara-summer-wide": { x: 83, y: 56, side: "left" },
+      "kurashi-igara-summer-tall": { x: 86, y: 60, side: "left" },
+    },
+  },
+  // 夏。公民館
+  こども寺子屋: {
+    label: "寺子屋",
+    spots: {
+      "kurashi-igara-summer-wide": { x: 70, y: 57, side: "right" },
+      "kurashi-igara-summer-tall": { x: 75, y: 67, side: "right" },
+    },
+  },
+  // 夏。体育館
+  "夏季スポーツ交流会（囲碁ボール）": {
+    label: "囲碁ボール",
+    spots: {
+      "kurashi-igara-summer-wide": { x: 46.5, y: 58, side: "left" },
+      "kurashi-igara-summer-tall": { x: 52, y: 66, side: "left" },
+    },
+  },
+  // 秋。公園
+  いがらクラフトキャンプ: {
+    label: "クラフトキャンプ",
+    spots: {
+      "kurashi-igara-autumn-wide": { x: 90, y: 67, side: "left" },
+      "kurashi-igara-autumn-tall": { x: 89.5, y: 76.5, side: "left" },
+    },
+  },
+  // 秋。校庭
+  伊賀良地区運動会: {
+    label: "運動会",
+    spots: {
+      "kurashi-igara-autumn-wide": { x: 27, y: 64.5, side: "right" },
+      "kurashi-igara-autumn-tall": { x: 22, y: 64.5, side: "right" },
+    },
+  },
+  // 秋。運動公園だが絵にないので校庭
+  いがらミニマラソン大会: {
+    label: "ミニマラソン",
+    spots: {
+      "kurashi-igara-autumn-wide": { x: 36.5, y: 64, side: "right" },
+      "kurashi-igara-autumn-tall": { x: 52, y: 68, side: "right" },
+    },
+  },
+  // 秋。公民館
+  伊賀良地区文化祭: {
+    label: "文化祭",
+    spots: {
+      "kurashi-igara-autumn-wide": { x: 83, y: 56, side: "left" },
+      "kurashi-igara-autumn-tall": { x: 86, y: 62.5, side: "left" },
+    },
+  },
+  // 冬。体育館
+  "冬季スポーツ交流会（ボッチャ）": {
+    label: "ボッチャ",
+    spots: {
+      "kurashi-igara-winter-wide": { x: 51, y: 51.5, side: "left" },
+      "kurashi-igara-winter-tall": { x: 62, y: 60.5, side: "left" },
+    },
+  },
+  // 冬。公民館
+  書き初め教室: {
+    label: "書き初め",
+    spots: {
+      "kurashi-igara-winter-wide": { x: 83, y: 56, side: "left" },
+      "kurashi-igara-winter-tall": { x: 86, y: 64, side: "left" },
     },
   },
 };
