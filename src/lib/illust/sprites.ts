@@ -100,7 +100,7 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "event-chushin-undokai": { width: 1123, height: 1188 },
   "event-chushin-maruyama-bunkasai": { width: 1245, height: 1132 },
   "event-chushin-mochitsuki": { width: 1219, height: 1073 },
-  "event-chushin-kakizome": { width: 1224, height: 1151 },
+  "event-chushin-kakizome": { width: 1222, height: 1150 },
   "event-kanae-oneday-march": { width: 1208, height: 1138 },
   "event-kanae-ningyo-festa": { width: 1226, height: 1175 },
   "event-kanae-petanque": { width: 1235, height: 961 },
