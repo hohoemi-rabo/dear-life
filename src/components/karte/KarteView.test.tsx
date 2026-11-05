@@ -213,3 +213,14 @@ describe("項目ごとの印（2026-11-05 まさゆきさん）", () => {
     }
   });
 });
+
+describe("下の帯の絵（2026-11-05 まさゆきさん）", () => {
+  it.each(["kamisato", "kanae", "igara", "chushin"])("%s は地区の背景の上を家族が歩き、絵のファイルもある", async (district) => {
+    await open(`d=${district}&a=2&k=1`);
+    const band = screen.getByRole("navigation", { name: "次は、現地で確かめよう" });
+    const background = band.querySelector<HTMLImageElement>(`img[src*="karte-next-step-bg-${district}"]`);
+    expect(background).not.toBeNull();
+    expect(existsSync(join(process.cwd(), "public", background?.getAttribute("src") ?? ""))).toBe(true);
+    expect(band.querySelectorAll('img[src*="/person-"]')).toHaveLength(3);
+  });
+});

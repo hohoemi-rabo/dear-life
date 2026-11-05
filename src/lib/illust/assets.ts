@@ -629,6 +629,10 @@ export const PROPS = [
   "karte-header-kanae-tall",
   "karte-header-igara-wide",
   "karte-header-igara-tall",
+  "karte-next-step-bg-kamisato",
+  "karte-next-step-bg-kanae",
+  "karte-next-step-bg-igara",
+  "karte-next-step-bg-chushin",
   "karte-childcare",
   "karte-transport",
   "karte-disaster",
@@ -708,6 +712,11 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "karte-header-kanae-tall": { source: "karte-header-kanae-tall.png", alt: "山のふもとの住宅と、広い道路沿いに並ぶ店と駐車場の風景" },
   "karte-header-igara-wide": { source: "karte-header-igara-wide.png", alt: "山すその住宅と、飯田ICの料金所、高架の道路、高速バスの乗り場の風景" },
   "karte-header-igara-tall": { source: "karte-header-igara-tall.png", alt: "山すその住宅と、飯田ICの料金所、高架の道路、高速バスの乗り場の風景" },
+  // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
+  "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
+  "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },
+  "karte-next-step-bg-igara": { source: "karte-next-step-bg-igara.png", alt: "家と高架の道路、鳥居と神社と、舗装した道", widths: [480, 960] },
+  "karte-next-step-bg-chushin": { source: "karte-next-step-bg-chushin.png", alt: "ビルの並ぶ通りと街灯と、れんがの道", widths: [480, 960] },
   "karte-childcare": { source: "karte-childcare.png", alt: "時計台のある校舎の前を、ランドセルで歩く子ども3人" },
   "karte-transport": { source: "karte-transport.png", alt: "停留所に止まる緑のバスと、待つ親子" },
   "karte-disaster": { source: "karte-disaster.png", alt: "「避難所」の看板のある建物" },
@@ -790,6 +799,15 @@ const KARTE_HEADERS: Partial<Record<DistrictId, { wide: PropId; tall: PropId }>>
 export function karteHeaderFor(district: DistrictId): { wide: PropId; tall: PropId } {
   return KARTE_HEADERS[district] ?? { wide: "karte-header-wide", tall: "karte-header-tall" };
 }
+
+// カルテの下の「次は、現地で確かめよう」の背景。家族はこの絵の道の上を歩く。
+// footFromBottom は、ふちを切り落とした絵の下の端から家族の足元までの高さ（絵の高さに対する割合）
+export const NEXT_STEP_BACKGROUNDS: Readonly<Record<DistrictId, { prop: PropId; footFromBottom: number }>> = {
+  kamisato: { prop: "karte-next-step-bg-kamisato", footFromBottom: 0.11 },
+  kanae: { prop: "karte-next-step-bg-kanae", footFromBottom: 0.09 },
+  igara: { prop: "karte-next-step-bg-igara", footFromBottom: 0.06 },
+  chushin: { prop: "karte-next-step-bg-chushin", footFromBottom: 0.04 },
+};
 
 export function propSrc(prop: PropId, width: number): string {
   return `/${ILLUST_DIR}/${prop}-${width}.webp`;

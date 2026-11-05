@@ -22,6 +22,7 @@ import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
+import { NextStepScene } from "./NextStepScene";
 import { KarteEntries, KarteTabs } from "./KarteEntries";
 
 type Chosen = Conditions & { district: DistrictId };
@@ -106,7 +107,7 @@ function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readon
 function NextStepBand({ conditions, searchParams }: { conditions: Chosen; searchParams: { get(name: string): string | null } }) {
   return (
     <nav aria-labelledby="next-step-title" className="flex flex-col gap-4 rounded-card bg-warm-soft p-4 md:flex-row md:items-center md:p-5">
-      <FamilyRow conditions={conditions} fatherHeight={72} pose="walk" lazy className="shrink-0 md:w-72" />
+      <NextStepScene conditions={conditions} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h2 id="next-step-title" className="text-lg font-bold md:text-xl">
           次は、現地で確かめよう
