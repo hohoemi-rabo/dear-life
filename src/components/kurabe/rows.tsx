@@ -10,14 +10,20 @@ import { ageShares } from "@/lib/karte/facilities";
 import { eventLabel, FACILITY_COUNT_ROWS } from "@/lib/kurabe/compare";
 import { NOTICES } from "@/lib/notices";
 
-// 地区くらべの項目（要件 3章の表・F-05）。スマホの並べ方と PC の表は、どちらもこの並びをそのまま使う
+import type { CompareTopic } from "@/lib/kurabe/compare";
+import type { KurabeIconName } from "./KurabeIcon";
+
+// マスの大きさ。compact は一覧の表とスマホ、large はタブの表（028 見本。数字を大きく出す）
+export type CellSize = "compact" | "large";
+
+// 地区くらべの項目（要件 3章の表・F-05）。スマホの並べ方・一覧の表・タブの表は、どれもこの行をそのまま使う
 export type CompareRow = {
   id: string;
   label: string;
   note?: string;
   // 値が数字1つだけの行。スマホでは 2×2 に詰めて、画面が長くなりすぎないようにする
   short?: boolean;
-  cell: (district: DistrictData) => ReactNode;
+  cell: (district: DistrictData, size: CellSize) => ReactNode;
 };
 export type CompareSection = { id: string; title: string; rows: readonly CompareRow[]; notice?: string };
 
@@ -25,150 +31,229 @@ function stateCell<T>(state: DataState<T>, render: (value: T) => ReactNode): Rea
   return state.status === "available" ? render(state.value) : <DataStateLabel state={state} />;
 }
 
-// 値段だけを大きく出すので、値段用のフォントにする（027）
-function BigValue({ children }: { children: ReactNode }) {
-  return <span className="price-figure block text-xl">{children}</span>;
+// 値段だけを大きく出すので、値段用のフォントにする（027）。タブの表では「万円」を数字より小さくする（028 見本）
+function Price({ yen, size, perUnit }: { yen: number; size: CellSize; perUnit?: boolean }) {
+  const text = formatManYen(yen);
+  if (size === "compact") {
+    return (
+      <span className="price-figure block text-xl">
+        {text}
+        {perUnit && <span className="font-sans text-sm font-bold">／{SQUARE_METER}</span>}
+      </span>
+    );
+  }
+  return (
+    <span className="price-figure block whitespace-nowrap text-[2rem] leading-tight">
+      {text.replace(/万円$/, "")}
+      <span className="text-xl">万円</span>
+      {perUnit && <span className="ml-1 font-sans text-base font-bold">/ {SQUARE_METER}</span>}
+    </span>
+  );
 }
 
-// 土地は㎡単価の真ん中の値と幅（下位25%〜上位25%）。伊賀良のように幅が広い地区でも幅は省略しない（要件 5.1）
-function LandCell({ stat }: { stat: MarketStat }) {
+// 土地は㎡単価の真ん中の値と幅（下位25%〜上位25%）。伊賀良のように幅が広い地区でも幅は省略しない（要件 5.1）。
+// タブの表も押さずに読めるように幅をそのまま出す（2026-11-05 まさゆきさん決定）
+function LandCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
+  const range = stat.p25 !== null && stat.p75 !== null && (
+    <span className="text-sm tabular-nums">
+      <span className="text-ink-muted">幅 </span>
+      {formatManYen(stat.p25)}〜{formatManYen(stat.p75)}
+    </span>
+  );
+  const large = size === "large";
   return (
     <span className="flex flex-col gap-1">
-      <BigValue>
-        {formatManYen(stat.median)}
-        <span className="font-sans text-sm font-bold">／{SQUARE_METER}</span>
-      </BigValue>
-      {stat.p25 !== null && stat.p75 !== null && (
-        <span className="text-sm tabular-nums">
-          <span className="text-ink-muted">幅 </span>
-          {formatManYen(stat.p25)}〜{formatManYen(stat.p75)}
+      <Price yen={stat.median} size={size} perUnit />
+      {!large && range}
+      <CountBadge count={stat.sampleCount} outlined={large} />
+      {large && range}
+    </span>
+  );
+}
+
+function HouseCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
+  return (
+    <span className="flex flex-col gap-1">
+      <Price yen={stat.median} size={size} />
+      <CountBadge count={stat.sampleCount} outlined={size === "large"} />
+    </span>
+  );
+}
+
+function CountValue({ count, unit, size }: { count: number; unit: string; size: CellSize }) {
+  return (
+    <span className="font-bold tabular-nums">
+      <span className={size === "large" ? "text-3xl font-extrabold" : "text-xl"}>{count.toLocaleString("ja-JP")}</span>
+      <span className={size === "large" ? "ml-1 text-base" : "ml-0.5 text-sm"}>{unit}</span>
+    </span>
+  );
+}
+
+const MARKET_ROWS: readonly CompareRow[] = [
+  {
+    id: "land",
+    label: MARKET_CATEGORY_LABELS.land,
+    note: `1${SQUARE_METER}あたりの真ん中の値。`,
+    cell: (district, size) => stateCell(district.market.land, (stat) => <LandCell stat={stat} size={size} />),
+  },
+  {
+    id: "house-within-20y",
+    label: MARKET_CATEGORY_LABELS.house_built_within_20y,
+    note: "総額の真ん中の値。",
+    cell: (district, size) => stateCell(district.market.house_built_within_20y, (stat) => <HouseCell stat={stat} size={size} />),
+  },
+  {
+    id: "house-over-20y",
+    label: MARKET_CATEGORY_LABELS.house_built_over_20y,
+    note: "総額の真ん中の値。",
+    cell: (district, size) => stateCell(district.market.house_built_over_20y, (stat) => <HouseCell stat={stat} size={size} />),
+  },
+];
+
+function schoolNames(names: readonly string[], size: CellSize): ReactNode {
+  return <span className={`font-bold ${size === "large" ? "text-lg" : ""}`}>{names.join("・")}</span>;
+}
+
+const SCHOOL_DISTRICT_ROWS: readonly CompareRow[] = [
+  {
+    id: "elementary",
+    label: "主な小学校区",
+    cell: (district, size) => stateCell(district.elementarySchoolDistricts, (names) => schoolNames(names, size)),
+  },
+  {
+    id: "junior-high",
+    label: "主な中学校区",
+    cell: (district, size) => stateCell(district.juniorHighSchoolDistricts, (names) => schoolNames(names, size)),
+  },
+];
+
+const FACILITY_ROWS: readonly (CompareRow & { topic: "school" | "transport" })[] = FACILITY_COUNT_ROWS.map((row) => ({
+  id: row.id,
+  label: row.label,
+  topic: row.topic,
+  short: true,
+  cell: (district: DistrictData, size: CellSize) =>
+    stateCell(row.pick(district), (facilities) => <CountValue count={facilities.length} unit="か所" size={size} />),
+}));
+
+const POPULATION_ROWS: readonly CompareRow[] = [
+  {
+    id: "total",
+    label: "地区の人口",
+    short: true,
+    cell: (district, size) => stateCell(district.population, (population) => <CountValue count={population.total} unit="人" size={size} />),
+  },
+  {
+    id: "ages",
+    label: "年齢3区分の割合",
+    cell: (district, size) =>
+      stateCell(district.population, (population) => (
+        <span className={`flex flex-col tabular-nums ${size === "large" ? "gap-1 text-base" : "text-sm"}`}>
+          {ageShares(population).map((share) => (
+            <span key={share.label}>
+              <span className="text-ink-muted">{share.label} </span>
+              <span className="font-bold">{share.percent}%</span>
+            </span>
+          ))}
         </span>
-      )}
-      <CountBadge count={stat.sampleCount} />
-    </span>
-  );
-}
+      )),
+  },
+];
 
-function HouseCell({ stat }: { stat: MarketStat }) {
-  return (
-    <span className="flex flex-col gap-1">
-      <BigValue>{formatManYen(stat.median)}</BigValue>
-      <CountBadge count={stat.sampleCount} />
-    </span>
-  );
-}
+// まだ集めていない季節は「準備中」と出し、作り話で埋めない（F-13）
+const EVENT_ROWS: readonly CompareRow[] = SEASONS.map((season) => ({
+  id: `events-${season}`,
+  label: season,
+  cell: (district: DistrictData) => {
+    const events = district.events.filter((event) => event.season === season);
+    if (events.length === 0) return <span className="text-sm text-ink-muted">この季節の行事は準備中です</span>;
+    return (
+      <ul className="flex flex-col gap-0.5 text-sm">
+        {events.map((event) => (
+          <li key={eventLabel(event)}>{eventLabel(event)}</li>
+        ))}
+      </ul>
+    );
+  },
+}));
 
+// スマホの並べ方と、すべての項目の一覧
 export const COMPARE_SECTIONS: readonly CompareSection[] = [
+  { id: "market", title: "住まいの相場", notice: NOTICES.market, rows: MARKET_ROWS },
+  { id: "school-districts", title: "主な学区", notice: NOTICES.schoolDistrict, rows: SCHOOL_DISTRICT_ROWS },
+  { id: "facilities", title: "施設の数", rows: FACILITY_ROWS },
+  { id: "population", title: "人口", rows: POPULATION_ROWS },
+  { id: "events", title: "季節ごとの主な行事", notice: EVENTS_CREDIT, rows: EVENT_ROWS },
+];
+
+// タブ（028 見本 docs/design/kurabe-pc.png）。一度に読む項目を絞る
+export type CompareTopicContent = {
+  id: CompareTopic;
+  tabLabel: string;
+  icon: KurabeIconName;
+  title: string;
+  lead: string;
+  rows: readonly CompareRow[];
+  notices: readonly string[];
+  sourcesTitle: string;
+  // 下の帯。次のタブへ案内する文（最後のタブは最初のタブへ）
+  nextText: string;
+};
+
+export const COMPARE_TOPIC_CONTENTS: readonly CompareTopicContent[] = [
   {
-    id: "market",
+    id: "housing",
+    tabLabel: "住まい",
+    icon: "home",
     title: "住まいの相場",
-    notice: NOTICES.market,
-    rows: [
-      {
-        id: "land",
-        label: MARKET_CATEGORY_LABELS.land,
-        note: `1${SQUARE_METER}あたりの真ん中の値`,
-        cell: (district) => stateCell(district.market.land, (stat) => <LandCell stat={stat} />),
-      },
-      {
-        id: "house-within-20y",
-        label: MARKET_CATEGORY_LABELS.house_built_within_20y,
-        note: "総額の真ん中の値",
-        cell: (district) => stateCell(district.market.house_built_within_20y, (stat) => <HouseCell stat={stat} />),
-      },
-      {
-        id: "house-over-20y",
-        label: MARKET_CATEGORY_LABELS.house_built_over_20y,
-        note: "総額の真ん中の値",
-        cell: (district) => stateCell(district.market.house_built_over_20y, (stat) => <HouseCell stat={stat} />),
-      },
-    ],
+    lead: "過去の取引からみた参考値",
+    rows: MARKET_ROWS,
+    notices: [NOTICES.market, NOTICES.marketFewCount],
+    sourcesTitle: "出典・対象期間・集計方法を見る",
+    nextText: "次は、学校や交通も同じ4地区で比べられます。",
   },
   {
-    id: "school-districts",
-    title: "主な学区",
-    notice: NOTICES.schoolDistrict,
-    rows: [
-      {
-        id: "elementary",
-        label: "主な小学校区",
-        cell: (district) => stateCell(district.elementarySchoolDistricts, (names) => <span className="font-bold">{names.join("・")}</span>),
-      },
-      {
-        id: "junior-high",
-        label: "主な中学校区",
-        cell: (district) => stateCell(district.juniorHighSchoolDistricts, (names) => <span className="font-bold">{names.join("・")}</span>),
-      },
-    ],
+    id: "school",
+    tabLabel: "学校・子育て",
+    icon: "school",
+    title: "学校・子育て",
+    lead: "学区と、学校・保育施設の数",
+    rows: [...SCHOOL_DISTRICT_ROWS, ...FACILITY_ROWS.filter((row) => row.topic === "school")],
+    notices: [NOTICES.schoolDistrict],
+    sourcesTitle: "出典・対象時点を見る",
+    nextText: "次は、交通や防災も同じ4地区で比べられます。",
   },
   {
-    id: "facilities",
-    title: "施設の数",
-    rows: FACILITY_COUNT_ROWS.map((row) => ({
-      id: row.id,
-      label: row.label,
-      short: true,
-      cell: (district: DistrictData) =>
-        stateCell(row.pick(district), (facilities) => (
-          <span className="font-bold tabular-nums">
-            <span className="text-xl">{facilities.length.toLocaleString("ja-JP")}</span>
-            <span className="ml-0.5 text-sm">か所</span>
-          </span>
-        )),
-    })),
+    id: "transport",
+    tabLabel: "交通・防災・施設",
+    icon: "bus",
+    title: "交通・防災・施設",
+    lead: "地区の中にある場所の数",
+    rows: FACILITY_ROWS.filter((row) => row.topic === "transport"),
+    notices: [],
+    sourcesTitle: "出典・対象時点を見る",
+    nextText: "次は、人口も同じ4地区で比べられます。",
   },
   {
     id: "population",
+    tabLabel: "人口",
+    icon: "people",
     title: "人口",
-    rows: [
-      {
-        id: "total",
-        label: "地区の人口",
-        short: true,
-        cell: (district) =>
-          stateCell(district.population, (population) => (
-            <span className="font-bold tabular-nums">
-              <span className="text-xl">{population.total.toLocaleString("ja-JP")}</span>
-              <span className="ml-0.5 text-sm">人</span>
-            </span>
-          )),
-      },
-      {
-        id: "ages",
-        label: "年齢3区分の割合",
-        cell: (district) =>
-          stateCell(district.population, (population) => (
-            <span className="flex flex-col text-sm tabular-nums">
-              {ageShares(population).map((share) => (
-                <span key={share.label}>
-                  <span className="text-ink-muted">{share.label} </span>
-                  <span className="font-bold">{share.percent}%</span>
-                </span>
-              ))}
-            </span>
-          )),
-      },
-    ],
+    lead: "国勢調査からみた人口と年齢の割合",
+    rows: POPULATION_ROWS,
+    notices: [],
+    sourcesTitle: "出典・対象時点を見る",
+    nextText: "次は、季節の行事も同じ4地区で比べられます。",
   },
   {
     id: "events",
-    title: "季節ごとの主な行事",
-    notice: EVENTS_CREDIT,
-    // まだ集めていない季節は「準備中」と出し、作り話で埋めない（F-13）
-    rows: SEASONS.map((season) => ({
-      id: `events-${season}`,
-      label: season,
-      cell: (district: DistrictData) => {
-        const events = district.events.filter((event) => event.season === season);
-        if (events.length === 0) return <span className="text-sm text-ink-muted">この季節の行事は準備中です</span>;
-        return (
-          <ul className="flex flex-col gap-0.5 text-sm">
-            {events.map((event) => (
-              <li key={eventLabel(event)}>{eventLabel(event)}</li>
-            ))}
-          </ul>
-        );
-      },
-    })),
+    tabLabel: "季節の行事",
+    icon: "calendar",
+    title: "季節の行事",
+    lead: "地区の公民館活動などから",
+    rows: EVENT_ROWS,
+    notices: [EVENTS_CREDIT],
+    sourcesTitle: "出典・確認日を見る",
+    nextText: "住まいの相場も同じ4地区で比べられます。",
   },
 ];

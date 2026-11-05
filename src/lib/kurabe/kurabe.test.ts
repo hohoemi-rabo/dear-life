@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { DistrictEvent } from "@/lib/data/screen-data";
 import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
-import { compareSources, eventLabel, eventSources } from "./compare";
+import { compareSources, eventLabel, eventSources, sourcesSummary } from "./compare";
 import { karteBackHref } from "../karte/links";
-import { kurabeHref } from "./links";
+import { compareViewHref, kurabeHref, parseCompareView } from "./links";
 
 const EDUCATION = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
 const POPULATION = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
@@ -43,6 +43,45 @@ describe("compareSources", () => {
       ["iida_education", undefined],
       ["estat_census_small_area", "2020年10月1日時点"],
     ]);
+  });
+});
+
+describe("compareSources：タブごと", () => {
+  it("topics を渡すと、そのタブの項目の出典だけを返す", () => {
+    const data = screenDataFixture({
+      kanae: {
+        market: { land: marketFixture(24000, 96), house_built_within_20y: { status: "unavailable" }, house_built_over_20y: { status: "unavailable" } },
+        schools: availableFixture([{ name: "鼎小学校", subkind: "小学校", address: null }], EDUCATION),
+        population: availableFixture({ asOf: "2020-10-01", total: 12000, age0to14: null, age15to64: null, age65plus: null }, POPULATION),
+      },
+    });
+    const ids = (topic: "housing" | "school" | "transport" | "population" | "events") => compareSources(data, [topic]).map(({ source }) => source.id);
+    expect(ids("housing")).toEqual(["reinfolib_xit001"]);
+    expect(ids("school")).toEqual(["iida_education"]);
+    expect(ids("transport")).toEqual([]);
+    expect(ids("population")).toEqual(["estat_census_small_area"]);
+    expect(ids("events")).toEqual([]);
+  });
+});
+
+describe("sourcesSummary", () => {
+  it("出どころが1つならその名前、複数なら最初に「ほか」を付ける。なければ null", () => {
+    expect(sourcesSummary(["飯田市", "飯田市"])).toBe("飯田市");
+    expect(sourcesSummary(["飯田市", "SENA"])).toBe("飯田市 ほか");
+    expect(sourcesSummary([])).toBeNull();
+  });
+});
+
+describe("parseCompareView・compareViewHref", () => {
+  it("知らない値と値なしは最初のタブ。all は一覧", () => {
+    expect(parseCompareView(null)).toBe("housing");
+    expect(parseCompareView("x")).toBe("housing");
+    expect(parseCompareView("events")).toBe("events");
+    expect(parseCompareView("all")).toBe("all");
+  });
+
+  it("条件と季節を残してタブだけを変える", () => {
+    expect(compareViewHref(new URLSearchParams("s=winter&d=kanae&t=school"), "all")).toBe("/kurabe?s=winter&d=kanae&t=all");
   });
 });
 

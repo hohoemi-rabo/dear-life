@@ -7,15 +7,15 @@ import { COMPARE_SECTIONS } from "./rows";
 type LayoutProps = { districts: readonly DistrictData[]; selected: DistrictId | null };
 
 // 選んだ地区だけ目印を付ける。「おすすめ」に見えないよう、色は控えめにして文字で「選んだ地区」と書く
-function SelectedMark() {
+export function SelectedMark() {
   return <span className="rounded-full border border-primary px-2 py-0.5 text-xs font-bold text-primary">選んだ地区</span>;
 }
 
-function RowLabel({ label, note }: { label: string; note?: string }) {
+export function RowLabel({ label, note, noteClassName = "text-xs" }: { label: string; note?: string; noteClassName?: string }) {
   return (
     <>
       {label}
-      {note && <span className="block text-xs font-normal text-ink-muted">{note}</span>}
+      {note && <span className={`block font-normal text-ink-muted ${noteClassName}`}>{note}</span>}
     </>
   );
 }
@@ -51,7 +51,7 @@ export function CompareBySection({ districts, selected }: LayoutProps) {
                       {district.name}
                       {district.id === selected && <SelectedMark />}
                     </dt>
-                    <dd className="min-w-0">{row.cell(district)}</dd>
+                    <dd className="min-w-0">{row.cell(district, "compact")}</dd>
                   </div>
                 ))}
               </dl>
@@ -64,7 +64,7 @@ export function CompareBySection({ districts, selected }: LayoutProps) {
   );
 }
 
-// PC（lg 以上）：項目を行、地区を列にした表。地区の並びは固定
+// PC（lg 以上）の「すべての項目を一覧で見る」：項目を行、地区を列にした表。地区の並びは固定
 export function CompareTable({ districts, selected }: LayoutProps) {
   const cellClass = (id: DistrictId) => `px-3 py-3 align-top ${id === selected ? "bg-primary-soft" : ""}`;
   const notices = COMPARE_SECTIONS.flatMap((section) => (section.notice ? [section.notice] : []));
@@ -108,7 +108,7 @@ export function CompareTable({ districts, selected }: LayoutProps) {
                   </th>
                   {districts.map((district) => (
                     <td key={district.id} className={cellClass(district.id)}>
-                      {row.cell(district)}
+                      {row.cell(district, "compact")}
                     </td>
                   ))}
                 </tr>

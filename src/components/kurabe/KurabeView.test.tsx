@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DistrictData, ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
@@ -85,15 +85,16 @@ beforeEach(() => {
 
 describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
   it("表の列は地区マスタの順で固定。選んだ地区には目印だけを付ける", async () => {
-    await open("d=igara&a=2&k=1");
+    await open("t=all&d=igara&a=2&k=1");
     const [head] = within(screen.getByRole("table")).getAllByRole("rowgroup");
     const headers = within(head).getAllByRole("columnheader").map((h) => h.textContent);
     expect(headers).toEqual(["項目", "上郷", "鼎", "伊賀良選んだ地区", "中心市街地"]);
-    expect(screen.queryByText(/おすすめ|順位|点数/)).toBeNull();
+    expect(screen.queryByText(/順位|点数/)).toBeNull();
+    expect(screen.getByText("地区の並びは固定です。優劣・おすすめ順ではありません。")).toBeInTheDocument();
   });
 
   it("相場は真ん中の値・幅・件数ラベル。件数が少ない値には「件数少なめ・参考程度」。該当なしとデータ未取得を分ける", async () => {
-    await open("d=kanae");
+    await open("t=all&d=kanae");
     expect(cells(tableRow("土地（宅地）"))).toEqual(["データ未取得", "2.4万円／m²幅 1.7万円〜3万円96件件数じゅうぶん", "データ未取得", "データ未取得"]);
     expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
     expect(cells(tableRow("中古戸建て（築21年以上）"))[1]).toBe("該当なし");
@@ -110,19 +111,19 @@ describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
   });
 
   it("人口は総数と年齢3区分の割合", async () => {
-    await open("d=kanae");
+    await open("t=all&d=kanae");
     expect(cells(tableRow("地区の人口"))[1]).toBe("12,000人");
     expect(cells(tableRow("年齢3区分の割合"))[1]).toBe("14歳以下 12.5%15〜64歳 57.5%65歳以上 30%");
   });
 
   it("行事は季節ごと。集めていない季節は「準備中」と出す（F-13）", async () => {
-    await open("d=kanae");
+    await open("t=all&d=kanae");
     expect(cells(tableRow("秋"))[1]).toBe("鼎地区縦断駅伝大会");
     expect(cells(tableRow("春"))[1]).toBe("この季節の行事は準備中です");
   });
 
   it("出典と対象時点を表の下にまとめて出す", async () => {
-    await open("d=kanae");
+    await open("t=all&d=kanae");
     const sources = screen.getByRole("region", { name: "出典と対象時点" });
     expect(sources).toHaveTextContent("国土交通省 不動産情報ライブラリ「不動産価格（取引価格・成約価格）情報」");
     expect(sources).toHaveTextContent("2021年第1四半期〜2026年第1四半期");
@@ -133,16 +134,93 @@ describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
   });
 });
 
+describe("KurabeView：項目をタブで切りかえる（028 見本）", () => {
+  const tab = (name: string) => screen.getByRole("tab", { name });
+  const rowLabels = () => within(screen.getByRole("table")).getAllByRole("rowheader").map((row) => row.textContent);
+
+  it("最初は住まいのタブ。真ん中の値・件数・ラベル・幅を押さずに読める", async () => {
+    await open("d=kanae");
+    expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
+    expect(rowLabels()).toEqual(["土地（宅地）1m²あたりの真ん中の値。", "中古戸建て（築20年以内）総額の真ん中の値。", "中古戸建て（築21年以上）総額の真ん中の値。"]);
+    expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²96件件数じゅうぶん幅 1.7万円〜3万円");
+    expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.market);
+    expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.marketFewCount);
+    expect(document.body).not.toHaveTextContent("中央値");
+  });
+
+  it("タブを押すと URL の t が変わり、条件を残したまま中身が入れかわる", async () => {
+    await open("s=winter&d=kanae&a=2&k=1");
+    await act(async () => {
+      fireEvent.click(tab("交通・防災・施設"));
+    });
+    expect(url.query).toBe("s=winter&d=kanae&a=2&k=1&t=transport");
+    expect(rowLabels()).toEqual(["バス停", "駅", "指定緊急避難場所", "公共施設"]);
+    expect(cells(tableRow("駅"))).toEqual(["データ未取得", "1か所", "該当なし", "データ未取得"]);
+  });
+
+  it("出典は開く欄に、そのタブの項目の分だけを出す", async () => {
+    await open("t=population&d=kanae");
+    const panel = within(screen.getByRole("tabpanel"));
+    expect(panel.getByText("出典・対象時点を見る")).toBeInTheDocument();
+    const details = screen.getByRole("tabpanel").querySelector("details") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(details).toHaveTextContent("総務省統計局「国勢調査 小地域集計」");
+    expect(details).not.toHaveTextContent("SENA");
+    expect(details).not.toHaveTextContent("集計方法");
+  });
+
+  it("住まいの出典の欄には集計方法も出す", async () => {
+    await open("d=kanae");
+    const details = screen.getByRole("tabpanel").querySelector("details") as HTMLDetailsElement;
+    expect(details).toHaveTextContent("出典・対象期間・集計方法を見る");
+    expect(details).toHaveTextContent("2021年第1四半期〜2026年第1四半期");
+    expect(within(details).getByRole("link", { name: /くわしい計算のしかた/ })).toHaveAttribute("href", "/about-data#about-market");
+  });
+
+  it("行事のタブも集めていない季節は「準備中」と出す", async () => {
+    await open("t=events&d=kanae");
+    expect(cells(tableRow("秋"))[1]).toBe("鼎地区縦断駅伝大会");
+    expect(cells(tableRow("春"))[1]).toBe("この季節の行事は準備中です");
+  });
+
+  it("下の帯は次のタブへ案内し、最後のタブは最初のタブへ戻す", async () => {
+    await open("d=kanae");
+    expect(screen.getByRole("link", { name: /学校・子育てを比べる/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=school");
+    url.set("/kurabe?d=kanae&t=events");
+    await act(async () => {});
+    expect(screen.getByRole("link", { name: /住まいを比べる/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=housing");
+  });
+
+  it("一覧と行き来できる。一覧ではタブを出さない", async () => {
+    await open("d=kanae");
+    expect(screen.getByRole("link", { name: /すべての項目を一覧で見る/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=all");
+    url.set("/kurabe?d=kanae&t=all");
+    await act(async () => {});
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.getByRole("link", { name: /項目を切りかえて見る/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=housing");
+  });
+
+  it("知らない t は最初のタブで開く", async () => {
+    await open("t=unknown&d=kanae");
+    expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
+  });
+});
+
 describe("KurabeView：移動", () => {
-  it("カルテ・くらしに戻るときは条件と季節を残す", async () => {
+  it("カルテ・地図へは条件と季節を残して移る。カルテのボタンには地区名を出す", async () => {
     await open("s=winter&d=kanae&a=2&k=1&h=new");
-    expect(screen.getByRole("link", { name: /カルテに戻る/ })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new");
-    expect(screen.getByRole("link", { name: "くらしを見る" })).toHaveAttribute("href", "/kurashi?s=winter&d=kanae&a=2&k=1&h=new");
+    const karte = "/karte?s=winter&d=kanae&a=2&k=1&h=new";
+    expect(screen.getByRole("link", { name: "鼎のカルテに戻る" })).toHaveAttribute("href", karte);
+    expect(screen.getByRole("link", { name: /わが家のカルテ/ })).toHaveAttribute("href", karte);
+    expect(screen.getByRole("link", { name: "地図で場所を見る" })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=new");
   });
 
   it("地区を選んでいなくても見られ、目印は付けない。えらぶへ案内する", async () => {
     await open("a=2&k=1");
     expect(screen.queryByText("選んだ地区")).toBeNull();
+    expect(screen.queryByRole("link", { name: /カルテ/ })).toBeNull();
     expect(screen.getByRole("link", { name: /地区をえらんで/ })).toHaveAttribute("href", "/erabu?a=2&k=1&h=new");
+    expect(screen.getByRole("link", { name: "地図で場所を見る" })).toBeInTheDocument();
   });
 });

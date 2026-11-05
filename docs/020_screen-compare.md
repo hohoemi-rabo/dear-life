@@ -48,6 +48,8 @@
 | `src/lib/kurabe/` | `compare.ts`（施設の数の行・出典のまとめ `compareSources`・行事の資料 `eventSources`）、`links.ts`（`kurabeHref`・`karteFromKurabeHref`） |
 | そのほか | `seasonalHref` を `src/lib/kurashi/links.ts` に作り、`karteHref`・`kurashiHref` もこれを使う。`DataStateLabel`（短い「該当なし／データ未取得」）を `DataStateMessage.tsx` に足した |
 
+2026-11-05 に PC を項目ごとのタブに作り直した（[029](029_kurabe-topic-tabs.md)）。スマホの作り直しも 029 で行う。
+
 ## 完了条件
 
 - 4地区の全項目が出典つきで並び、スマホでも読める
