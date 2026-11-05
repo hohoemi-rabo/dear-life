@@ -962,7 +962,7 @@
 
 ## 次のセッションへの引き継ぎ（2026-11-05 古いドット絵を消したあと。これが最新）
 
-- **終わったこと**：まさゆきさんの指示で、古いドット絵の場面と、使わなくなった絵を消した。**まさゆきさんの確認待ちで、push していない**
+- **終わったこと**：まさゆきさんの指示で、古いドット絵の場面と、使わなくなった絵を消した。2026-11-05 まさゆきさん OK、push した
 - **消したもの**：`ScenePanel`・`PixelScene`・`PixelStage`・`lib/kurashi/picture.ts`・`lib/pixel/scenes.ts`・`compose.ts`、絵の描き方（背景・家族・家・目印・施設・乗り物・大雨）、PNG 39枚。絵がないときの出し分け（くらし・季節の小さな絵・地区の絵）もなくし、`KURASHI_PICTURES`・`DISTRICT_PICTURES` は全地区がそろっていないと型エラーになるようにした
 - **残したもの**：PNG 32枚（アイコン・ロゴ・飾りの草・行事の種類ごとの絵4枚）。行事の種類ごとの絵は、`EVENT_ILLUSTS` にない行事を Table Editor で足したときに出る
 - 場面の文の見せ方（`SceneLineView`・`timetableNotePositions`）はピンのシートが使うので、`components/kurashi/SceneLineView.tsx` に移した
