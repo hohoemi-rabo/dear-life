@@ -55,6 +55,7 @@
 | `characters-back-{summer,autumn,winter}-{1,2}.png` | くらしの夏・秋・冬 | 季節の服の斜め後ろ姿（透過。1枚目 2172×724、2枚目 1774×887）。春の後ろ姿（シート5・6）と同じ人で、書き出すときに春の同じ人と同じ背にそろえる。4地区で使い回す |
 | `characters-straight-back-spring-2.png`・`characters-straight-back-{summer,autumn,winter}-1.png` | くらし・伊賀良（町を正面に見わたす絵） | 真後ろ姿。春は3人目・4人目の子ども2人（2172×724。ほかの4人はシート 4）。夏・秋・冬は1枚に2段4人ずつ（1312×1199・1536×1024）。並びは下の表 |
 | `karte-header-kanae-wide.png`・`karte-header-kanae-tall.png` | カルテの見出しの右（鼎。PC・スマホ） | 山のふもとの住宅と、広い道路沿いに並ぶ店と駐車場の風景（透過。2172×724・1536×1024） |
+| `karte-header-igara-wide.png`・`karte-header-igara-tall.png` | カルテの見出しの右（伊賀良。PC・スマホ） | 山すその住宅と、飯田ICの料金所、高架の道路、高速バスの乗り場の風景（透過。2172×724・1536×1024） |
 | `karte-header-wide.png`・`karte-header-tall.png` | カルテの見出しの右（PC・スマホ） | 山すその町並みと、川をわたる電車の風景（透過。2172×724・1536×1024）。4地区で使い回す |
 | `karte-childcare.png`・`karte-transport.png`・`karte-disaster.png`・`karte-population.png`・`karte-public.png`・`karte-support.png` | カルテの一覧のカードと詳細の見出し | 校舎とランドセルの子ども・停留所のバスと親子・「避難所」の建物・おばあさんたちと家族・公園の遊具・窓口で相談する親子（透過）。4地区で使い回す |
 | `detail-school.png`・`detail-bus.png`・`detail-bus-winter.png`・`detail-shelter.png`・`detail-population.png`・`detail-public.png`・`detail-support.png`・`detail-nursery.png`・`detail-afterschool.png`・`detail-train.png` | カルテの詳細の、大きい数字の左の絵 | 時計台の校舎・緑の帯の路線バス・屋根に雪の積もった同じバス・非常口の印のある避難所・おばあさんとお父さんと女の子・本の印のある公民館・書類と両手で包んだハート・オレンジの屋根の保育園とすべり台・夕方の部屋で宿題や遊びをする小学生とランドセル・緑の帯の銀色の電車（透過、1254×1254）。4地区で使い回す |

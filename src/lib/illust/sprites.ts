@@ -123,6 +123,8 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "karte-header-chushin-tall": { width: 1536, height: 560 },
   "karte-header-kanae-wide": { width: 2163, height: 498 },
   "karte-header-kanae-tall": { width: 1536, height: 920 },
+  "karte-header-igara-wide": { width: 2141, height: 561 },
+  "karte-header-igara-tall": { width: 1522, height: 872 },
   "karte-childcare": { width: 1207, height: 835 },
   "karte-transport": { width: 1429, height: 640 },
   "karte-disaster": { width: 1475, height: 549 },

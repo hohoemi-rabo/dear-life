@@ -245,6 +245,7 @@ describe("カルテの見出しの絵", () => {
   it("中心市街地は専用の絵、絵のまだない地区は今の絵を使う", () => {
     expect(karteHeaderFor("chushin")).toEqual({ wide: "karte-header-chushin-wide", tall: "karte-header-chushin-tall" });
     expect(karteHeaderFor("kanae")).toEqual({ wide: "karte-header-kanae-wide", tall: "karte-header-kanae-tall" });
-    expect(karteHeaderFor("igara")).toEqual({ wide: "karte-header-wide", tall: "karte-header-tall" });
+    expect(karteHeaderFor("igara")).toEqual({ wide: "karte-header-igara-wide", tall: "karte-header-igara-tall" });
+    expect(karteHeaderFor("kamisato")).toEqual({ wide: "karte-header-wide", tall: "karte-header-tall" });
   });
 });
