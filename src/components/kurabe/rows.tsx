@@ -5,7 +5,7 @@ import { SEASONS } from "@/lib/conditions/scene";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data";
 import { SQUARE_METER, formatManYen } from "@/lib/format";
-import { MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
+import { EXAMPLE_LAND_AREA, landEstimates, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
 import { eventLabel, FACILITY_COUNT_ROWS } from "@/lib/kurabe/compare";
 import { NOTICES } from "@/lib/notices";
@@ -67,6 +67,16 @@ function LandCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
       {!large && range}
       <CountBadge count={stat.sampleCount} outlined={large} />
       {large && range}
+      {large && (
+        // ㎡単価だけでは土地全体の値段が分かりにくいので、広さをそろえた目安を添える（2026-11-05 まさゆきさん）
+        <span className="text-sm">
+          <span className="text-ink-muted">
+            {EXAMPLE_LAND_AREA}
+            {SQUARE_METER}（約60坪）なら{" "}
+          </span>
+          <span className="whitespace-nowrap font-bold tabular-nums">約{formatManYen(landEstimates(stat.median).forExampleArea)}</span>
+        </span>
+      )}
     </span>
   );
 }

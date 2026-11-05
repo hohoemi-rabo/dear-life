@@ -142,7 +142,7 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
     await open("d=kanae");
     expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
     expect(rowLabels()).toEqual(["土地（宅地）1m²あたりの真ん中の値。", "中古戸建て（築20年以内）総額の真ん中の値。", "中古戸建て（築21年以上）総額の真ん中の値。"]);
-    expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²96件件数じゅうぶん幅 1.7万円〜3万円");
+    expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²96件件数じゅうぶん幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
     expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.market);
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.marketFewCount);
