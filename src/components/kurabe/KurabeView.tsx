@@ -16,10 +16,10 @@ import { useConditions } from "@/lib/conditions/useConditions";
 import { karteBackHref } from "@/lib/karte/links";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { compareSources, COMPARE_TOPICS, eventSources, type CompareTopic } from "@/lib/kurabe/compare";
-import { compareViewHref, COMPARE_VIEW_PARAM, parseCompareView, type CompareView } from "@/lib/kurabe/links";
+import { COMPARE_TARGET_PARAM, compareViewHref, COMPARE_VIEW_PARAM, parseCompareTarget, parseCompareView, type CompareTarget, type CompareView } from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
-import { ERABU_PATH } from "@/lib/site";
+import { ERABU_PATH, KURABE_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { CompareBySection, CompareTable } from "./CompareLayouts";
 import { CompareTopicView } from "./CompareTopicView";
@@ -27,8 +27,8 @@ import { KurabeIcon } from "./KurabeIcon";
 
 // 04 地区くらべ（F-05）。4地区を同じ項目で並べる。点数・順位・色の良し悪しは付けず、地区の並びも固定する。
 // 選んだ地区（URL の d）は目印を付けるだけ。地区を選んでいなくても見られる。useSearchParams を使うので <Suspense> の中で使う。
-// PC はタブで項目を切りかえ、「すべての項目を一覧で見る」で今の表も見られる（028 見本 docs/design/kurabe-pc.png）。
-// スマホは見本を待っているので、項目ごとに4地区を縦に並べた形のまま
+// タブで項目を切りかえる（見本 docs/design/kurabe-pc.png・kurabe-mobile.png。029）。PC は「すべての項目を一覧で見る」で全項目も見られ、
+// スマホは選んだ地区と比べる地区の2つを並べ、「4地区を一覧」でそのタブの4地区を見る
 export function KurabeView() {
   const { conditions } = useConditions();
   const searchParams = useSearchParams();
@@ -37,6 +37,20 @@ export function KurabeView() {
   const hrefFor = (next: CompareView) => compareViewHref(searchParams, next);
   // タブを変えても履歴は増やさず、位置もそのまま（くらしの季節と同じ）
   const selectTopic = (topic: CompareTopic) => router.replace(hrefFor(topic), { scroll: false });
+  const target = parseCompareTarget(searchParams.get(COMPARE_TARGET_PARAM), conditions.district);
+  // null は比較相手の指定を外す（既定の相手に戻す）
+  const selectTarget = (next: CompareTarget | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === null) params.delete(COMPARE_TARGET_PARAM);
+    else params.set(COMPARE_TARGET_PARAM, next);
+    router.replace(`${KURABE_PATH}?${params.toString()}`, { scroll: false });
+  };
+  const viewSwitch = (className: string) =>
+    view === "all" ? (
+      <ViewSwitch href={hrefFor(COMPARE_TOPICS[0])} label="項目を切りかえて見る" className={className} />
+    ) : (
+      <ViewSwitch href={hrefFor("all")} label="すべての項目を一覧で見る" className={className} />
+    );
 
   return (
     <div className="flex flex-col gap-5">
@@ -48,31 +62,32 @@ export function KurabeView() {
           </Link>
         )}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-extrabold lg:text-4xl">4地区をくらべる</h1>
-          {view === "all" ? (
-            <ViewSwitch href={hrefFor(COMPARE_TOPICS[0])} label="項目を切りかえて見る" />
-          ) : (
-            <ViewSwitch href={hrefFor("all")} label="すべての項目を一覧で見る" />
-          )}
+          <h1 className="text-2xl font-extrabold lg:text-4xl">
+            <span className="hidden lg:inline">4</span>地区をくらべる
+          </h1>
+          {viewSwitch("hidden shrink-0 border lg:inline-flex")}
         </div>
-        <p className="flex flex-col gap-x-4 lg:flex-row lg:items-baseline">
+        <p className="lg:hidden">選んだ地区と、気になる地区を比較。</p>
+        <p className="hidden gap-x-4 lg:flex lg:items-baseline">
           <span className="font-bold">同じ項目を横に並べて、暮らしの違いを確かめよう。</span>
           <span className="text-sm text-ink-muted">地区の並びは固定です。優劣・おすすめ順ではありません。</span>
         </p>
       </div>
 
       <ScreenDataBoundary fallback={<ScreenSkeleton label="地区くらべを読み込んでいます" />}>
-        <Comparison selected={conditions.district} view={view} hrefFor={hrefFor} onSelect={selectTopic} />
+        <Comparison selected={conditions.district} view={view} hrefFor={hrefFor} onSelect={selectTopic} target={target} onTargetChange={selectTarget} />
       </ScreenDataBoundary>
 
+      {/* スマホの切りかえは「4地区を一覧」。全項目の一覧を URL で開いたときだけ、タブへ戻る道を残す */}
+      {view === "all" && <div className="flex justify-center lg:hidden">{viewSwitch("w-full max-w-sm border")}</div>}
       <KurabeNavigation conditions={conditions} />
     </div>
   );
 }
 
-function ViewSwitch({ href, label }: { href: string; label: string }) {
+function ViewSwitch({ href, label, className }: { href: string; label: string; className: string }) {
   return (
-    <ButtonLink href={href} variant="secondary" className="hidden shrink-0 border lg:inline-flex">
+    <ButtonLink href={href} variant="secondary" className={className}>
       <KurabeIcon name="list" />
       {label}
     </ButtonLink>
@@ -84,34 +99,39 @@ function Comparison({
   view,
   hrefFor,
   onSelect,
+  target,
+  onTargetChange,
 }: {
   selected: DistrictId | null;
   view: CompareView;
   hrefFor: (view: CompareView) => string;
   onSelect: (topic: CompareTopic) => void;
+  target: CompareTarget;
+  onTargetChange: (target: CompareTarget | null) => void;
 }) {
   const data = useScreenData();
   const districts = data.districtOrder.map((id) => data.districts[id]);
   return (
     <>
-      <CompareBySection districts={districts} selected={selected} />
       {view === "all" ? (
-        <CompareTable districts={districts} selected={selected} />
+        <>
+          <CompareBySection districts={districts} selected={selected} />
+          <CompareTable districts={districts} selected={selected} />
+          <Sources data={data} />
+        </>
       ) : (
-        <CompareTopicView data={data} topic={view} selected={selected} hrefFor={hrefFor} onSelect={onSelect} />
+        <CompareTopicView data={data} topic={view} selected={selected} hrefFor={hrefFor} onSelect={onSelect} target={target} onTargetChange={onTargetChange} />
       )}
-      {/* タブの PC 表示では、出典はタブの中で開いて読む */}
-      <Sources data={data} className={view === "all" ? "" : "lg:hidden"} />
     </>
   );
 }
 
 // 出典・対象時点は表の下にまとめて出す（020）。マスの「該当なし」「データ未取得」の意味もここで1回だけ説明する
-function Sources({ data, className }: { data: ScreenData; className: string }) {
+function Sources({ data }: { data: ScreenData }) {
   const sources = compareSources(data);
   const events = eventSources(data);
   return (
-    <Card as="section" aria-labelledby="kurabe-sources" className={`flex flex-col gap-3 ${className}`}>
+    <Card as="section" aria-labelledby="kurabe-sources" className="flex flex-col gap-3">
       <h2 id="kurabe-sources" className="text-lg font-bold">
         出典と対象時点
       </h2>
@@ -148,7 +168,7 @@ function KurabeNavigation({ conditions }: { conditions: Conditions }) {
           {DISTRICT_NAMES[conditions.district]}のカルテに戻る
         </ButtonLink>
       )}
-      <ButtonLink href={mapHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary" className={buttonClass}>
+      <ButtonLink href={mapHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary" className={`${buttonClass} hidden lg:inline-flex`}>
         地図で場所を見る
       </ButtonLink>
     </nav>

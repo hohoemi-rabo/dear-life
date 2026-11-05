@@ -102,8 +102,8 @@ describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
     expect(document.body).not.toHaveTextContent("中央値");
   });
 
-  it("スマホは項目ごとに4地区を縦に並べる", async () => {
-    await open("d=kanae");
+  it("スマホの全項目の一覧は、項目ごとに4地区を縦に並べる", async () => {
+    await open("t=all&d=kanae");
     const station = mobileRow("駅");
     const terms = within(station).getAllByRole("term").map((term) => term.textContent);
     expect(terms).toEqual(["上郷", "鼎選んだ地区", "伊賀良", "中心市街地"]);
@@ -149,6 +149,58 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
     expect(document.body).not.toHaveTextContent("中央値");
   });
 
+  it("スマホは選んだ地区を左に固定し、右の地区と読みくらべる。最初の相手は並びで最初の別の地区", async () => {
+    await open("d=kanae");
+    expect(within(screen.getByRole("tabpanel")).getAllByRole("region").map((region) => region.getAttribute("aria-label"))).toEqual([
+      "土地（宅地）",
+      "中古戸建て（築20年以内）",
+      "中古戸建て（築21年以上）",
+    ]);
+    expect(screen.queryByRole("region", { name: "出典と対象時点" })).toBeNull();
+    expect(screen.getByLabelText(/比べる地区/)).toHaveValue("kamisato");
+    const land = mobileRow("土地（宅地）");
+    expect(within(land).getAllByRole("term").map((term) => term.textContent)).toEqual(["鼎", "上郷"]);
+    expect(within(land).getAllByRole("definition")[0]).toHaveTextContent("2.4万円/ m²取引96件件数じゅうぶん幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
+  });
+
+  it("比べる地区の選択肢に選んだ地区は出さない。変えると URL の v に残り、タブを変えても続く", async () => {
+    await open("d=kanae");
+    const picker = screen.getByLabelText(/比べる地区/);
+    expect(within(picker).getAllByRole("option").map((option) => option.textContent)).toEqual(["上郷", "伊賀良", "中心市街地"]);
+    await act(async () => {
+      fireEvent.change(picker, { target: { value: "igara" } });
+    });
+    expect(url.query).toBe("d=kanae&v=igara");
+    expect(within(mobileRow("土地（宅地）")).getAllByRole("term").map((term) => term.textContent)).toEqual(["鼎", "伊賀良"]);
+    await act(async () => {
+      fireEvent.click(tab("人口"));
+    });
+    expect(url.query).toBe("d=kanae&v=igara&t=population");
+    expect(screen.getByLabelText(/比べる地区/)).toHaveValue("igara");
+  });
+
+  it("「4地区を一覧」で4地区を縦に並べ、「2地区で比較」で戻す", async () => {
+    await open("t=transport&d=kanae");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "4地区を一覧" }));
+    });
+    expect(url.query).toBe("t=transport&d=kanae&v=all");
+    expect(screen.queryByLabelText(/比べる地区/)).toBeNull();
+    expect(within(mobileRow("駅")).getAllByRole("term").map((term) => term.textContent)).toEqual(["上郷", "鼎選んだ地区", "伊賀良", "中心市街地"]);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "2地区で比較" }));
+    });
+    expect(url.query).toBe("t=transport&d=kanae");
+    expect(screen.getByLabelText(/比べる地区/)).toBeInTheDocument();
+  });
+
+  it("地区を選んでいないときは4地区の一覧だけを出す", async () => {
+    await open("a=2&k=1");
+    expect(screen.queryByRole("button", { name: "2地区で比較" })).toBeNull();
+    expect(screen.queryByLabelText(/比べる地区/)).toBeNull();
+    expect(within(mobileRow("土地（宅地）")).getAllByRole("term")).toHaveLength(4);
+  });
+
   it("タブを押すと URL の t が変わり、条件を残したまま中身が入れかわる", async () => {
     await open("s=winter&d=kanae&a=2&k=1");
     await act(async () => {
@@ -162,7 +214,7 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
   it("出典は開く欄に、そのタブの項目の分だけを出す", async () => {
     await open("t=population&d=kanae");
     const panel = within(screen.getByRole("tabpanel"));
-    expect(panel.getByText("出典・対象時点を見る")).toBeInTheDocument();
+    expect(panel.getByText(/^出典・対象時点/)).toHaveTextContent("出典・対象時点を見る");
     const details = screen.getByRole("tabpanel").querySelector("details") as HTMLDetailsElement;
     expect(details.open).toBe(false);
     expect(details).toHaveTextContent("総務省統計局「国勢調査 小地域集計」");
@@ -194,11 +246,11 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
 
   it("一覧と行き来できる。一覧ではタブを出さない", async () => {
     await open("d=kanae");
-    expect(screen.getByRole("link", { name: /すべての項目を一覧で見る/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=all");
+    expect(screen.getAllByRole("link", { name: /すべての項目を一覧で見る/ })[0]).toHaveAttribute("href", "/kurabe?d=kanae&t=all");
     url.set("/kurabe?d=kanae&t=all");
     await act(async () => {});
     expect(screen.queryByRole("tablist")).toBeNull();
-    expect(screen.getByRole("link", { name: /項目を切りかえて見る/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=housing");
+    expect(screen.getAllByRole("link", { name: /項目を切りかえて見る/ })[0]).toHaveAttribute("href", "/kurabe?d=kanae&t=housing");
   });
 
   it("知らない t は最初のタブで開く", async () => {

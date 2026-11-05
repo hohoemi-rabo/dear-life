@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
 import type { DistrictData } from "@/lib/data/screen-data";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { COMPARE_SECTIONS } from "./rows";
+import { COMPARE_SECTIONS, type CellSize, type CompareRow } from "./rows";
 
 type LayoutProps = { districts: readonly DistrictData[]; selected: DistrictId | null };
 
@@ -20,8 +20,39 @@ export function RowLabel({ label, note, noteClassName = "text-xs" }: { label: st
   );
 }
 
-// スマホ（lg 未満）：項目ごとに4地区を縦に並べる。375px でも横にはみ出さず、同じ項目の値を上下で見くらべられる。
+// スマホ（lg 未満）の1項目：4地区を縦に並べる。375px でも横にはみ出さず、同じ項目の値を上下で見くらべられる。
 // 数字1つだけの行は 2×2 に詰める
+export function RowStack({ row, districts, selected, size }: { row: CompareRow; districts: readonly DistrictData[]; selected: DistrictId | null; size: CellSize }) {
+  return (
+    <section aria-label={row.label} className="flex flex-col gap-2">
+      <h3 className="font-bold">
+        <RowLabel label={row.label} note={row.note} />
+      </h3>
+      <dl
+        className={
+          row.short
+            ? "grid grid-cols-2 gap-px overflow-hidden rounded-button border border-line bg-line"
+            : "flex flex-col divide-y divide-line overflow-hidden rounded-button border border-line"
+        }
+      >
+        {districts.map((district) => (
+          <div
+            key={district.id}
+            className={`${row.short ? "flex flex-col gap-1" : "grid grid-cols-[5.5rem_minmax(0,1fr)] items-start gap-2"} px-3 py-2 ${district.id === selected ? "bg-primary-soft" : "bg-surface"}`}
+          >
+            <dt className={`flex items-start gap-1 text-sm font-bold ${row.short ? "flex-wrap items-center" : "flex-col"}`}>
+              {district.name}
+              {district.id === selected && <SelectedMark />}
+            </dt>
+            <dd className="min-w-0">{row.cell(district, size)}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+// スマホの「すべての項目を一覧で見る」：分野ごとのカードに、全項目を並べる
 export function CompareBySection({ districts, selected }: LayoutProps) {
   return (
     <div className="flex flex-col gap-4 lg:hidden">
@@ -31,31 +62,7 @@ export function CompareBySection({ districts, selected }: LayoutProps) {
             {section.title}
           </h2>
           {section.rows.map((row) => (
-            <section key={row.id} aria-label={row.label} className="flex flex-col gap-2">
-              <h3 className="font-bold">
-                <RowLabel label={row.label} note={row.note} />
-              </h3>
-              <dl
-                className={
-                  row.short
-                    ? "grid grid-cols-2 gap-px overflow-hidden rounded-button border border-line bg-line"
-                    : "flex flex-col divide-y divide-line rounded-button border border-line"
-                }
-              >
-                {districts.map((district) => (
-                  <div
-                    key={district.id}
-                    className={`${row.short ? "flex flex-col gap-1" : "grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-2"} px-3 py-2 ${district.id === selected ? "bg-primary-soft" : "bg-surface"}`}
-                  >
-                    <dt className={`flex items-start gap-1 text-sm font-bold ${row.short ? "flex-wrap items-center" : "flex-col"}`}>
-                      {district.name}
-                      {district.id === selected && <SelectedMark />}
-                    </dt>
-                    <dd className="min-w-0">{row.cell(district, "compact")}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
+            <RowStack key={row.id} row={row} districts={districts} selected={selected} size="compact" />
           ))}
           {section.notice && <Notice>{section.notice}</Notice>}
         </Card>

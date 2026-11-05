@@ -4,7 +4,7 @@ import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sour
 import { DEFAULT_CONDITIONS } from "../conditions/model";
 import { compareSources, eventLabel, eventSources, sourcesSummary } from "./compare";
 import { karteBackHref } from "../karte/links";
-import { compareViewHref, kurabeHref, parseCompareView } from "./links";
+import { compareViewHref, kurabeHref, parseCompareTarget, parseCompareView } from "./links";
 
 const EDUCATION = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
 const POPULATION = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
@@ -82,6 +82,21 @@ describe("parseCompareView・compareViewHref", () => {
 
   it("条件と季節を残してタブだけを変える", () => {
     expect(compareViewHref(new URLSearchParams("s=winter&d=kanae&t=school"), "all")).toBe("/kurabe?s=winter&d=kanae&t=all");
+  });
+});
+
+describe("parseCompareTarget", () => {
+  it("知らない値・値なし・選んだ地区と同じ値は、並びで最初の別の地区", () => {
+    expect(parseCompareTarget(null, "kamisato")).toBe("kanae");
+    expect(parseCompareTarget(null, "kanae")).toBe("kamisato");
+    expect(parseCompareTarget("x", "igara")).toBe("kamisato");
+    expect(parseCompareTarget("igara", "igara")).toBe("kamisato");
+    expect(parseCompareTarget("chushin", "igara")).toBe("chushin");
+  });
+
+  it("all は一覧。地区を選んでいなければ必ず一覧", () => {
+    expect(parseCompareTarget("all", "kanae")).toBe("all");
+    expect(parseCompareTarget("kanae", null)).toBe("all");
   });
 });
 

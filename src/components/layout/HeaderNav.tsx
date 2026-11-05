@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ABOUT_DATA_PATH, ERABU_PATH } from "@/lib/site";
+import { ABOUT_DATA_PATH, ERABU_PATH, KURABE_PATH } from "@/lib/site";
 import { HeaderMenu } from "./HeaderMenu";
 import { StepIndicator } from "./StepIndicator";
 
@@ -23,7 +23,8 @@ export function HeaderNav() {
         <InfoIcon />
         データについて
       </Link>
-      <div className="w-full md:w-auto">
+      {/* 地区くらべのスマホの見本には進みぐあいがない（029） */}
+      <div className={`w-full md:w-auto ${pathname === KURABE_PATH ? "hidden md:block" : ""}`}>
         <StepIndicator />
       </div>
     </>

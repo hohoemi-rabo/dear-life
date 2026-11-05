@@ -15,11 +15,27 @@ const LEVEL_OUTLINES: Record<CountLevel, string> = {
 
 // 件数と件数ラベル。相場などの値には必ず添える（要件 5章-6）。
 // alwaysFew は件数によらず「件数少なめ・参考程度」にする（築20年以内は4地区とも12件以下なので、えらぶ画面では必ず付ける。要件 4章）
-export function CountBadge({ count, alwaysFew = false, outlined = false }: { count: number; alwaysFew?: boolean; outlined?: boolean }) {
+export function CountBadge({
+  count,
+  alwaysFew = false,
+  outlined = false,
+  prefix = "",
+  tight = false,
+}: {
+  count: number;
+  alwaysFew?: boolean;
+  outlined?: boolean;
+  prefix?: string;
+  // 狭い列でも件数と札を1行に収める（地区くらべのスマホの見本）
+  tight?: boolean;
+}) {
   return (
-    <span className="inline-flex flex-wrap items-baseline gap-x-2 text-sm">
-      <span className="font-bold tabular-nums">{count.toLocaleString("ja-JP")}件</span>
-      <CountLabel count={count} alwaysFew={alwaysFew} outlined={outlined} />
+    <span className={`inline-flex flex-wrap items-baseline ${tight ? "gap-x-1 gap-y-0.5 text-xs" : "gap-x-2 text-sm"}`}>
+      <span className="font-bold tabular-nums">
+        {prefix}
+        {count.toLocaleString("ja-JP")}件
+      </span>
+      <CountLabel count={count} alwaysFew={alwaysFew} outlined={outlined} tight={tight} />
     </span>
   );
 }
@@ -29,13 +45,15 @@ export function CountLabel({
   count,
   alwaysFew = false,
   outlined = false,
+  tight = false,
   className = "",
 }: {
   count: number;
   alwaysFew?: boolean;
   outlined?: boolean;
+  tight?: boolean;
   className?: string;
 }) {
   const { level, text } = alwaysFew ? FEW_COUNT_LABEL : countLabel(count);
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${LEVEL_STYLES[level]} ${outlined ? LEVEL_OUTLINES[level] : ""} ${className}`}>{text}</span>;
+  return <span className={`rounded-full py-0.5 font-bold ${tight ? "px-1.5 text-[11px]" : "px-2 text-xs"} ${LEVEL_STYLES[level]} ${outlined ? LEVEL_OUTLINES[level] : ""} ${className}`}>{text}</span>;
 }
