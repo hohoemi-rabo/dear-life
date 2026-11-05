@@ -836,7 +836,7 @@ export function spriteSrc(id: SpriteId): string {
 }
 
 // 地区の選択肢の絵。まず上郷だけ（028。ほかの3地区は用意できるまで今のドット絵）
-export const DISTRICT_PICTURES: Partial<Record<DistrictId, IllustPictureId>> = {
+export const DISTRICT_PICTURES: Readonly<Record<DistrictId, IllustPictureId>> = {
   kamisato: "district-kamisato",
   chushin: "district-chushin",
   kanae: "district-kanae",

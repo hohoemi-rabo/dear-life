@@ -1,62 +1,14 @@
 // ドット絵の一覧。画面はここから大きさと代替テキストを読み、PNG は public/pixel/<id>.png にある（npm run pixel で書き出す）。
 // 描き方は art/index.ts。大きさが描いた絵と合っていることはテストで確かめる
-import type { SingleParent } from "../conditions/labels.ts";
-import type { Conditions } from "../conditions/model.ts";
-import type { DistrictId } from "../town-district/resolve.ts";
 
 export const PIXEL_DIR = "/pixel";
 
 export const PIXEL_ASSETS = {
-  // 季節の背景（地区共通）
-  "bg-spring": { width: 160, height: 90, alt: "春の景色。雪の残る山と盆地の家並み、満開の桜と、草地のあいだの道" },
-  "bg-summer": { width: 160, height: 90, alt: "夏の景色。入道雲と緑の山、青々とした田んぼと、緑の木のあいだの道" },
-  "bg-autumn": { width: 160, height: 90, alt: "秋の景色。色づいた山と実った田んぼ、紅葉した木のあいだの道" },
-  "bg-winter": { width: 160, height: 90, alt: "冬の景色。雪をかぶった山と家並み、雪の積もった畑と、葉の落ちた木のあいだの道" },
-  // 家族（大人の数・子どもの数）
-  "family-a1m-c0": { width: 12, height: 21, alt: "お母さん" },
-  "family-a1m-c1": { width: 23, height: 21, alt: "お母さんと子ども1人の家族" },
-  "family-a1m-c2": { width: 34, height: 21, alt: "お母さんと子ども2人の家族" },
-  "family-a1m-c3": { width: 45, height: 21, alt: "お母さんと子ども3人の家族" },
-  "family-a1m-c4": { width: 56, height: 21, alt: "お母さんと子ども4人の家族" },
-  "family-a1f-c0": { width: 12, height: 21, alt: "お父さん" },
-  "family-a1f-c1": { width: 23, height: 21, alt: "お父さんと子ども1人の家族" },
-  "family-a1f-c2": { width: 34, height: 21, alt: "お父さんと子ども2人の家族" },
-  "family-a1f-c3": { width: 45, height: 21, alt: "お父さんと子ども3人の家族" },
-  "family-a1f-c4": { width: 56, height: 21, alt: "お父さんと子ども4人の家族" },
-  "family-a2-c0": { width: 25, height: 21, alt: "大人2人" },
-  "family-a2-c1": { width: 36, height: 21, alt: "大人2人と子ども1人の家族" },
-  "family-a2-c2": { width: 47, height: 21, alt: "大人2人と子ども2人の家族" },
-  "family-a2-c3": { width: 58, height: 21, alt: "大人2人と子ども3人の家族" },
-  "family-a2-c4": { width: 69, height: 21, alt: "大人2人と子ども4人の家族" },
-  // 施設（春・夏の場面）
-  "facility-school": { width: 40, height: 24, alt: "時計台のある小学校の校舎" },
-  "facility-nursery": { width: 28, height: 18, alt: "三角屋根の保育園の建物" },
-  "facility-public": { width: 34, height: 18, alt: "公民館などの公共施設の建物" },
-  "facility-shelter": { width: 40, height: 22, alt: "避難場所の体育館と、避難場所の案内板" },
-  // 行事（district_events.art の種類ごと）
+  // 行事（district_events.art の種類ごと。行事ごとの絵 EVENT_ILLUSTS がない行事に出す）
   "event-festival": { width: 34, height: 24, alt: "提灯を下げた舞台と人形" },
   "event-sports": { width: 36, height: 22, alt: "旗を渡したロープと運動会のテント" },
   "event-culture": { width: 34, height: 22, alt: "絵を掛けた展示板と、花を生けた机" },
   "event-other": { width: 28, height: 22, alt: "行事のお知らせを貼った地区の掲示板" },
-  // 乗り物（冬の場面）
-  "vehicle-car": { width: 26, height: 14, alt: "屋根に雪の積もった車" },
-  "vehicle-bus": { width: 42, height: 20, alt: "屋根に雪の積もった路線バス" },
-  "vehicle-train": { width: 52, height: 22, alt: "線路を走る電車" },
-  // 家の種類（えらぶ画面の「家」の選択肢）
-  "house-new": { width: 32, height: 24, alt: "白い壁と大きな窓の、片流れ屋根の2階建ての家" },
-  "house-old": { width: 32, height: 24, alt: "瓦屋根と障子の窓の、木造の平屋" },
-  "house-rent": { width: 32, height: 24, alt: "外に階段のある3階建てのアパート" },
-  // 地区の目印
-  "landmark-chushin": { width: 48, height: 20, alt: "赤い実の付いたりんご並木" },
-  "landmark-kanae": { width: 44, height: 20, alt: "すべり台とぶらんこのある公園" },
-  "landmark-igara": { width: 24, height: 26, alt: "風景画を載せた画架" },
-  "landmark-kamisato": { width: 60, height: 26, alt: "家並みの手前に見える緑の山" },
-  "landmark-chushin-winter": { width: 48, height: 20, alt: "雪の積もったりんご並木" },
-  "landmark-kanae-winter": { width: 44, height: 20, alt: "雪の積もったすべり台とぶらんこのある公園" },
-  "landmark-igara-winter": { width: 24, height: 26, alt: "雪の積もった、風景画を載せた画架" },
-  "landmark-kamisato-winter": { width: 60, height: 26, alt: "家並みの手前に見える、雪をかぶった山" },
-  // 場面全体に重ねるもの
-  "overlay-rain": { width: 160, height: 90, alt: "暗い雲と大雨、道の水たまり" },
   // 画面のアイコン（027。16×16。そばの文字で中身がわかるので、ふつうは読み上げない）
   "icon-sprout": { width: 16, height: 16, alt: "土から出た双葉の芽" },
   "icon-calendar": { width: 16, height: 16, alt: "赤い見出しのカレンダー" },
@@ -87,35 +39,12 @@ export const PIXEL_ASSETS = {
   // ロゴと飾り（027）
   logo: { width: 24, height: 20, alt: "赤い屋根の家と芽" },
   "deco-grass": { width: 48, height: 10, alt: "花の咲いた草むら" },
-  "deco-tree": { width: 12, height: 12, alt: "小さな木" },
 } as const satisfies Record<string, { width: number; height: number; alt: string }>;
 
 export type PixelAssetId = keyof typeof PIXEL_ASSETS;
 
 export function pixelAssetSrc(id: PixelAssetId): string {
   return `${PIXEL_DIR}/${id}.png`;
-}
-
-// 家族の絵の id。人数の範囲は えらぶ画面の選択肢（014）に合わせる。大人1人の絵は お母さん（m）・お父さん（f）で分ける
-export function familyAssetId(adults: 1 | 2, children: 0 | 1 | 2 | 3 | 4, parent: SingleParent): PixelAssetId {
-  const grownUps = adults === 1 ? (`a1${parent === "mother" ? "m" : "f"}` as const) : ("a2" as const);
-  return `family-${grownUps}-c${children}` as const;
-}
-
-// 選べる人数（大人1〜2人・子ども0〜4人。028）の家族の絵。範囲の外は描ける人数に丸める
-export function familyArtFor({ adults, children, parent }: Pick<Conditions, "adults" | "children" | "parent">): PixelAssetId {
-  return familyAssetId(
-    Math.min(Math.max(adults, 1), 2) as 1 | 2,
-    Math.min(Math.max(children, 0), 4) as 0 | 1 | 2 | 3 | 4,
-    parent,
-  );
-}
-
-export type Season = "spring" | "summer" | "autumn" | "winter";
-
-// 地区 → 目印（2026-10-26 にまさゆきさんが決めた）。冬は雪の積もった絵にする
-export function landmarkAssetId(district: DistrictId, season: Season): PixelAssetId {
-  return season === "winter" ? (`landmark-${district}-winter` as const) : (`landmark-${district}` as const);
 }
 
 // 行事の絵の種類（district_events.art）→ 絵

@@ -1,16 +1,12 @@
 import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import { DRAW } from "./art";
-import { familyCanvas } from "./art/family";
 import { appIcon } from "./art/icon";
-import { withSnow } from "./art/landmarks";
-import { EVENT_ART_ASSET, PIXEL_ASSETS, landmarkAssetId, familyAssetId, pixelAssetSrc, type PixelAssetId } from "./assets";
-import { createCanvas, ditherRect, parseSprite, ridge, stamp, toRows } from "./canvas";
-import { composeScene } from "./compose";
+import { EVENT_ART_ASSET, PIXEL_ASSETS, pixelAssetSrc, type PixelAssetId } from "./assets";
+import { createCanvas, parseSprite, stamp, toRows } from "./canvas";
 import { PALETTE } from "./palette";
 import { encodePng } from "./png";
 import { APP_ICONS, appIconPx } from "../pwa/icons";
-import { SCENE_SLOTS, layerOutOfBounds, placeInSlot, type SceneSlot } from "./scenes";
 
 describe("パレット", () => {
   it("16色で、文字も色も重ならない", () => {
@@ -45,20 +41,6 @@ describe("部品の元データ", () => {
     const canvas = createCanvas(3, 1);
     stamp(canvas, parseSprite(["kw."]), 0, 0, { flip: true });
     expect(toRows(canvas)).toEqual([".wk"]);
-  });
-});
-
-describe("描く関数", () => {
-  it("網点は割合に応じて混ぜる（0.5 は市松）", () => {
-    const canvas = createCanvas(4, 2);
-    ditherRect(canvas, 0, 0, 4, 2, "s", "p");
-    expect(toRows(canvas)).toEqual(["psps", "spsp"]);
-    ditherRect(canvas, 0, 0, 4, 2, "s", "p", 0);
-    expect(toRows(canvas)).toEqual(["ssss", "ssss"]);
-  });
-
-  it("稜線は点のあいだを直線でつなぎ、外側は端の高さにする", () => {
-    expect(ridge([[1, 10], [3, 14]], 5)).toEqual([10, 10, 12, 14, 14]);
   });
 });
 
@@ -104,48 +86,10 @@ describe("絵の一覧", () => {
     expect(pixelAssetSrc(id)).toBe(`/pixel/${id}.png`);
   });
 
-  it.each(["bg-spring", "bg-summer", "bg-autumn", "bg-winter"] as const)("背景 %s は 160×90 で、透明なドットがない", (id) => {
-    const canvas = DRAW[id]();
-    expect([canvas.width, canvas.height]).toEqual([160, 90]);
-    expect(canvas.pixels.includes(0)).toBe(false);
-  });
-
-  it("背景以外の部品は背景より小さく、周りが透明（大雨は場面全体に重ねる）", () => {
-    for (const id of Object.keys(PIXEL_ASSETS) as PixelAssetId[]) {
-      if (id.startsWith("bg-") || id === "overlay-rain") continue;
-      const canvas = DRAW[id]();
-      expect(canvas.width * canvas.height).toBeLessThan(160 * 90 / 4);
-      expect(canvas.pixels.includes(0)).toBe(true);
-    }
-  });
-
   it("画面のアイコンはどれも 16×16 で、同じ大きさで並べられる", () => {
     const iconIds = (Object.keys(PIXEL_ASSETS) as PixelAssetId[]).filter((id) => id.startsWith("icon-"));
     expect(iconIds.length).toBeGreaterThan(0);
     for (const id of iconIds) expect([DRAW[id]().width, DRAW[id]().height]).toEqual([16, 16]);
-  });
-
-  it("家族の id は大人1〜2人（大人1人はお母さん・お父さん）・子ども0〜4人のすべてがある", () => {
-    for (const adults of [1, 2] as const) {
-      for (const parent of ["mother", "father"] as const) {
-        for (const children of [0, 1, 2, 3, 4] as const) expect(PIXEL_ASSETS[familyAssetId(adults, children, parent)]).toBeDefined();
-      }
-    }
-    expect(familyAssetId(1, 2, "father")).toBe("family-a1f-c2");
-    expect(familyAssetId(2, 2, "father")).toBe("family-a2-c2");
-  });
-
-  it("4地区それぞれに、季節ごとの目印がある（冬は雪の積もった絵）", () => {
-    for (const district of ["kamisato", "kanae", "igara", "chushin"] as const) {
-      expect(landmarkAssetId(district, "spring")).toBe(`landmark-${district}`);
-      expect(landmarkAssetId(district, "winter")).toBe(`landmark-${district}-winter`);
-      for (const season of ["spring", "summer", "autumn", "winter"] as const) expect(PIXEL_ASSETS[landmarkAssetId(district, season)]).toBeDefined();
-    }
-  });
-
-  it("雪を載せると、上を向いた面が白くなり、透明なところは変わらない", () => {
-    const snowy = withSnow(parseSprite(["..g..", ".ggg.", "rgggk"]));
-    expect(toRows(snowy)).toEqual(["..w..", ".www.", "wwgww"]);
   });
 
   it("行事の絵の種類（district_events.art）ごとに絵がある", () => {
@@ -153,49 +97,6 @@ describe("絵の一覧", () => {
     for (const id of Object.values(EVENT_ART_ASSET)) expect(PIXEL_ASSETS[id]).toBeDefined();
   });
 
-  it("家族は大人1〜2人・子ども0〜4人で並べられ、足元がそろう", () => {
-    for (const grownUps of ["mother", "father", "both"] as const) {
-      for (let children = 0; children <= 4; children++) {
-        const canvas = familyCanvas(grownUps, children);
-        const bottom = toRows(canvas).at(-1)!;
-        expect(bottom.replaceAll(".", "").length).toBeGreaterThan(0);
-        expect(canvas.height).toBe(21);
-      }
-    }
-    expect(() => familyCanvas("both", 5)).toThrow(RangeError);
-  });
-});
-
-describe("場面", () => {
-  // 置き場所ごとに置く部品
-  const SLOT_ASSETS: Record<SceneSlot, (id: PixelAssetId) => boolean> = {
-    full: (id) => id.startsWith("bg-") || id.startsWith("overlay-"),
-    landmark: (id) => id.startsWith("landmark-"),
-    fieldLeft: (id) => id.startsWith("event-") || id.startsWith("facility-"),
-    fieldRight: (id) => id.startsWith("event-") || id.startsWith("facility-") || id === "vehicle-train",
-    family: (id) => id.startsWith("family-"),
-    roadRight: (id) => id === "vehicle-car" || id === "vehicle-bus",
-  };
-
-  it("どの部品も、置き場所に置いたとき場面からはみ出さない", () => {
-    for (const slot of Object.keys(SCENE_SLOTS) as SceneSlot[]) {
-      for (const id of (Object.keys(PIXEL_ASSETS) as PixelAssetId[]).filter(SLOT_ASSETS[slot])) {
-        expect(layerOutOfBounds(placeInSlot(id, slot)), `${id} を ${slot} に置く`).toBe(false);
-      }
-    }
-  });
-
-  it("置き場所の下の真ん中に足元を合わせる", () => {
-    expect(placeInSlot("family-a2-c1", "family")).toEqual({ asset: "family-a2-c1", x: 58, y: 64 });
-    expect(placeInSlot("bg-winter", "full")).toEqual({ asset: "bg-winter", x: 0, y: 0 });
-  });
-
-  it("重ねると家族が背景の上に出る", () => {
-    const family = placeInSlot("family-a2-c1", "family");
-    const scene = composeScene([placeInSlot("bg-spring", "full"), family], DRAW);
-    const sprite = DRAW[family.asset]();
-    expect(scene.pixels[family.y * 160 + family.x + 4]).toBe(sprite.pixels[4]);
-  });
 });
 
 describe("ホーム画面のアイコン（024）", () => {

@@ -560,22 +560,6 @@ const GRASS = [
   "dddddddddddddddddddddddddddddddddddddddddddddddd",
 ];
 
-// 小さな木（右下の飾り）
-const TREE = [
-  "....ddd.....",
-  "..ddgggdd...",
-  ".dglgggggd..",
-  "dglllgggggd.",
-  "dggllggggdd.",
-  "dggggggdddd.",
-  ".dgggggddd..",
-  "..ddddddd...",
-  ".....nn.....",
-  ".....nn.....",
-  "....nnnn....",
-  "..llgggggl..",
-];
-
 
 export const sprout = (): Canvas => parseSprite(SPROUT);
 export const calendar = (): Canvas => parseSprite(CALENDAR);
@@ -605,4 +589,3 @@ export const bulb = (): Canvas => parseSprite(BULB);
 export const checklist = (): Canvas => parseSprite(CHECKLIST);
 export const logo = (): Canvas => parseSprite(LOGO);
 export const grass = (): Canvas => parseSprite(GRASS);
-export const smallTree = (): Canvas => parseSprite(TREE);

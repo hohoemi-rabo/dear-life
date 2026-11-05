@@ -1,56 +1,14 @@
 // 絵の id ごとの描き方。PNG の書き出し（scripts/build-pixel.mjs）とテストだけが使う
 import type { Canvas } from "../canvas.ts";
 import type { PixelAssetId } from "../assets.ts";
-import { BACKGROUND_HEIGHT, BACKGROUND_WIDTH, DIRT_TOP, seasonBackground } from "./backgrounds.ts";
-import { familyCanvas } from "./family.ts";
 import * as icons from "./icons.ts";
-import { apartment, newHouse, oldHouse } from "./houses.ts";
-import { appleAvenue, easel, mountain, park, withSnow } from "./landmarks.ts";
-import { bus, car, cultureFestival, festival, heavyRain, noticeBoard, nursery, publicFacility, school, shelter, sportsDay, train } from "./parts.ts";
+import { cultureFestival, festival, noticeBoard, sportsDay } from "./parts.ts";
 
 export const DRAW: Record<PixelAssetId, () => Canvas> = {
-  "bg-spring": () => seasonBackground("spring"),
-  "bg-summer": () => seasonBackground("summer"),
-  "bg-autumn": () => seasonBackground("autumn"),
-  "bg-winter": () => seasonBackground("winter"),
-  "family-a1m-c0": () => familyCanvas("mother", 0),
-  "family-a1m-c1": () => familyCanvas("mother", 1),
-  "family-a1m-c2": () => familyCanvas("mother", 2),
-  "family-a1m-c3": () => familyCanvas("mother", 3),
-  "family-a1m-c4": () => familyCanvas("mother", 4),
-  "family-a1f-c0": () => familyCanvas("father", 0),
-  "family-a1f-c1": () => familyCanvas("father", 1),
-  "family-a1f-c2": () => familyCanvas("father", 2),
-  "family-a1f-c3": () => familyCanvas("father", 3),
-  "family-a1f-c4": () => familyCanvas("father", 4),
-  "family-a2-c0": () => familyCanvas("both", 0),
-  "family-a2-c1": () => familyCanvas("both", 1),
-  "family-a2-c2": () => familyCanvas("both", 2),
-  "family-a2-c3": () => familyCanvas("both", 3),
-  "family-a2-c4": () => familyCanvas("both", 4),
-  "facility-school": school,
-  "facility-nursery": nursery,
-  "facility-public": publicFacility,
-  "facility-shelter": shelter,
   "event-festival": festival,
   "event-sports": sportsDay,
   "event-culture": cultureFestival,
   "event-other": noticeBoard,
-  "vehicle-car": car,
-  "vehicle-bus": bus,
-  "vehicle-train": train,
-  "house-new": newHouse,
-  "house-old": oldHouse,
-  "house-rent": apartment,
-  "landmark-chushin": appleAvenue,
-  "landmark-kanae": park,
-  "landmark-igara": easel,
-  "landmark-kamisato": mountain,
-  "landmark-chushin-winter": () => withSnow(appleAvenue()),
-  "landmark-kanae-winter": () => withSnow(park()),
-  "landmark-igara-winter": () => withSnow(easel()),
-  "landmark-kamisato-winter": () => withSnow(mountain()),
-  "overlay-rain": () => heavyRain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT, DIRT_TOP),
   "icon-sprout": icons.sprout,
   "icon-calendar": icons.calendar,
   "icon-book": icons.book,
@@ -79,5 +37,4 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   "icon-checklist": icons.checklist,
   logo: icons.logo,
   "deco-grass": icons.grass,
-  "deco-tree": icons.smallTree,
 };

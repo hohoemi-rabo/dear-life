@@ -3,13 +3,11 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
-import { PixelImage } from "@/components/pixel/PixelImage";
 import { CAR_LABELS, DISTRICTS, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type CarCount, type Housing } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { FamilyRow } from "@/components/illust/FamilyRow";
 import { DISTRICT_PICTURES, illustPictureSrc } from "@/lib/illust/assets";
-import { landmarkAssetId } from "@/lib/pixel/assets";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
@@ -169,14 +167,12 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
   );
 }
 
-// 地区の絵（028）。生成AIの絵がある地区はそれを、ない地区は今のドット絵の目印を出す。飾り
+// 地区の絵（028）。飾り
 function DistrictThumb({ district }: { district: DistrictId }) {
-  const picture = DISTRICT_PICTURES[district];
-  if (!picture) return <PixelImage asset={landmarkAssetId(district, "spring")} scale={1} decorative className="shrink-0" />;
   return (
     // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
     <img
-      src={illustPictureSrc(picture, 480)}
+      src={illustPictureSrc(DISTRICT_PICTURES[district], 480)}
       alt=""
       loading="lazy"
       draggable={false}

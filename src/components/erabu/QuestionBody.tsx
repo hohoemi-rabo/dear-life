@@ -5,8 +5,6 @@ import type { ReactNode } from "react";
 import { CarChoicePicture } from "@/components/illust/CarChoicePicture";
 import { FamilyHint } from "@/components/illust/FamilyHint";
 import { IllustPicture } from "@/components/illust/IllustPicture";
-import { PixelImage } from "@/components/pixel/PixelImage";
-import { PixelStage } from "@/components/pixel/PixelStage";
 import {
   CAR_LABELS,
   DISTRICT_NAMES,
@@ -37,7 +35,6 @@ import {
   spriteId,
   spriteSrc,
 } from "@/lib/illust/assets";
-import { landmarkAssetId } from "@/lib/pixel/assets";
 import { MAP_PATH } from "@/lib/site";
 
 type Props = {
@@ -70,7 +67,6 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
   return (
     <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="住む地区">
       {DISTRICTS.map(({ id, name }) => {
-        const picture = DISTRICT_PICTURES[id];
         return (
           <li key={id}>
             <PictureChoiceCard
@@ -79,13 +75,12 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
               check="left"
               pictureClassName="aspect-[16/9]"
               picture={
-                picture ? (
-                  <IllustPicture picture={picture} sizes="(min-width: 1024px) 290px, (min-width: 640px) 280px, 50vw" decorative className="size-full object-cover" />
-                ) : (
-                  <PixelStage className="size-full">
-                    <PixelImage asset={landmarkAssetId(id, "spring")} scale={2} decorative />
-                  </PixelStage>
-                )
+                <IllustPicture
+                  picture={DISTRICT_PICTURES[id]}
+                  sizes="(min-width: 1024px) 290px, (min-width: 640px) 280px, 50vw"
+                  decorative
+                  className="size-full object-cover"
+                />
               }
               label={name}
             />
