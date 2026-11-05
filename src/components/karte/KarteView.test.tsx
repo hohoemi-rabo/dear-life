@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
@@ -178,5 +180,19 @@ describe("KarteView：移動（F-04・F-14）", () => {
   it("地区を選んでいなければ、えらぶへ案内する", async () => {
     await open("a=2&k=1");
     expect(screen.getByRole("link", { name: /地区をえらぶ/ })).toHaveAttribute("href", "/erabu?a=2&k=1&h=new");
+  });
+});
+
+describe("わが家の設定の欄のアイコン（2026-11-05 まさゆきさん）", () => {
+  it("上から順に、歯車・ピン・家・車・ハート・地図・錠の絵を出し、どの絵のファイルもある", async () => {
+    await open("d=kamisato");
+    const panel = screen.getByRole("complementary", { name: "わが家の設定" });
+    const sources = Array.from(panel.querySelectorAll<HTMLImageElement>('img[src*="/settings-"]')).map((image) => image.getAttribute("src") ?? "");
+    expect(sources).toEqual(
+      ["settings", "district", "housing", "car", "priorities", "districts", "noSignup"].map((icon) => `/illust/settings-${icon}-64.webp`),
+    );
+    for (const source of sources) {
+      expect(existsSync(join(process.cwd(), "public", source))).toBe(true);
+    }
   });
 });

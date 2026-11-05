@@ -827,6 +827,31 @@ export function priorityIconSrcSet(priority: Priority): string {
   return PRIORITY_ICON_WIDTHS.map((width) => `${priorityIconSrc(priority, width)} ${width}w`).join(", ");
 }
 
+// カルテの「わが家の設定」の欄のアイコン（2026-11-05 受け取り）。settings-icons.png に上の段の左から 歯車・ピン・家・車、
+// 下の段の左から ハートとチェック・地図・開いた錠 が並んでいるので、小物と同じく透明な隙間で切り分ける
+export const SETTINGS_ICON_SOURCE = "settings-icons.png";
+export const SETTINGS_ICON_INDEX = {
+  settings: 0,
+  district: 1,
+  housing: 2,
+  car: 3,
+  priorities: 4,
+  districts: 5,
+  noSignup: 6,
+} as const;
+export type SettingsIconId = keyof typeof SETTINGS_ICON_INDEX;
+
+// 書き出す横幅。画面では 32px で出すので、2倍・4倍の画面の分を用意する
+export const SETTINGS_ICON_WIDTHS = [64, 128] as const;
+
+export function settingsIconSrc(icon: SettingsIconId, width: number): string {
+  return `/${ILLUST_DIR}/settings-${icon}-${width}.webp`;
+}
+
+export function settingsIconSrcSet(icon: SettingsIconId): string {
+  return SETTINGS_ICON_WIDTHS.map((width) => `${settingsIconSrc(icon, width)} ${width}w`).join(", ");
+}
+
 export function illustPictureSrc(id: IllustPictureId, width: number): string {
   return `/${ILLUST_DIR}/${id}-${width}.webp`;
 }

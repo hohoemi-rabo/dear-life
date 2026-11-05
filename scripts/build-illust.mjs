@@ -20,6 +20,9 @@ import {
   PRIORITY_ICON_WIDTHS,
   PROP_SOURCES,
   PROP_WIDTHS,
+  SETTINGS_ICON_INDEX,
+  SETTINGS_ICON_SOURCE,
+  SETTINGS_ICON_WIDTHS,
   SPRITE_SCALE,
   SPRITE_SOURCES,
 } from "../src/lib/illust/assets.ts";
@@ -176,17 +179,17 @@ for (const [id, { sheet, index, scale = 1, matchHeight }] of Object.entries(SPRI
   console.log(`書き出し：public/${ILLUST_DIR}/${file}（${outWidth}×${outHeight}、${Math.round(out.size / 1024)}KB）`);
 }
 
-// 家・小物：濃いところを不透明にし、透明なふちを切り落とす。columns を渡すと、その列の範囲だけを見る（1枚に並んだ小物）。
+// 家・小物：濃いところを不透明にし、透明なふちを切り落とす。figure を渡すと、その範囲だけを見る（1枚に並んだ小物）。
 // 大きさは縦横の比を画面で使うため、切り落とした元の大きさを返す
-async function writeOpaqueCrop(source, columns, name, widths) {
+async function writeOpaqueCrop(source, figure, name, widths) {
   const { data, info } = await sharp(sourcePath(source)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const { left: fromX, right: toX } = columns ?? { left: 0, right: info.width - 1 };
+  const { left: fromX, right: toX, top: fromY, bottom: toY } = figure ?? { left: 0, right: info.width - 1, top: 0, bottom: info.height - 1 };
   let left = info.width;
   let right = -1;
   let top = info.height;
   let bottom = -1;
   makeOpaque(data, info.channels);
-  for (let y = 0; y < info.height; y++) {
+  for (let y = fromY; y <= toY; y++) {
     for (let x = fromX; x <= toX; x++) {
       const alpha = (y * info.width + x) * info.channels + 3;
       if (data[alpha] > ALPHA_THRESHOLD) {
@@ -217,21 +220,29 @@ for (const [housing, { source }] of Object.entries(HOUSE_SOURCES)) {
 
 const propSizes = {};
 for (const [prop, { source, index, widths = PROP_WIDTHS }] of Object.entries(PROP_SOURCES)) {
-  let columns = null;
+  let figure = null;
   if (index !== undefined) {
     const figures = await figuresOf(source);
-    columns = figures[index];
-    if (!columns) throw new Error(`${source} に左から${index + 1}番目の絵がありません（${figures.length}個）`);
+    figure = figures[index];
+    if (!figure) throw new Error(`${source} に左から${index + 1}番目の絵がありません（${figures.length}個）`);
   }
-  propSizes[prop] = await writeOpaqueCrop(source, columns, prop, widths);
+  propSizes[prop] = await writeOpaqueCrop(source, figure, prop, widths);
 }
 
 // 大切にしたいことの絵：1枚に並んだ5つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）
 const priorityFigures = await figuresOf(PRIORITY_ICON_SOURCE);
 for (const [priority, index] of Object.entries(PRIORITY_ICON_INDEX)) {
-  const columns = priorityFigures[index];
-  if (!columns) throw new Error(`${PRIORITY_ICON_SOURCE} に左から${index + 1}番目の絵がありません（${priorityFigures.length}個）`);
-  await writeOpaqueCrop(PRIORITY_ICON_SOURCE, columns, `priority-${priority}`, PRIORITY_ICON_WIDTHS);
+  const figure = priorityFigures[index];
+  if (!figure) throw new Error(`${PRIORITY_ICON_SOURCE} に左から${index + 1}番目の絵がありません（${priorityFigures.length}個）`);
+  await writeOpaqueCrop(PRIORITY_ICON_SOURCE, figure, `priority-${priority}`, PRIORITY_ICON_WIDTHS);
+}
+
+// わが家の設定の欄のアイコン：2段に並んだ7つを切り分ける。大きさは画面で使わない（32px の枠の中に収めて出す）
+const settingsFigures = await figuresOf(SETTINGS_ICON_SOURCE);
+for (const [icon, index] of Object.entries(SETTINGS_ICON_INDEX)) {
+  const figure = settingsFigures[index];
+  if (!figure) throw new Error(`${SETTINGS_ICON_SOURCE} の${index + 1}番目の絵がありません（${settingsFigures.length}個）`);
+  await writeOpaqueCrop(SETTINGS_ICON_SOURCE, figure, `settings-${icon}`, SETTINGS_ICON_WIDTHS);
 }
 
 const spriteLines = Object.entries(sizes).map(([id, { width, height }]) => `  "${id}": { width: ${width}, height: ${height} },`);

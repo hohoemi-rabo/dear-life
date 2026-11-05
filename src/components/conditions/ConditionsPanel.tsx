@@ -7,7 +7,14 @@ import { CAR_LABELS, DISTRICTS, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, 
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { FamilyRow } from "@/components/illust/FamilyRow";
-import { DISTRICT_PICTURES, illustPictureSrc } from "@/lib/illust/assets";
+import {
+  DISTRICT_PICTURES,
+  SETTINGS_ICON_WIDTHS,
+  illustPictureSrc,
+  settingsIconSrc,
+  settingsIconSrcSet,
+  type SettingsIconId,
+} from "@/lib/illust/assets";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
@@ -85,14 +92,14 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
     <div className="flex flex-col gap-4">
       <section aria-labelledby="settings-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
         <h2 id="settings-title" className="flex items-center gap-2 text-lg font-bold">
-          <PixelIcon icon="icon-sprout" />
+          <SettingsIcon icon="settings" />
           わが家の設定
         </h2>
         {/* 家族はくらしの「わが家」と同じ人物（028 まさゆきさん）。スマホではこの欄を隠しているので、見えるまで読まない */}
         <FamilyRow conditions={conditions} fatherHeight={72} lazy />
         <p className="text-center font-bold">{familyLabel(conditions)}</p>
         <div className="flex flex-col gap-2 text-sm">
-          <SettingRow icon={<PixelIcon icon="icon-pin" />} label="地区">
+          <SettingRow icon={<SettingsIcon icon="district" />} label="地区">
             <SettingSelect
               label="地区"
               value={conditions.district}
@@ -100,7 +107,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
               onChange={(value) => onConditionsChange({ district: value as DistrictId })}
             />
           </SettingRow>
-          <SettingRow icon={<PixelIcon icon="icon-house" />} label="住まい">
+          <SettingRow icon={<SettingsIcon icon="housing" />} label="住まい">
             <SettingSelect
               label="住まい"
               value={conditions.housing}
@@ -108,7 +115,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
               onChange={(value) => onConditionsChange({ housing: value as Housing })}
             />
           </SettingRow>
-          <SettingRow icon={<PixelIcon icon="icon-car" />} label="車">
+          <SettingRow icon={<SettingsIcon icon="car" />} label="車">
             <SettingSelect
               label="車"
               value={conditions.car === null ? NO_CAR : String(conditions.car)}
@@ -119,7 +126,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
               onChange={(value) => onConditionsChange({ car: value === NO_CAR ? null : (Number(value) as CarCount) })}
             />
           </SettingRow>
-          <SettingRow icon={<PixelIcon icon="icon-sprout" />} label="大切にしたいこと">
+          <SettingRow icon={<SettingsIcon icon="priorities" />} label="大切にしたいこと">
             <p className="font-bold">
               {conditions.priorities.length === 0
                 ? "なし"
@@ -132,7 +139,7 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
 
       <section aria-labelledby="districts-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
         <h2 id="districts-title" className="flex items-center gap-2 text-lg font-bold">
-          <PixelIcon icon="icon-districts" />
+          <SettingsIcon icon="districts" />
           対象の4地区
         </h2>
         <ul className="grid grid-cols-2 gap-2">
@@ -160,10 +167,26 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
       </section>
 
       <p className="flex items-center gap-2 whitespace-nowrap rounded-card bg-kinari-deep px-3 py-3 text-[13px]">
-        <PixelIcon icon="icon-sprout" />
+        <SettingsIcon icon="noSignup" />
         登録不要でお試しいただけます
       </p>
     </div>
+  );
+}
+
+// この欄の左のアイコン。そばの文字で意味がわかるので読み上げない。スマホではこの欄を隠しているので、見えるまで読まない
+function SettingsIcon({ icon }: { icon: SettingsIconId }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+    <img
+      src={settingsIconSrc(icon, SETTINGS_ICON_WIDTHS[0])}
+      srcSet={settingsIconSrcSet(icon)}
+      sizes="32px"
+      alt=""
+      loading="lazy"
+      draggable={false}
+      className="size-8 shrink-0 select-none object-contain"
+    />
   );
 }
 
