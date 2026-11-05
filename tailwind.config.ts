@@ -90,6 +90,18 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "40%": { transform: "translateY(-14%)" },
         },
+        // カルテの地区を切りかえたときのパネル：ふわっと出て、少しとどまり、自然に消える。長さは DISTRICT_NOTICE_MS とそろえる
+        "district-notice": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.96)" },
+          "14%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "82%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "100%": { opacity: "0", transform: "translateY(-4px) scale(0.98)" },
+        },
+        // パネルが消えたあと、更新されたカードを一度だけふわっと強調する。長さは CARD_GLOW_MS とそろえる
+        "card-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgb(31 110 94 / 0)" },
+          "40%": { boxShadow: "0 0 0 4px rgb(31 110 94 / 0.45)" },
+        },
         // くらしのピン（028）：押せると分かるよう、ゆっくり少しだけ上下にゆれる
         "pin-bob": {
           "0%, 100%": { transform: "translateY(0)" },
@@ -106,6 +118,8 @@ const config: Config = {
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
+        "district-notice": "district-notice 1500ms ease-out both",
+        "card-glow": "card-glow 900ms ease-out both",
       },
     },
   },

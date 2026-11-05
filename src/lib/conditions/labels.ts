@@ -33,6 +33,13 @@ export const DISTRICT_NAMES = Object.fromEntries(DISTRICTS.map(({ id, name }) =>
   Record<DistrictId, string>
 >;
 
+export const DISTRICT_READINGS: Readonly<Record<DistrictId, string>> = {
+  kamisato: "かみさと",
+  kanae: "かなえ",
+  igara: "いがら",
+  chushin: "ちゅうしんしがいち",
+};
+
 export const HOUSING_LABELS: Readonly<Record<Housing, Enums["housing_choice"]>> = {
   new: "買う・新しめ",
   old: "買う・古め",

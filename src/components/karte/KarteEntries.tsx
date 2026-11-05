@@ -48,7 +48,7 @@ export const CARD_PICTURES: Readonly<Record<Exclude<KarteCard, "housing">, PropI
 
 // 一覧のカード（図鑑の目次。028 見本）。上の段は絵と問いの大きいカード、下の段は人口・公共施設・支援制度の小さいカード。
 // 並び順は karteLayout のまま。#karte-<card> 付きで開いたら、データが届いてカードが出てからそこまで移る
-export function KarteEntries({ cards, conditions }: { cards: readonly KarteCard[]; conditions: Chosen }) {
+export function KarteEntries({ cards, conditions, highlighted }: { cards: readonly KarteCard[]; conditions: Chosen; highlighted: boolean }) {
   const data = useScreenData();
   const searchParams = useSearchParams();
   const district = data.districts[conditions.district];
@@ -83,18 +83,21 @@ export function KarteEntries({ cards, conditions }: { cards: readonly KarteCard[
     ),
   };
 
+  // 地区を切りかえてパネルが消えたあと、一度だけふわっと強調する（2026-11-05 まさゆきさん）
+  const glow = highlighted ? "motion-safe:animate-card-glow" : "";
+
   return (
     <div className="flex flex-col gap-4">
       <ul aria-label="くらしの項目" className="grid gap-4 lg:grid-cols-2">
         {main.map((card) => (
-          <li key={card} id={karteCardAnchor(card)} className="flex scroll-mt-4">
+          <li key={card} id={karteCardAnchor(card)} className={`flex scroll-mt-4 rounded-card ${glow}`}>
             {bodies[card]}
           </li>
         ))}
       </ul>
       <ul aria-label="そのほかの項目" className="grid gap-3 md:grid-cols-3 md:gap-4">
         {minor.map((card) => (
-          <li key={card} id={karteCardAnchor(card)} className="flex scroll-mt-4">
+          <li key={card} id={karteCardAnchor(card)} className={`flex scroll-mt-4 rounded-card ${glow}`}>
             <MinorEntry card={card} href={detailHref(card)} />
           </li>
         ))}

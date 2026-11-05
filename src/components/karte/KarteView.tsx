@@ -22,7 +22,9 @@ import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { NextStepScene } from "./NextStepScene";
+import { DistrictSwitchNotice } from "./DistrictSwitchNotice";
 import { KarteEntries, KarteTabs } from "./KarteEntries";
+import { useDistrictSwitch } from "./useDistrictSwitch";
 
 type Chosen = Conditions & { district: DistrictId };
 
@@ -32,6 +34,7 @@ export function KarteView() {
   const { conditions, setConditions } = useConditions();
   const searchParams = useSearchParams();
   const { district } = conditions;
+  const { noticeDistrict, cardsHighlighted } = useDistrictSwitch(district);
   if (district === null) return <NoDistrict conditions={conditions} />;
 
   const chosen = { ...conditions, district };
@@ -55,11 +58,13 @@ export function KarteView() {
         <KarteTabs cards={layout.cards} />
 
         <ScreenDataBoundary fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
-          <KarteEntries cards={layout.cards} conditions={chosen} />
+          <KarteEntries cards={layout.cards} conditions={chosen} highlighted={cardsHighlighted} />
         </ScreenDataBoundary>
 
         <NextStepBand conditions={chosen} searchParams={searchParams} />
       </div>
+
+      <DistrictSwitchNotice district={noticeDistrict} conditions={chosen} />
     </div>
   );
 }

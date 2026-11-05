@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
 import { karteScreenData } from "@/test/karte-fixture";
@@ -231,5 +231,65 @@ describe("見出しの本の絵（2026-11-05 まさゆきさん）", () => {
     const books = document.querySelectorAll('header img[src="/illust/karte-title-book-96.webp"]');
     expect(books).toHaveLength(2);
     expect(existsSync(join(process.cwd(), "public/illust/karte-title-book-96.webp"))).toBe(true);
+  });
+});
+
+describe("地区を切りかえたときの知らせ（2026-11-05 まさゆきさん）", () => {
+  const status = () => screen.getByRole("status", { name: "地区の切りかえの知らせ" });
+  const switchTo = (value: string) =>
+    act(async () => void fireEvent.change(screen.getByRole("combobox", { name: "地区を切り替える" }), { target: { value } }));
+  // 読み込みの偽物は呼ぶたびに新しい Promise を返すので、毎回 await して描き直しを待つ
+  const advance = (ms: number) => act(async () => void vi.advanceTimersByTime(ms));
+  const firstCard = () => screen.getByRole("list", { name: "くらしの項目" }).querySelector("li") as HTMLElement;
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("開いたときは出さない", async () => {
+    await open("d=kamisato");
+    expect(status().textContent).toBe("");
+  });
+
+  it("切りかえると地区の名前と読みを出し、約1.5秒で消えて、カードを一度だけ強調する", async () => {
+    await open("d=kamisato");
+    vi.useFakeTimers();
+    await switchTo("kanae");
+    expect(status().textContent).toContain("鼎のカルテに切り替わりました");
+    expect(status().textContent).toContain("かなえ");
+    expect(status().textContent).toContain("住まい・学校・交通など、鼎の情報をご覧ください。");
+    expect(status().textContent).not.toContain("KANAE");
+    expect(firstCard().className).not.toContain("animate-card-glow");
+
+    await advance(1500);
+    expect(status().textContent).toBe("");
+    expect(firstCard().className).toContain("animate-card-glow");
+
+    await advance(900);
+    expect(firstCard().className).not.toContain("animate-card-glow");
+  });
+
+  it("続けて切りかえたら、新しい地区に入れかえて数え直す", async () => {
+    await open("d=kamisato");
+    vi.useFakeTimers();
+    await switchTo("kanae");
+    await advance(1000);
+    await switchTo("chushin");
+    expect(status().textContent).toContain("中心市街地のカルテに切り替わりました");
+    expect(status().textContent).not.toContain("鼎");
+    await advance(1000);
+    expect(status().textContent).toContain("中心市街地");
+    await advance(500);
+    expect(status().textContent).toBe("");
+  });
+
+  it("地区以外の条件を変えても出さない。パネルは押せない作りで、閉じるボタンもない", async () => {
+    await open("d=kamisato");
+    await act(async () => void fireEvent.change(screen.getByRole("combobox", { name: "住まい" }), { target: { value: "old" } }));
+    expect(status().textContent).toBe("");
+    vi.useFakeTimers();
+    await switchTo("igara");
+    expect(status().className).toContain("pointer-events-none");
+    expect(within(status()).queryByRole("button")).toBeNull();
   });
 });
