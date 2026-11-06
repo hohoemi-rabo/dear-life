@@ -13,6 +13,19 @@
   .price-figure {
     @apply font-price font-normal tabular-nums;
   }
+
+  /* ドット絵の側の窓（030 新しい版のお知らせ）。四隅を1マス欠いた太い枠と、下にずらした影でゲームの窓に見せる。
+     枠と影は box-shadow で描くので、まわりに 4px の余白をとって置く */
+  .pixel-window {
+    @apply bg-surface;
+    box-shadow:
+      0 -4px 0 0 theme("colors.ink.DEFAULT"),
+      0 4px 0 0 theme("colors.ink.DEFAULT"),
+      -4px 0 0 0 theme("colors.ink.DEFAULT"),
+      4px 0 0 0 theme("colors.ink.DEFAULT"),
+      inset 0 -4px 0 0 theme("colors.kinari.deep"),
+      0 8px 0 0 rgb(43 42 38 / 0.25);
+  }
 }
 
 @layer utilities {

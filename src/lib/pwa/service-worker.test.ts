@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { FAKE_ORIGIN, FakeCacheStorage } from "@/test/fake-cache-storage";
 import { DATA_CACHE_NAME } from "@/lib/data/offline-data";
 import { precacheUrls, serviceWorkerSource } from "./precache";
+import { SKIP_WAITING_MESSAGE } from "./update";
 
 const template = readFileSync(join(import.meta.dirname, "service-worker.js"), "utf8");
 
@@ -51,6 +52,7 @@ function startWorker(version: string, urls: string[], network: (url: string) => 
     addEventListener: (type: string, handler: Handler) => (handlers[type] = handler),
     location: new URL(FAKE_ORIGIN),
     clients: { claim: vi.fn(() => Promise.resolve()) },
+    skipWaiting: vi.fn(() => Promise.resolve()),
   };
   const fetchMock = vi.fn((input: string | FakeRequest) => network(typeof input === "string" ? new URL(input, FAKE_ORIGIN).href : input.url));
   new Function("self", "caches", "fetch", serviceWorkerSource(template, version, urls))(self, storage, fetchMock);
@@ -67,6 +69,7 @@ function startWorker(version: string, urls: string[], network: (url: string) => 
     fetchMock,
     install: () => run("install"),
     activate: () => run("activate"),
+    message: (data: unknown) => run("message", { data }),
     fetch: (path: string, mode?: string) => run("fetch", { request: request(path, mode) }) as Promise<Response> | undefined,
   };
 }
@@ -100,6 +103,17 @@ describe("Service Worker", () => {
     await worker.activate();
     expect(await storage.keys()).toEqual([DATA_CACHE_NAME, "dearlife-static-bbbb1111"]);
     expect(worker.self.clients.claim).toHaveBeenCalled();
+  });
+
+  it("画面で「更新する」が押されたときだけ待たずに入れ替える（030）", async () => {
+    const worker = startWorker("aaaa0000", [], siteNetwork);
+    await worker.install();
+    expect(worker.self.skipWaiting).not.toHaveBeenCalled();
+    worker.message({ type: "something-else" });
+    worker.message(null);
+    expect(worker.self.skipWaiting).not.toHaveBeenCalled();
+    worker.message(SKIP_WAITING_MESSAGE);
+    expect(worker.self.skipWaiting).toHaveBeenCalledTimes(1);
   });
 
   it("圏外でも、条件の付いた画面と画面の移動の .txt を端末から出す", async () => {

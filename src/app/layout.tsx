@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 import { RememberLastView } from "@/components/pwa/RememberLastView";
+import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import { APP_ICONS, appIconPx, appIconSrc } from "@/lib/pwa/icons";
 import { SITE_CATCHPHRASE, SITE_NAME, SITE_NAME_JA, TARGET_DISTRICTS_LABEL, THEME_COLOR } from "@/lib/site";
 import "./globals.css";
@@ -63,6 +64,7 @@ export default function RootLayout({
         </main>
         <SiteFooter />
         <RegisterServiceWorker />
+        <UpdatePrompt />
         <Suspense fallback={null}>
           <RememberLastView />
         </Suspense>

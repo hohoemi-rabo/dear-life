@@ -1,7 +1,8 @@
 // 画面の部品を端末に残す Service Worker（024・要件 8.2）。scripts/build-sw.mjs が先頭に VERSION（版）と PRECACHE（残すファイル）を書き足して out/sw.js にする。
 //
 // - 画面の部品・ドット絵：端末に残したものを先に使う（キャッシュ優先）。版ごとに入れ物を分け、新しい版は入れ終わってから
-//   画面がすべて閉じられたあと（次に開いたとき）に入れ替わる。skipWaiting はしない（開いている画面の部品と混ざらないように）
+//   画面がすべて閉じられたあと（次に開いたとき）に入れ替わる。勝手に skipWaiting はしない（開いている画面の部品と混ざらないように）。
+//   画面で「更新する」が押されたときだけ入れ替え、画面はすぐ読み直す（030。src/lib/pwa/update.ts）
 // - Supabase の応答：ここでは扱わない。画面の側（src/lib/data/offline-data.ts）がネットワーク優先で読み、"dearlife-data" に残す。
 //   版の入れ替えで消すのは STATIC_PREFIX の付いた入れ物だけなので、データは残る
 // - 地図の背景（地理院タイル）：端末に残さない。圏外では出ないことを地図の画面に書いてある
@@ -35,6 +36,11 @@ self.addEventListener("activate", (event) => {
       await self.clients.claim();
     })(),
   );
+});
+
+// 「更新する」が押されたら待たずに入れ替える。値は src/lib/pwa/update.ts の SKIP_WAITING_MESSAGE と同じ
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("fetch", (event) => {
