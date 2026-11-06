@@ -201,7 +201,7 @@ function BusStopTextLink({ conditions }: { conditions: Conditions }) {
 }
 
 // PC で絵を右の列の横に置く質問。車で試して OK をもらい、1問ずつ広げている（2026-11-06 まさゆきさん）
-const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["district", "family", "car"];
+const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["district", "family", "housing", "car"];
 
 // 右に列を置くときの絵の最大幅。絵（3:2）の高さが「画面の高さ − 絵より上（ヘッダー・進み具合・すき間、計165px）− 下の余白」に
 // 収まる幅にする。画面が低すぎて絵が小さくなりすぎないよう、幅は 480px より小さくしない

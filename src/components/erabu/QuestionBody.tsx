@@ -53,7 +53,7 @@ export function QuestionBody({ question, conditions, onChange, side = false }: P
     case "family":
       return <FamilyCounter conditions={conditions} onChange={onChange} />;
     case "housing":
-      return <HousingChoices conditions={conditions} onChange={onChange} />;
+      return <HousingChoices conditions={conditions} onChange={onChange} side={side} />;
     case "car":
       return <CarChoices conditions={conditions} onChange={onChange} side={side} />;
     case "priorities":
@@ -137,8 +137,11 @@ function PictureChoiceCard({
         <CheckMark className={`${check === "left" ? "left-2.5 top-2.5" : "right-2.5 top-2.5"} ${side ? "lg:left-auto lg:right-3 lg:top-1/2 lg:-translate-y-1/2" : ""}`} />
       )}
       <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName} ${side ? "lg:aspect-[4/3] lg:w-16 lg:shrink-0 lg:p-0" : ""}`}>{picture}</span>
-      <span className={`whitespace-nowrap font-bold ${labelClassName} ${side ? "lg:order-none lg:p-0" : ""}`}>{label}</span>
-      {description && <span className="-mt-1 whitespace-nowrap text-xs text-ink-muted">{description}</span>}
+      {/* 横長のとき（PC の side）は名前と説明を縦に重ねる。スマホは contents で今までどおりカードの中に並べる */}
+      <span className={side ? "contents lg:flex lg:flex-col lg:gap-1" : "contents"}>
+        <span className={`whitespace-nowrap font-bold ${labelClassName} ${side ? "lg:order-none lg:p-0" : ""}`}>{label}</span>
+        {description && <span className="-mt-1 whitespace-nowrap text-xs text-ink-muted">{description}</span>}
+      </span>
     </button>
   );
 }
@@ -261,9 +264,10 @@ const HOUSING_CHOICES: readonly { id: Housing; description: string }[] = [
 
 // 家の選択肢（028 見本）：家の絵、下に名前と説明。選んだものは右上に ✓。
 // 家の絵はプレビューと同じもの（4地区で使い回す）。絵の後ろは透明なので、カードの地の色のまま出す（2026-10-29 まさゆきさん）
-function HousingChoices({ conditions, onChange }: ChoiceProps) {
+// side のときは、PC で左に小さな家の絵・右に名前と説明の横長のボタンを縦に並べる（車と同じ形。2026-11-06 まさゆきさん）
+function HousingChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
-    <ul className="grid grid-cols-3 gap-2" aria-label="家">
+    <ul className={`grid grid-cols-3 gap-2 ${side ? "lg:grid-cols-1" : ""}`} aria-label="家">
       {HOUSING_CHOICES.map(({ id, description }) => (
         <li key={id}>
           <PictureChoiceCard
@@ -276,7 +280,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
               <img
                 src={houseSrc(id, HOUSE_WIDTHS[0])}
                 srcSet={HOUSE_WIDTHS.map((w) => `${houseSrc(id, w)} ${w}w`).join(", ")}
-                sizes="(min-width: 1024px) 390px, (min-width: 640px) 180px, 30vw"
+                sizes={side ? "(min-width: 1024px) 64px, (min-width: 640px) 180px, 30vw" : "(min-width: 1024px) 390px, (min-width: 640px) 180px, 30vw"}
                 alt=""
                 draggable={false}
                 decoding="async"
@@ -286,6 +290,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
             label={HOUSING_LABELS[id]}
             labelClassName="text-sm sm:text-base"
             description={description}
+            side={side}
           />
         </li>
       ))}
