@@ -390,9 +390,12 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 絵に描いたもので、今の町のようすと違うものの断り書き。絵の下の端に小さく出す。
-// リニア中央新幹線の長野県駅（仮称）は上郷にできる予定だが、まだ工事中（2026-11-07 まさゆきさん：絵の下に小さく明記。05 のあと 02〜04 にも）
+// リニア中央新幹線の長野県駅（仮称）は上郷にできる予定だが、まだ工事中（2026-11-07 まさゆきさん：絵の下に小さく明記。05 のあと 02〜04・01 にも）
 const LINEAR_NOTE = "※リニアはまだ工事中です。開業は2034年以降の見込みです。";
 export const PICTURE_NOTES: Partial<Record<IllustPictureId, string>> = {
+  // 01 の飯田市全体の絵にもリニアの駅と車両がある。上郷の選択肢の絵（district-kamisato）にもあるが、カードは小さく、
+  // 同じ画面のこの絵の断り書きで伝わるので、2つ並べない
+  "erabu-iida-overview": LINEAR_NOTE,
   "erabu-kamisato-base": LINEAR_NOTE,
   "erabu-kamisato-priorities": LINEAR_NOTE,
 };

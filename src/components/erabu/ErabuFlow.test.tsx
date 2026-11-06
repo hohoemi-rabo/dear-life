@@ -238,6 +238,11 @@ describe("ErabuFlow：質問の進行", () => {
     }
   });
 
+  it("01 は飯田市全体の絵にリニアの断り書きを1つだけ出す（上郷の選択肢の絵のリニアもこれで伝える）", async () => {
+    await open("d=kamisato");
+    expect(screen.getAllByText("※リニアはまだ工事中です。開業は2034年以降の見込みです。")).toHaveLength(1);
+  });
+
 });
 
 describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
