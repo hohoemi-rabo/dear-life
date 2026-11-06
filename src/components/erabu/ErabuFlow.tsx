@@ -138,7 +138,8 @@ export function ErabuFlow() {
   if (side) {
     // PC（lg 以上）は、左に絵・右に細い列（質問・選択肢・次へ・返事）。ノートパソコンでも選ぶときに絵が見えるよう、
     // 絵は縦横比のまま画面の高さに収まる大きさにする（2026-11-06 まさゆきさん）。地図のカードは「まだ決めない」の下に置く。
-    // スマホは今までどおり縦に並べる（左右の列を contents にして、order で 絵 → 質問 → 返事 → 地図 → もどる・次へ の順にする）
+    // スマホは今までどおり縦に並べる（左右の列を contents にして、order で 絵 → 質問 → 地図 → 返事 → もどる・次へ の順にする。
+    // 地図のカードは車だけ、返事のカードは家族・家だけなので、同じ画面に両方は出ない。車では空の返事の枠が地図のカードを押し下げないよう、地図を先にする）
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col gap-4 lg:max-w-none">
         <div className="lg:mx-auto lg:w-full lg:max-w-[1200px]">
@@ -152,7 +153,7 @@ export function ErabuFlow() {
             <div className="max-lg:order-2">{questionSection}</div>
             {actions}
             {current === "car" && (
-              <div className="max-lg:order-4">
+              <div className="max-lg:order-3">
                 <div className="lg:hidden">
                   <BusStopMapLink conditions={conditions} />
                 </div>
@@ -169,7 +170,7 @@ export function ErabuFlow() {
                 className="hidden lg:inline-flex"
               />
             )}
-            <div className="max-lg:order-3">{reply}</div>
+            <div className="max-lg:order-4">{reply}</div>
           </div>
         </div>
       </div>
