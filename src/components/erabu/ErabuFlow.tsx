@@ -57,7 +57,8 @@ export function ErabuFlow() {
   const questionSection = (
     <section aria-labelledby="erabu-question" className={`flex flex-col gap-4 ${side ? "lg:gap-3" : ""}`}>
       <div className={`flex flex-col items-center gap-1 text-center ${side ? "lg:items-start lg:text-left" : ""}`}>
-        <h1 id="erabu-question" className="text-[1.375rem] font-extrabold max-[374px]:text-xl min-[400px]:text-2xl">
+        {/* PC の右の列（320px）では、いちばん長い「どんな暮らしを、大切にしたい？」が1行に収まる大きさにする */}
+        <h1 id="erabu-question" className={`text-[1.375rem] font-extrabold max-[374px]:text-xl min-[400px]:text-2xl ${side ? "lg:text-xl" : ""}`}>
           {question.title}
         </h1>
         <p className="text-sm text-ink-muted">{question.lead}</p>
@@ -159,6 +160,17 @@ export function ErabuFlow() {
                 <BusStopTextLink conditions={conditions} />
               </div>
             )}
+            {current === "priorities" && question.optional && (
+              <SkipButton
+                label={question.skipLabel ?? "飛ばす"}
+                current={current}
+                conditions={conditions}
+                next={next}
+                onSkip={goTo}
+                variant="text"
+                className="hidden lg:inline-flex"
+              />
+            )}
             <div className="max-lg:order-3">{reply}</div>
           </div>
         </div>
@@ -192,7 +204,7 @@ function BusStopTextLink({ conditions }: { conditions: Conditions }) {
   return (
     <Link
       href={conditionsHref(MAP_PATH, conditions)}
-      className="hidden min-h-tap items-center gap-1 text-sm font-bold text-primary underline-offset-4 hover:underline lg:inline-flex"
+      className={`${TEXT_LINK} hidden lg:inline-flex`}
     >
       バス停を地図で見る
       <span aria-hidden="true">›</span>
@@ -201,7 +213,7 @@ function BusStopTextLink({ conditions }: { conditions: Conditions }) {
 }
 
 // PC で絵を右の列の横に置く質問。車で試して OK をもらい、1問ずつ広げている（2026-11-06 まさゆきさん）
-const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["district", "family", "housing", "car"];
+const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["district", "family", "housing", "car", "priorities"];
 
 // 右に列を置くときの絵の最大幅。絵（3:2）の高さが「画面の高さ − 絵より上（ヘッダー・進み具合・すき間、計165px）− 下の余白」に
 // 収まる幅にする。画面が低すぎて絵が小さくなりすぎないよう、幅は 480px より小さくしない
@@ -301,6 +313,9 @@ function pillAction(compact: boolean): string {
 const OUTLINE_ACTION =
   "inline-flex min-h-[3.25rem] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-bold min-[400px]:px-3 min-[400px]:text-[0.8125rem] sm:px-4 sm:text-sm text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
+// PC の右の列の、文字だけの小さなリンク（バス停を地図で見る・選ばずに進む）
+const TEXT_LINK = "min-h-tap items-center gap-1 self-start text-sm font-bold text-primary underline-offset-4 hover:underline";
+
 // 枠のない文字だけの操作（戻る）
 const TEXT_ACTION = "inline-flex shrink-0 whitespace-nowrap min-h-tap min-w-tap items-center justify-center gap-1 font-bold text-primary underline-offset-4 hover:underline";
 
@@ -311,6 +326,7 @@ function SkipButton({
   conditions,
   next,
   onSkip,
+  variant = "pill",
   className = "",
 }: {
   label: string;
@@ -318,19 +334,28 @@ function SkipButton({
   conditions: Conditions;
   next: QuestionId | null;
   onSkip: (id: QuestionId, update: Partial<Conditions>) => void;
+  // text は PC の右の列の文字だけのリンク（大切なことの「選ばずに進む ›」。2026-11-06 まさゆきさん）
+  variant?: "pill" | "text";
   className?: string;
 }) {
   const update: Partial<Conditions> = current === "car" ? { car: null } : { priorities: [] };
+  const look = `${variant === "text" ? TEXT_LINK : OUTLINE_ACTION} ${className}`;
+  const content = (
+    <>
+      {label}
+      {variant === "text" && <span aria-hidden="true">›</span>}
+    </>
+  );
   if (next) {
     return (
-      <button type="button" className={`${OUTLINE_ACTION} ${className}`} onClick={() => onSkip(next, update)}>
-        {label}
+      <button type="button" className={look} onClick={() => onSkip(next, update)}>
+        {content}
       </button>
     );
   }
   return (
-    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={`${OUTLINE_ACTION} ${className}`}>
-      {label}
+    <Link href={conditionsHref(KURASHI_PATH, { ...conditions, ...update })} className={look}>
+      {content}
     </Link>
   );
 }

@@ -208,7 +208,10 @@ describe("ErabuFlow：質問の進行", () => {
     const link = screen.getByRole("link", { name: /わが家の一年を見にいく/ });
     expect(link).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0&p=housing%2Cdisaster");
     expect(link.getAttribute("href")).not.toContain("q=");
-    expect(screen.getByRole("link", { name: "選ばずに進む" })).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0");
+    // 「選ばずに進む」は、スマホは操作の帯の丸いボタン、PC は右の列の文字だけのリンク（CSS で片方だけ見せる）。行き先は同じ
+    const skips = screen.getAllByRole("link", { name: "選ばずに進む" });
+    expect(skips).toHaveLength(2);
+    for (const skip of skips) expect(skip).toHaveAttribute("href", "/kurashi?d=kamisato&a=2&k=1&h=old&c=0");
   });
 
   it("大切なこと：選んだものはプレビューの印として読み上げ、選んだ条件の帯に地区・家族・車を出す（028 見本の 05）", async () => {

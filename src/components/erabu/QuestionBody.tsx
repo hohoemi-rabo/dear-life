@@ -57,7 +57,7 @@ export function QuestionBody({ question, conditions, onChange, side = false }: P
     case "car":
       return <CarChoices conditions={conditions} onChange={onChange} side={side} />;
     case "priorities":
-      return <PriorityChoices conditions={conditions} onChange={onChange} />;
+      return <PriorityChoices conditions={conditions} onChange={onChange} side={side} />;
   }
 }
 
@@ -393,7 +393,8 @@ export function BusStopMapLink({ conditions }: { conditions: Conditions }) {
 // 大切にしたいことの選択肢（028 見本）：2列の横長のカード（左に絵、右に名前）。人口は2列ぶん。
 // 選んだものは緑の枠と右上に ✓、選んでいないものは右上に空の丸。いくつでも選べて、もう一度押すと外れる。
 // 下に「カルテで先に表示します」の帯と、ここまでに選んだ条件の帯（見本どおり地区・家族・車。家は見本の帯にないので出さない）
-function PriorityChoices({ conditions, onChange }: ChoiceProps) {
+// side のときは、PC の細い列（320px）に収まるよう、カードと帯を小さくする（2026-11-06 まさゆきさん）
+function PriorityChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <ul className="grid grid-cols-2 gap-2" aria-label="大切にしたいこと">
@@ -406,6 +407,7 @@ function PriorityChoices({ conditions, onChange }: ChoiceProps) {
               <PriorityCard
                 priority={priority}
                 selected={selected}
+                side={side}
                 onSelect={() =>
                   onChange({
                     priorities: selected
@@ -418,8 +420,8 @@ function PriorityChoices({ conditions, onChange }: ChoiceProps) {
           );
         })}
       </ul>
-      <p className="rounded-button bg-kinari-deep px-4 py-2 text-center text-sm">選んだ情報を、カルテで先に表示します</p>
-      <ChosenConditions conditions={conditions} />
+      <p className={`rounded-button bg-kinari-deep px-4 py-2 text-center text-sm ${side ? "lg:py-1.5 lg:text-xs" : ""}`}>選んだ情報を、カルテで先に表示します</p>
+      <ChosenConditions conditions={conditions} side={side} />
     </div>
   );
 }
@@ -427,8 +429,10 @@ function PriorityChoices({ conditions, onChange }: ChoiceProps) {
 // スマホ（400px 未満）ではカードを見本の高さに詰めるので、右上の印も小さくして名前と重ならないようにする
 const PRIORITY_CHECK_PLACE = "right-1.5 top-1.5 min-[400px]:right-2 min-[400px]:top-2";
 const PRIORITY_CHECK_SIZE = "size-5 min-[400px]:size-6";
+// PC の細い列では、名前（「子育て・学校」）と重ならないよう、印を小さく右上の隅に寄せる
+const PRIORITY_CHECK_SIDE = "lg:right-1.5 lg:top-1.5";
 
-function PriorityCard({ priority, selected, onSelect }: { priority: Priority; selected: boolean; onSelect: () => void }) {
+function PriorityCard({ priority, selected, onSelect, side }: { priority: Priority; selected: boolean; onSelect: () => void; side: boolean }) {
   return (
     <button
       type="button"
@@ -437,15 +441,21 @@ function PriorityCard({ priority, selected, onSelect }: { priority: Priority; se
       className={[
         "relative flex min-h-[3.75rem] w-full items-center gap-1.5 rounded-card border-2 bg-surface py-1.5 pl-2 pr-7 text-left transition duration-150 active:scale-[0.98] min-[400px]:min-h-[4.5rem] min-[400px]:gap-3 min-[400px]:py-2 min-[400px]:pr-8",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        side ? "lg:min-h-[3.25rem] lg:gap-1.5 lg:py-1 lg:pl-1.5 lg:pr-7" : "",
         selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
       ].join(" ")}
     >
       {selected ? (
-        <CheckMark className={PRIORITY_CHECK_PLACE} sizeClassName={`${PRIORITY_CHECK_SIZE} text-xs min-[400px]:text-sm`} />
+        <CheckMark className={`${PRIORITY_CHECK_PLACE} ${side ? PRIORITY_CHECK_SIDE : ""}`} sizeClassName={`${PRIORITY_CHECK_SIZE} text-xs min-[400px]:text-sm ${side ? "lg:size-5 lg:text-xs" : ""}`} />
       ) : (
-        <span aria-hidden="true" className={`absolute rounded-full border-2 border-line bg-surface ${PRIORITY_CHECK_PLACE} ${PRIORITY_CHECK_SIZE}`} />
+        <span
+          aria-hidden="true"
+          className={`absolute rounded-full border-2 border-line bg-surface ${PRIORITY_CHECK_PLACE} ${PRIORITY_CHECK_SIZE} ${side ? `${PRIORITY_CHECK_SIDE} lg:size-5` : ""}`}
+        />
       )}
-      <span className="flex h-10 w-9 shrink-0 min-[400px]:h-12 items-center justify-center min-[375px]:w-10 min-[400px]:w-16">
+      <span
+        className={`flex h-10 w-9 shrink-0 min-[400px]:h-12 items-center justify-center min-[375px]:w-10 min-[400px]:w-16 ${side ? "lg:h-8 lg:w-8" : ""}`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由） */}
         <img
           src={priorityIconSrc(priority, PRIORITY_ICON_WIDTHS[0])}
@@ -457,14 +467,16 @@ function PriorityCard({ priority, selected, onSelect }: { priority: Priority; se
           className="max-h-full w-full select-none object-contain"
         />
       </span>
-      <span className="whitespace-nowrap text-xs font-bold min-[375px]:text-[0.8125rem] min-[400px]:text-base">{KARTE_CARD_LABELS[priority]}</span>
+      <span className={`whitespace-nowrap text-xs font-bold min-[375px]:text-[0.8125rem] min-[400px]:text-base ${side ? "lg:text-[0.8125rem]" : ""}`}>
+        {KARTE_CARD_LABELS[priority]}
+      </span>
     </button>
   );
 }
 
 // ここまでに選んだ条件の帯（028 見本の 05）：山の印＋地区 ｜ 人の印＋家族 ｜ 車の印＋台数。車が未選択なら車は出さない。
 // 印は見本どおり平らな緑の印（実データではなく飾りなので読み上げない）
-function ChosenConditions({ conditions }: { conditions: Conditions }) {
+function ChosenConditions({ conditions, side }: { conditions: Conditions; side: boolean }) {
   if (conditions.district === null) return null;
   const items: { icon: ReactNode; label: string }[] = [
     { icon: <MountainGlyph />, label: DISTRICT_NAMES[conditions.district] },
@@ -474,10 +486,13 @@ function ChosenConditions({ conditions }: { conditions: Conditions }) {
   return (
     <ul
       aria-label="選んだ条件"
-      className="flex flex-wrap items-center justify-center gap-y-1 rounded-card border border-line bg-surface px-1 py-2.5 text-[0.8125rem] font-bold min-[400px]:px-3 min-[400px]:text-sm"
+      className={`flex flex-wrap items-center justify-center gap-y-1 rounded-card border border-line bg-surface px-1 py-2.5 text-[0.8125rem] font-bold min-[400px]:px-3 min-[400px]:text-sm ${side ? "lg:px-1 lg:py-1.5 lg:text-xs" : ""}`}
     >
       {items.map(({ icon, label }, index) => (
-        <li key={label} className={`flex items-center gap-1 whitespace-nowrap px-2 min-[400px]:gap-1.5 min-[400px]:px-3 ${index > 0 ? "border-l border-line" : ""}`}>
+        <li
+          key={label}
+          className={`flex items-center gap-1 whitespace-nowrap px-2 min-[400px]:gap-1.5 min-[400px]:px-3 ${side ? "lg:px-2" : ""} ${index > 0 ? "border-l border-line" : ""}`}
+        >
           {icon}
           {label}
         </li>
