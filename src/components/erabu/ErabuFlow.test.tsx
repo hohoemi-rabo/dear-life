@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { availableFixture, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
@@ -224,12 +224,18 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("button", { name: "住まい" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("上郷の 05 の絵は、描いたリニアがまだ工事中だと絵の下に断る（2026-11-07）。02〜04 の絵には出さない", async () => {
+  it("上郷の 02〜05 の絵は、描いたリニアがまだ工事中だと絵の下に断る（2026-11-07）。リニアを描いていない地区の絵には出さない", async () => {
     const note = "※リニアはまだ工事中です。開業は2034年以降の見込みです。";
-    await open("d=kamisato&a=2&k=1&h=new&c=1&q=priorities");
-    expect(screen.getByText(note)).toBeInTheDocument();
-    await open("d=kamisato&a=2&k=1&h=new&c=1&q=car");
-    expect(screen.queryByText(note)).not.toBeInTheDocument();
+    // 1つのテストで画面を開き直すので、前に開いた画面を片付けてから開く
+    for (const [query, shown] of [
+      ["d=kamisato&a=2&k=1&h=new&c=1&q=priorities", true],
+      ["d=kamisato&a=2&k=1&h=new&c=1&q=car", true],
+      ["d=kanae&a=2&k=1&h=new&c=1&q=car", false],
+    ] as const) {
+      cleanup();
+      await open(query);
+      expect(screen.queryAllByText(note), query).toHaveLength(shown ? 1 : 0);
+    }
   });
 
 });

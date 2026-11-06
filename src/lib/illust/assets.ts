@@ -390,9 +390,11 @@ export const ILLUST_PICTURES = {
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
 
 // 絵に描いたもので、今の町のようすと違うものの断り書き。絵の下の端に小さく出す。
-// リニア中央新幹線の長野県駅（仮称）は上郷にできる予定だが、まだ工事中（2026-11-07 まさゆきさん：絵の下に小さく明記）
+// リニア中央新幹線の長野県駅（仮称）は上郷にできる予定だが、まだ工事中（2026-11-07 まさゆきさん：絵の下に小さく明記。05 のあと 02〜04 にも）
+const LINEAR_NOTE = "※リニアはまだ工事中です。開業は2034年以降の見込みです。";
 export const PICTURE_NOTES: Partial<Record<IllustPictureId, string>> = {
-  "erabu-kamisato-priorities": "※リニアはまだ工事中です。開業は2034年以降の見込みです。",
+  "erabu-kamisato-base": LINEAR_NOTE,
+  "erabu-kamisato-priorities": LINEAR_NOTE,
 };
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
