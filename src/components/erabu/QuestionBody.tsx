@@ -81,6 +81,7 @@ function DistrictChoices({ conditions, onChange, side }: ChoiceProps & { side: b
               }
               label={name}
               side={side}
+              sidePictureClassName={DISTRICT_SIDE_PICTURE}
             />
           </li>
         );
@@ -88,6 +89,10 @@ function DistrictChoices({ conditions, onChange, side }: ChoiceProps & { side: b
     </ul>
   );
 }
+
+// PC の右の列での地区の絵。横長の風景なので 16:9 のまま、家の絵（64px）より大きく出す（2026-11-07 まさゆきさん）。
+// 幅128px だと 1366×650 のノートで「次へ」が画面の下で切れたので、112px にした
+const DISTRICT_SIDE_PICTURE = "lg:aspect-video lg:w-28";
 
 // 絵のある選択肢のカード（028 見本の 01 地区・03 家）。上に絵、下に名前と説明。選んだものは枠を緑にして ✓ を付ける
 // （色だけに頼らないよう、印と aria-pressed でも伝える）
@@ -101,6 +106,7 @@ function PictureChoiceCard({
   labelClassName = "",
   description,
   side = false,
+  sidePictureClassName = "lg:aspect-[4/3] lg:w-16",
 }: {
   selected: boolean;
   onSelect: () => void;
@@ -114,6 +120,8 @@ function PictureChoiceCard({
   description?: string;
   // PC（lg 以上）では、左に小さな絵・右に名前の横長のボタンにする（絵の右の細い列に縦に並べるため。2026-11-06 まさゆきさん）
   side?: boolean;
+  // side のときの絵の形と幅
+  sidePictureClassName?: string;
 }) {
   return (
     <button
@@ -130,7 +138,7 @@ function PictureChoiceCard({
       {selected && (
         <CheckMark className={`${check === "left" ? "left-2.5 top-2.5" : "right-2.5 top-2.5"} ${side ? "lg:left-auto lg:right-3 lg:top-1/2 lg:-translate-y-1/2" : ""}`} />
       )}
-      <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName} ${side ? "lg:aspect-[4/3] lg:w-16 lg:shrink-0 lg:p-0" : ""}`}>{picture}</span>
+      <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName} ${side ? `${sidePictureClassName} lg:shrink-0 lg:p-0` : ""}`}>{picture}</span>
       {/* 横長のとき（PC の side）は名前と説明を縦に重ねる。スマホは contents で今までどおりカードの中に並べる */}
       <span className={side ? "contents lg:flex lg:flex-col lg:gap-1" : "contents"}>
         <span className={`whitespace-nowrap font-bold ${labelClassName} ${side ? "lg:order-none lg:p-0" : ""}`}>{label}</span>
