@@ -49,7 +49,7 @@ type Props = {
 export function QuestionBody({ question, conditions, onChange, side = false }: Props) {
   switch (question) {
     case "district":
-      return <DistrictChoices conditions={conditions} onChange={onChange} />;
+      return <DistrictChoices conditions={conditions} onChange={onChange} side={side} />;
     case "family":
       return <FamilyCounter conditions={conditions} onChange={onChange} />;
     case "housing":
@@ -65,9 +65,10 @@ type ChoiceProps = Omit<Props, "question" | "side">;
 
 // 地区の選択肢（028 見本）：上半分に地区の絵、下に名前。選んだものは枠を緑にして左上に ✓。
 // 絵がまだない地区は、用意できるまで今のドット絵（仮）
-function DistrictChoices({ conditions, onChange }: ChoiceProps) {
+// side のときは、PC で左に小さな絵・右に名前の横長のボタンを縦に並べる（車と同じ形。2026-11-06 まさゆきさん）
+function DistrictChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
-    <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="住む地区">
+    <ul className={`grid grid-cols-2 gap-3 ${side ? "lg:grid-cols-1 lg:gap-2" : "lg:grid-cols-4"}`} aria-label="住む地区">
       {DISTRICTS.map(({ id, name }) => {
         return (
           <li key={id}>
@@ -85,6 +86,7 @@ function DistrictChoices({ conditions, onChange }: ChoiceProps) {
                 />
               }
               label={name}
+              side={side}
             />
           </li>
         );

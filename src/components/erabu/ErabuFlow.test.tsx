@@ -111,7 +111,7 @@ describe("ErabuFlow：質問の進行", () => {
     await tap("上郷");
     expect(params().get("d")).toBe("kamisato");
     expect(screen.getByRole("button", { name: "上郷" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("上郷を舞台に、暮らしをつくります。")).toBeInTheDocument();
+    expectStage("上郷を舞台に、暮らしをつくります。");
 
     await tap(/ここで暮らしてみる/);
     expect(params().get("q")).toBe("family");
@@ -307,12 +307,12 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
     await tap(/^1台/);
     expect(params().get("c")).toBe("1");
-    expectCarStage("家族で1台の暮らしを想像します");
+    expectStage("家族で1台の暮らしを想像します");
     expect(
       screen.getByRole("group", { name: "わが家のプレビュー：上郷の「買う・新しめ」の家で暮らす、大人2人・子ども1人の家族（車1台）" }),
     ).toBeInTheDocument();
     await tap(/^0台/);
-    expectCarStage("車なしの暮らしを想像します");
+    expectStage("車なしの暮らしを想像します");
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
     await tap(/^0台/);
     expect(params().has("c")).toBe(false);
@@ -321,7 +321,7 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
 
   it("車：台数によらず、地図でバス停を見るカードを条件つきで出す", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
-    expectCarStage("家族で2台以上の暮らしを想像します");
+    expectStage("家族で2台以上の暮らしを想像します");
     expect(screen.getByRole("link", { name: /バス停の場所は、地図で確認/ })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
   });
 
@@ -333,8 +333,8 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
   });
 });
 
-// 車の台数のひと言は、スマホでは選択肢の下、PC では絵の左下に出す（CSS で片方だけ見せるので、DOM には両方ある）
-function expectCarStage(text: string) {
+// 選んだもののひと言（地区・車の台数）は、スマホでは選択肢の下、PC では絵の左下に出す（CSS で片方だけ見せるので、DOM には両方ある）
+function expectStage(text: string) {
   expect(screen.getAllByText(text)).toHaveLength(2);
   expect(within(screen.getByRole("group", { name: /^わが家のプレビュー/ })).getByText(text)).toBeInTheDocument();
 }

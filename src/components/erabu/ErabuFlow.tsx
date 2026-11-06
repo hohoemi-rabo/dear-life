@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { CarLayer } from "@/components/illust/CarLayer";
@@ -62,7 +63,9 @@ export function ErabuFlow() {
         <p className="text-sm text-ink-muted">{question.lead}</p>
       </div>
       <QuestionBody question={current} conditions={conditions} onChange={setConditions} side={side} />
-      {current === "district" && conditions.district !== null && <DistrictStage name={DISTRICT_NAMES[conditions.district]} />}
+      {current === "district" && conditions.district !== null && (
+        <DistrictStage name={DISTRICT_NAMES[conditions.district]} className={side ? "lg:hidden" : ""} />
+      )}
     </section>
   );
 
@@ -197,8 +200,8 @@ function BusStopTextLink({ conditions }: { conditions: Conditions }) {
   );
 }
 
-// PC で絵を右の列の横に置く質問。まず車だけで試す（2026-11-06 まさゆきさん。見てから残りの4問に広げる）
-const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["car"];
+// PC で絵を右の列の横に置く質問。車で試して OK をもらい、1問ずつ広げている（2026-11-06 まさゆきさん）
+const SIDE_LAYOUT_QUESTIONS: readonly QuestionId[] = ["district", "car"];
 
 // 右に列を置くときの絵の最大幅。絵（3:2）の高さが「画面の高さ − 絵より上（ヘッダー・進み具合・すき間、計165px）− 下の余白」に
 // 収まる幅にする。画面が低すぎて絵が小さくなりすぎないよう、幅は 480px より小さくしない
@@ -221,6 +224,7 @@ function ErabuPreview({
     return (
       <PreviewFrame background="erabu-iida-overview" label="わが家のプレビュー：飯田市の4地区">
         <DistrictMapLayer selected={conditions.district} onSelect={onSelectDistrict} />
+        {conditions.district !== null && <StageTag>{DISTRICT_NAMES[conditions.district]}を舞台に、暮らしをつくります。</StageTag>}
       </PreviewFrame>
     );
   }
@@ -250,22 +254,28 @@ function ErabuPreview({
       {atPriorities && <PriorityMarkLayer priorities={conditions.priorities} housing={conditions.housing} background={background} />}
       {/* 車の台数のひと言（未選択なら「まだ未定」）。PC は右の列を詰めるため、絵の左下に小さく出す（2026-11-06 まさゆきさん）。
           スマホは選択肢の下に出しているので、ここは PC だけ。読み上げは絵の名前（label）の「車N台」で足りる */}
-      {question === "car" && (
-        <span
-          aria-hidden="true"
-          className="absolute bottom-2 left-2 z-20 hidden rounded-full border border-line bg-surface/90 px-3 py-1 text-xs font-bold text-ink lg:block"
-        >
-          {conditions.car === null ? "車の台数はまだ未定です" : CAR_STAGES[conditions.car]}
-        </span>
-      )}
+      {question === "car" && <StageTag>{conditions.car === null ? "車の台数はまだ未定です" : CAR_STAGES[conditions.car]}</StageTag>}
     </PreviewFrame>
   );
 }
 
-// 地区を選んだあとのひと言（028 見本）
-function DistrictStage({ name }: { name: string }) {
+// 絵の左下の小さな札（選んだもののひと言）。PC で右の列に置く質問だけで使い、スマホは選択肢の下の帯で出す。
+// 読み上げは絵の名前（label）と帯で足りるので隠す
+function StageTag({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-center justify-center gap-1.5 rounded-full bg-warm-soft px-4 py-2 text-sm font-bold">
+    <span
+      aria-hidden="true"
+      className="absolute bottom-2 left-2 z-20 hidden rounded-full border border-line bg-surface/90 px-3 py-1 text-xs font-bold text-ink lg:block"
+    >
+      {children}
+    </span>
+  );
+}
+
+// 地区を選んだあとのひと言（028 見本）。PC で右の列に置くときは、絵の左下の札にする（StageTag）
+function DistrictStage({ name, className = "" }: { name: string; className?: string }) {
+  return (
+    <p className={`flex items-center justify-center gap-1.5 rounded-full bg-warm-soft px-4 py-2 text-sm font-bold ${className}`}>
       <svg aria-hidden="true" viewBox="0 0 24 32" className="h-4 w-3 shrink-0 text-primary">
         <path d="M12 1C6 1 1.5 5.5 1.5 11.3 1.5 19 12 31 12 31s10.5-12 10.5-19.7C22.5 5.5 18 1 12 1z" fill="currentColor" />
         <circle cx="12" cy="11.5" r="4.2" fill="white" />
