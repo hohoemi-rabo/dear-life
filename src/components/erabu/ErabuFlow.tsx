@@ -31,7 +31,7 @@ import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { KURASHI_PATH, MAP_PATH } from "@/lib/site";
 import { ErabuProgress } from "./ErabuProgress";
 import { ErabuReplyCard } from "./ErabuReplyCard";
-import { BusStopMapLink, CAR_STAGES, QuestionBody } from "./QuestionBody";
+import { CAR_STAGES, QuestionBody } from "./QuestionBody";
 
 // 01 えらぶ（F-01・F-10）。質問に1つずつ答え、選ぶたびに返事を出す。
 // 条件も今の質問も URL パラメータに持つ（F-02）。useSearchParams を使うので <Suspense> の中で使う。
@@ -153,10 +153,7 @@ export function ErabuFlow() {
             <div className="max-lg:order-2">{questionSection}</div>
             {actions}
             {current === "car" && (
-              <div className="max-lg:order-3">
-                <div className="lg:hidden">
-                  <BusStopMapLink conditions={conditions} />
-                </div>
+              <div className="flex justify-center max-lg:order-3 lg:justify-start">
                 <BusStopTextLink conditions={conditions} />
               </div>
             )}
@@ -198,12 +195,12 @@ function SideNextLabel({ label }: { label: string }) {
   );
 }
 
-// PC の右の列の、地図でバス停を見る文字だけのリンク（カードや絵は付けない。2026-11-06 まさゆきさん）。スマホはカード（BusStopMapLink）
+// 地図でバス停を見る文字だけのリンク（カードや絵は付けない。2026-11-06 まさゆきさん。スマホも PC と同じ）
 function BusStopTextLink({ conditions }: { conditions: Conditions }) {
   return (
     <Link
       href={conditionsHref(MAP_PATH, conditions)}
-      className={`${TEXT_LINK} hidden lg:inline-flex`}
+      className={`${TEXT_LINK} inline-flex`}
     >
       バス停を地図で見る
       <span aria-hidden="true">›</span>
@@ -312,7 +309,7 @@ function pillAction(compact: boolean): string {
 const OUTLINE_ACTION =
   "inline-flex min-h-[3.25rem] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-bold min-[400px]:px-3 min-[400px]:text-[0.8125rem] sm:px-4 sm:text-sm text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
-// PC の右の列の、文字だけの小さなリンク（バス停を地図で見る・選ばずに進む）
+// 文字だけの小さなリンク（バス停を地図で見る・PC の選ばずに進む）
 const TEXT_LINK = "min-h-tap items-center gap-1 self-start text-sm font-bold text-primary underline-offset-4 hover:underline";
 
 // 枠のない文字だけの操作（戻る）

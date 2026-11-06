@@ -311,10 +311,10 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expectStage("車なしの暮らしを想像します");
   });
 
-  it("車：台数によらず、地図でバス停を見るカードを条件つきで出す", async () => {
+  it("車：台数によらず、地図でバス停を見るリンクを条件つきで出す", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
     expectStage("家族で2台以上の暮らしを想像します");
-    expect(screen.getByRole("link", { name: /バス停の場所は、地図で確認/ })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
+    expect(screen.getByRole("link", { name: "バス停を地図で見る" })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
   });
 
   it("出典が未公開ならデータ未取得と出し、作った数字で埋めない", async () => {

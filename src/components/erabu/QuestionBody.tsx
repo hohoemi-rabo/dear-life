@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { CarChoicePicture } from "@/components/illust/CarChoicePicture";
 import { FamilyHint } from "@/components/illust/FamilyHint";
@@ -20,7 +19,6 @@ import {
   type SingleParent,
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
-import { conditionsHref } from "@/lib/conditions/url";
 import type { QuestionId } from "@/lib/erabu/questions";
 import {
   DISTRICT_PICTURES,
@@ -29,13 +27,9 @@ import {
   PRIORITY_ICON_WIDTHS,
   priorityIconSrc,
   priorityIconSrcSet,
-  PROP_WIDTHS,
-  propSrc,
-  propSrcSet,
   spriteId,
   spriteSrc,
 } from "@/lib/illust/assets";
-import { MAP_PATH } from "@/lib/site";
 
 type Props = {
   question: QuestionId;
@@ -306,7 +300,7 @@ export const CAR_STAGES: Readonly<Record<CarCount, string>> = {
 };
 
 // 車の選択肢（028 見本）：絵、下に台数。選んだものは右上に ✓。もう一度押すと未選択に戻す（任意の質問なので）。
-// 下に選んだ台数の帯（未選択なら出さない）と、地図でバス停を見るカード（台数によらず出す）
+// 下に選んだ台数の帯（未選択なら出さない）。地図でバス停を見るリンクは ErabuFlow が置く
 // side のときは、PC で縦に並べる。地図へのリンクは ErabuFlow が「次へ」の下に置く。
 // 車は必須の質問なので、選んだものをもう一度押しても外さない（2026-11-06 まさゆきさん。「まだ決めない」はなくした）
 function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
@@ -332,43 +326,12 @@ function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolea
       {conditions.car !== null && (
         <p className={`rounded-button bg-kinari-deep px-4 py-2 text-center text-sm ${side ? "lg:hidden" : ""}`}>{CAR_STAGES[conditions.car]}</p>
       )}
-      {!side && <BusStopMapLink conditions={conditions} />}
     </div>
   );
 }
 
 const CAR_COUNTS: readonly CarCount[] = [0, 1, 2];
 
-
-// 地図でバス停の場所を見るカード（028 見本）。便の数や所要時間はここでは出さないので、別に確かめるよう添える
-export function BusStopMapLink({ conditions }: { conditions: Conditions }) {
-  return (
-    <Link
-      href={conditionsHref(MAP_PATH, conditions)}
-      className="flex items-center gap-3 rounded-card border border-warm/60 bg-warm-soft px-3 py-2.5 transition duration-150 hover:border-warm active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-    >
-      <span className="flex h-12 w-20 shrink-0 items-end justify-center overflow-hidden rounded-[0.6rem] bg-surface px-1 pb-1">
-        {/* eslint-disable-next-line @next/next/no-img-element -- 書き出した WebP を srcset で選ばせる（IllustPicture と同じ理由） */}
-        <img
-          src={propSrc("station-wide", PROP_WIDTHS[0])}
-          srcSet={propSrcSet("station-wide")}
-          sizes="80px"
-          alt=""
-          draggable={false}
-          decoding="async"
-          className="w-full select-none"
-        />
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-sm font-bold sm:text-base">バス停の場所は、地図で確認</span>
-        <span className="text-xs text-ink-muted">運行本数や所要時間は、別途確認が必要です。</span>
-      </span>
-      <span aria-hidden="true" className="text-2xl text-ink-muted">
-        ›
-      </span>
-    </Link>
-  );
-}
 
 // 大切にしたいことの選択肢（028 見本）：2列の横長のカード（左に絵、右に名前）。人口は2列ぶん。
 // 選んだものは緑の枠と右上に ✓、選んでいないものは右上に空の丸。いくつでも選べて、もう一度押すと外れる。
