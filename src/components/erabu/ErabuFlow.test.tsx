@@ -179,11 +179,26 @@ describe("ErabuFlow：質問の進行", () => {
     expect(params().has("o")).toBe(false);
   });
 
-  it("車は「まだ決めない」で未選択にして次の質問へ進む", async () => {
+  it("車は「まだ決めない」で未選択にして次の質問へ進む（スマホの飛ばすボタン）", async () => {
     await open("d=kamisato&c=0&q=car");
-    await tap("まだ決めない");
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole("navigation", { name: "質問の移動" })).getByRole("button", { name: "まだ決めない" }));
+    });
     expect(params().has("c")).toBe(false);
     expect(params().get("q")).toBe("priorities");
+  });
+
+  it("車：PC の選択肢の「まだ決めない」は、未選択にするだけで質問は進めない。絵の札は「まだ未定」", async () => {
+    await open("d=kamisato&c=1&q=car");
+    const choices = within(screen.getByRole("list", { name: "車の台数" }));
+    expect(choices.getByRole("button", { name: "まだ決めない" })).toHaveAttribute("aria-pressed", "false");
+    await act(async () => {
+      fireEvent.click(choices.getByRole("button", { name: "まだ決めない" }));
+    });
+    expect(params().has("c")).toBe(false);
+    expect(params().has("q")).toBe(true);
+    expect(choices.getByRole("button", { name: "まだ決めない" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(screen.getByRole("group", { name: /^わが家のプレビュー/ })).getByText("車の台数はまだ未定です")).toBeInTheDocument();
   });
 
   it("大切にしたいことは複数選べ、最後に条件つきで くらしを見る へ進む", async () => {
@@ -292,12 +307,12 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
     await tap(/^1台/);
     expect(params().get("c")).toBe("1");
-    expect(screen.getByText("家族で1台の暮らしを想像します")).toBeInTheDocument();
+    expectCarStage("家族で1台の暮らしを想像します");
     expect(
       screen.getByRole("group", { name: "わが家のプレビュー：上郷の「買う・新しめ」の家で暮らす、大人2人・子ども1人の家族（車1台）" }),
     ).toBeInTheDocument();
     await tap(/^0台/);
-    expect(screen.getByText("車なしの暮らしを想像します")).toBeInTheDocument();
+    expectCarStage("車なしの暮らしを想像します");
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
     await tap(/^0台/);
     expect(params().has("c")).toBe(false);
@@ -306,7 +321,7 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
 
   it("車：台数によらず、地図でバス停を見るカードを条件つきで出す", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
-    expect(screen.getByText("家族で2台以上の暮らしを想像します")).toBeInTheDocument();
+    expectCarStage("家族で2台以上の暮らしを想像します");
     expect(screen.getByRole("link", { name: /バス停の場所は、地図で確認/ })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
   });
 
@@ -317,3 +332,9 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(reply()).not.toHaveTextContent(/\d+(か所|校)/);
   });
 });
+
+// 車の台数のひと言は、スマホでは選択肢の下、PC では絵の左下に出す（CSS で片方だけ見せるので、DOM には両方ある）
+function expectCarStage(text: string) {
+  expect(screen.getAllByText(text)).toHaveLength(2);
+  expect(within(screen.getByRole("group", { name: /^わが家のプレビュー/ })).getByText(text)).toBeInTheDocument();
+}

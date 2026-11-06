@@ -21,7 +21,7 @@ import {
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
-import type { QuestionId } from "@/lib/erabu/questions";
+import { questionOf, type QuestionId } from "@/lib/erabu/questions";
 import {
   DISTRICT_PICTURES,
   HOUSE_WIDTHS,
@@ -41,10 +41,12 @@ type Props = {
   question: QuestionId;
   conditions: Conditions;
   onChange: (update: Partial<Conditions>) => void;
+  // PC で絵の右の細い列に置くとき（ErabuFlow の SIDE_LAYOUT_QUESTIONS）。スマホの見た目は変えない
+  side?: boolean;
 };
 
 // 質問ごとの選択肢。入力はすべてタップ（F-01）
-export function QuestionBody({ question, conditions, onChange }: Props) {
+export function QuestionBody({ question, conditions, onChange, side = false }: Props) {
   switch (question) {
     case "district":
       return <DistrictChoices conditions={conditions} onChange={onChange} />;
@@ -53,13 +55,13 @@ export function QuestionBody({ question, conditions, onChange }: Props) {
     case "housing":
       return <HousingChoices conditions={conditions} onChange={onChange} />;
     case "car":
-      return <CarChoices conditions={conditions} onChange={onChange} />;
+      return <CarChoices conditions={conditions} onChange={onChange} side={side} />;
     case "priorities":
       return <PriorityChoices conditions={conditions} onChange={onChange} />;
   }
 }
 
-type ChoiceProps = Omit<Props, "question">;
+type ChoiceProps = Omit<Props, "question" | "side">;
 
 // 地区の選択肢（028 見本）：上半分に地区の絵、下に名前。選んだものは枠を緑にして左上に ✓。
 // 絵がまだない地区は、用意できるまで今のドット絵（仮）
@@ -102,6 +104,7 @@ function PictureChoiceCard({
   label,
   labelClassName = "",
   description,
+  side = false,
 }: {
   selected: boolean;
   onSelect: () => void;
@@ -113,6 +116,8 @@ function PictureChoiceCard({
   // 3つ並べる家のカードは、名前を1行に収めるため少し小さくする
   labelClassName?: string;
   description?: string;
+  // PC（lg 以上）では、左に小さな絵・右に名前の横長のボタンにする（絵の右の細い列に縦に並べるため。2026-11-06 まさゆきさん）
+  side?: boolean;
 }) {
   return (
     <button
@@ -122,12 +127,15 @@ function PictureChoiceCard({
       className={[
         "relative flex h-full w-full flex-col items-stretch gap-1 rounded-card border-2 bg-surface p-1.5 pb-2 text-center transition duration-150 active:scale-[0.98]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        side ? "lg:flex-row lg:items-center lg:gap-4 lg:py-1 lg:pl-3 lg:pr-12 lg:text-left" : "",
         selected ? "border-primary shadow-card" : "border-line hover:border-primary/50",
       ].join(" ")}
     >
-      {selected && <CheckMark className={check === "left" ? "left-2.5 top-2.5" : "right-2.5 top-2.5"} />}
-      <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName}`}>{picture}</span>
-      <span className={`whitespace-nowrap font-bold ${labelClassName}`}>{label}</span>
+      {selected && (
+        <CheckMark className={`${check === "left" ? "left-2.5 top-2.5" : "right-2.5 top-2.5"} ${side ? "lg:left-auto lg:right-3 lg:top-1/2 lg:-translate-y-1/2" : ""}`} />
+      )}
+      <span className={`block overflow-hidden rounded-[0.6rem] ${pictureClassName} ${side ? "lg:aspect-[4/3] lg:w-16 lg:shrink-0 lg:p-0" : ""}`}>{picture}</span>
+      <span className={`whitespace-nowrap font-bold ${labelClassName} ${side ? "lg:order-none lg:p-0" : ""}`}>{label}</span>
       {description && <span className="-mt-1 whitespace-nowrap text-xs text-ink-muted">{description}</span>}
     </button>
   );
@@ -284,7 +292,7 @@ function HousingChoices({ conditions, onChange }: ChoiceProps) {
 }
 
 // 車の台数を選んだときの帯の言葉（028 見本の「家族で1台の暮らしを想像します」。ほかの台数も同じ形にそろえる。2026-10-29 まさゆきさん）
-const CAR_STAGES: Readonly<Record<CarCount, string>> = {
+export const CAR_STAGES: Readonly<Record<CarCount, string>> = {
   0: "車なしの暮らしを想像します",
   1: "家族で1台の暮らしを想像します",
   2: "家族で2台以上の暮らしを想像します",
@@ -292,10 +300,12 @@ const CAR_STAGES: Readonly<Record<CarCount, string>> = {
 
 // 車の選択肢（028 見本）：絵、下に台数。選んだものは右上に ✓。もう一度押すと未選択に戻す（任意の質問なので）。
 // 下に選んだ台数の帯（未選択なら出さない）と、地図でバス停を見るカード（台数によらず出す）
-function CarChoices({ conditions, onChange }: ChoiceProps) {
+// side のときは、PC で縦に並べ、4つ目に「まだ決めない」（未選択）を選択肢として置く。地図へのリンクは ErabuFlow が「次へ」の下に置く。
+// PC では飛ばすボタンを出さないので、選択肢と操作のボタンが同じ形に見えて迷うことがない（2026-11-06 まさゆきさん）
+function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
     <div className="flex flex-col gap-3">
-      <ul className="grid grid-cols-3 gap-2" aria-label="車の台数">
+      <ul className={`grid grid-cols-3 gap-2 ${side ? "lg:grid-cols-1" : ""}`} aria-label="車の台数">
         {CAR_COUNTS.map((car) => (
           <li key={car}>
             <PictureChoiceCard
@@ -306,22 +316,45 @@ function CarChoices({ conditions, onChange }: ChoiceProps) {
               picture={<CarChoicePicture car={car} />}
               label={CAR_LABELS[car]}
               labelClassName="order-first pr-5 pt-1 text-base min-[400px]:pr-0 min-[400px]:text-lg"
+              side={side}
             />
           </li>
         ))}
+        {side && (
+          <li className="hidden lg:block">
+            <PictureChoiceCard
+              selected={conditions.car === null}
+              onSelect={() => onChange({ car: null })}
+              check="right"
+              pictureClassName="flex aspect-[4/3] items-center justify-center"
+              picture={
+                <span aria-hidden="true" className="text-xl font-bold tracking-widest text-ink-muted">
+                  …
+                </span>
+              }
+              label={CAR_UNDECIDED_LABEL}
+              side
+            />
+          </li>
+        )}
       </ul>
+      {/* 右の列に置く PC では、ここには出さず選択肢のすぐ下に「次へ」を置く。ひと言は絵の左下に出す（ErabuPreview。2026-11-06 まさゆきさん） */}
       {conditions.car !== null && (
-        <p className="rounded-button bg-kinari-deep px-4 py-2 text-center text-sm">{CAR_STAGES[conditions.car]}</p>
+        <p className={`rounded-button bg-kinari-deep px-4 py-2 text-center text-sm ${side ? "lg:hidden" : ""}`}>{CAR_STAGES[conditions.car]}</p>
       )}
-      <BusStopMapLink conditions={conditions} />
+      {!side && <BusStopMapLink conditions={conditions} />}
     </div>
   );
 }
 
 const CAR_COUNTS: readonly CarCount[] = [0, 1, 2];
 
+// 車を決めないときの名前（PC の選択肢と、スマホの飛ばすボタンで同じ言葉にする）
+const CAR_UNDECIDED_LABEL = questionOf("car").skipLabel ?? "まだ決めない";
+
+
 // 地図でバス停の場所を見るカード（028 見本）。便の数や所要時間はここでは出さないので、別に確かめるよう添える
-function BusStopMapLink({ conditions }: { conditions: Conditions }) {
+export function BusStopMapLink({ conditions }: { conditions: Conditions }) {
   return (
     <Link
       href={conditionsHref(MAP_PATH, conditions)}
