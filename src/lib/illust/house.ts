@@ -15,7 +15,8 @@ const LOTS: Record<ErabuBaseId, { centerX: number; footY: number; width: number 
   // 伊賀良は上郷と同じ構図（手前に広い広場）なので、建てる場所も同じ
   "erabu-igara-base": { centerX: 60, footY: 82, width: 68 },
   // 05 の背景（町を見わたす）。町の学校・駅を隠さないよう、見本どおり左の端に寄せて小さめに建てる
-  "erabu-kamisato-priorities": { centerX: 12, footY: 74, width: 40 },
+  // 2026-11-07 の差しかえで広場が狭くなったので、土台を広場の上（奥の端 78%）まで下げた
+  "erabu-kamisato-priorities": { centerX: 12, footY: 81, width: 40 },
   "erabu-chushin-priorities": { centerX: 12, footY: 82, width: 40 },
   // 左の手前のブロック塀と植え込み（土台の高さで幅の 13% まで）にかからないよう、砂利の上に収める（2026-11-03 まさゆきさん）
   "erabu-kanae-priorities": { centerX: 31, footY: 86, width: 36 },

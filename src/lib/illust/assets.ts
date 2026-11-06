@@ -57,7 +57,7 @@ export const ILLUST_PICTURES = {
     width: 1412,
     height: 941,
     widths: [768, 1152, 1412],
-    alt: "上郷の高台の広場から見た、学校・駅・川と山の風景",
+    alt: "上郷の高台の広場から見た、手前を走るリニアの高架と、奥の学校・駅・バス停、川と山の風景",
   },
   // 中心市街地の 05 の背景（2026-11-02 受け取り）。上郷と同じ 16:9 なので同じように切り出す。駅が切れないよう、左を落とす
   "erabu-chushin-priorities": {
@@ -388,6 +388,12 @@ export const ILLUST_PICTURES = {
 } as const;
 
 export type IllustPictureId = keyof typeof ILLUST_PICTURES;
+
+// 絵に描いたもので、今の町のようすと違うものの断り書き。絵の下の端に小さく出す。
+// リニア中央新幹線の長野県駅（仮称）は上郷にできる予定だが、まだ工事中（2026-11-07 まさゆきさん：絵の下に小さく明記）
+export const PICTURE_NOTES: Partial<Record<IllustPictureId, string>> = {
+  "erabu-kamisato-priorities": "※リニアはまだ工事中です。開業は2034年以降の見込みです。",
+};
 
 // 家族の人物（4地区で使い回す）。大人1人目はお母さん、2人目はお父さん。子ども1人目は赤い服の男の子、2人目はおさげの女の子
 // （2026-10-29 まさゆきさん決定）、3人目は青い服の男の子（boy2）、4人目は紫の服の女の子（girl2）（2026-10-31 まさゆきさん）。stand は立つ、joy は出てきたときのよろこぶポーズ、back は右奥を向いた斜め後ろ姿（05 で町を見わたす。2026-10-30 まさゆきさん）。

@@ -224,6 +224,14 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("button", { name: "住まい" })).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("上郷の 05 の絵は、描いたリニアがまだ工事中だと絵の下に断る（2026-11-07）。02〜04 の絵には出さない", async () => {
+    const note = "※リニアはまだ工事中です。開業は2034年以降の見込みです。";
+    await open("d=kamisato&a=2&k=1&h=new&c=1&q=priorities");
+    expect(screen.getByText(note)).toBeInTheDocument();
+    await open("d=kamisato&a=2&k=1&h=new&c=1&q=car");
+    expect(screen.queryByText(note)).not.toBeInTheDocument();
+  });
+
 });
 
 describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {

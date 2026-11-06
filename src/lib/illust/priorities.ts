@@ -8,12 +8,13 @@ import { placeHouse } from "./house.ts";
 // 見本で場所が分かるのは住まい・子育て・学校だけで、交通・防災・人口は Claude の案（2026-10-29。まさゆきさんが見て直す）
 type Spot = { x: number; y: number };
 const SPOTS: Record<ErabuBaseId, Record<Exclude<Priority, "housing">, Spot>> = {
-  // 05 の背景：校庭のある学校・駅・広場の避難場所の標識・山すその家並み
+  // 05 の背景（2026-11-07 差しかえ）：真ん中の時計の校舎・その奥の駅とバス停・右奥の広場の避難場所の標識・手前右の家並み。
+  // 手前を走るリニアの高架には印をかけない
   "erabu-kamisato-priorities": {
-    childcare: { x: 44, y: 24 },
-    transport: { x: 73, y: 37 },
+    childcare: { x: 37, y: 31 },
+    transport: { x: 52, y: 19 },
     disaster: { x: 92, y: 30 },
-    population: { x: 60, y: 21 },
+    population: { x: 83, y: 46 },
   },
   // 05 の背景：左奥の校舎・右の駅・右奥の公園の避難場所の標識・奥の町並み
   "erabu-chushin-priorities": {

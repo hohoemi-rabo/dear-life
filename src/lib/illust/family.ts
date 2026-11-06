@@ -46,9 +46,10 @@ const STAGES: Record<FamilyStageId, { footY: number; adultHeight: number; center
   "erabu-kanae-base": { footY: 97.5, adultHeight: 32, centerX: 45 },
   // 伊賀良は上郷と同じ構図なので、立ち位置も同じ
   "erabu-igara-base": { footY: 94, adultHeight: 32, centerX: 50 },
-  // 05 の背景。05 の主役は町（印）なので、家族は広場のいちばん奥（川べりの手前）に小さめに立たせる
-  // （2026-10-30 まさゆきさん：キャラを小さく、いちばん奥まで）
-  "erabu-kamisato-priorities": { footY: 70, adultHeight: 20, centerX: 50 },
+  // 05 の背景。05 の主役は町（印）なので、家族は広場のいちばん奥に小さめに立たせる
+  // （2026-10-30 まさゆきさん：キャラを小さく、いちばん奥まで）。2026-11-07 にリニアの高架を描いた絵に差しかえ、
+  // 広場の奥の端が高さ 78% まで下がったので、高架の上に立って見えないよう広場の中へ下げた
+  "erabu-kamisato-priorities": { footY: 85, adultHeight: 20, centerX: 50 },
   // 広場の奥の端が上郷より下にあるので、そのぶん下げる（家・車も同じ）
   "erabu-chushin-priorities": { footY: 78, adultHeight: 20, centerX: 50 },
   // 家と車を左の砂利に置くので右に寄せ、バス停を隠さないよう手前に立たせる（頭がバスの下の高さ）。
