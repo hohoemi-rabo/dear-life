@@ -175,6 +175,28 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(card("交通")).toHaveTextContent("下り（辰野方面）18本5:0623:04");
   });
 
+  it("時刻が非公開のあいだは、運行本数データの平日の本数を出し、始発・最終は出さない（031）", async () => {
+    screenData = screenDataFixture({
+      kanae: {
+        ...KANAE,
+        trainCounts: availableFixture(
+          [
+            { stationName: "鼎", direction: "上り", tripsPerDay: 19 },
+            { stationName: "鼎", direction: "下り", tripsPerDay: 19 },
+          ],
+          sourceFixture("railway_honsu", { name: "全国鉄道運行本数データ", publisher: "地域・交通データ研究所（西澤明）" }),
+        ),
+      },
+    });
+    await open("transport", "d=kanae&k=1&c=1");
+    await choose(/電車/);
+    expect(figure()).toHaveTextContent("鼎駅を出る電車（平日1日・特急を除く）38本上り・下りの合計");
+    expect(card("交通")).toHaveTextContent("本数（平日）");
+    expect(card("交通")).toHaveTextContent("下り（辰野方面）19本");
+    expect(card("交通")).not.toHaveTextContent("始発");
+    expect(basis()).toHaveTextContent("地域・交通データ研究所（西澤明）「全国鉄道運行本数データ」");
+  });
+
   it("防災は災害の種類のタブで避難場所を絞る。大規模な火事は使える場所がなければタブにしない", async () => {
     await open("disaster", "d=kanae&k=1");
     expect(tabNames()).toEqual(["すべて1", "洪水1", "土砂災害1", "地震0"]);

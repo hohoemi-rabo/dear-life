@@ -12,13 +12,14 @@ import type {
   EvacuationSite,
   Facility,
   Outing,
-  StationDepartures,
+  StationTrips,
   SupportProgram,
 } from "@/lib/data/screen-data";
 import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
+import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 
@@ -60,7 +61,7 @@ export function detailTabs(
         id: "train",
         label: "電車",
         icon: "icon-transport",
-        states: hasStation ? [district.trainStations, district.trainDepartures] : [district.trainStations],
+        states: hasStation ? [district.trainStations, trainTrips(district)] : [district.trainStations],
       };
       if (!noCar) return [bus, train];
       const outing: DetailTab = {
@@ -249,7 +250,7 @@ function SchoolDistrictRow({ label, state }: { label: string; state: DataState<r
 }
 
 // 上りは豊橋方面、下りは辰野方面（JR飯田線。026）
-const DIRECTION_LABELS: Readonly<Record<StationDepartures["direction"], string>> = {
+const DIRECTION_LABELS: Readonly<Record<StationTrips["direction"], string>> = {
   上り: "上り（豊橋方面）",
   下り: "下り（辰野方面）",
 };
@@ -267,16 +268,17 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
   }
   if (tabId === "train") {
     const stations = district.trainStations;
-    const departures = district.trainDepartures;
+    const departures = trainTrips(district);
     if (stations.status === "none") {
       return { picture: "detail-train", title: "地区の駅", figure: <p className="text-lg font-bold">地区内に駅はありません。</p>, notice };
     }
-    if (stations.status === "available" && departures.status === "available" && departures.value.length > 0) {
-      // いちばん本数の多い駅を大きく出し、駅・方面ごとの本数は下の表に出す
-      const busiest = busiestStation(departures.value);
+    const busiest = departures.status === "available" ? busiestStation(departures.value) : null;
+    if (stations.status === "available" && departures.status === "available" && busiest) {
+      // いちばん本数の多い駅を大きく出し、駅・方面ごとの本数は下の表に出す。運行本数データ（031）は平日だけを数えている
       return {
         picture: "detail-train",
-        title: `${busiest.stationName}駅を出る電車（1日・特急を除く）`,
+        // どの駅も同じ本数なら、1つの駅を代表のように出さない
+        title: `${busiest.tied ? "各駅" : `${busiest.stationName}駅`}を出る電車（${hasServiceTimes(departures.value) ? "1日" : "平日1日"}・特急を除く）`,
         figure: <BigCount count={busiest.trips} unit="本" after={<span className="text-sm">上り・下りの合計</span>} />,
         notice,
         list: <DeparturesTable departures={departures.value} />,
@@ -331,31 +333,30 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
   };
 }
 
-function busiestStation(departures: readonly StationDepartures[]): { stationName: string; trips: number } {
-  const totals = new Map<string, number>();
-  for (const row of departures) totals.set(row.stationName, (totals.get(row.stationName) ?? 0) + row.tripsPerDay);
-  const [stationName, trips] = [...totals].reduce((best, entry) => (entry[1] > best[1] ? entry : best));
-  return { stationName, trips };
-}
-
-function DeparturesTable({ departures }: { departures: readonly StationDepartures[] }) {
+// 始発・最終は時刻から数えたときだけ出す（運行本数データには時刻がない。031）
+function DeparturesTable({ departures }: { departures: readonly StationTripsRow[] }) {
+  const withTimes = hasServiceTimes(departures);
   return (
     <table className="w-full text-left text-sm">
-      <caption className="sr-only">駅・方面ごとの1日の本数と始発・最終</caption>
+      <caption className="sr-only">{withTimes ? "駅・方面ごとの1日の本数と始発・最終" : "駅・方面ごとの平日1日の本数"}</caption>
       <thead className="text-xs text-ink-muted">
         <tr>
           <th scope="col" className="py-1 font-normal">
             駅・方面
           </th>
           <th scope="col" className="py-1 font-normal">
-            本数
+            {withTimes ? "本数" : "本数（平日）"}
           </th>
-          <th scope="col" className="py-1 font-normal">
-            始発
-          </th>
-          <th scope="col" className="py-1 font-normal">
-            最終
-          </th>
+          {withTimes && (
+            <>
+              <th scope="col" className="py-1 font-normal">
+                始発
+              </th>
+              <th scope="col" className="py-1 font-normal">
+                最終
+              </th>
+            </>
+          )}
         </tr>
       </thead>
       <tbody className="divide-y divide-line">
@@ -366,8 +367,12 @@ function DeparturesTable({ departures }: { departures: readonly StationDeparture
               <span className="block text-xs font-normal text-ink-muted">{DIRECTION_LABELS[row.direction]}</span>
             </th>
             <td className="py-1.5 font-bold tabular-nums">{row.tripsPerDay}本</td>
-            <td className="py-1.5 tabular-nums">{formatServiceTime(row.firstDeparture)}</td>
-            <td className="py-1.5 tabular-nums">{formatServiceTime(row.lastDeparture)}</td>
+            {withTimes && row.firstDeparture !== undefined && row.lastDeparture !== undefined && (
+              <>
+                <td className="py-1.5 tabular-nums">{formatServiceTime(row.firstDeparture)}</td>
+                <td className="py-1.5 tabular-nums">{formatServiceTime(row.lastDeparture)}</td>
+              </>
+            )}
           </tr>
         ))}
       </tbody>

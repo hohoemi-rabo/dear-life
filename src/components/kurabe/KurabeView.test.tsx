@@ -40,6 +40,7 @@ let screenData: ScreenData;
 vi.mock("@/lib/data/load-screen-data", () => ({ loadScreenData: () => Promise.resolve(screenData) }));
 
 const STATIONS = sourceFixture("sena_jr_iida_line_stations", { name: "JR飯田線の駅", publisher: "SENA" });
+const TRAIN_COUNTS = sourceFixture("railway_honsu", { name: "全国鉄道運行本数データ", publisher: "地域・交通データ研究所（西澤明）" });
 const POPULATION = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
 
 const KANAE: Partial<DistrictData> = {
@@ -49,6 +50,13 @@ const KANAE: Partial<DistrictData> = {
     house_built_over_20y: { status: "none", source: MARKET_SOURCE },
   },
   trainStations: availableFixture([{ name: "鼎", subkind: null, address: "鼎名古熊" }], STATIONS),
+  trainCounts: availableFixture(
+    [
+      { stationName: "鼎", direction: "上り", tripsPerDay: 19 },
+      { stationName: "鼎", direction: "下り", tripsPerDay: 19 },
+    ],
+    TRAIN_COUNTS,
+  ),
   population: availableFixture({ asOf: "2020-10-01", total: 12000, age0to14: 1500, age15to64: 6900, age65plus: 3600 }, POPULATION),
   events: [
     {
@@ -207,8 +215,10 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
       fireEvent.click(tab("交通・防災・施設"));
     });
     expect(url.query).toBe("s=winter&d=kanae&a=2&k=1&t=transport");
-    expect(rowLabels()).toEqual(["バス停", "駅", "指定緊急避難場所", "公共施設"]);
+    expect(rowLabels()).toEqual(["バス停", "駅", "電車の本数地区の駅を出る1日の本数（上り・下りの合計。特急を除く）。", "指定緊急避難場所", "公共施設"]);
     expect(cells(tableRow("駅"))).toEqual(["データ未取得", "1か所", "該当なし", "データ未取得"]);
+    // 時刻が非公開のあいだは運行本数データの平日の本数（031）
+    expect(cells(tableRow("電車の本数"))).toEqual(["データ未取得", "38本鼎駅・平日", "データ未取得", "データ未取得"]);
   });
 
   it("出典は開く欄に、そのタブの項目の分だけを出す", async () => {

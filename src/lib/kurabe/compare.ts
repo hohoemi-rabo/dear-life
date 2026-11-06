@@ -2,6 +2,7 @@
 // 点数・順位は付けない。地区の並びは地区マスタの順のまま（screen_data の districtOrder）
 import type { DataState, DistrictData, DistrictEvent, Facility, MarketCategory, ScreenData, SourceInfo } from "../data/screen-data.ts";
 import { formatJaDate, formatQuarterRange } from "../format.ts";
+import { trainTrips } from "../karte/train.ts";
 
 // 見る項目のまとまり（地区くらべのタブ。028）。「一覧」はすべてを1つの表で見る
 export const COMPARE_TOPICS = ["housing", "school", "transport", "population", "events"] as const;
@@ -54,6 +55,8 @@ export function compareSources(data: ScreenData, topics: readonly CompareTopic[]
   for (const row of FACILITY_COUNT_ROWS) {
     if (!topics.includes(row.topic)) continue;
     for (const district of districts) add(row.pick(district));
+    // 電車の本数の行（031）は駅の行のすぐ後ろに並べるので、出典も駅の後ろにする
+    if (row.id === "train-stations") for (const district of districts) add(trainTrips(district));
   }
   if (topics.includes("population")) {
     for (const district of districts) {

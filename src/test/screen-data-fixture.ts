@@ -56,6 +56,7 @@ function districtFixture(id: DistrictId): DistrictData {
     busStops: UNAVAILABLE,
     trainStations: UNAVAILABLE,
     trainDepartures: UNAVAILABLE,
+    trainCounts: UNAVAILABLE,
     population: UNAVAILABLE,
     busOuting: UNAVAILABLE,
     trainOuting: UNAVAILABLE,

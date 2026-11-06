@@ -23,6 +23,7 @@ const body = {
       ]),
     ),
     train_departures: emptySection("iida_jr_timetable"),
+    train_counts: emptySection("railway_honsu"),
     population: emptySection("estat_census_small_area"),
     bus_outing: emptySection("gtfs_minamishinshu_bus"),
     train_outing: emptySection("iida_jr_timetable"),

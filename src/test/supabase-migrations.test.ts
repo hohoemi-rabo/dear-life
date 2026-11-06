@@ -77,6 +77,7 @@ const PUBLIC_TABLES = [
   "bus_outings",
   "train_departures",
   "train_outings",
+  "train_station_counts",
 ];
 const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
@@ -449,6 +450,7 @@ describe("出典の公開（022）", () => {
       "iida_education",
       "iida_evacuation",
       "iida_public_facilities",
+      "railway_honsu",
       "rakuen_shinshu_iida_sheet",
       "reinfolib_xit001",
       "reinfolib_xkt004",
@@ -828,6 +830,49 @@ describe("電車（026）", () => {
   });
 });
 
+describe("電車の本数（031）", () => {
+  it("飯田線の駅の上り・下りの本数が入り、4地区の駅はすべてある", async () => {
+    const rows = await run<{ name: string; directions: number }>(
+      "postgres",
+      `select f.name, (select count(*)::int from train_station_counts c where c.station_name = f.name and c.source_id = 'railway_honsu') as directions
+       from facilities f where f.kind = 'train_station' and f.district_id is not null order by f.name`,
+    );
+    expect(rows).toHaveLength(7);
+    expect(rows.every((row) => row.directions === 2)).toBe(true);
+  });
+
+  it("出典は公開済みで、作成者・データ名・両方のライセンスをクレジットに書く", async () => {
+    const [source] = await run<{ is_published: boolean; license: string; credit_text: string; period_label: string }>(
+      "postgres",
+      "select is_published, license, credit_text, period_label from data_sources where id = 'railway_honsu'",
+    );
+    expect(source).toEqual({
+      is_published: true,
+      license: "CC BY 4.0、ODbL",
+      credit_text: expect.stringMatching(/^出典：地域・交通データ研究所（西澤明）「全国鉄道運行本数データ」.*CC BY 4\.0.*ODbL/),
+      period_label: "2026年3月のダイヤ・平日",
+    });
+  });
+
+  it("出典を公開するまで anon には見えない", async () => {
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from train_station_counts")).toEqual([]);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_train_counts_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_train_counts_data.sql がない");
+    const counts = "select count(*)::int as n from train_station_counts";
+    await db.exec("begin");
+    try {
+      const before = (await db.query(counts)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(counts)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+});
+
 describe("学区・学校・保育施設（008）", () => {
   // 4地区に1校ずつある学校。学校コードは学区の API の学校コードと同じ
   const SCHOOLS = [
@@ -1186,6 +1231,7 @@ describe("画面が読むデータ screen_data（015）", () => {
       elementary_school_districts: Section;
       facilities: Record<string, Section>;
       train_departures: Section;
+      train_counts: Section;
       population: Section;
       bus_outing: Section;
       train_outing: Section;
@@ -1292,6 +1338,28 @@ describe("画面が読むデータ screen_data（015）", () => {
     const igara = district(data, "igara");
     expect(igara.facilities.train_stations).toEqual({ source_id: "sena_iida_line_stations", items: [] });
     expect(igara.train_departures).toEqual({ source_id: "iida_jr_timetable", items: [] });
+  });
+
+  it("電車の本数（031）は、4地区の駅の分だけを地区ごとに入れ、時刻が非公開でも出る", async () => {
+    const data = await screenData(publish("railway_honsu", "sena_iida_line_stations"));
+    expect(district(data, "kanae").train_departures).toEqual({ source_id: "iida_jr_timetable", items: [] });
+    expect(district(data, "kanae").train_counts).toEqual({
+      source_id: "railway_honsu",
+      items: [
+        { station_name: "下山村", direction: "上り", trips_per_day: 19 },
+        { station_name: "下山村", direction: "下り", trips_per_day: 19 },
+        { station_name: "切石", direction: "上り", trips_per_day: 19 },
+        { station_name: "切石", direction: "下り", trips_per_day: 19 },
+        { station_name: "鼎", direction: "上り", trips_per_day: 19 },
+        { station_name: "鼎", direction: "下り", trips_per_day: 19 },
+      ],
+    });
+    expect(district(data, "kamisato").train_counts.items).toEqual([
+      { station_name: "伊那上郷", direction: "上り", trips_per_day: 20 },
+      { station_name: "伊那上郷", direction: "下り", trips_per_day: 18 },
+    ]);
+    expect(district(data, "chushin").train_counts.items.map((item) => item.station_name)).toEqual(["伊那八幡", "伊那八幡", "桜町", "桜町", "飯田", "飯田"]);
+    expect(district(data, "igara").train_counts).toEqual({ source_id: "railway_honsu", items: [] });
   });
 
   it("行事・支援制度・ひな形は公開したものだけが入る", async () => {

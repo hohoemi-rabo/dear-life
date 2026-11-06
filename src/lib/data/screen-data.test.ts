@@ -53,6 +53,7 @@ function district(id: string, overrides: Record<string, unknown> = {}) {
       train_stations: section("sena_iida_line_stations"),
     },
     train_departures: section("iida_jr_timetable"),
+    train_counts: section("railway_honsu"),
     population: section("estat_census_small_area"),
     bus_outing: section("gtfs_minamishinshu_bus"),
     train_outing: section("iida_jr_timetable"),
@@ -213,6 +214,25 @@ describe("parseScreenData：おでかけの便（010・026）", () => {
   it("電車は出典が非公開のあいだデータ未取得", () => {
     const data = parseScreenData(raw({ kanae: { train_outing: section("iida_jr_timetable", [outing()]) } }), TODAY);
     expect(data.districts.kanae.trainOuting).toEqual({ status: "unavailable" });
+  });
+
+  it("電車の本数（031）は時刻とは別の出典で、時刻が非公開でも返す", () => {
+    const data = parseScreenData(
+      raw({
+        sources: [source("railway_honsu")],
+        kanae: {
+          train_departures: section("iida_jr_timetable", [{ station_name: "鼎", direction: "上り", trips_per_day: 19, first_departure: "06:00", last_departure: "23:00" }]),
+          train_counts: section("railway_honsu", [{ station_name: "鼎", direction: "上り", trips_per_day: 19 }]),
+        },
+      }),
+      TODAY,
+    );
+    expect(data.districts.kanae.trainDepartures).toEqual({ status: "unavailable" });
+    expect(data.districts.kanae.trainCounts).toMatchObject({
+      status: "available",
+      value: [{ stationName: "鼎", direction: "上り", tripsPerDay: 19 }],
+      source: { id: "railway_honsu" },
+    });
   });
 });
 

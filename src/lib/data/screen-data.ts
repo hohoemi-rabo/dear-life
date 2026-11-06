@@ -69,11 +69,15 @@ export type EvacuationHazard = "flood" | "landslide" | "earthquake" | "large_fir
 
 export type EvacuationSite = Facility & { hazards: readonly EvacuationHazard[] };
 
-export type StationDepartures = {
+// 駅ごと・向きごとの1日の本数（031 全国鉄道運行本数データ。平日・特急を除く）
+export type StationTrips = {
   stationName: string;
   direction: "上り" | "下り";
-  // 特急を除いた本数と始発・最終（HH:MM。24時以上もありうるので formatServiceTime で出す）
   tripsPerDay: number;
+};
+
+export type StationDepartures = StationTrips & {
+  // 特急を除いた本数と始発・最終（HH:MM。24時以上もありうるので formatServiceTime で出す）
   firstDeparture: string;
   lastDeparture: string;
 };
@@ -143,7 +147,10 @@ export type DistrictData = {
   publicFacilities: DataState<readonly Facility[]>;
   busStops: DataState<readonly Facility[]>;
   trainStations: DataState<readonly Facility[]>;
+  // 電車の時刻から数えた本数と始発・最終。市の許可が出るまで出典が非公開なので unavailable（026）
   trainDepartures: DataState<readonly StationDepartures[]>;
+  // 時刻とは別のオープンデータの本数（031）。時刻が出せないあいだは、こちらを出す
+  trainCounts: DataState<readonly StationTrips[]>;
   population: DataState<Population>;
   busOuting: DataState<BusOuting>;
   // 電車の時刻は市の許可が出るまで出典が非公開なので、そのあいだは unavailable になる（026）
@@ -267,6 +274,11 @@ type RawDistrict = {
     first_departure: string;
     last_departure: string;
   }>;
+  train_counts: RawSection<{
+    station_name: string;
+    direction: "上り" | "下り";
+    trips_per_day: number;
+  }>;
   population: RawSection<{
     as_of: string;
     total: number;
@@ -345,6 +357,7 @@ function assertShape(raw: unknown): asserts raw is RawScreenData {
       district.elementary_school_districts,
       district.junior_high_school_districts,
       district.train_departures,
+      district.train_counts,
       district.population,
       district.bus_outing,
       district.train_outing,
@@ -461,6 +474,11 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
       tripsPerDay: item.trips_per_day,
       firstDeparture: item.first_departure,
       lastDeparture: item.last_departure,
+    })),
+    trainCounts: listState(raw.train_counts, findSource, (item) => ({
+      stationName: item.station_name,
+      direction: item.direction,
+      tripsPerDay: item.trips_per_day,
     })),
     population: singleState(raw.population, findSource, (item) => ({
       asOf: item.as_of,

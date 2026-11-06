@@ -12,6 +12,7 @@ export const SOURCE_USES: ReadonlyArray<readonly [id: string, use: string]> = [
   ["iida_public_facilities", "公共施設"],
   ["gtfs_minamishinshu_bus", "バス停、バスの便と本数"],
   ["sena_iida_line_stations", "駅"],
+  ["railway_honsu", "電車の本数（平日）"],
   ["iida_jr_timetable", "電車の便と本数"],
   ["estat_census_small_area", "地区の人口と年齢構成"],
   ["rakuen_shinshu_iida_sheet", "冬の場面の雪と路面凍結の文"],

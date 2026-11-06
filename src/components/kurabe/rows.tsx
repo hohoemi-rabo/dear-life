@@ -7,6 +7,7 @@ import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data
 import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { EXAMPLE_LAND_AREA, landEstimates, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
+import { busiestStation, hasServiceTimes, trainTrips } from "@/lib/karte/train";
 import { eventLabel, FACILITY_COUNT_ROWS } from "@/lib/kurabe/compare";
 import { NOTICES } from "@/lib/notices";
 
@@ -151,6 +152,33 @@ const FACILITY_ROWS: readonly (CompareRow & { topic: "school" | "transport" })[]
     stateCell(row.pick(district), (facilities) => <CountValue count={facilities.length} unit="か所" size={size} />),
 }));
 
+// 電車の本数（031）。地区の中でいちばん本数の多い駅の、上り・下りの合計（カルテの電車の大きい数字と同じ）。
+// 時刻が公開されるまでは全国鉄道運行本数データの平日の本数なので、そのときは「平日」と添える
+const TRAIN_ROW: CompareRow = {
+  id: "train-trips",
+  label: "電車の本数",
+  note: "地区の駅を出る1日の本数（上り・下りの合計。特急を除く）。",
+  unit: "1日",
+  cell: (district, size) =>
+    stateCell(trainTrips(district), (rows) => {
+      const busiest = busiestStation(rows);
+      if (!busiest) return null;
+      return (
+        <span className="flex flex-col">
+          <CountValue count={busiest.trips} unit="本" size={size} />
+          <span className="text-xs text-ink-muted">
+            {busiest.tied ? `${busiest.stationCount}駅とも` : `${busiest.stationName}駅`}
+            {hasServiceTimes(rows) ? "" : "・平日"}
+          </span>
+        </span>
+      );
+    }),
+};
+
+const TRANSPORT_ROWS: readonly CompareRow[] = FACILITY_ROWS.flatMap((row) =>
+  row.topic !== "transport" ? [] : row.id === "train-stations" ? [row, TRAIN_ROW] : [row],
+);
+
 const POPULATION_ROWS: readonly CompareRow[] = [
   {
     id: "total",
@@ -197,6 +225,7 @@ export const COMPARE_SECTIONS: readonly CompareSection[] = [
   { id: "market", title: "住まいの相場", notice: NOTICES.market, rows: MARKET_ROWS },
   { id: "school-districts", title: "主な学区", notice: NOTICES.schoolDistrict, rows: SCHOOL_DISTRICT_ROWS },
   { id: "facilities", title: "施設の数", rows: FACILITY_ROWS },
+  { id: "trains", title: "電車", rows: [TRAIN_ROW] },
   { id: "population", title: "人口", rows: POPULATION_ROWS },
   { id: "events", title: "季節ごとの主な行事", notice: EVENTS_CREDIT, rows: EVENT_ROWS },
 ];
@@ -250,7 +279,7 @@ export const COMPARE_TOPIC_CONTENTS: readonly CompareTopicContent[] = [
     icon: "bus",
     title: "交通・防災・施設",
     lead: "地区の中の場所の数",
-    rows: FACILITY_ROWS.filter((row) => row.topic === "transport"),
+    rows: TRANSPORT_ROWS,
     notices: [],
     sourcesTitle: "出典・対象時点",
     nextText: "次は、人口も同じ4地区で比べられます。",
