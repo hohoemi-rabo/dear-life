@@ -10,7 +10,7 @@ export type Question = {
   stepLabel: string;
   title: string;
   lead: string;
-  // 任意の質問は「飛ばす」を出す。飛ばすと未選択（車）・なし（大切にしたいこと）になる
+  // 任意の質問は「飛ばす」を出す。飛ばすと、なし（大切にしたいこと）になる
   optional: boolean;
   // 次へ進むボタンの言葉（028 見本。最後の質問はくらしを見るへ進む）
   nextLabel: string;
@@ -48,9 +48,10 @@ export const QUESTIONS: readonly Question[] = [
     stepLabel: "車",
     title: "車は、何台で暮らす？",
     lead: "移動のかたちも、わが家に合わせて。",
-    optional: true,
+    // 2026-11-06 に必須にした（まさゆきさん）。カルテが変わるのは車を持つか持たないかだけで、「まだ決めない」は
+    // 1台と同じ車のある暮らしを見せていたので、迷う人にも 0台 か車ありかを選んでもらう
+    optional: false,
     nextLabel: "大切にしたいことへ",
-    skipLabel: "まだ決めない",
   },
   {
     id: "priorities",
@@ -73,15 +74,17 @@ function indexOf(id: QuestionId): number {
   return QUESTION_IDS.indexOf(id);
 }
 
-// 地区を選ぶまでは、地区より後ろの質問に進めない
-export function canOpenQuestion(id: QuestionId, conditions: Pick<Conditions, "district">): boolean {
-  return conditions.district !== null || indexOf(id) <= indexOf("district");
+// 地区を選ぶまでは地区より後ろの、車を選ぶまでは車より後ろの質問に進めない（どちらも必須の質問で、初期値がないため）
+export function canOpenQuestion(id: QuestionId, conditions: Pick<Conditions, "district" | "car">): boolean {
+  if (conditions.district === null) return indexOf(id) <= indexOf("district");
+  return conditions.car !== null || indexOf(id) <= indexOf("car");
 }
 
-// URL の値から今の質問を決める。知らない値・まだ開けない質問は、開ける質問に戻す
-export function resolveQuestion(value: string | null, conditions: Pick<Conditions, "district">): QuestionId {
+// URL の値から今の質問を決める。知らない値・まだ開けない質問は、まだ答えていない必須の質問に戻す
+export function resolveQuestion(value: string | null, conditions: Pick<Conditions, "district" | "car">): QuestionId {
   const id = QUESTION_IDS.find((candidate) => candidate === value) ?? QUESTION_IDS[0];
-  return canOpenQuestion(id, conditions) ? id : "district";
+  if (canOpenQuestion(id, conditions)) return id;
+  return conditions.district === null ? "district" : "car";
 }
 
 export function questionOf(id: QuestionId): Question {
@@ -102,6 +105,8 @@ export function isAtOrAfter(current: QuestionId, target: QuestionId): boolean {
 }
 
 // 次へ進めるか（必須の質問は答えてから）。家族・家は初期値があるので、いつでも進める（F-01）
-export function canProceed(id: QuestionId, conditions: Pick<Conditions, "district">): boolean {
-  return id !== "district" || conditions.district !== null;
+export function canProceed(id: QuestionId, conditions: Pick<Conditions, "district" | "car">): boolean {
+  if (id === "district") return conditions.district !== null;
+  if (id === "car") return conditions.car !== null;
+  return true;
 }

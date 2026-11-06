@@ -21,7 +21,7 @@ import {
 } from "@/lib/conditions/labels";
 import { ADULTS_RANGE, CHILDREN_RANGE, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
-import { questionOf, type QuestionId } from "@/lib/erabu/questions";
+import type { QuestionId } from "@/lib/erabu/questions";
 import {
   DISTRICT_PICTURES,
   HOUSE_WIDTHS,
@@ -307,8 +307,8 @@ export const CAR_STAGES: Readonly<Record<CarCount, string>> = {
 
 // 車の選択肢（028 見本）：絵、下に台数。選んだものは右上に ✓。もう一度押すと未選択に戻す（任意の質問なので）。
 // 下に選んだ台数の帯（未選択なら出さない）と、地図でバス停を見るカード（台数によらず出す）
-// side のときは、PC で縦に並べ、4つ目に「まだ決めない」（未選択）を選択肢として置く。地図へのリンクは ErabuFlow が「次へ」の下に置く。
-// PC では飛ばすボタンを出さないので、選択肢と操作のボタンが同じ形に見えて迷うことがない（2026-11-06 まさゆきさん）
+// side のときは、PC で縦に並べる。地図へのリンクは ErabuFlow が「次へ」の下に置く。
+// 車は必須の質問なので、選んだものをもう一度押しても外さない（2026-11-06 まさゆきさん。「まだ決めない」はなくした）
 function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
     <div className="flex flex-col gap-3">
@@ -317,7 +317,7 @@ function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolea
           <li key={car}>
             <PictureChoiceCard
               selected={conditions.car === car}
-              onSelect={() => onChange({ car: conditions.car === car ? null : car })}
+              onSelect={() => onChange({ car })}
               check="right"
               pictureClassName="aspect-[5/4] px-1 pb-1"
               picture={<CarChoicePicture car={car} />}
@@ -327,23 +327,6 @@ function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolea
             />
           </li>
         ))}
-        {side && (
-          <li className="hidden lg:block">
-            <PictureChoiceCard
-              selected={conditions.car === null}
-              onSelect={() => onChange({ car: null })}
-              check="right"
-              pictureClassName="flex aspect-[4/3] items-center justify-center"
-              picture={
-                <span aria-hidden="true" className="text-xl font-bold tracking-widest text-ink-muted">
-                  …
-                </span>
-              }
-              label={CAR_UNDECIDED_LABEL}
-              side
-            />
-          </li>
-        )}
       </ul>
       {/* 右の列に置く PC では、ここには出さず選択肢のすぐ下に「次へ」を置く。ひと言は絵の左下に出す（ErabuPreview。2026-11-06 まさゆきさん） */}
       {conditions.car !== null && (
@@ -355,9 +338,6 @@ function CarChoices({ conditions, onChange, side }: ChoiceProps & { side: boolea
 }
 
 const CAR_COUNTS: readonly CarCount[] = [0, 1, 2];
-
-// 車を決めないときの名前（PC の選択肢と、スマホの飛ばすボタンで同じ言葉にする）
-const CAR_UNDECIDED_LABEL = questionOf("car").skipLabel ?? "まだ決めない";
 
 
 // 地図でバス停の場所を見るカード（028 見本）。便の数や所要時間はここでは出さないので、別に確かめるよう添える

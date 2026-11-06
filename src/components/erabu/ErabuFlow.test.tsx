@@ -179,26 +179,20 @@ describe("ErabuFlow：質問の進行", () => {
     expect(params().has("o")).toBe(false);
   });
 
-  it("車は「まだ決めない」で未選択にして次の質問へ進む（スマホの飛ばすボタン）", async () => {
-    await open("d=kamisato&c=0&q=car");
-    await act(async () => {
-      fireEvent.click(within(screen.getByRole("navigation", { name: "質問の移動" })).getByRole("button", { name: "まだ決めない" }));
-    });
-    expect(params().has("c")).toBe(false);
+  it("車は必須：選ぶまで次へを押せず、「まだ決めない」もない。0台を選べば大切なことへ進める", async () => {
+    await open("d=kamisato&q=car");
+    expect(screen.getByRole("button", { name: /大切にしたいことへ/ })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "まだ決めない" })).not.toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: /^わが家のプレビュー/ })).getByText("車の台数はまだ未定です")).toBeInTheDocument();
+    await tap(/^0台/);
+    await tap(/大切にしたいことへ/);
+    expect(params().get("c")).toBe("0");
     expect(params().get("q")).toBe("priorities");
   });
 
-  it("車：PC の選択肢の「まだ決めない」は、未選択にするだけで質問は進めない。絵の札は「まだ未定」", async () => {
-    await open("d=kamisato&c=1&q=car");
-    const choices = within(screen.getByRole("list", { name: "車の台数" }));
-    expect(choices.getByRole("button", { name: "まだ決めない" })).toHaveAttribute("aria-pressed", "false");
-    await act(async () => {
-      fireEvent.click(choices.getByRole("button", { name: "まだ決めない" }));
-    });
-    expect(params().has("c")).toBe(false);
-    expect(params().has("q")).toBe(true);
-    expect(choices.getByRole("button", { name: "まだ決めない" })).toHaveAttribute("aria-pressed", "true");
-    expect(within(screen.getByRole("group", { name: /^わが家のプレビュー/ })).getByText("車の台数はまだ未定です")).toBeInTheDocument();
+  it("車を選んでいないのに大切なことを開くと、車の質問に戻す", async () => {
+    await open("d=kamisato&a=1&k=0&q=priorities");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("車は、何台で暮らす？");
   });
 
   it("大切にしたいことは複数選べ、最後に条件つきで くらしを見る へ進む", async () => {
@@ -230,11 +224,6 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("button", { name: "住まい" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("大切なこと：車が未選択なら、選んだ条件の帯に車を出さない", async () => {
-    await open("d=kamisato&a=1&k=0&q=priorities");
-    const chosen = screen.getByRole("list", { name: "選んだ条件" });
-    expect(within(chosen).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["上郷", "お母さん・子ども0人"]);
-  });
 });
 
 describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
@@ -305,7 +294,7 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷の「借りる」の家で暮らす、大人2人・子ども1人の家族" })).toBeInTheDocument();
   });
 
-  it("車：選んだ台数の帯と、プレビューの車。もう一度押すと未選択に戻して帯を消す。返事のカードは出さない（028 見本）", async () => {
+  it("車：選んだ台数の帯と、プレビューの車。必須なので、もう一度押しても外さない。返事のカードは出さない（028 見本）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&q=car");
     expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
     await tap(/^1台/);
@@ -318,8 +307,8 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expectStage("車なしの暮らしを想像します");
     expect(screen.queryByRole("region", { name: "選んだ条件のデータ" })).not.toBeInTheDocument();
     await tap(/^0台/);
-    expect(params().has("c")).toBe(false);
-    expect(screen.queryByText(/の暮らしを想像します/)).not.toBeInTheDocument();
+    expect(params().get("c")).toBe("0");
+    expectStage("車なしの暮らしを想像します");
   });
 
   it("車：台数によらず、地図でバス停を見るカードを条件つきで出す", async () => {

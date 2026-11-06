@@ -82,8 +82,8 @@ export function ErabuFlow() {
 
   // もどる・次へはスマホでは画面の下に固定する。見本どおり、地区の質問は次へのボタンだけを真ん中に置く。
   // PC はプレビューが大きく、固定した帯が絵の下（家族の足もと）を隠すので、固定せずに中身の最後に置く（2026-10-31 まさゆきさん）。
-  // 右の列に置くとき（side）は、PC では上に区切りの線を引き、「もどる」を左・「次へ」を右に置く。飛ばすボタンは出さず、
-  // 選択肢の「まだ決めない」で選ぶ（ボタンと選択肢が同じ形に見えて分かりにくかったので。2026-11-06 まさゆきさん）
+  // 右の列に置くとき（side）は、PC では上に区切りの線を引き、「もどる」を左・「次へ」を右に置く。飛ばすボタンは
+  // 選択肢と同じ形に見えて分かりにくかったので、PC では「次へ」の下の文字だけのリンクにする（2026-11-06 まさゆきさん）
   const actions = (
     <BottomActionBar
       label="質問の移動"
@@ -100,7 +100,6 @@ export function ErabuFlow() {
         {question.optional && (
           <SkipButton
             label={question.skipLabel ?? "飛ばす"}
-            current={current}
             conditions={conditions}
             next={next}
             onSkip={goTo}
@@ -163,7 +162,6 @@ export function ErabuFlow() {
             {current === "priorities" && question.optional && (
               <SkipButton
                 label={question.skipLabel ?? "飛ばす"}
-                current={current}
                 conditions={conditions}
                 next={next}
                 onSkip={goTo}
@@ -309,7 +307,7 @@ function pillAction(compact: boolean): string {
   }`;
 }
 
-// 任意の質問を飛ばす、枠つきの丸いボタン（見本の「まだ決めない」「選ばずに進む」）
+// 任意の質問を飛ばす、枠つきの丸いボタン（見本の「選ばずに進む」。車の「まだ決めない」は 2026-11-06 になくした）
 const OUTLINE_ACTION =
   "inline-flex min-h-[3.25rem] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-bold min-[400px]:px-3 min-[400px]:text-[0.8125rem] sm:px-4 sm:text-sm text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
@@ -319,10 +317,9 @@ const TEXT_LINK = "min-h-tap items-center gap-1 self-start text-sm font-bold tex
 // 枠のない文字だけの操作（戻る）
 const TEXT_ACTION = "inline-flex shrink-0 whitespace-nowrap min-h-tap min-w-tap items-center justify-center gap-1 font-bold text-primary underline-offset-4 hover:underline";
 
-// 任意の質問を飛ばす。車は未選択、大切にしたいことはなしにして次へ進む（最後の質問なら、くらしを見るへ）
+// 任意の質問（大切にしたいこと）を飛ばす。なしにして次へ進む（最後の質問なら、くらしを見るへ）
 function SkipButton({
   label,
-  current,
   conditions,
   next,
   onSkip,
@@ -330,7 +327,6 @@ function SkipButton({
   className = "",
 }: {
   label: string;
-  current: QuestionId;
   conditions: Conditions;
   next: QuestionId | null;
   onSkip: (id: QuestionId, update: Partial<Conditions>) => void;
@@ -338,7 +334,8 @@ function SkipButton({
   variant?: "pill" | "text";
   className?: string;
 }) {
-  const update: Partial<Conditions> = current === "car" ? { car: null } : { priorities: [] };
+  // 飛ばせるのは大切にしたいことだけ（車は 2026-11-06 に必須にした）
+  const update: Partial<Conditions> = { priorities: [] };
   const look = `${variant === "text" ? TEXT_LINK : OUTLINE_ACTION} ${className}`;
   const content = (
     <>
