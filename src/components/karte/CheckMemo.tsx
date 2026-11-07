@@ -32,7 +32,15 @@ export function CheckMemo({
     <section aria-labelledby="check-memo-title" className="flex flex-col gap-3 rounded-card border-2 border-warm bg-surface p-4 shadow-card md:p-5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 id="check-memo-title" className="flex items-center gap-2 text-xl font-extrabold md:text-2xl">
-          <PixelIcon icon="icon-checklist" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+          <img
+            src={propSrc("karte-check-memo", 96)}
+            srcSet={propSrcSet("karte-check-memo")}
+            sizes="(min-width: 768px) 40px, 32px"
+            alt=""
+            draggable={false}
+            className="size-8 shrink-0 select-none object-contain md:size-10"
+          />
           わが家の確認メモ
         </h2>
         <p className="text-sm text-ink-muted">わが家は、ここから確かめよう。</p>
