@@ -9,7 +9,7 @@ const subscribeNothing = () => () => {};
 // 前に見た画面へ戻るリンク（024）。ホーム画面のアイコンから開くと入口（/）から始まるので、圏外でも前回の場面やカルテへすぐ戻れるようにする。
 // トップの見本（033）では「わが家の暮らしをつくる」の下の文字のリンク。初めての人には出さない（2026-11-07 まさゆきさん）。
 // 端末に残した値はブラウザでしか読めないので、ビルド時とハイドレーションのあいだは出さない
-export function ResumeLastView() {
+export function ResumeLastView({ className = "" }: { className?: string }) {
   const href = useSyncExternalStore(subscribeNothing, readLastViewHref, () => null);
   const lastView = lastViewOf(href);
   if (!lastView) return null;
@@ -17,7 +17,7 @@ export function ResumeLastView() {
     <Link
       href={lastView.href}
       aria-label={`前に見た暮らしのつづきから（${lastView.label}）`}
-      className="inline-flex min-h-tap items-center gap-2 whitespace-nowrap font-bold text-primary underline underline-offset-4"
+      className={`inline-flex min-h-tap items-center gap-2 whitespace-nowrap font-bold text-primary underline underline-offset-4 ${className}`}
     >
       <ResumeIcon />
       前に見た暮らしのつづきから

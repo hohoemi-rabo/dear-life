@@ -14,7 +14,7 @@ export function TopHero() {
   return (
     // PC：大きな絵の右に草と花の飾りが絵と重ならずに並ぶので、右に飾りの幅だけ空ける。
     // 左の列は見出しの2行目（飯田で暮らしたら。）が収まる幅にし、残りを絵にする
-    <section className="relative grid gap-5 lg:grid-cols-[30rem_minmax(0,1fr)] lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-x-8 lg:gap-y-5 lg:pr-16">
+    <section className="relative grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[30rem_minmax(0,1fr)] lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-x-8 lg:gap-y-5 lg:pr-16">
       <div className="flex flex-col items-center gap-4 text-center lg:col-start-1 lg:row-start-2 lg:items-start lg:gap-5 lg:pl-10 lg:text-left">
         {/* PC：「ゲーム感覚で…」は見出しの1行目（もしも、わが家が）の上の真ん中。
             2行目は「。」と黄色い線のぶん長いので、幅に数えない（数えると真ん中が右にずれる）。スマホは全部真ん中ぞろえ */}
@@ -22,7 +22,7 @@ export function TopHero() {
           <p className="self-center text-sm font-extrabold text-primary md:text-base">
             <span aria-hidden="true">＼ </span>ゲーム感覚で、飯田の暮らしを体験<span aria-hidden="true"> ／</span>
           </p>
-          <h1 className="text-[2rem] font-extrabold leading-snug sm:text-4xl md:text-5xl md:leading-snug">
+          <h1 className="text-[1.75rem] font-extrabold min-[360px]:text-[2rem] leading-snug sm:text-4xl md:text-5xl md:leading-snug">
             もしも、わが家が
             <span className="block lg:w-0 lg:whitespace-nowrap">
               <Marker>飯田で暮らしたら。</Marker>
@@ -56,16 +56,17 @@ export function TopHero() {
 
       <div className="flex flex-col items-center gap-2 lg:col-start-1 lg:row-start-3 lg:self-start lg:pl-10">
         <div className="flex w-full flex-col items-center gap-2 lg:w-auto">
-          <ButtonLink href={ERABU_PATH} className="w-full max-w-md px-8 py-4 text-xl shadow-card md:text-2xl lg:w-auto">
+          <ButtonLink href={ERABU_PATH} className="w-full max-w-md px-6 py-4 text-lg shadow-card min-[375px]:px-8 min-[375px]:text-xl md:text-2xl lg:w-auto">
             わが家の暮らしをつくる
             <span aria-hidden="true">→</span>
           </ButtonLink>
           <p className="text-sm text-ink-muted">登録不要</p>
           {/* スマホ：草と花は「つづきから」の左右（つづきがない人にも飾りは出す） */}
-          <div className="flex w-full items-center justify-between gap-2 lg:w-auto lg:justify-center">
-            <TopIcon icon="grass-left" sizes="64px" className="w-12 sm:w-16 lg:hidden" />
-            <ResumeLastView />
-            <TopIcon icon="grass-right" sizes="64px" className="w-11 sm:w-14 lg:hidden" />
+          <div className="flex w-full items-center justify-between gap-2 max-[359px]:justify-center lg:w-auto lg:justify-center">
+            <TopIcon icon="grass-left" sizes="64px" className="w-12 max-[359px]:hidden sm:w-16 lg:hidden" />
+            {/* 幅 360px の Android でも草と花と1行に収まるよう、狭い画面では文字を少し小さくする。320px では草と花を出さない */}
+            <ResumeLastView className="text-sm min-[375px]:text-base" />
+            <TopIcon icon="grass-right" sizes="64px" className="w-11 max-[359px]:hidden sm:w-14 lg:hidden" />
           </div>
         </div>
       </div>
