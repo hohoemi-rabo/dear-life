@@ -29,6 +29,8 @@ const config: Config = {
         "map-label": { selected: "#A6E3BC", idle: "#123F36" },
         // えらぶ 02 の子育て・学校の返事のカード（見本の薄いピンク。028）
         blush: { DEFAULT: "#F2C9CF", soft: "#FDEFF1" },
+        // トップの見出しの下の黄色い線（033 見本）。飾りなので、文字の色には使わない
+        marker: "#F6D45C",
         // 場面の文の種類（要件 6.4）
         "kind-data": { DEFAULT: "#1F6E5E", soft: "#E2F0EC" },
         "kind-local": { DEFAULT: "#8A5A12", soft: "#F6EBD7" },

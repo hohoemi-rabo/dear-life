@@ -214,14 +214,14 @@ export const ILLUST_PICTURES = {
     source: "district-kamisato.png",
     width: 1672,
     height: 941,
-    widths: [480],
+    widths: [480, 960],
     alt: "桜の咲く上郷の街並み",
   },
   "district-chushin": {
     source: "district-chushin.png",
     width: 1672,
     height: 941,
-    widths: [480],
+    widths: [480, 960],
     alt: "白い花のりんご並木と桜の並木が通る、中心市街地の街並み",
   },
   // くらし・鼎・春（2026-11-03 受け取り）。人は入っていない（家族は手前の歩道に重ねる）。
@@ -375,15 +375,23 @@ export const ILLUST_PICTURES = {
     source: "district-kanae.png",
     width: 1672,
     height: 941,
-    widths: [480],
+    widths: [480, 960],
     alt: "桜の咲く広い道沿いに店が並ぶ、鼎の街並み",
   },
   "district-igara": {
     source: "district-igara.png",
     width: 1672,
     height: 941,
-    widths: [480],
+    widths: [480, 960],
     alt: "桜の咲く飯田ICの料金所とバス停。カーブする高架の道路の奥に、山すその住宅と神社、雪の山が見える",
+  },
+  // トップの大きな絵（033。2026-11-07 受け取り）。季節では替えない
+  "top-hero": {
+    source: "top-hero.png",
+    width: 1774,
+    height: 887,
+    widths: [720, 1080, 1440],
+    alt: "桜の咲く高台の柵の前で、家族4人が町を見下ろしている。奥に雪の山と学校、神社、右に赤い屋根の駅とバスが見える",
   },
 } as const;
 
@@ -1021,4 +1029,29 @@ export const KURASHI_PICTURES: Readonly<Record<DistrictId, Readonly<Record<Seaso
 
 export function kurashiPicturesFor(district: DistrictId, season: Season): KurashiPictures {
   return KURASHI_PICTURES[district][season];
+}
+
+// トップの飾りとアイコン（033。2026-11-07 受け取り）。top-icons.png に上の段の左から 草と花・草と花・雪の山、
+// 中の段の左から グラフのノート・家族3人・桜の木、下の段に チェックのメモ が並んでいる
+export const TOP_ICON_SOURCE = "top-icons.png";
+export const TOP_ICON_INDEX = {
+  "grass-left": 0,
+  "grass-right": 1,
+  scenery: 2,
+  data: 3,
+  erabu: 4,
+  kurashi: 5,
+  karte: 6,
+} as const;
+export type TopIconId = keyof typeof TOP_ICON_INDEX;
+
+// 書き出す横幅。画面では 120px くらいまでで出すので、高解像度の画面の分まで用意する
+export const TOP_ICON_WIDTHS = [128, 256] as const;
+
+export function topIconSrc(icon: TopIconId, width: number): string {
+  return `/${ILLUST_DIR}/top-${icon}-${width}.webp`;
+}
+
+export function topIconSrcSet(icon: TopIconId): string {
+  return TOP_ICON_WIDTHS.map((width) => `${topIconSrc(icon, width)} ${width}w`).join(", ");
 }

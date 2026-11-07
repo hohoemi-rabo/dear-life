@@ -8,10 +8,10 @@ beforeEach(() => {
 });
 
 describe("ResumeLastView", () => {
-  it("前に見た画面へ、そのときの条件のまま戻るボタンを出す", () => {
+  it("前に見た画面へ、そのときの条件のまま戻るリンクを出す", () => {
     saveLastView("/kurashi", "?d=kamisato&s=winter");
     render(<ResumeLastView />);
-    expect(screen.getByRole("link", { name: /前に見たくらしの場面にもどる/ })).toHaveAttribute("href", "/kurashi?d=kamisato&s=winter");
+    expect(screen.getByRole("link", { name: /前に見た暮らしのつづきから（くらしの場面）/ })).toHaveAttribute("href", "/kurashi?d=kamisato&s=winter");
   });
 
   it("まだ何も見ていなければ出さない", () => {

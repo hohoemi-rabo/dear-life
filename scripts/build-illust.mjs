@@ -28,6 +28,9 @@ import {
   SETTINGS_ICON_WIDTHS,
   SPRITE_SCALE,
   SPRITE_SOURCES,
+  TOP_ICON_INDEX,
+  TOP_ICON_SOURCE,
+  TOP_ICON_WIDTHS,
 } from "../src/lib/illust/assets.ts";
 
 const root = join(import.meta.dirname, "..");
@@ -137,11 +140,26 @@ function makeOpaque(data, channels) {
   }
 }
 
+// 透明な背景に、目では見えないほど薄い点やもやが一面に残っている画像（top-icons.png。桜のまわりの赤いもや・花の黄色いふち）。
+// これより薄いところは消す（残すと、絵と絵のあいだがつながって切り分けられず、明るい背景ではふちが色づく）
+const FAINT_NOISE_ALPHA = new Map([[TOP_ICON_SOURCE, 96]]);
+
+async function opaquePixels(source) {
+  const { data, info } = await sharp(sourcePath(source)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  makeOpaque(data, info.channels);
+  const faint = FAINT_NOISE_ALPHA.get(source);
+  if (faint !== undefined) {
+    for (let alpha = info.channels - 1; alpha < data.length; alpha += info.channels) {
+      if (data[alpha] < faint) data[alpha] = 0;
+    }
+  }
+  return { data, info };
+}
+
 const sheets = new Map();
 async function sheetOf(sheet) {
   if (!sheets.has(sheet)) {
-    const { data, info } = await sharp(sourcePath(sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    makeOpaque(data, info.channels);
+    const { data, info } = await opaquePixels(sheet);
     // 上の段から順に、段の中は左から順に並べる（index は通し番号）
     const figures = figureBands(data, info.width, info.height, info.channels).flatMap((band) =>
       figureColumns(data, info.width, info.channels, band).map(({ left, right }) => ({
@@ -185,13 +203,12 @@ for (const [id, { sheet, index, scale = 1, matchHeight }] of Object.entries(SPRI
 // 家・小物：濃いところを不透明にし、透明なふちを切り落とす。figure を渡すと、その範囲だけを見る（1枚に並んだ小物）。
 // 大きさは縦横の比を画面で使うため、切り落とした元の大きさを返す
 async function writeOpaqueCrop(source, figure, name, widths) {
-  const { data, info } = await sharp(sourcePath(source)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await opaquePixels(source);
   const { left: fromX, right: toX, top: fromY, bottom: toY } = figure ?? { left: 0, right: info.width - 1, top: 0, bottom: info.height - 1 };
   let left = info.width;
   let right = -1;
   let top = info.height;
   let bottom = -1;
-  makeOpaque(data, info.channels);
   for (let y = fromY; y <= toY; y++) {
     for (let x = fromX; x <= toX; x++) {
       const alpha = (y * info.width + x) * info.channels + 3;
@@ -254,6 +271,14 @@ for (const [card, index] of Object.entries(KARTE_ICON_INDEX)) {
   const figure = karteIconFigures[index];
   if (!figure) throw new Error(`${KARTE_ICON_SOURCE} の${index + 1}番目の絵がありません（${karteIconFigures.length}個）`);
   await writeOpaqueCrop(KARTE_ICON_SOURCE, figure, `karte-icon-${card}`, KARTE_ICON_WIDTHS);
+}
+
+// トップの飾りとアイコン：3段に並んだ7つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）
+const topIconFigures = await figuresOf(TOP_ICON_SOURCE);
+for (const [icon, index] of Object.entries(TOP_ICON_INDEX)) {
+  const figure = topIconFigures[index];
+  if (!figure) throw new Error(`${TOP_ICON_SOURCE} の${index + 1}番目の絵がありません（${topIconFigures.length}個）`);
+  await writeOpaqueCrop(TOP_ICON_SOURCE, figure, `top-${icon}`, TOP_ICON_WIDTHS);
 }
 
 const spriteLines = Object.entries(sizes).map(([id, { width, height }]) => `  "${id}": { width: ${width}, height: ${height} },`);

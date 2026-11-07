@@ -1,21 +1,17 @@
-import { ResumeLastView } from "@/components/pwa/ResumeLastView";
-import { ButtonLink } from "@/components/ui/Button";
-import { ERABU_PATH, SITE_CATCHPHRASE, TARGET_DISTRICTS_LABEL } from "@/lib/site";
+import { TopDistricts } from "@/components/top/TopDistricts";
+import { TopHero } from "@/components/top/TopHero";
+import { TopNotes } from "@/components/top/TopNotes";
+import { TopSteps } from "@/components/top/TopSteps";
 
-// 入口。暮らし方を選ぶ「01 えらぶ」へつなぐ。前に見た画面があれば、そこへ戻るボタンも出す（024）
+// 入口（033 見本 docs/design/top-pc.png）。大きな絵と「わが家の暮らしをつくる」でえらぶへつなぎ、
+// 「風景はイメージ、数字は公開データ」を最初に伝え、4地区のカードからも始められるようにする
 export default function Home() {
   return (
-    <section className="mx-auto flex max-w-xl flex-col gap-4">
-      <h1 className="text-2xl font-extrabold">{SITE_CATCHPHRASE}</h1>
-      <p>
-        家族・地区・家・車を選ぶと、その条件で過ごす飯田の春夏秋冬をのぞけます。数字は公開データの本物を、出典つきで出します。登録はいりません。
-      </p>
-      <p className="text-sm font-bold">対象地区：{TARGET_DISTRICTS_LABEL}</p>
-      <ButtonLink href={ERABU_PATH} className="self-start">
-        暮らし方をえらぶ
-        <span aria-hidden="true">→</span>
-      </ButtonLink>
-      <ResumeLastView />
-    </section>
+    <div className="flex flex-col gap-8">
+      <TopHero />
+      <TopNotes />
+      <TopSteps />
+      <TopDistricts />
+    </div>
   );
 }
