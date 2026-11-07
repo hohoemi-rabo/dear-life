@@ -224,7 +224,8 @@ function PinBottomSheet({
 }
 
 // 場面の下（見本）：「春の楽しみ」の行事と「わが家のカルテへ」。PC は1枚の帯にして、右に4季節の絵を並べる。
-// どの季節からでもカルテに移れる（F-14）。ScreenDataBoundary の中で使う
+// どの季節からでもカルテに移れる（F-14）。iPad の横（lg）は横1列だと行事の欄がつぶれるので、4季節の絵を2段目に回す（2026-11-07）。
+// ScreenDataBoundary の中で使う
 function BelowScene({
   pictures,
   season,
@@ -242,7 +243,7 @@ function BelowScene({
   const { events } = view;
   const karte = karteHref(conditions, season);
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)] lg:items-center lg:gap-5 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:p-4 lg:shadow-card">
+    <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-center lg:gap-5 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:p-4 lg:shadow-card xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
       <EventCard
         season={season}
         events={events}
@@ -257,7 +258,7 @@ function BelowScene({
           <span aria-hidden="true">→</span>
         </ButtonLink>
       </div>
-      <div className="hidden lg:block">
+      <div className="hidden lg:col-span-2 lg:block lg:w-full lg:max-w-sm lg:justify-self-center xl:col-span-1 xl:max-w-none">
         <SeasonThumbnails season={season} conditions={conditions} onSelect={onSeasonChange} />
       </div>
     </div>

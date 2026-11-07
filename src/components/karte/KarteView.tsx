@@ -122,10 +122,11 @@ function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readon
   );
 }
 
-// 下の帯（見本「次は、現地で確かめよう」）：歩く家族と、地図・地区くらべ・くらしに戻る
+// 下の帯（見本「次は、現地で確かめよう」）：歩く家族と、地図・地区くらべ・くらしに戻る。
+// iPad の縦（md）は絵と文の下にボタンを回し、横1列は lg から。lg はボタンの幅を少し詰めて見出しを1行に収める（2026-11-07）
 function NextStepBand({ conditions, searchParams }: { conditions: Chosen; searchParams: { get(name: string): string | null } }) {
   return (
-    <nav aria-labelledby="next-step-title" className="flex flex-col gap-4 rounded-card bg-warm-soft p-4 md:flex-row md:items-center md:p-5">
+    <nav aria-labelledby="next-step-title" className="flex flex-col gap-4 rounded-card bg-warm-soft p-4 md:flex-row md:flex-wrap md:items-center md:p-5 lg:flex-nowrap">
       <NextStepScene conditions={conditions} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h2 id="next-step-title" className="text-lg font-bold md:text-xl">
@@ -133,7 +134,7 @@ function NextStepBand({ conditions, searchParams }: { conditions: Chosen; search
         </h2>
         <p className="text-sm">気になる場所を地図で見たり、他の地区とくらべてみましょう。</p>
       </div>
-      <div className="flex flex-col gap-2 md:w-[min(46%,440px)]">
+      <div className="flex flex-col gap-2 md:w-full lg:w-[min(40%,400px)] xl:w-[min(46%,440px)]">
         <div className="grid grid-cols-2 gap-2">
           <ButtonLink
             href={mapHref(conditions, searchParams.get(SEASON_PARAM))}

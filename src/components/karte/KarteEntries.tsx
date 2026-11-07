@@ -407,22 +407,21 @@ function MinorEntry({ card, href }: { card: MinorKarteCard; href: string }) {
     >
       <span className="flex min-w-0 flex-1 items-center gap-3 md:items-start">
         <KarteCardIcon card={card} />
-        <span className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-start md:justify-between">
-          <span className="flex min-w-0 flex-col gap-1">
-            <span className="text-lg font-bold">{KARTE_CARD_LABELS[card]}</span>
-            <span className="text-sm text-ink-muted md:text-ink">
-              {summary.short ? (
-                <>
-                  <span className="md:hidden">{summary.short}</span>
-                  <span className="hidden md:inline">{summary.text}</span>
-                </>
-              ) : (
-                summary.text
-              )}
-            </span>
-          </span>
-          <span className="hidden w-28 shrink-0 md:block">
+        {/* iPad の縦（md）はカードが細いので、名前・絵・説明を縦に積む。絵を説明の右に置くのは lg から（2026-11-07 まさゆきさん） */}
+        <span className="flex min-w-0 flex-1 flex-col gap-1 md:grid md:grid-cols-1 lg:grid-cols-[minmax(0,1fr)_7rem] lg:grid-rows-[auto_1fr] lg:gap-x-2">
+          <span className="text-lg font-bold lg:col-start-1">{KARTE_CARD_LABELS[card]}</span>
+          <span className="hidden w-28 md:block md:justify-self-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
             <EntryPicture prop={CARD_PICTURES[card]} sizes="112px" />
+          </span>
+          <span className="text-sm text-ink-muted md:text-ink lg:col-start-1">
+            {summary.short ? (
+              <>
+                <span className="md:hidden">{summary.short}</span>
+                <span className="hidden md:inline">{summary.text}</span>
+              </>
+            ) : (
+              summary.text
+            )}
           </span>
         </span>
       </span>
