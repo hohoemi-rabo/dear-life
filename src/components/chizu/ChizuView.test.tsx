@@ -134,6 +134,7 @@ describe("ChizuView（021・032）", () => {
     expect(screen.getByText(NOTICES.mapPosition)).toBeInTheDocument();
     expect(screen.getByText(NOTICES.mapOffline)).toBeInTheDocument();
     expect(screen.getByText(GOOGLE_MAPS_CREDIT)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /いいだWebまっぷ（飯田市）/ })).toHaveAttribute("href", "https://www.city.iida.lg.jp/soshiki/168/iidawebmap.html");
   });
 
   it("種類ごとに、4地区の件数・該当なし・データ未取得を出し、表示を切り替えられる", async () => {

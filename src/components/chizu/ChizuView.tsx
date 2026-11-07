@@ -18,6 +18,7 @@ import { GOOGLE_MAPS_CREDIT } from "@/lib/credits";
 import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
+import { IIDA_WEB_MAP } from "@/lib/map/links";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
 import { POINT_STYLES } from "@/lib/map/style";
@@ -138,6 +139,7 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
           schoolDistricts={schoolDistricts.features.map((feature) => feature.properties)}
         />
         <PointList data={data} focus={focus} visibleKinds={visibleKinds} onSelect={setSelected} />
+        <MoreMaps />
       </div>
 
       <Sources data={data} />
@@ -370,6 +372,28 @@ function PointList({
           ))}
       </div>
     </details>
+  );
+}
+
+// もっと詳しく調べたい人へ。飯田市の地図は、ここに出していない通学路・都市計画図なども見られる（2026-11-07 まさゆきさん）
+function MoreMaps() {
+  return (
+    <Card as="section" aria-labelledby="map-more" className="flex flex-col gap-1">
+      <h2 id="map-more" className="text-lg font-bold">
+        もっと詳しく調べる
+      </h2>
+      <p className="text-sm">飯田市の地図では、通学路・都市計画図・公共施設などを見られます。</p>
+      <a
+        href={IIDA_WEB_MAP.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex min-h-tap items-center gap-1 self-start font-bold text-primary underline underline-offset-4 hover:no-underline"
+      >
+        {IIDA_WEB_MAP.name}
+        <span className="sr-only">（飯田市の公式ページが新しいタブで開きます）</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </Card>
   );
 }
 
