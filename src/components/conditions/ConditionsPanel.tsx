@@ -119,11 +119,12 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
             <SettingSelect
               label="車"
               value={conditions.car === null ? NO_CAR : String(conditions.car)}
+              // 車は必須の質問（2026-11-06）なので「未選択」は選ばせない。c のない古い URL で開いたときだけ、選べない「選んでください」を出す
               options={[
-                { value: NO_CAR, label: "未選択" },
+                ...(conditions.car === null ? [{ value: NO_CAR, label: "選んでください", disabled: true }] : []),
                 ...([0, 1, 2] as const).map((car) => ({ value: String(car), label: CAR_LABELS[car] })),
               ]}
-              onChange={(value) => onConditionsChange({ car: value === NO_CAR ? null : (Number(value) as CarCount) })}
+              onChange={(value) => onConditionsChange({ car: Number(value) as CarCount })}
             />
           </SettingRow>
           <SettingRow icon={<SettingsIcon icon="priorities" />} label="大切にしたいこと">
@@ -236,7 +237,7 @@ function SettingSelect({
 }: {
   label: string;
   value: string;
-  options: readonly { value: string; label: string }[];
+  options: readonly { value: string; label: string; disabled?: boolean }[];
   onChange: (value: string) => void;
 }) {
   return (
@@ -247,7 +248,7 @@ function SettingSelect({
       className="min-h-tap w-full rounded-button border border-line bg-surface px-2 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
     >
       {options.map((option) => (
-        <option key={option.value} value={option.value}>
+        <option key={option.value} value={option.value} disabled={option.disabled}>
           {option.label}
         </option>
       ))}

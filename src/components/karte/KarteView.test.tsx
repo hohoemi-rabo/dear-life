@@ -140,6 +140,28 @@ describe("KarteView：わが家の確認メモ", () => {
   });
 });
 
+describe("KarteView：わが家の設定の車", () => {
+  const carOptions = () =>
+    within(screen.getByRole("combobox", { name: "車" }))
+      .getAllByRole("option")
+      .map((option) => [option.textContent, (option as HTMLOptionElement).disabled]);
+
+  it("車は必須なので「未選択」は選択肢に出さない", async () => {
+    await open("d=kanae&k=1&c=1");
+    expect(carOptions()).toEqual([
+      ["0台", false],
+      ["1台", false],
+      ["2台以上", false],
+    ]);
+  });
+
+  it("c のない古い URL では、選べない「選んでください」だけを足す", async () => {
+    await open("d=kanae&k=1");
+    expect(carOptions()[0]).toEqual(["選んでください", true]);
+    expect(carOptions()).toHaveLength(4);
+  });
+});
+
 describe("KarteView：住まいのカード（5章）", () => {
   it("選んだ家に近い相場を、真ん中の値・件数・件数ラベル・注意書き・出典つきで出す", async () => {
     await open("d=kanae&k=0&h=new");
