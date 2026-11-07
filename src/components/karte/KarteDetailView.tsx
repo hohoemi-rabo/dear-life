@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { useWideScreen } from "@/components/kurashi/useWideScreen";
+import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
@@ -100,6 +101,8 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
           <span className="hidden md:inline">カルテ一覧へ</span>
         </ButtonLink>
       </div>
+
+      <ScreenTabBar current="karte" linkCurrent conditions={conditions} seasonSlug={searchParams.get(SEASON_PARAM)} />
     </div>
   );
 }

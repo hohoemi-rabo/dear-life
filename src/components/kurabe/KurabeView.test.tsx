@@ -276,12 +276,16 @@ describe("KurabeView：移動", () => {
     expect(screen.getByRole("link", { name: "鼎のカルテに戻る" })).toHaveAttribute("href", karte);
     expect(screen.getByRole("link", { name: /わが家のカルテ/ })).toHaveAttribute("href", karte);
     expect(screen.getByRole("link", { name: "地図で場所を見る" })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=new");
+    const tabs = within(screen.getByRole("navigation", { name: "画面の切り替え" }));
+    expect(tabs.getByText("地区くらべ")).toHaveAttribute("aria-current", "page");
+    expect(tabs.getByRole("link", { name: "くらし" })).toHaveAttribute("href", "/kurashi?s=winter&d=kanae&a=2&k=1&h=new");
   });
 
   it("地区を選んでいなくても見られ、目印は付けない。えらぶへ案内する", async () => {
     await open("a=2&k=1");
     expect(screen.queryByText("選んだ地区")).toBeNull();
     expect(screen.queryByRole("link", { name: /カルテ/ })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "画面の切り替え" })).toBeNull();
     expect(screen.getByRole("link", { name: /地区をえらんで/ })).toHaveAttribute("href", "/erabu?a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: "地図で場所を見る" })).toBeInTheDocument();
   });

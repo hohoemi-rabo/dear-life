@@ -203,10 +203,14 @@ describe("ChizuView（021・032）", () => {
     await open("");
     expect(canvas.props?.focus).toBeNull();
     expect(screen.getByRole("link", { name: /地区をえらんで/ })).toHaveAttribute("href", expect.stringMatching(/^\/erabu/));
+    expect(screen.queryByRole("navigation", { name: "画面の切り替え" })).toBeNull();
   });
 
   it("地区を選んでいれば、条件と季節を持ってカルテに戻れる", async () => {
     await open("s=winter&d=kanae&a=2&k=1&h=new&c=0");
     expect(screen.getByRole("link", { name: /カルテに戻る/ })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new&c=0");
+    const tabs = within(screen.getByRole("navigation", { name: "画面の切り替え" }));
+    expect(tabs.getByText("地図")).toHaveAttribute("aria-current", "page");
+    expect(tabs.getByRole("link", { name: "くらし" })).toHaveAttribute("href", "/kurashi?s=winter&d=kanae&a=2&k=1&h=new&c=0");
   });
 });

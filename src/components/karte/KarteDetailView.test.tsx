@@ -78,6 +78,13 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(document.body).not.toHaveTextContent("中央値");
   });
 
+  it("下の画面の切り替えの「カルテ」は、今の画面を示したまま一覧へ戻る", async () => {
+    await open("transport", "s=winter&d=kanae&a=2&k=1&h=new&c=0");
+    const karte = within(screen.getByRole("navigation", { name: "画面の切り替え" })).getByRole("link", { name: "カルテ" });
+    expect(karte).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new&c=0");
+    expect(karte).toHaveAttribute("aria-current", "true");
+  });
+
   it("土地のタブは真ん中の値・幅・坪単価・200m²の目安。ほかの築年数で件数0なら「該当なし」", async () => {
     await open("housing", "d=kanae&k=0&h=new");
     await act(async () => {

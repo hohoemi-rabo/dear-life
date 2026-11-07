@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
+import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -16,6 +17,7 @@ import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { karteHref } from "@/lib/kurashi/links";
 import { pinSheet } from "@/lib/kurashi/pin-sheets";
 import { ALL_EVENTS_KEY, openPinSpec, scenePins } from "@/lib/kurashi/pins";
+import { SEASON_SLUGS } from "@/lib/kurashi/season";
 import { useSeason } from "@/lib/kurashi/useSeason";
 import { seasonView } from "@/lib/kurashi/view";
 import { ERABU_PATH } from "@/lib/site";
@@ -24,7 +26,6 @@ import { ConditionsSheet } from "./ConditionsSheet";
 import { EventCard } from "./EventCard";
 import { HomeCard } from "./HomeCard";
 import { IllustratedScene, preloadScenePicture } from "./IllustratedScene";
-import { KurashiTabBar } from "./KurashiTabBar";
 import { PinSheetContent } from "./PinSheetContent";
 import { SceneHeading } from "./SceneHeading";
 import { SeasonThumbnails } from "./SeasonThumbnails";
@@ -96,7 +97,7 @@ export function KurashiView() {
         </ScreenDataBoundary>
       </div>
 
-      <KurashiTabBar conditions={chosen} season={season} />
+      <ScreenTabBar current="kurashi" conditions={chosen} seasonSlug={SEASON_SLUGS[season]} />
       <ConditionsSheet
         open={conditionsOpen}
         onClose={() => setConditionsOpen(false)}

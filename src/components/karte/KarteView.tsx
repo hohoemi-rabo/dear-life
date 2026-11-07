@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ChooseAgainLink, ConditionsPanel, ConditionsStrip } from "@/components/conditions/ConditionsPanel";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { FamilyRow } from "@/components/illust/FamilyRow";
+import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -65,6 +66,7 @@ export function KarteView() {
       </div>
 
       <DistrictSwitchNotice district={noticeDistrict} conditions={chosen} />
+      <ScreenTabBar current="karte" conditions={chosen} seasonSlug={searchParams.get(SEASON_PARAM)} />
     </div>
   );
 }

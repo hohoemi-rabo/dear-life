@@ -83,6 +83,14 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
     expect(screen.getByText("鼎の暮らしを、ひとつずつ確かめよう。")).toBeInTheDocument();
   });
 
+  it("下の画面の切り替えは「カルテ」を今の画面にし、くらし・地区くらべ・地図へ移れる", async () => {
+    await open("s=autumn&d=kanae&a=2&k=1&h=new");
+    const tabs = within(screen.getByRole("navigation", { name: "画面の切り替え" }));
+    expect(tabs.getByText("カルテ")).toHaveAttribute("aria-current", "page");
+    expect(tabs.getByRole("link", { name: "くらし" })).toHaveAttribute("href", "/kurashi?s=autumn&d=kanae&a=2&k=1&h=new");
+    expect(tabs.getByRole("link", { name: "地図" })).toHaveAttribute("href", "/chizu?s=autumn&d=kanae&a=2&k=1&h=new");
+  });
+
   it("タブは一覧のカードへ移る", async () => {
     await open("d=kanae&a=2&k=1&h=new");
     const tab = screen.getByRole("link", { name: "防災" });

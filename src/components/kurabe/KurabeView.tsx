@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
+import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
@@ -81,6 +82,7 @@ export function KurabeView() {
       {/* スマホの切りかえは「4地区を一覧」。全項目の一覧を URL で開いたときだけ、タブへ戻る道を残す */}
       {view === "all" && <div className="flex justify-center lg:hidden">{viewSwitch("w-full max-w-sm border")}</div>}
       <KurabeNavigation conditions={conditions} />
+      {conditions.district !== null && <ScreenTabBar current="kurabe" conditions={conditions} seasonSlug={searchParams.get(SEASON_PARAM)} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { use, useMemo, useState, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { DataBoundary } from "@/components/data/ScreenDataBoundary";
+import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
@@ -18,6 +19,7 @@ import { GOOGLE_MAPS_CREDIT } from "@/lib/credits";
 import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
+import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { IIDA_WEB_MAP } from "@/lib/map/links";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
@@ -435,17 +437,20 @@ function MapNavigation({ conditions }: { conditions: Conditions }) {
     );
   }
   return (
-    <nav aria-label="ほかの見方" className="flex flex-col items-center gap-3">
-      <ButtonLink href={karteBackHref(conditions, searchParams)} variant="secondary" className="w-full max-w-sm">
-        <span aria-hidden="true">←</span>
-        カルテに戻る
-      </ButtonLink>
-      <Link
-        href={kurashiHref(conditions, searchParams)}
-        className="inline-flex min-h-tap items-center justify-center gap-1 font-bold text-primary underline underline-offset-4 hover:no-underline"
-      >
-        くらしを見る
-      </Link>
-    </nav>
+    <>
+      <nav aria-label="ほかの見方" className="flex flex-col items-center gap-3">
+        <ButtonLink href={karteBackHref(conditions, searchParams)} variant="secondary" className="w-full max-w-sm">
+          <span aria-hidden="true">←</span>
+          カルテに戻る
+        </ButtonLink>
+        <Link
+          href={kurashiHref(conditions, searchParams)}
+          className="inline-flex min-h-tap items-center justify-center gap-1 font-bold text-primary underline underline-offset-4 hover:no-underline"
+        >
+          くらしを見る
+        </Link>
+      </nav>
+      <ScreenTabBar current="chizu" conditions={conditions} seasonSlug={searchParams.get(SEASON_PARAM)} />
+    </>
   );
 }
