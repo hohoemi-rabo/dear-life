@@ -115,6 +115,31 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
   });
 });
 
+describe("KarteView：わが家の確認メモ", () => {
+  const memo = () => screen.getByRole("region", { name: "わが家の確認メモ" });
+
+  it("子どもあり・車0台は3つの問いを出し、詳細と地図へつなぐ。カードにも同じ札を付ける", async () => {
+    await open("s=winter&d=kanae&a=2&k=2&h=old&c=0");
+    const box = within(memo());
+    expect(box.getByRole("list", { name: "メモのもとにした条件" })).toHaveTextContent("子ども2人車0台買う・古め");
+    expect(box.getByRole("link", { name: "学校・保育施設を見る" })).toHaveAttribute(
+      "href",
+      "/karte/childcare?s=winter&d=kanae&a=2&k=2&h=old&c=0",
+    );
+    expect(box.getByRole("link", { name: "駅・バス停を地図で見る" })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=2&h=old&c=0");
+    expect(box.getByRole("link", { name: "住まいの詳細を見る" })).toHaveAttribute("href", "/karte/housing?s=winter&d=kanae&a=2&k=2&h=old&c=0");
+    expect(card("childcare")).toHaveTextContent("子どもがいるわが家へ");
+    expect(card("transport")).toHaveTextContent("車を持たないなら");
+    expect(card("housing")).toHaveTextContent("古めの家を買うなら");
+    expect(card("disaster")).not.toHaveTextContent("わが家へ");
+  });
+
+  it("子どもなし・車ありは住まいの問いだけ", async () => {
+    await open("d=kanae&a=2&k=0&h=new&c=1");
+    expect(within(memo()).getAllByRole("link").map((link) => link.textContent)).toEqual(["住まいの詳細を見る→"]);
+  });
+});
+
 describe("KarteView：住まいのカード（5章）", () => {
   it("選んだ家に近い相場を、真ん中の値・件数・件数ラベル・注意書き・出典つきで出す", async () => {
     await open("d=kanae&k=0&h=new");

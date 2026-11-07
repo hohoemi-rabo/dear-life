@@ -16,12 +16,14 @@ import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { karteHeaderFor, propSrc, propSrcSet } from "@/lib/illust/assets";
-import { kurashiHref } from "@/lib/karte/links";
+import { checkMemoItems } from "@/lib/karte/check-memo";
+import { karteDetailHref, kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
+import { CheckMemo } from "./CheckMemo";
 import { NextStepScene } from "./NextStepScene";
 import { DistrictSwitchNotice } from "./DistrictSwitchNotice";
 import { KarteEntries, KarteTabs } from "./KarteEntries";
@@ -40,6 +42,7 @@ export function KarteView() {
 
   const chosen = { ...conditions, district };
   const layout = karteLayout(chosen);
+  const memoItems = checkMemoItems(chosen);
   return (
     <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
       <aside aria-label="わが家の設定" className="hidden xl:block">
@@ -56,10 +59,19 @@ export function KarteView() {
         </div>
 
         <KarteHeading conditions={chosen} leads={layout.leads} />
+        <CheckMemo
+          conditions={chosen}
+          items={memoItems}
+          hrefFor={(item) =>
+            item.target.kind === "map"
+              ? mapHref(chosen, searchParams.get(SEASON_PARAM))
+              : karteDetailHref(chosen, item.target.card, searchParams)
+          }
+        />
         <KarteTabs cards={layout.cards} />
 
         <ScreenDataBoundary fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
-          <KarteEntries cards={layout.cards} conditions={chosen} highlighted={cardsHighlighted} />
+          <KarteEntries cards={layout.cards} conditions={chosen} memoItems={memoItems} highlighted={cardsHighlighted} />
         </ScreenDataBoundary>
 
         <NextStepBand conditions={chosen} searchParams={searchParams} />

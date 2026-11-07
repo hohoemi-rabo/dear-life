@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
@@ -28,6 +28,7 @@ import {
   type MainKarteCard,
   type MinorKarteCard,
 } from "@/lib/karte/entries";
+import { checkMemoTagFor, type CheckMemoItem } from "@/lib/karte/check-memo";
 import { NO_RENT_DATA, marketCategoryOrder } from "@/lib/karte/housing";
 import { karteDetailHref } from "@/lib/karte/links";
 import { NOTICES } from "@/lib/notices";
@@ -48,7 +49,18 @@ export const CARD_PICTURES: Readonly<Record<Exclude<KarteCard, "housing">, PropI
 
 // 一覧のカード（図鑑の目次。028 見本）。上の段は絵と問いの大きいカード、下の段は人口・公共施設・支援制度の小さいカード。
 // 並び順は karteLayout のまま。#karte-<card> 付きで開いたら、データが届いてカードが出てからそこまで移る
-export function KarteEntries({ cards, conditions, highlighted }: { cards: readonly KarteCard[]; conditions: Chosen; highlighted: boolean }) {
+export function KarteEntries({
+  cards,
+  conditions,
+  memoItems,
+  highlighted,
+}: {
+  cards: readonly KarteCard[];
+  conditions: Chosen;
+  // 「わが家の確認メモ」の問い。同じ札をカードの見出しにも付ける
+  memoItems: readonly CheckMemoItem[];
+  highlighted: boolean;
+}) {
   const data = useScreenData();
   const searchParams = useSearchParams();
   const district = data.districts[conditions.district];
@@ -91,7 +103,7 @@ export function KarteEntries({ cards, conditions, highlighted }: { cards: readon
       <ul aria-label="くらしの項目" className="grid gap-4 lg:grid-cols-2">
         {main.map((card) => (
           <li key={card} id={karteCardAnchor(card)} className={`flex scroll-mt-4 rounded-card ${glow}`}>
-            {bodies[card]}
+            <MemoTagContext.Provider value={checkMemoTagFor(memoItems, card)}>{bodies[card]}</MemoTagContext.Provider>
           </li>
         ))}
       </ul>
@@ -150,6 +162,9 @@ export function KarteTabs({ cards }: { cards: readonly KarteCard[] }) {
   );
 }
 
+// カードの見出しの横に付ける「わが家の確認メモ」の札。カードの中身の部品ごとに渡さずにすむよう、枠だけが読む
+const MemoTagContext = createContext<string | null>(null);
+
 // 大きいカードの枠：見出し（印と項目名）・問い・短い説明（beside）と右の絵、その下に幅いっぱいの中身（値段など）、
 // 下に確かめるときの一言・出典・詳細へのボタン。スマホでも問いと値段が1行に収まるよう、絵の横には短い文だけを置く
 function EntryFrame({
@@ -169,14 +184,18 @@ function EntryFrame({
   footer?: ReactNode;
   href: string;
 }) {
+  const memoTag = useContext(MemoTagContext);
   return (
     <article className="flex w-full flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
       <div className="flex gap-2 md:gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5 md:gap-2">
-          <h2 className="flex items-center gap-2 text-xl font-bold">
-            <KarteCardIcon card={card} />
-            {KARTE_CARD_LABELS[card]}
-          </h2>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h2 className="flex items-center gap-2 text-xl font-bold">
+              <KarteCardIcon card={card} />
+              {KARTE_CARD_LABELS[card]}
+            </h2>
+            {memoTag && <span className="rounded-full bg-primary-soft px-3 py-0.5 text-xs font-bold text-primary">{memoTag}</span>}
+          </div>
           <p className="text-base font-bold md:text-lg">{question}</p>
           {beside}
         </div>
