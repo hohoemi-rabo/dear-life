@@ -148,6 +148,8 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
 const VIEW_BUTTON =
   "min-h-tap rounded-button border-2 border-primary bg-surface px-3 py-2 text-sm font-bold text-primary hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
+export const TILTED_MOBILE_NOTE = "立体はスマホだと動きが重くなります。PC で見るのがおすすめです。";
+
 // 平面⇔立体。平面の地図の「地図・航空写真」の切りかえは、Google マップの地図の中のボタンで行う
 function ViewControls({ tilted, onTilt, onFlat }: { tilted: boolean; onTilt: () => void; onFlat: () => void }) {
   return (
@@ -161,6 +163,8 @@ function ViewControls({ tilted, onTilt, onFlat }: { tilted: boolean; onTilt: () 
           立体で見る
         </button>
       )}
+      {/* 立体（写真の建物）はスマホだと重い（2026-11-07 まさゆきさんが実機で確認）。PC の幅では出さない */}
+      <p className="w-full text-xs text-ink-muted lg:hidden">{TILTED_MOBILE_NOTE}</p>
       {tilted && <p className="w-full text-xs text-ink-muted">動きが重いときは「平面に戻す」を押してください。</p>}
     </div>
   );

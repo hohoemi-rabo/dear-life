@@ -7,7 +7,7 @@ import { NOTICES } from "@/lib/notices";
 import { GOOGLE_MAPS_CREDIT } from "@/lib/credits";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { sourceFixture } from "@/test/screen-data-fixture";
-import { ChizuView } from "./ChizuView";
+import { ChizuView, TILTED_MOBILE_NOTE } from "./ChizuView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
 const url = vi.hoisted(() => {
@@ -174,6 +174,7 @@ describe("ChizuView（021・032）", () => {
 
   it("「立体で見る」で立体にし、重いときのための断り書きを出す。「平面に戻す」で平面に戻る", async () => {
     await open("d=kanae");
+    expect(screen.getByText(TILTED_MOBILE_NOTE)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "立体で見る" }));
     expect(canvas.props?.tilted).toBe(true);
     expect(screen.getByText("動きが重いときは「平面に戻す」を押してください。")).toBeInTheDocument();
