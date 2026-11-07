@@ -42,7 +42,7 @@
 - [×] （まさゆきさん）この案の了承 → 2026-11-07 OK
 - [×] （まさゆきさん）Google Cloud のプロジェクト作成、請求先の登録、Maps JavaScript API の有効化、API キー（使えるサイトを本番の URL と `localhost:3000` に、使える API を Maps JavaScript API だけに制限）と Map ID の作成、1日の上限と予算のアラート → 2026-11-07 済み（プロジェクト `Dear-Life`、請求先「ほほ笑みラボ 個人開発2」。1日の上限は Map loads per day 300・3D Map loads per day 150。予算は月1,000円のアラートのみ（50・90・100%）。Map ID はベクター・チルトと回転あり。キーと Map ID は `.env.local` に入れた）
 - [ ] 手元の試作で、4地区の建物の立体とスマホでの重さを見る（まさゆきさんに見てもらう）→ 2026-11-07 試作（作業用の HTML、リポジトリには入れていない）で、平面も立体もキーと Map ID で出た。飯田の4地区にも写真の建物の立体がある（スクショ `~/dear-life-screenshots/2026-11-07-google-proto/`）。立体は Maps JavaScript API だけで出た（Map Tiles API は要らない）。`mode: "HYBRID"` だと店などの Google の印と名前が出る。スマホの重さは本番に入れてから実機で見る
-- [ ] API キーと Map ID を `.env.local`・`.env.example`・Workers Builds の環境変数に入れる（どちらも画面に出る値。ビルドのときに埋め込む）→ `.env.local`・`.env.example` は済み。Workers Builds は公開の前に（まさゆきさん）
+- [×] API キーと Map ID を `.env.local`・`.env.example`・Workers Builds の環境変数に入れる（どちらも画面に出る値。ビルドのときに埋め込む）→ 2026-11-07 まさゆきさんが Workers Builds に入れ、本番に公開した。本番の `/chizu` で平面・立体・タップで詳細が出ることを確かめた（スクショ `prod-*.png`）
 - [×] 平面の地図を Google にする（点・小学校区・タップで詳細・地区の切りかえ）
 - [×] 立体の地図にする（点・小学校区・タップで詳細・平面に戻す）
 - [×] MapLibre・地理院タイル・`copy-maplibre-worker` を消す
