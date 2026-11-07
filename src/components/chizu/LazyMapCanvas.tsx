@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-// MapLibre はこの画面でだけ、ブラウザで読み込む（大きいのと、WebGL がサーバーにないため）
+// Google マップはこの画面でだけ、ブラウザで読み込む（032。地図の読み込みは Google の料金の数え方にも入るため）
 export const LazyMapCanvas = dynamic(() => import("./MapCanvas"), {
   ssr: false,
   loading: () => (

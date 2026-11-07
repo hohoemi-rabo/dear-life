@@ -23,7 +23,7 @@ describe("precacheUrls", () => {
         "_next/static/chunks/a.js",
         "_next/static/media/font.woff2",
         "illust/kurashi-kamisato-spring-tall-960.webp",
-        "maplibre/maplibre-gl-worker.mjs",
+        "illust/erabu-kamisato-05-960.webp",
       ]),
     ).toEqual([
       "/",
@@ -32,7 +32,6 @@ describe("precacheUrls", () => {
       "/karte",
       "/karte.txt",
       "/manifest.webmanifest",
-      "/maplibre/maplibre-gl-worker.mjs",
       "/pixel/bg-winter.png",
     ]);
   });

@@ -14,13 +14,13 @@ import { DISTRICT_NAMES, DISTRICTS } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
-import { GSI_TILES } from "@/lib/credits";
+import { GOOGLE_MAPS_CREDIT } from "@/lib/credits";
 import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
-import { BASE_MAP_LABELS, POINT_STYLES, type BaseMap } from "@/lib/map/style";
+import { POINT_STYLES } from "@/lib/map/style";
 import { pointKindSummary, schoolDistrictSummary, type LayerSummary } from "@/lib/map/summary";
 import { NOTICES } from "@/lib/notices";
 import { ERABU_PATH } from "@/lib/site";
@@ -31,7 +31,7 @@ import { LazyMapCanvas } from "./LazyMapCanvas";
 const INITIALLY_VISIBLE: readonly MapPointKind[] = ["schools", "childcare", "bus_stops", "train_stations"];
 
 // 05 地図（F-06）。施設を種類ごとに出し分け、点をタップすると名称・住所・出典を出す。小学校区は面で出し、距離は出さない。
-// 最初は真上から見た平面で開き、「立体で見る」で地図を倒して起伏をつける。useSearchParams を使うので <Suspense> の中で使う
+// 最初は真上から見た平面の Google マップで開き、「立体で見る」で写真の建物の立体にする（032）。useSearchParams を使うので <Suspense> の中で使う
 export function ChizuView() {
   const { conditions, setConditions } = useConditions();
   return (
@@ -89,7 +89,6 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
   const [visibleKinds, setVisibleKinds] = useState<ReadonlySet<MapPointKind>>(() => new Set(INITIALLY_VISIBLE));
   const [showSchoolDistricts, setShowSchoolDistricts] = useState(true);
   const [tilted, setTilted] = useState(false);
-  const [baseMap, setBaseMap] = useState<BaseMap>("standard");
   const [selected, setSelected] = useState<MapSelection | null>(null);
 
   const toggleKind = (kind: MapPointKind, visible: boolean) => {
@@ -103,16 +102,10 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
     if (!visible && selected?.type === "point" && selected.point.kind === kind) setSelected(null);
   };
 
-  const setFlat = () => {
-    setTilted(false);
-    // 航空写真は立体のときだけ選べる（要件 F-06）。平面に戻したら地図に戻す
-    setBaseMap("standard");
-  };
-
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="flex flex-col gap-3">
-        <ViewControls tilted={tilted} baseMap={baseMap} onTilt={() => setTilted(true)} onFlat={setFlat} onBaseMap={setBaseMap} />
+        <ViewControls tilted={tilted} onTilt={() => setTilted(true)} onFlat={() => setTilted(false)} />
         <div className="relative h-[60vh] min-h-[320px] overflow-hidden rounded-card border border-line lg:h-[70vh]">
           <LazyMapCanvas
             points={points}
@@ -120,7 +113,6 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
             visibleKinds={visibleKinds}
             showSchoolDistricts={showSchoolDistricts}
             tilted={tilted}
-            baseMap={baseMap}
             focus={focus}
             selected={selected}
             onSelect={setSelected}
@@ -153,46 +145,21 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
   );
 }
 
-const SEGMENT =
-  "min-h-tap rounded-button border-2 px-3 py-2 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+const VIEW_BUTTON =
+  "min-h-tap rounded-button border-2 border-primary bg-surface px-3 py-2 text-sm font-bold text-primary hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
-function segmentClass(pressed: boolean): string {
-  return `${SEGMENT} ${pressed ? "border-primary bg-primary text-white" : "border-primary bg-surface text-primary hover:bg-primary-soft"}`;
-}
-
-// 平面⇔立体と、立体のときの下地（地図・航空写真）
-function ViewControls({
-  tilted,
-  baseMap,
-  onTilt,
-  onFlat,
-  onBaseMap,
-}: {
-  tilted: boolean;
-  baseMap: BaseMap;
-  onTilt: () => void;
-  onFlat: () => void;
-  onBaseMap: (baseMap: BaseMap) => void;
-}) {
+// 平面⇔立体。平面の地図の「地図・航空写真」の切りかえは、Google マップの地図の中のボタンで行う
+function ViewControls({ tilted, onTilt, onFlat }: { tilted: boolean; onTilt: () => void; onFlat: () => void }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {tilted ? (
-        <button type="button" onClick={onFlat} className={segmentClass(false)}>
+        <button type="button" onClick={onFlat} className={VIEW_BUTTON}>
           平面に戻す
         </button>
       ) : (
-        <button type="button" onClick={onTilt} className={segmentClass(false)}>
+        <button type="button" onClick={onTilt} className={VIEW_BUTTON}>
           立体で見る
         </button>
-      )}
-      {tilted && (
-        <div role="group" aria-label="下地" className="flex gap-2">
-          {(Object.keys(BASE_MAP_LABELS) as BaseMap[]).map((option) => (
-            <button key={option} type="button" aria-pressed={baseMap === option} onClick={() => onBaseMap(option)} className={segmentClass(baseMap === option)}>
-              {BASE_MAP_LABELS[option]}
-            </button>
-          ))}
-        </div>
       )}
       {tilted && <p className="w-full text-xs text-ink-muted">動きが重いときは「平面に戻す」を押してください。</p>}
     </div>
@@ -402,7 +369,7 @@ function PointList({
   );
 }
 
-// 出典と、背景地図の出典（地理院タイル）
+// 出典と、背景地図（Google マップ）
 function Sources({ data }: { data: MapData }) {
   const sources = new Map<string, SourceInfo>();
   for (const summary of [...MAP_POINT_KINDS.map((kind) => pointKindSummary(data, kind)), schoolDistrictSummary(data)]) {
@@ -420,12 +387,7 @@ function Sources({ data }: { data: MapData }) {
             <DataSourceNote source={source} />
           </li>
         ))}
-        <li className="flex flex-wrap items-center py-1 text-xs text-ink-muted">
-          背景地図・航空写真・標高：
-          <a href={GSI_TILES.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-tap items-center text-primary underline underline-offset-4">
-            {GSI_TILES.name}
-          </a>
-        </li>
+        <li className="py-2 text-xs text-ink-muted">{GOOGLE_MAPS_CREDIT}</li>
       </ul>
     </Card>
   );

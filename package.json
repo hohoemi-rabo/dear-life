@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-maplibre-worker.mjs",
     "dev": "next dev --turbopack",
-    "prebuild": "node scripts/copy-maplibre-worker.mjs",
     "build": "next build --turbopack",
     "postbuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-sw.mjs",
     "start": "next start",
@@ -31,7 +29,6 @@
     "illust": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-illust.mjs"
   },
   "dependencies": {
-    "maplibre-gl": "6.14.0",
     "next": "15.5.28",
     "polygon-clipping": "0.15.7",
     "react": "19.1.0",
@@ -44,6 +41,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/google.maps": "3.66.10",
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",

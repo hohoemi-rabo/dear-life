@@ -127,11 +127,9 @@ describe("データについて（022・F-08・7.3）", () => {
     expect(manual).toHaveTextContent("2件・確認日 2026年10月20日〜2026年10月26日");
   });
 
-  it("地図の背景は地理院タイルの出典とリンクを出す", async () => {
+  it("地図の背景は Google マップで、地図データの出典は地図の中に出ることを書く（032）", async () => {
     await open();
-    expect(within(section("地図")).getByRole("link", { name: "地理院タイル（国土地理院）" })).toHaveAttribute(
-      "href",
-      "https://maps.gsi.go.jp/development/ichiran.html",
-    );
+    expect(section("地図")).toHaveTextContent("Google マップを使っています");
+    expect(section("地図")).toHaveTextContent("地図の右下に Google が表示しています");
   });
 });

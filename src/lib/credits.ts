@@ -20,10 +20,5 @@ export const EVENTS_CREDIT =
 export const HIGHWAY_BUS_CREDIT =
   "高速バスの行き先は、飯田市「公共交通機関等のご案内」（2026年2月18日更新。2026年11月5日確認）をもとにしています。本数や時刻は載せていません。";
 
-// 地理院タイル（国土地理院）。ウェブでリアルタイムに読み込むなら、出典の明示だけで申請は要らない。
-// 出典は「地理院タイル」などと書き、タイル一覧のページへリンクする（2026-10-27 にタイル一覧のページで確認）
-export const GSI_TILES = { name: "地理院タイル（国土地理院）", url: "https://maps.gsi.go.jp/development/ichiran.html" } as const;
-// 写真のズーム9〜13は全国ランドサットモザイク画像なので、タイル一覧の指定どおりの出所も書く
-// （ズーム14以上の全国最新写真の一部に使われる GRUS 画像は、範囲が北緯20度付近だけなので飯田には関係ない）
-export const LANDSAT_CREDIT =
-  "データソース：Landsat8画像（GSI,TSIC,GEO Grid/AIST）, Landsat8画像（courtesy of the U.S. Geological Survey）, 海底地形（GEBCO）";
+// 地図の画面の背景（032）。地図の中の Google のロゴと「地図データ ©…」は Google が出すので消さない（Google マップの規約）
+export const GOOGLE_MAPS_CREDIT = "背景の地図・航空写真・立体の建物：Google マップ（地図データの出典は、地図の右下に Google が表示しています）";

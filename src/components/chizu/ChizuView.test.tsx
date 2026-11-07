@@ -4,6 +4,7 @@ import type { MapCanvasProps } from "@/components/chizu/MapCanvas";
 import type { MapData, MapDistrictData } from "@/lib/map/map-data";
 import { MAP_POINT_KINDS } from "@/lib/map/map-data";
 import { NOTICES } from "@/lib/notices";
+import { GOOGLE_MAPS_CREDIT } from "@/lib/credits";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { sourceFixture } from "@/test/screen-data-fixture";
 import { ChizuView } from "./ChizuView";
@@ -125,14 +126,14 @@ const districtButtons = () => screen.getByRole("group", { name: "地図で見る
 const layers = () => screen.getByRole("region", { name: "地図に出すもの" });
 const detail = () => screen.getByRole("region", { name: "選んだ場所" });
 
-describe("ChizuView（021）", () => {
-  it("平面で開き、選んだ地区に合わせる。注意書きと地理院タイルの出典を出す", async () => {
+describe("ChizuView（021・032）", () => {
+  it("平面で開き、選んだ地区に合わせる。注意書きと Google マップの出典を出す", async () => {
     await open("d=kanae&a=2&k=1&h=new");
-    expect(canvas.props).toMatchObject({ focus: "kanae", tilted: false, baseMap: "standard", showSchoolDistricts: true });
+    expect(canvas.props).toMatchObject({ focus: "kanae", tilted: false, showSchoolDistricts: true });
     expect(within(districtButtons()).getByRole("button", { name: "鼎" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(NOTICES.mapPosition)).toBeInTheDocument();
     expect(screen.getByText(NOTICES.mapOffline)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "地理院タイル（国土地理院）" })).toHaveAttribute("href", "https://maps.gsi.go.jp/development/ichiran.html");
+    expect(screen.getByText(GOOGLE_MAPS_CREDIT)).toBeInTheDocument();
   });
 
   it("種類ごとに、4地区の件数・該当なし・データ未取得を出し、表示を切り替えられる", async () => {
@@ -171,15 +172,14 @@ describe("ChizuView（021）", () => {
     expect(within(layers()).getByRole("list", { name: "小学校区の色" })).toHaveTextContent("鼎小学校");
   });
 
-  it("「立体で見る」で傾け、立体のときだけ航空写真を選べる。平面に戻すと地図の下地に戻る", async () => {
+  it("「立体で見る」で立体にし、重いときのための断り書きを出す。「平面に戻す」で平面に戻る", async () => {
     await open("d=kanae");
-    expect(screen.queryByRole("button", { name: "航空写真" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "立体で見る" }));
     expect(canvas.props?.tilted).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "航空写真" }));
-    expect(canvas.props?.baseMap).toBe("photo");
+    expect(screen.getByText("動きが重いときは「平面に戻す」を押してください。")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "平面に戻す" }));
-    expect(canvas.props).toMatchObject({ tilted: false, baseMap: "standard" });
+    expect(canvas.props?.tilted).toBe(false);
+    expect(screen.getByRole("button", { name: "立体で見る" })).toBeInTheDocument();
   });
 
   it("地区を切り替えると URL の地区が変わり、地図をその地区に動かす", async () => {

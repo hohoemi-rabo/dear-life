@@ -6,7 +6,7 @@ import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { Card } from "@/components/ui/Card";
 import { countLabel } from "@/lib/count-label";
 import { SQUARE_METER } from "@/lib/format";
-import { GSI_TILES, ILLUSTRATION_NOTE, LANDSAT_CREDIT, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
+import { ILLUSTRATION_NOTE, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { EXAMPLE_LAND_AREA, SQUARE_METERS_PER_TSUBO } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
 import { TARGET_DISTRICTS_LABEL } from "@/lib/site";
@@ -120,16 +120,7 @@ export default function AboutDataPage() {
       </Section>
 
       <Section id="about-map" title="地図">
-        <p>背景の地図・航空写真・標高は、国土地理院の地理院タイルを使っています。</p>
-        <a
-          href={GSI_TILES.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-tap items-center self-start font-bold text-primary underline underline-offset-4"
-        >
-          {GSI_TILES.name}
-        </a>
-        <p className="text-sm text-ink-muted">航空写真（広い範囲）：{LANDSAT_CREDIT}</p>
+        <p>地図の画面の背景の地図・航空写真・立体の建物は、Google マップを使っています。地図データの出典は、地図の右下に Google が表示しています。</p>
         <p className="text-sm text-ink-muted">{NOTICES.mapPosition}施設の位置は、上の出典の緯度経度や住所をもとにしています。</p>
       </Section>
     </div>
