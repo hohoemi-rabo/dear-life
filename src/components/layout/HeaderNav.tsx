@@ -6,7 +6,7 @@ import { ABOUT_DATA_PATH, ERABU_PATH, KURABE_PATH } from "@/lib/site";
 import { HeaderMenu } from "./HeaderMenu";
 import { StepIndicator } from "./StepIndicator";
 
-// ヘッダーのロゴより右の部分。えらぶでは出さない（028 見本：ロゴの下に質問の番号の丸5つだけを置く）。
+// ヘッダーのロゴより右の部分。えらぶでは出さない。トップでは進みぐあいを出さない（033）（028 見本：ロゴの下に質問の番号の丸5つだけを置く）。
 // 要素はヘッダーの並び（flex）にそのまま入れるので、包まずに返す
 export function HeaderNav() {
   const pathname = usePathname();
@@ -23,10 +23,12 @@ export function HeaderNav() {
         <InfoIcon />
         データについて
       </Link>
-      {/* 地区くらべのスマホの見本には進みぐあいがない（029） */}
-      <div className={`w-full md:w-auto ${pathname === KURABE_PATH ? "hidden md:block" : ""}`}>
-        <StepIndicator />
-      </div>
+      {/* 地区くらべのスマホの見本には進みぐあいがない（029）。トップはまだどのステップでもないので出さない（033。2026-11-07 まさゆきさん） */}
+      {pathname !== "/" && (
+        <div className={`w-full md:w-auto ${pathname === KURABE_PATH ? "hidden md:block" : ""}`}>
+          <StepIndicator />
+        </div>
+      )}
     </>
   );
 }
