@@ -10,7 +10,10 @@ describe("トップ", () => {
   it("えらぶとデータについてへのリンクを出す", () => {
     render(<Home />);
     expect(screen.getByRole("link", { name: /わが家の暮らしをつくる/ })).toHaveAttribute("href", "/erabu");
-    expect(screen.getByRole("link", { name: /データと表現について/ })).toHaveAttribute("href", "/about-data");
+    // スマホと PC で置き場所が違うので2つある（片方は CSS で隠す）
+    for (const link of screen.getAllByRole("link", { name: /データと表現について/ })) {
+      expect(link).toHaveAttribute("href", "/about-data");
+    }
   });
 
   it("4地区のカードから、その地区を選んだえらぶへ移れる", () => {

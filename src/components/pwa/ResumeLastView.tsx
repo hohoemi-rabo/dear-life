@@ -17,7 +17,7 @@ export function ResumeLastView() {
     <Link
       href={lastView.href}
       aria-label={`前に見た暮らしのつづきから（${lastView.label}）`}
-      className="inline-flex min-h-tap items-center gap-2 font-bold text-primary underline underline-offset-4"
+      className="inline-flex min-h-tap items-center gap-2 whitespace-nowrap font-bold text-primary underline underline-offset-4"
     >
       <ResumeIcon />
       前に見た暮らしのつづきから

@@ -10,7 +10,9 @@ describe("HeaderNav", () => {
     vi.mocked(usePathname).mockReturnValue("/");
     render(<HeaderNav />);
     expect(screen.queryByRole("list", { name: "進みぐあい" })).toBeNull();
-    expect(screen.getAllByRole("link", { name: /データについて/ }).length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "データについて" })).toHaveAttribute("href", "/about-data");
+    // スマホの「≡」メニューは出さない（見本は「ⓘ データ」）
+    expect(screen.queryByText("≡")).toBeNull();
   });
 
   it("カルテでは進みぐあいを出す", () => {

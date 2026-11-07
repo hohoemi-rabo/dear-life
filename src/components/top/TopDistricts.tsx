@@ -11,7 +11,8 @@ export function TopDistricts() {
     <section aria-labelledby="top-districts" className="flex flex-col gap-3">
       <h2 id="top-districts" className="flex flex-wrap items-baseline gap-x-4 text-xl font-extrabold md:text-2xl">
         <Marker>どのまちで、暮らしてみる？</Marker>
-        <span className="border-l border-line pl-4 text-sm font-bold text-ink-muted">対象の4地区</span>
+        {/* スマホの見本は見出しの下の行に置く（縦の線なし） */}
+        <span className="basis-full text-sm font-bold text-ink-muted lg:basis-auto lg:border-l lg:border-line lg:pl-4">対象の4地区</span>
       </h2>
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {DISTRICTS.map(({ id, name }) => (
@@ -25,10 +26,10 @@ export function TopDistricts() {
                   picture={DISTRICT_PICTURES[id]}
                   sizes="(min-width: 1024px) 25vw, 50vw"
                   decorative
-                  className="block aspect-[2/1] w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                  className="block aspect-[3/1] w-full lg:aspect-[2/1] object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
                 />
               </span>
-              <span className="flex min-h-tap items-center justify-between px-4 py-2 text-lg font-extrabold">
+              <span className="flex min-h-tap items-center justify-between px-3 py-2 text-lg font-extrabold lg:px-4">
                 {name}
                 <span aria-hidden="true" className="text-primary">
                   →

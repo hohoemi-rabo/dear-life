@@ -13,18 +13,26 @@ export function TopSteps() {
   return (
     <section aria-labelledby="top-steps" className="flex flex-col gap-3">
       <h2 id="top-steps" className="text-xl font-extrabold md:text-2xl">
-        <Marker>えらぶだけで、暮らしが見えてくる。</Marker>
+        {/* スマホの見本は2行にして、2行目にだけ黄色い線を引く */}
+        <span className="lg:hidden">
+          えらぶだけで、
+          <br />
+          <Marker>暮らしが見えてくる。</Marker>
+        </span>
+        <span className="hidden lg:inline">
+          <Marker>えらぶだけで、暮らしが見えてくる。</Marker>
+        </span>
       </h2>
       <ol className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
         {STEPS.map((step, index) => (
           <Fragment key={step.icon}>
             {index > 0 && (
-              <li aria-hidden="true" className="self-center text-2xl font-bold text-primary max-lg:rotate-90">
+              <li aria-hidden="true" className="self-center text-2xl font-bold text-primary max-lg:-my-1.5 max-lg:rotate-90 max-lg:text-xl">
                 →
               </li>
             )}
-            <li className="flex flex-1 items-center gap-4 rounded-card border border-line bg-surface px-4 py-3 shadow-card">
-              <TopIcon icon={step.icon} sizes="96px" className="h-16 w-20" />
+            <li className="flex flex-1 items-center gap-4 rounded-card border border-line bg-surface px-4 py-2 shadow-card lg:py-3">
+              <TopIcon icon={step.icon} sizes="96px" className="h-12 w-16 lg:h-16 lg:w-20" />
               <div>
                 <p className="flex items-center gap-2 text-lg font-extrabold">
                   <span className="rounded bg-marker px-1.5 text-sm">{String(index + 1).padStart(2, "0")}</span>

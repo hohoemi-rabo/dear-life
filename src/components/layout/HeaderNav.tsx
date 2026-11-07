@@ -11,20 +11,28 @@ import { StepIndicator } from "./StepIndicator";
 export function HeaderNav() {
   const pathname = usePathname();
   if (pathname === ERABU_PATH || pathname.startsWith(`${ERABU_PATH}/`)) return null;
+  const isTop = pathname === "/";
   return (
     <>
-      <div className="md:hidden">
-        <HeaderMenu />
-      </div>
+      {/* トップのスマホの見本（033）は「≡」ではなく「ⓘ データ」 */}
+      {!isTop && (
+        <div className="md:hidden">
+          <HeaderMenu />
+        </div>
+      )}
       <Link
         href={ABOUT_DATA_PATH}
-        className="hidden min-h-tap items-center gap-1.5 text-sm font-bold text-ink underline-offset-4 hover:underline md:order-last md:flex"
+        aria-label="データについて"
+        className={`min-h-tap items-center gap-1.5 text-sm font-bold text-ink underline-offset-4 hover:underline md:order-last md:flex ${isTop ? "flex" : "hidden"}`}
       >
         <InfoIcon />
-        データについて
+        {/* 並びの隙間（gap）が入らないよう、ひとつの文字のかたまりにする */}
+        <span>
+          データ<span className={isTop ? "max-md:hidden" : ""}>について</span>
+        </span>
       </Link>
       {/* 地区くらべのスマホの見本には進みぐあいがない（029）。トップはまだどのステップでもないので出さない（033。2026-11-07 まさゆきさん） */}
-      {pathname !== "/" && (
+      {!isTop && (
         <div className={`w-full md:w-auto ${pathname === KURABE_PATH ? "hidden md:block" : ""}`}>
           <StepIndicator />
         </div>
