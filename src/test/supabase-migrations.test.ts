@@ -78,6 +78,8 @@ const PUBLIC_TABLES = [
   "train_departures",
   "train_outings",
   "train_station_counts",
+  "housing_tenure",
+  "rent_averages",
 ];
 const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
@@ -444,7 +446,9 @@ describe("出典の公開（022）", () => {
       "select id, is_published from data_sources where id not in ('published_src', 'draft_src') order by id",
     );
     expect(rows.filter((row) => row.is_published).map((row) => row.id)).toEqual([
+      "estat_census_housing_tenure",
       "estat_census_small_area",
+      "estat_housing_land_survey_rent",
       "gtfs_minamishinshu_bus",
       "iida_childcare",
       "iida_education",
@@ -819,6 +823,63 @@ describe("電車（026）", () => {
     const counts = `select (select count(*)::int from facilities where kind = 'train_station') as stations,
                            (select count(*)::int from train_departures) as departures,
                            (select count(*)::int from train_outings) as outings`;
+    await db.exec("begin");
+    try {
+      const before = (await db.query(counts)).rows;
+      await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+      expect((await db.query(counts)).rows).toEqual(before);
+    } finally {
+      await db.exec("rollback");
+    }
+  });
+});
+
+describe("家賃の参考値と、地区の借家の世帯数（034）", () => {
+  it("4地区の借家の世帯数と、飯田市の民営借家全体の家賃が入っている", async () => {
+    const tenures = await run<{ district_id: string; private_rented: number; households_in_housing: number }>(
+      "postgres",
+      "select district_id, private_rented, households_in_housing from housing_tenure where source_id = 'estat_census_housing_tenure' order by district_id",
+    );
+    expect(tenures.map((row) => row.district_id)).toEqual(["chushin", "igara", "kamisato", "kanae"]);
+    expect(tenures.every((row) => row.private_rented > 0 && row.private_rented < row.households_in_housing)).toBe(true);
+    const rents = await run<{ building_type: string }>(
+      "postgres",
+      "select building_type from rent_averages where source_id = 'estat_housing_land_survey_rent'",
+    );
+    expect(rents.map((row) => row.building_type)).toContain("all");
+  });
+
+  it("出典は公開済みで、政府標準利用規約の書き方のクレジットと対象時点が入っている", async () => {
+    const sources = await run<{ id: string; is_published: boolean; credit_text: string; period_label: string }>(
+      "postgres",
+      `select id, is_published, credit_text, period_label from data_sources
+       where id in ('estat_census_housing_tenure', 'estat_housing_land_survey_rent') order by id`,
+    );
+    expect(sources).toEqual([
+      {
+        id: "estat_census_housing_tenure",
+        is_published: true,
+        credit_text: expect.stringMatching(/^出典：「令和2年国勢調査 小地域集計」（総務省統計局）.*を加工して作成/),
+        period_label: "2020年10月1日現在（令和2年国勢調査）",
+      },
+      {
+        id: "estat_housing_land_survey_rent",
+        is_published: true,
+        credit_text: expect.stringMatching(/^出典：「令和5年住宅・土地統計調査.*」（総務省統計局）.*を加工して作成/),
+        period_label: "2023年10月1日現在（令和5年住宅・土地統計調査）",
+      },
+    ]);
+  });
+
+  it("出典を公開するまで anon には見えない", async () => {
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from housing_tenure")).toEqual([]);
+    expect(await run("anon", UNPUBLISH_ALL, "select 1 from rent_averages")).toEqual([]);
+  });
+
+  it("取り込みの SQL を当て直しても、行が二重にならない", async () => {
+    const file = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith("_rent_data.sql")).sort().at(-1);
+    if (!file) throw new Error("*_rent_data.sql がない");
+    const counts = "select (select count(*)::int from housing_tenure) as tenures, (select count(*)::int from rent_averages) as rents";
     await db.exec("begin");
     try {
       const before = (await db.query(counts)).rows;
@@ -1233,10 +1294,12 @@ describe("画面が読むデータ screen_data（015）", () => {
       train_departures: Section;
       train_counts: Section;
       population: Section;
+      housing_tenure: Section;
       bus_outing: Section;
       train_outing: Section;
       events: { season: string; name: string }[];
     }[];
+    rent: Section;
     support_programs: { name: string }[];
     scene_templates: { title: string; sentences: { body: string }[] }[];
   };
@@ -1338,6 +1401,25 @@ describe("画面が読むデータ screen_data（015）", () => {
     const igara = district(data, "igara");
     expect(igara.facilities.train_stations).toEqual({ source_id: "sena_iida_line_stations", items: [] });
     expect(igara.train_departures).toEqual({ source_id: "iida_jr_timetable", items: [] });
+  });
+
+  it("家賃（034）は市全体で1つ、借家の世帯数は地区ごとに入り、出典が未公開なら空になる", async () => {
+    const hidden = await screenData();
+    expect(hidden.rent).toEqual({ source_id: "estat_housing_land_survey_rent", items: [] });
+    expect(district(hidden, "kanae").housing_tenure).toEqual({ source_id: "estat_census_housing_tenure", items: [] });
+
+    const data = await screenData(publish("estat_housing_land_survey_rent", "estat_census_housing_tenure"));
+    expect(data.rent.items).toContainEqual({ building_type: "all", average_rent: expect.any(Number), as_of: "2023-10-01" });
+    for (const { id } of data.districts) {
+      expect(district(data, id).housing_tenure.items).toEqual([
+        {
+          as_of: "2020-10-01",
+          households_in_housing: expect.any(Number),
+          owner_occupied: expect.any(Number),
+          private_rented: expect.any(Number),
+        },
+      ]);
+    }
   });
 
   it("電車の本数（031）は、4地区の駅の分だけを地区ごとに入れ、時刻が非公開でも出る", async () => {
