@@ -9,6 +9,7 @@ export const THEME_COLOR = "#F7F3EA";
 export const TARGET_DISTRICTS_LABEL = "上郷・鼎・伊賀良・中心市街地";
 
 export const ABOUT_DATA_PATH = "/about-data";
+export const CONTACT_PATH = "/contact";
 export const ERABU_PATH = "/erabu";
 export const KURASHI_PATH = "/kurashi";
 export const KARTE_PATH = "/karte";

@@ -132,4 +132,9 @@ describe("データについて（022・F-08・7.3）", () => {
     expect(section("地図")).toHaveTextContent("Google マップを使っています");
     expect(section("地図")).toHaveTextContent("地図の右下に Google が表示しています");
   });
+
+  it("お問い合わせのページへつなぐ（035）", async () => {
+    await open();
+    expect(within(section("お問い合わせ")).getByRole("link", { name: "お問い合わせへ" })).toHaveAttribute("href", "/contact");
+  });
 });

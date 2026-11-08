@@ -6,11 +6,12 @@ import { HeaderMenu } from "./HeaderMenu";
 vi.mock("next/navigation", () => ({ usePathname: vi.fn() }));
 
 describe("HeaderMenu", () => {
-  it("データについて・はじめから選ぶ へつなぎ、画面を移ったら閉じる", () => {
+  it("データについて・はじめから選ぶ・お問い合わせ へつなぎ、画面を移ったら閉じる", () => {
     vi.mocked(usePathname).mockReturnValue("/kurashi");
     const { container, rerender } = render(<HeaderMenu />);
     expect(screen.getByRole("link", { name: "データについて" })).toHaveAttribute("href", "/about-data");
     expect(screen.getByRole("link", { name: "はじめから選ぶ" })).toHaveAttribute("href", "/erabu");
+    expect(screen.getByRole("link", { name: "お問い合わせ" })).toHaveAttribute("href", "/contact");
 
     const menu = container.querySelector("details") as HTMLDetailsElement;
     menu.open = true;

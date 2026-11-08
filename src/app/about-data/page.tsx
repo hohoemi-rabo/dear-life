@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 import { ManualDataList, MarketCounts, SourceList } from "@/components/about/AboutDataLive";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { InstallGuide } from "@/components/pwa/InstallGuide";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { countLabel } from "@/lib/count-label";
 import { SQUARE_METER } from "@/lib/format";
 import { ILLUSTRATION_NOTE, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
 import { EXAMPLE_LAND_AREA, SQUARE_METERS_PER_TSUBO } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
-import { TARGET_DISTRICTS_LABEL } from "@/lib/site";
+import { CONTACT_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "データについて",
@@ -122,6 +123,13 @@ export default function AboutDataPage() {
       <Section id="about-map" title="地図">
         <p>地図の画面の背景の地図・航空写真・立体の建物は、Google マップを使っています。地図データの出典は、地図の右下に Google が表示しています。</p>
         <p className="text-sm text-ink-muted">{NOTICES.mapPosition}施設の位置は、上の出典の緯度経度や住所をもとにしています。</p>
+      </Section>
+
+      <Section id="about-contact" title="お問い合わせ">
+        <p>データの誤りや、使い方の質問などを送れます。返信はできません。</p>
+        <ButtonLink href={CONTACT_PATH} variant="secondary" className="self-start">
+          お問い合わせへ
+        </ButtonLink>
       </Section>
     </div>
   );

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { ABOUT_DATA_PATH, ERABU_PATH } from "@/lib/site";
+import { ABOUT_DATA_PATH, CONTACT_PATH, ERABU_PATH } from "@/lib/site";
 
 const ITEMS = [
   { href: ABOUT_DATA_PATH, label: "データについて" },
   { href: ERABU_PATH, label: "はじめから選ぶ" },
+  { href: CONTACT_PATH, label: "お問い合わせ" },
 ] as const;
 
 // スマホのヘッダーの「≡」メニュー（027）。画面を移ってもヘッダーは残るので、移ったら閉じる
