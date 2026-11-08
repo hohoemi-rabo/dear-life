@@ -32,9 +32,9 @@
 - [×] 要件に F-15 を足す（3.1）
 - [×] 画面の Worker に `/api/contact`（検証・ハニーポット・Rate Limiting・Discord への送信）とテスト
 - [×] `/contact` ページとテスト。「データについて」とスマホのメニューに入口を足す
-- [ ] （まさゆきさん）画面の Worker の Secret に、定期取得と同じ Webhook URL を登録する（`npx wrangler secret put DISCORD_WEBHOOK_URL`。別のターミナルで。`!` では値が空になる）
+- [×] （まさゆきさん）画面の Worker の Secret に、定期取得と同じ Webhook URL を登録する（`npx wrangler secret put DISCORD_WEBHOOK_URL`。別のターミナルで。`!` では値が空になる）
 - [×] テスト・lint・型チェック・ビルド。`npm run preview` で送信を確かめる（2026-11-08。Webhook は未登録のまま、弾く場合と「いまは送れません」までを確かめた。Discord に届くのは Secret の登録後に確かめる）
-- [ ] （まさゆきさん）画面と、Discord に届く形を確かめる
+- [×] （まさゆきさん）画面と、Discord に届く形を確かめる（2026-11-08。本番から送ったテストが届き、`@everyone` が通知にならないことを確かめた）
 - [×] 本番に公開する（main への push。2026-11-08。本番で `/contact` が開き、`/api/contact` が空の本文を 400 で弾くことを確かめた）
 
 ## 作ったもの（2026-11-08）
