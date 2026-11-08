@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { MarketSheetBody } from "@/components/data/MarketSheetBody";
+import { RentSheetBody } from "@/components/data/RentFigures";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import type { Conditions } from "@/lib/conditions/model";
@@ -37,7 +38,7 @@ function MarketCheck({ reply }: { reply: MarketReply }) {
         <MarketIcon />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="font-bold">住まいの参考相場を確認</span>
-          <span className="text-xs text-ink-muted">{reply.kind === "house" ? "過去の取引価格・件数を表示" : "家賃の情報を表示"}</span>
+          <span className="text-xs text-ink-muted">{reply.kind === "house" ? "過去の取引価格・件数を表示" : "家賃の平均・借家の世帯数を表示"}</span>
         </span>
         <span aria-hidden="true" className="text-2xl text-ink-muted">
           ›
@@ -50,7 +51,11 @@ function MarketCheck({ reply }: { reply: MarketReply }) {
       >
         {/* 出典・対象期間・確認日はここでは出さない（2026-10-29 まさゆきさん。えらぶは先へ進むのが主なので）。
             同じ相場はカルテの住まいのカードと「データについて」で、出典・対象期間・確認日と一緒に見られる */}
-        <MarketSheetBody state={reply.kind === "house" ? reply.house : null} alwaysFew={reply.kind === "house" && reply.alwaysFew} />
+        {reply.kind === "house" ? (
+          <MarketSheetBody state={reply.house} alwaysFew={reply.alwaysFew} />
+        ) : (
+          <RentSheetBody rent={reply.rent} tenure={reply.tenure} districtName={reply.districtName} />
+        )}
       </BottomSheet>
     </>
   );

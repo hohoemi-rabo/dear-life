@@ -182,14 +182,15 @@ describe("KarteView：住まいのカード（5章）", () => {
     expect(card("housing")).toHaveTextContent("該当なし");
   });
 
-  it("借りるは家賃の情報がないことを出し、土地の相場を参考として見せる", async () => {
+  it("借りるは飯田市の家賃の平均と地区の借家の世帯数を、市全体の値だという断り書きと一緒に出す（034）", async () => {
     await open("d=kanae&k=0&h=rent");
     const housing = card("housing");
     expect(housing).toHaveTextContent("家を借りるとしたら？");
-    expect(housing).toHaveTextContent("家賃の情報はまだありません。");
-    expect(housing).toHaveTextContent("参考：土地（宅地）（1m²あたり）");
-    expect(housing).toHaveTextContent("2.4万円／m²");
-    expect(housing.textContent).not.toContain("㎡");
+    expect(housing).toHaveTextContent("飯田市の民営借家の家賃の平均（1か月）");
+    expect(housing).toHaveTextContent("約5.0万円");
+    expect(housing).toHaveTextContent("1,511世帯（約29%）");
+    expect(housing).toHaveTextContent("飯田市全体の平均で、地区ごとの値ではありません。");
+    expect(housing).not.toHaveTextContent("家賃の情報はまだありません");
   });
 
   it("出典が未公開なら「データ未取得」", async () => {

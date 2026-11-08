@@ -55,6 +55,7 @@ function district(id: string, overrides: Record<string, unknown> = {}) {
     train_departures: section("iida_jr_timetable"),
     train_counts: section("railway_honsu"),
     population: section("estat_census_small_area"),
+    housing_tenure: section("estat_census_housing_tenure"),
     bus_outing: section("gtfs_minamishinshu_bus"),
     train_outing: section("iida_jr_timetable"),
     events: [],
@@ -62,18 +63,61 @@ function district(id: string, overrides: Record<string, unknown> = {}) {
   };
 }
 
-function raw(overrides: { sources?: unknown[]; kanae?: Record<string, unknown>; marketSummary?: unknown[] } = {}): RawScreenData {
+function raw(
+  overrides: { sources?: unknown[]; kanae?: Record<string, unknown>; marketSummary?: unknown[]; rent?: unknown[] } = {},
+): RawScreenData {
   return {
     generated_at: "2026-10-26T13:00:00+00:00",
     sources: overrides.sources ?? [],
     districts: ["kamisato", "kanae", "igara", "chushin"].map((id) => district(id, id === "kanae" ? overrides.kanae : {})),
     market_summary: section("reinfolib_xit001", overrides.marketSummary ?? []),
+    rent: section("estat_housing_land_survey_rent", overrides.rent ?? []),
     support_programs: [],
     scene_templates: [],
   } as unknown as RawScreenData;
 }
 
 const TODAY = "2026-10-26";
+
+describe("parseScreenData：家賃の参考値と借家の世帯数（034）", () => {
+  const rentRows = [
+    { building_type: "all", average_rent: 50043, as_of: "2023-10-01" },
+    { building_type: "apartment_wooden", average_rent: 43392, as_of: "2023-10-01" },
+    { building_type: "detached", average_rent: 51671, as_of: "2023-10-01" },
+  ];
+  const tenureRow = { as_of: "2020-10-01", households_in_housing: 5292, owner_occupied: 3549, private_rented: 1511 };
+
+  it("建て方ごとの家賃を1つにまとめ、推計できなかった建て方は null にする", () => {
+    const data = parseScreenData(
+      raw({
+        sources: [source("estat_housing_land_survey_rent"), source("estat_census_housing_tenure")],
+        rent: rentRows,
+        kanae: { housing_tenure: section("estat_census_housing_tenure", [tenureRow]) },
+      }),
+      TODAY,
+    );
+    expect(data.rent).toEqual({
+      status: "available",
+      source: expect.objectContaining({ id: "estat_housing_land_survey_rent" }),
+      value: { asOf: "2023-10-01", all: 50043, detached: 51671, apartmentWooden: 43392, apartmentNonWooden: null },
+    });
+    expect(data.districts.kanae.housingTenure).toEqual({
+      status: "available",
+      source: expect.objectContaining({ id: "estat_census_housing_tenure" }),
+      value: { asOf: "2020-10-01", householdsInHousing: 5292, ownerOccupied: 3549, privateRented: 1511 },
+    });
+  });
+
+  it("出典が未公開か、民営借家全体の家賃がなければデータ未取得", () => {
+    expect(parseScreenData(raw({ rent: rentRows }), TODAY).rent).toEqual({ status: "unavailable" });
+    expect(
+      parseScreenData(raw({ sources: [source("estat_housing_land_survey_rent")], rent: rentRows.slice(1) }), TODAY).rent,
+    ).toEqual({ status: "unavailable" });
+    expect(parseScreenData(raw({ kanae: { housing_tenure: section("estat_census_housing_tenure", [tenureRow]) } }), TODAY).districts.kanae.housingTenure).toEqual({
+      status: "unavailable",
+    });
+  });
+});
 
 describe("parseScreenData：データ未取得と該当なし（F-09）", () => {
   it("出典が公開されていなければ、中身にかかわらずデータ未取得", () => {

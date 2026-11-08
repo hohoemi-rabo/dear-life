@@ -25,11 +25,13 @@ const body = {
     train_departures: emptySection("iida_jr_timetable"),
     train_counts: emptySection("railway_honsu"),
     population: emptySection("estat_census_small_area"),
+    housing_tenure: emptySection("estat_census_housing_tenure"),
     bus_outing: emptySection("gtfs_minamishinshu_bus"),
     train_outing: emptySection("iida_jr_timetable"),
     events: [],
   })),
   market_summary: emptySection("reinfolib_xit001"),
+  rent: emptySection("estat_housing_land_survey_rent"),
   support_programs: [],
   scene_templates: [],
 };

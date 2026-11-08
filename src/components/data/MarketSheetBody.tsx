@@ -6,9 +6,8 @@ import { formatManYen } from "@/lib/format";
 import { NOTICES } from "@/lib/notices";
 
 // 住まいの相場のシートの中身（えらぶ 03・くらしの「住まい」のピン。028）。必要なものだけ：真ん中の値・件数と件数ラベル・注意書き
-// （要件 5章-6・7）。借りるときの家賃はまだ集めていないので「データ未取得」（state に null を渡す）
-export function MarketSheetBody({ state, alwaysFew = false }: { state: DataState<MarketStat> | null; alwaysFew?: boolean }) {
-  if (state === null) return <DataStateMessage state={{ status: "unavailable" }} />;
+// （要件 5章-6・7）。借りるときの家賃は RentSheetBody（034）
+export function MarketSheetBody({ state, alwaysFew = false }: { state: DataState<MarketStat>; alwaysFew?: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       {state.status === "available" ? (

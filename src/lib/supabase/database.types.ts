@@ -376,6 +376,54 @@ export type Database = {
           },
         ]
       }
+      housing_tenure: {
+        Row: {
+          as_of: string
+          created_at: string
+          district_id: string
+          households_in_housing: number
+          owner_occupied: number
+          private_rented: number
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          as_of: string
+          created_at?: string
+          district_id: string
+          households_in_housing: number
+          owner_occupied: number
+          private_rented: number
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          as_of?: string
+          created_at?: string
+          district_id?: string
+          households_in_housing?: number
+          owner_occupied?: number
+          private_rented?: number
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housing_tenure_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_tenure_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingest_runs: {
         Row: {
           error_message: string | null
@@ -592,6 +640,44 @@ export type Database = {
             columns: ["district_id"]
             isOneToOne: false
             referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rent_averages: {
+        Row: {
+          as_of: string
+          average_rent: number
+          building_type: string
+          created_at: string
+          id: number
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          as_of: string
+          average_rent: number
+          building_type: string
+          created_at?: string
+          id?: never
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          as_of?: string
+          average_rent?: number
+          building_type?: string
+          created_at?: string
+          id?: never
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rent_averages_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
             referencedColumns: ["id"]
           },
         ]

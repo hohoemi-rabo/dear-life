@@ -13,7 +13,7 @@ import { CountLabel } from "@/components/ui/CountBadge";
 import { SourceNote } from "@/components/ui/SourceNote";
 import { KARTE_CARD_LABELS, karteCardAnchor, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
-import type { DataState, DistrictData, SourceInfo } from "@/lib/data/screen-data";
+import type { DataState, DistrictData, RentReference, SourceInfo } from "@/lib/data/screen-data";
 import { SQUARE_METER, formatManYen, formatQuarterRange } from "@/lib/format";
 import { houseSrc, propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
 import {
@@ -29,7 +29,8 @@ import {
   type MinorKarteCard,
 } from "@/lib/karte/entries";
 import { checkMemoTagFor, type CheckMemoItem } from "@/lib/karte/check-memo";
-import { NO_RENT_DATA, marketCategoryOrder } from "@/lib/karte/housing";
+import { marketCategoryOrder } from "@/lib/karte/housing";
+import { RENT_NOTICE, RENT_TITLE, formatRentManYen, renterSharePercent } from "@/lib/housing/rent";
 import { karteDetailHref } from "@/lib/karte/links";
 import { NOTICES } from "@/lib/notices";
 import { ABOUT_DATA_PATH } from "@/lib/site";
@@ -73,7 +74,12 @@ export function KarteEntries({
   }, []);
 
   const bodies: Record<MainKarteCard, ReactNode> = {
-    housing: <HousingEntry district={district} conditions={conditions} href={detailHref("housing")} />,
+    housing:
+      conditions.housing === "rent" ? (
+        <RentEntry district={district} rent={data.rent} href={detailHref("housing")} />
+      ) : (
+        <HousingEntry district={district} conditions={conditions} href={detailHref("housing")} />
+      ),
     childcare: <ChildcareEntry district={district} href={detailHref("childcare")} />,
     transport: (
       <MainEntry
@@ -175,6 +181,7 @@ function EntryFrame({
   children,
   footer,
   href,
+  action,
 }: {
   card: KarteCard;
   question: string;
@@ -183,6 +190,8 @@ function EntryFrame({
   children?: ReactNode;
   footer?: ReactNode;
   href: string;
+  // ボタンの文言を変えるとき（借りるの住まい）。ふだんは KARTE_ENTRY_ACTIONS
+  action?: string;
 }) {
   const memoTag = useContext(MemoTagContext);
   return (
@@ -205,7 +214,7 @@ function EntryFrame({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex min-w-0 flex-1 basis-56 flex-col gap-2">{footer}</div>
         <Link href={href} className={buttonClassName("secondary", "shrink-0 text-sm")}>
-          {KARTE_ENTRY_ACTIONS[card]}
+          {action ?? KARTE_ENTRY_ACTIONS[card]}
           <span aria-hidden="true">→</span>
         </Link>
       </div>
@@ -267,27 +276,21 @@ function EntrySources({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-// 住まい：選んだ家にいちばん近い相場の真ん中の値・件数・件数ラベル・注意書き・出典（要件 5章）。
-// 借りるは家賃の情報がないことを先に出し、売買の相場を参考として見せる（2026-11-01 まさゆきさん）
+// 住まい（買う）：選んだ家にいちばん近い相場の真ん中の値・件数・件数ラベル・注意書き・出典（要件 5章）
 function HousingEntry({ district, conditions, href }: { district: DistrictData; conditions: Chosen; href: string }) {
   const category = marketCategoryOrder(conditions.housing)[0];
   const state = district.market[category];
   const isLand = category === "land";
-  const rent = conditions.housing === "rent";
   return (
     <EntryFrame
       card="housing"
       question={housingQuestion(conditions.housing)}
       href={href}
       beside={
-        <>
-          {rent && <p className="text-sm font-bold">{NO_RENT_DATA}</p>}
-          <p className="text-sm md:text-base">
-            {rent && "参考："}
-            {MARKET_CATEGORY_PHRASES[category]}
-            {isLand && `（1${SQUARE_METER}あたり）`}
-          </p>
-        </>
+        <p className="text-sm md:text-base">
+          {MARKET_CATEGORY_PHRASES[category]}
+          {isLand && `（1${SQUARE_METER}あたり）`}
+        </p>
       }
       picture={
         // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
@@ -330,6 +333,66 @@ function HousingEntry({ district, conditions, href }: { district: DistrictData; 
         </p>
       ) : (
         <DataStateMessage state={state} />
+      )}
+    </EntryFrame>
+  );
+}
+
+// 住まい（借りる）：飯田市全体の家賃の平均と、地区の借家に住む世帯の数（034）。家賃は地区の値でも今の募集家賃でもないことを添える。
+// 売買の相場は詳細のタブで参考に見られる
+function RentEntry({ district, rent, href }: { district: DistrictData; rent: DataState<RentReference>; href: string }) {
+  const tenure = district.housingTenure;
+  const sourced = [rent, tenure].flatMap((state) => (state.status === "unavailable" ? [] : [state.source]));
+  return (
+    <EntryFrame
+      card="housing"
+      question={housingQuestion("rent")}
+      href={href}
+      action="家賃の内訳を見る"
+      beside={<p className="text-sm md:text-base">{RENT_TITLE}（1か月）</p>}
+      picture={
+        // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+        <img
+          src={houseSrc("rent", 320)}
+          srcSet={`${houseSrc("rent", 320)} 320w, ${houseSrc("rent", 640)} 640w`}
+          sizes="(min-width: 1024px) 240px, 40vw"
+          alt=""
+          loading="lazy"
+          draggable={false}
+          className="h-auto max-h-36 w-full select-none object-contain"
+        />
+      }
+      footer={
+        <>
+          <Hint>{RENT_NOTICE}</Hint>
+          {sourced.length > 0 && (
+            <EntrySources label="対象時点・確認日を見る">
+              {sourced.map((source) => (
+                <DataSourceNote key={source.id} source={source} />
+              ))}
+            </EntrySources>
+          )}
+        </>
+      }
+    >
+      {rent.status === "available" ? (
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="price-figure text-[2.5rem] leading-none md:text-5xl">{formatRentManYen(rent.value.all)}</span>
+          {tenure.status === "available" && (
+            <>
+              {/* スマホでは世帯数が次の行に回るので、区切り線は出さない */}
+              <span aria-hidden="true" className="h-9 w-px bg-line max-sm:hidden" />
+              <span className="flex flex-col leading-tight">
+                <span className="text-xs text-ink-muted">{district.name}で民営の借家に住む世帯</span>
+                <span className="text-lg font-bold tabular-nums">
+                  {tenure.value.privateRented.toLocaleString("ja-JP")}世帯（約{renterSharePercent(tenure.value)}%）
+                </span>
+              </span>
+            </>
+          )}
+        </p>
+      ) : (
+        <DataStateMessage state={rent} />
       )}
     </EntryFrame>
   );

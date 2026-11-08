@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
-import { availableFixture, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, marketFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
 import { ErabuFlow } from "./ErabuFlow";
 
 // URL を持つだけの小さなルーター。push・replace で URL を書きかえ、useSearchParams を読み直させる
@@ -49,32 +49,36 @@ const EDUCATION = sourceFixture("iida_education", { checkedOn: "2026-10-24", fet
 const CHILDCARE = sourceFixture("iida_childcare", { checkedOn: "2026-10-24", fetchedOn: null });
 const BUS = sourceFixture("gtfs_minamishinshu_bus");
 
-const PUBLISHED = screenDataFixture({
-  kamisato: {
-    areaDescription: "上郷飯沼・上郷黒田・上郷別府",
-    market: {
-      land: marketFixture(28000, 202),
-      house_built_within_20y: marketFixture(39_000_000, 12),
-      house_built_over_20y: marketFixture(8_600_000, 39),
+const PUBLISHED: ScreenData = {
+  ...screenDataFixture({
+    kamisato: {
+      housingTenure: tenureFixture(5550, 1697),
+      areaDescription: "上郷飯沼・上郷黒田・上郷別府",
+      market: {
+        land: marketFixture(28000, 202),
+        house_built_within_20y: marketFixture(39_000_000, 12),
+        house_built_over_20y: marketFixture(8_600_000, 39),
+      },
+      schools: availableFixture([{ name: "上郷小学校", subkind: "小学校", address: null }], EDUCATION),
+      childcare: availableFixture(
+        [
+          { name: "A園", subkind: "認定こども園（保育所型）", address: null },
+          { name: "B園", subkind: "認可私立保育所", address: null },
+        ],
+        CHILDCARE,
+      ),
+      busStops: availableFixture(
+        [
+          { name: "上郷公民館前", subkind: null, address: null },
+          { name: "別府", subkind: null, address: null },
+          { name: "黒田", subkind: null, address: null },
+        ],
+        BUS,
+      ),
     },
-    schools: availableFixture([{ name: "上郷小学校", subkind: "小学校", address: null }], EDUCATION),
-    childcare: availableFixture(
-      [
-        { name: "A園", subkind: "認定こども園（保育所型）", address: null },
-        { name: "B園", subkind: "認可私立保育所", address: null },
-      ],
-      CHILDCARE,
-    ),
-    busStops: availableFixture(
-      [
-        { name: "上郷公民館前", subkind: null, address: null },
-        { name: "別府", subkind: null, address: null },
-        { name: "黒田", subkind: null, address: null },
-      ],
-      BUS,
-    ),
-  },
-});
+  }),
+  rent: rentFixture(),
+};
 
 async function open(query = "") {
   url.set(`/erabu?${query}`);
@@ -298,11 +302,23 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expect(within(sheet).getByText("件数じゅうぶん")).toBeInTheDocument();
   });
 
-  it("家：借りるときもカードは出し、シートでデータ未取得と出す", async () => {
+  it("家：借りるときは、シートで飯田市の家賃の平均と地区の借家の世帯数を、市全体の値だという断り書きと一緒に出す（034）", async () => {
     await open("d=kamisato&h=rent&q=housing");
     await tap(/住まいの参考相場を確認/);
     const sheet = screen.getByRole("dialog", { name: "借りるときの家賃" });
-    expect(within(sheet).getByText("データ未取得")).toBeInTheDocument();
+    expect(within(sheet).getByText("約5.0万円")).toBeInTheDocument();
+    expect(within(sheet).getByText("約5.2万円")).toBeInTheDocument();
+    expect(within(sheet).getByText("1,697世帯")).toBeInTheDocument();
+    expect(sheet).toHaveTextContent("住宅に住む5,550世帯の約31%");
+    expect(sheet).toHaveTextContent("地区ごとの値ではありません");
+  });
+
+  it("家：借りるとき、家賃が取り込まれていなければデータ未取得と出す", async () => {
+    screenData = screenDataFixture();
+    await open("d=kamisato&h=rent&q=housing");
+    await tap(/住まいの参考相場を確認/);
+    const sheet = screen.getByRole("dialog", { name: "借りるときの家賃" });
+    expect(within(sheet).getAllByText("データ未取得")).toHaveLength(2);
     expect(sheet).not.toHaveTextContent(/万円/);
   });
 

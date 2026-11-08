@@ -45,6 +45,11 @@ export function compareSources(data: ScreenData, topics: readonly CompareTopic[]
     const marketPeriod =
       marketStat?.status === "available" ? formatQuarterRange(marketStat.value.periodFrom, marketStat.value.periodTo) : undefined;
     for (const state of marketStates) add(state, marketPeriod);
+    // 借家に住む世帯の数（034）。国勢調査の時点を対象として出す
+    for (const district of districts) {
+      const tenure = district.housingTenure;
+      add(tenure, tenure.status === "available" ? `${formatJaDate(tenure.value.asOf)}時点` : undefined);
+    }
   }
   if (topics.includes("school")) {
     for (const district of districts) {

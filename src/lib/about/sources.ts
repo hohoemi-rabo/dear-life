@@ -1,9 +1,11 @@
 // データについてページ（022）の出典の並べ方と、手でまとめたデータの確認日のまとめ方
 import type { ScreenData, SourceInfo } from "../data/screen-data.ts";
 
-// 出典の行（data_sources.id）ごとの使い道。並びもこの順にする（画面で目にする順：相場 → 学区 → 施設 → 交通 → 人口 → 場面の文）
+// 出典の行（data_sources.id）ごとの使い道。並びもこの順にする（画面で目にする順：相場・家賃 → 学区 → 施設 → 交通 → 人口 → 場面の文）
 export const SOURCE_USES: ReadonlyArray<readonly [id: string, use: string]> = [
   ["reinfolib_xit001", "住まいの相場"],
+  ["estat_housing_land_survey_rent", "借りるときの家賃の参考値（飯田市全体）"],
+  ["estat_census_housing_tenure", "地区の借家に住む世帯の数"],
   ["reinfolib_xkt004", "小学校区"],
   ["reinfolib_xkt005", "中学校区"],
   ["iida_education", "学校"],

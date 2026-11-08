@@ -31,5 +31,3 @@ export function marketCategoryOrder(housing: Housing): readonly MarketCategory[]
       return ["land", "house_built_within_20y", "house_built_over_20y"];
   }
 }
-
-export const NO_RENT_DATA = "家賃の情報はまだありません。";

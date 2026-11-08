@@ -1,6 +1,6 @@
 // 画面のテストで使う ScreenData（読み込んだあとの形）。既定では出典のあるデータがすべて「データ未取得」で、
 // 確かめたい欄だけを上書きして使う
-import type { DataState, DistrictData, MarketStat, ScreenData, SourceInfo } from "@/lib/data/screen-data";
+import type { DataState, DistrictData, HousingTenure, MarketStat, RentReference, ScreenData, SourceInfo } from "@/lib/data/screen-data";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 export function sourceFixture(id: string, extra: Partial<SourceInfo> = {}): SourceInfo {
@@ -32,6 +32,39 @@ export function marketFixture(median: number, sampleCount: number, extra: Partia
   };
 }
 
+export const RENT_SOURCE = sourceFixture("estat_housing_land_survey_rent", {
+  name: "住宅・土地統計調査 民営借家の1か月当たり家賃",
+  publisher: "総務省統計局",
+  periodLabel: "2023年10月1日現在（令和5年住宅・土地統計調査）",
+  checkedOn: "2026-11-08",
+  fetchedOn: null,
+});
+
+// 2026-11-08 に取り込んだ飯田市の値
+export function rentFixture(extra: Partial<RentReference> = {}): DataState<RentReference> {
+  return {
+    status: "available",
+    value: { asOf: "2023-10-01", all: 50043, detached: 51671, apartmentWooden: 43392, apartmentNonWooden: 51483, ...extra },
+    source: RENT_SOURCE,
+  };
+}
+
+export const TENURE_SOURCE = sourceFixture("estat_census_housing_tenure", {
+  name: "国勢調査 小地域集計（町丁・字等別）住宅の所有の関係別一般世帯数",
+  publisher: "総務省統計局",
+  periodLabel: "2020年10月1日現在（令和2年国勢調査）",
+  checkedOn: "2026-11-08",
+  fetchedOn: null,
+});
+
+export function tenureFixture(householdsInHousing: number, privateRented: number): DataState<HousingTenure> {
+  return {
+    status: "available",
+    value: { asOf: "2020-10-01", householdsInHousing, ownerOccupied: householdsInHousing - privateRented - 100, privateRented },
+    source: TENURE_SOURCE,
+  };
+}
+
 export function availableFixture<T>(value: T, source: SourceInfo): DataState<T> {
   return { status: "available", value, source };
 }
@@ -58,6 +91,7 @@ function districtFixture(id: DistrictId): DistrictData {
     trainDepartures: UNAVAILABLE,
     trainCounts: UNAVAILABLE,
     population: UNAVAILABLE,
+    housingTenure: UNAVAILABLE,
     busOuting: UNAVAILABLE,
     trainOuting: UNAVAILABLE,
     events: [],
@@ -75,6 +109,7 @@ export function screenDataFixture(overrides: Partial<Record<DistrictId, Partial<
       DistrictData
     >,
     marketSummary: UNAVAILABLE,
+    rent: UNAVAILABLE,
     supportPrograms: [],
     sceneTemplates: [],
   };

@@ -24,13 +24,13 @@ const HOUSING_TAGS: Readonly<Record<Housing, string>> = {
 };
 
 function housingItem(housing: Housing): CheckMemoItem {
-  // 借りるは家賃の情報がないので、住まいのカードと同じく土地の取引を参考として案内する（2026-11-01 まさゆきさん）
+  // 借りるは、飯田市全体の家賃の平均と地区の借家の世帯数を案内する（034。住まいのカードと同じ）
   const rent = housing === "rent";
   return {
     id: "housing",
     tag: HOUSING_TAGS[housing],
-    question: rent ? "値段の目安と、住む前の確認点は？" : "価格の目安と、購入前の確認点は？",
-    note: rent ? "家賃の情報はまだありません。土地の取引を参考に見てみよう。" : "過去の取引と、現地で見る点を確かめよう。",
+    question: rent ? "家賃の目安と、住む前の確認点は？" : "価格の目安と、購入前の確認点は？",
+    note: rent ? "飯田市の家賃の平均と、地区で借家に住む世帯の数を確かめよう。" : "過去の取引と、現地で見る点を確かめよう。",
     action: "住まいの詳細を見る",
     target: { kind: "detail", card: "housing" },
     card: "housing",

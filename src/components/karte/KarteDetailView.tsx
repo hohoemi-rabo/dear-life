@@ -13,7 +13,7 @@ import { karteLayout } from "@/lib/conditions/karte-order";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
-import type { DistrictData, SourceInfo } from "@/lib/data/screen-data";
+import type { DataState, DistrictData, HousingTenure, MarketCategory, RentReference, SourceInfo } from "@/lib/data/screen-data";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
@@ -22,7 +22,7 @@ import { karteBackHref } from "@/lib/karte/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { HousingPriceCard, useHousingTab, type HousingTab } from "./HousingCard";
+import { HousingPriceCard, useHousingTab } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
@@ -191,7 +191,7 @@ function DetailBody({
   return (
     <div className="flex flex-col gap-4">
       {card === "housing" ? (
-        <HousingPriceCard district={district} housing={conditions.housing} tab={housingTab} onTabChange={setHousingTab} />
+        <HousingPriceCard district={district} rent={data.rent} housing={conditions.housing} tab={housingTab} onTabChange={setHousingTab} />
       ) : (
         <OtherDetailCard
           card={card}
@@ -243,7 +243,13 @@ function DetailBody({
       </div>
 
       <Basis
-        rows={card === "housing" ? housingBasisRows(district, districtName, housingTab) : otherBasisRows(card, otherTab)}
+        rows={
+          card === "housing"
+            ? housingTab.category === null
+              ? rentBasisRows(data.rent, district.housingTenure, districtName)
+              : housingBasisRows(district, districtName, housingTab.category)
+            : otherBasisRows(card, otherTab)
+        }
         note={texts.basisNote}
       />
     </div>
@@ -336,9 +342,7 @@ function sourceRows(source: SourceInfo, period?: string): BasisRow[] {
 }
 
 // 住まいの出典の表。今見ているタブの集計対象と期間を出す
-function housingBasisRows(district: DistrictData, districtName: string, tab: HousingTab): BasisRow[][] {
-  // 借りるの「選んだ家」（家賃の情報なし）は、となりのタブと同じ相場の出典を出す
-  const category = tab.category ?? "house_built_within_20y";
+function housingBasisRows(district: DistrictData, districtName: string, category: MarketCategory): BasisRow[][] {
   const state = district.market[category];
   if (state.status === "unavailable") return [];
   const period = state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined;
@@ -351,6 +355,20 @@ function housingBasisRows(district: DistrictData, districtName: string, tab: Hou
       ...dates,
     ],
   ];
+}
+
+// 借りるの「選んだ家」の出典の表：家賃（飯田市全体）と、借家の世帯数（地区）（034）
+function rentBasisRows(rent: DataState<RentReference>, tenure: DataState<HousingTenure>, districtName: string): BasisRow[][] {
+  const groups: BasisRow[][] = [];
+  if (rent.status !== "unavailable") {
+    const [source, ...rest] = sourceRows(rent.source);
+    groups.push([source, ["集計対象", "飯田市・民営借家（専用住宅）・家賃0円を除く"], ...rest]);
+  }
+  if (tenure.status !== "unavailable") {
+    const [source, ...rest] = sourceRows(tenure.source);
+    groups.push([source, ["集計対象", `${districtName}・住宅に住む一般世帯`], ...rest]);
+  }
+  return groups;
 }
 
 // 住まい以外の出典の表。今見ているタブで使っているデータの出典を、同じ出典は1回だけ出す。

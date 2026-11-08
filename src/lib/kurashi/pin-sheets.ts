@@ -4,7 +4,7 @@ import type { KarteCard } from "../conditions/labels.ts";
 import { HOUSING_LABELS } from "../conditions/labels.ts";
 import type { Conditions } from "../conditions/model.ts";
 import type { ScenePlan, Season } from "../conditions/scene.ts";
-import type { DataState, DistrictData, DistrictEvent, Facility, MarketStat, SourceInfo } from "../data/screen-data.ts";
+import type { DataState, DistrictData, DistrictEvent, Facility, HousingTenure, MarketStat, RentReference, SourceInfo } from "../data/screen-data.ts";
 import { formatQuarterRange } from "../format.ts";
 import { NOTICES } from "../notices.ts";
 import type { Scene, SceneLine } from "../scenes/render.ts";
@@ -42,7 +42,9 @@ export type PinSheet = {
   // 「確かめる」ボタンで移るカルテのカード。行事はカルテにカードがないので null
   karteCard: KarteCard | null;
   action: string | null;
-  market: { state: DataState<MarketStat> | null; alwaysFew: boolean } | null;
+  market: { state: DataState<MarketStat>; alwaysFew: boolean } | null;
+  // 借りるときの家賃の参考値と、地区の借家の世帯数（034）
+  rent: { rent: DataState<RentReference>; tenure: DataState<HousingTenure>; districtName: string } | null;
   events: readonly DistrictEvent[] | null;
 };
 
@@ -54,6 +56,8 @@ type Input = {
   district: DistrictData;
   scene: Scene | null;
   events: readonly DistrictEvent[];
+  // 飯田市全体の家賃の参考値（034。地区には分けられないので district の外から渡す）
+  rent: DataState<RentReference>;
 };
 
 function countOf<T>(state: DataState<readonly T[]>, match: (item: T) => boolean = () => true): DataState<number> {
@@ -124,7 +128,7 @@ function schoolDistrictLine(district: DistrictData): SceneLine {
 
 export function pinSheet(input: Input): PinSheet {
   const { pin, district, conditions } = input;
-  const base = { id: pin, notices: [] as readonly string[], market: null, events: null };
+  const base = { id: pin, notices: [] as readonly string[], market: null, rent: null, events: null };
   switch (pin) {
     case "school": {
       const count = countOf(district.schools, isElementarySchool);
@@ -278,17 +282,30 @@ export function pinSheet(input: Input): PinSheet {
       };
     case "housing": {
       const housing = conditions.housing;
-      const state = housing === "rent" ? null : district.market[housing === "new" ? "house_built_within_20y" : "house_built_over_20y"];
-      const title =
-        housing === "rent" ? "借りるときの家賃" : `${district.name}の中古戸建て（${housing === "new" ? "築20年以内" : "築21年以上"}）`;
+      if (housing === "rent") {
+        // 家賃は飯田市全体の平均、借家の世帯数は地区の値（034）
+        const states = [input.rent, district.housingTenure];
+        return {
+          ...base,
+          title: "借りるときの家賃",
+          missing: null,
+          intro: "借りるときの家賃の目安と、地区で借家に住む世帯の数です。",
+          lines: [],
+          sources: uniqueSources(states.flatMap((state) => (state.status === "unavailable" ? [] : [{ source: state.source }]))),
+          karteCard: "housing",
+          action: "住まいの家賃を確かめる",
+          rent: { rent: input.rent, tenure: district.housingTenure, districtName: district.name },
+        };
+      }
+      const state = district.market[housing === "new" ? "house_built_within_20y" : "house_built_over_20y"];
       return {
         ...base,
-        title,
+        title: `${district.name}の中古戸建て（${housing === "new" ? "築20年以内" : "築21年以上"}）`,
         missing: null,
-        intro: housing === "rent" ? "借りるときの家賃の目安です。" : `「${HOUSING_LABELS[housing]}」で探すときの、過去の取引の参考値です。`,
+        intro: `「${HOUSING_LABELS[housing]}」で探すときの、過去の取引の参考値です。`,
         lines: [],
         sources:
-          state && state.status !== "unavailable"
+          state.status !== "unavailable"
             ? [
                 {
                   source: state.source,

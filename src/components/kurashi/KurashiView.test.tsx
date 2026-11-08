@@ -4,7 +4,7 @@ import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate 
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { SCENE_TEMPLATE_DRAFTS } from "@/lib/scenes/drafts";
-import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
 import { KurashiView } from "./KurashiView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -301,14 +301,33 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(sheet).toHaveTextContent("データ未取得");
   });
 
-  it("住まいのピン：借りるときは家賃を「データ未取得」と出す", async () => {
+  it("住まいのピン：借りるときは飯田市の家賃の平均と地区の借家の世帯数を、出典と一緒に出す（034）", async () => {
+    const base = published();
+    screenData = {
+      ...base,
+      rent: rentFixture(),
+      districts: { ...base.districts, kamisato: { ...base.districts.kamisato, housingTenure: tenureFixture(5550, 1697) } },
+    };
+    await open("d=kamisato&a=2&k=1&h=rent");
+    await act(async () => {
+      fireEvent.click(pin("住まい"));
+    });
+    const sheet = screen.getByRole("dialog", { name: "借りるときの家賃" });
+    expect(within(sheet).getByText("約5.0万円")).toBeInTheDocument();
+    expect(within(sheet).getByText("1,697世帯")).toBeInTheDocument();
+    expect(sheet).toHaveTextContent("地区ごとの値ではありません");
+    expect(sheet).toHaveTextContent("総務省統計局「住宅・土地統計調査 民営借家の1か月当たり家賃」");
+    expect(sheet).toHaveTextContent("総務省統計局「国勢調査 小地域集計（町丁・字等別）住宅の所有の関係別一般世帯数」");
+  });
+
+  it("住まいのピン：借りるとき、家賃が取り込まれていなければ「データ未取得」と出す", async () => {
     await open("d=kamisato&a=2&k=1&h=rent");
     await act(async () => {
       fireEvent.click(pin("住まい"));
     });
     const sheet = screen.getByRole("dialog", { name: "借りるときの家賃" });
     expect(sheet).toHaveTextContent("データ未取得");
-    expect(within(sheet).getByRole("link", { name: /住まいの相場を確かめる/ })).toHaveAttribute(
+    expect(within(sheet).getByRole("link", { name: /住まいの家賃を確かめる/ })).toHaveAttribute(
       "href",
       "/karte/housing?s=spring&d=kamisato&a=2&k=1&h=rent",
     );

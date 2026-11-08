@@ -135,16 +135,13 @@ function skyStyle(pictures: KurashiPictures): CSSProperties {
   return { "--sky": SKY_COLORS[pictures.tall] ?? "#D9EDFC" } as CSSProperties;
 }
 
-function useSeasonView(season: Season, conditions: Chosen) {
-  return seasonView(season, conditions, useScreenData());
-}
-
 // 絵の上のピンと、開いているピンのシートの中身
 function useScenePins(season: Season, conditions: Chosen, pictures: KurashiPictures, openPin: string | null) {
-  const view = useSeasonView(season, conditions);
+  const data = useScreenData();
+  const view = seasonView(season, conditions, data);
   const pins = scenePins(view.plan, conditions, pictures, view.events);
   const spec = openPinSpec(pins, openPin, view.events);
-  const sheet = spec ? pinSheet({ pin: spec.kind, season, conditions, ...view, events: spec.events ?? view.events }) : null;
+  const sheet = spec ? pinSheet({ pin: spec.kind, season, conditions, ...view, events: spec.events ?? view.events, rent: data.rent }) : null;
   // シートの小さな絵・PC の吹き出しの場所
   return { view, pins, sheet, spot: spec?.wide ?? null };
 }

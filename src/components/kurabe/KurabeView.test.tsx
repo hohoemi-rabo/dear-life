@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DistrictData, ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
-import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
 import { KurabeView } from "./KurabeView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -58,6 +58,7 @@ const KANAE: Partial<DistrictData> = {
     TRAIN_COUNTS,
   ),
   population: availableFixture({ asOf: "2020-10-01", total: 12000, age0to14: 1500, age15to64: 6900, age65plus: 3600 }, POPULATION),
+  housingTenure: tenureFixture(5292, 1511),
   events: [
     {
       season: "秋",
@@ -149,9 +150,17 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
   it("最初は住まいのタブ。真ん中の値・件数・ラベル・幅を押さずに読める", async () => {
     await open("d=kanae");
     expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
-    expect(rowLabels()).toEqual(["土地（宅地）1m²あたりの真ん中の値。", "中古戸建て（築20年以内）総額の真ん中の値。", "中古戸建て（築21年以上）総額の真ん中の値。"]);
+    expect(rowLabels()).toEqual([
+      "土地（宅地）1m²あたりの真ん中の値。",
+      "中古戸建て（築20年以内）総額の真ん中の値。",
+      "中古戸建て（築21年以上）総額の真ん中の値。",
+      "民営の借家に住む世帯住宅に住む世帯のうち、民営の借家に住む世帯の数と割合。",
+    ]);
     expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²96件件数じゅうぶん幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
     expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
+    // 借家に住む世帯（034）。家賃は飯田市全体の値なので、地区くらべには出さない
+    expect(cells(tableRow("民営の借家に住む世帯"))).toEqual(["データ未取得", "1,511世帯住宅に住む世帯の 約29%", "データ未取得", "データ未取得"]);
+    expect(screen.getByRole("tabpanel")).not.toHaveTextContent("家賃");
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.market);
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.marketFewCount);
     expect(document.body).not.toHaveTextContent("中央値");
@@ -163,6 +172,7 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
       "土地（宅地）",
       "中古戸建て（築20年以内）",
       "中古戸建て（築21年以上）",
+      "民営の借家に住む世帯",
     ]);
     expect(screen.queryByRole("region", { name: "出典と対象時点" })).toBeNull();
     expect(screen.getByLabelText(/比べる地区/)).toHaveValue("kamisato");

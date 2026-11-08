@@ -4,14 +4,16 @@ import { useId, useState } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { CountLabel } from "@/components/ui/CountBadge";
 import type { Housing } from "@/lib/conditions/labels";
-import type { DistrictData, MarketCategory, MarketStat } from "@/lib/data/screen-data";
+import type { DataState, DistrictData, MarketCategory, MarketStat, RentReference } from "@/lib/data/screen-data";
 import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { houseSrc } from "@/lib/illust/assets";
-import { EXAMPLE_LAND_AREA, MARKET_CATEGORY_LABELS, NO_RENT_DATA, landEstimates, marketCategoryOrder } from "@/lib/karte/housing";
+import { RENT_NOTICE } from "@/lib/housing/rent";
+import { EXAMPLE_LAND_AREA, MARKET_CATEGORY_LABELS, landEstimates, marketCategoryOrder } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
+import { RenterHouseholds, RentValue } from "@/components/data/RentFigures";
 import { DetailPicture, DetailTabs, NoticeBox } from "./DetailCard";
 
-// 住まいの詳細のタブ。「選んだ家」は選んだ家にいちばん近い相場、借りるは家賃の情報がないことを出す
+// 住まいの詳細のタブ。「選んだ家」は選んだ家にいちばん近い相場、借りるは家賃の参考値（034。category は null）
 export type HousingTab = {
   id: string;
   label: string;
@@ -53,14 +55,17 @@ export function housingTabs(housing: Housing): HousingTab[] {
 }
 
 // 住まいの詳細の値段のカード（028 見本 karte-detail-housing.png）。相場は「真ん中の値」と書き、件数・件数ラベル・
-// 「過去の取引の参考値」を必ず添える（要件 5章）。下のタブで、ほかの築年数と土地に切りかえる。今見ている種類は onTabChange で知らせる
+// 「過去の取引の参考値」を必ず添える（要件 5章）。下のタブで、ほかの築年数と土地に切りかえる。今見ている種類は onTabChange で知らせる。
+// 借りるの「選んだ家」は、飯田市全体の家賃の平均と地区の借家の世帯数（034）
 export function HousingPriceCard({
   district,
+  rent,
   housing,
   tab,
   onTabChange,
 }: {
   district: DistrictData;
+  rent: DataState<RentReference>;
   housing: Housing;
   tab: HousingTab;
   onTabChange: (tab: HousingTab) => void;
@@ -75,18 +80,20 @@ export function HousingPriceCard({
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             {tab.category === null ? (
               <>
-                <p className="text-lg font-bold">{NO_RENT_DATA}</p>
-                <p className="text-sm">売買の相場は、となりのタブで参考に見られます。</p>
+                <RentValue state={rent} size="lg" />
+                <RenterHouseholds state={district.housingTenure} districtName={district.name} />
               </>
             ) : (
               <MarketValue category={tab.category} district={district} />
             )}
           </div>
         </div>
-        {tab.category !== null && (
-          // スマホはカードの幅いっぱい、PC は値段の列にそろえる（見本）
-          <NoticeBox title={NOTICES.market} body="この数字は、ご家族の条件に合わせた見積もりではありません。" className="md:ml-[9.25rem]" />
-        )}
+        {/* スマホはカードの幅いっぱい、PC は値段の列にそろえる（見本） */}
+        <NoticeBox
+          title={tab.category === null ? RENT_NOTICE : NOTICES.market}
+          body="この数字は、ご家族の条件に合わせた見積もりではありません。"
+          className="md:ml-[9.25rem]"
+        />
       </div>
       <DetailTabs
         label="相場の種類"
@@ -95,7 +102,9 @@ export function HousingPriceCard({
         panelId={panelId}
         onSelect={(id) => onTabChange(tabs.find((item) => item.id === id) ?? tabs[0])}
       />
-      <p className="text-center text-xs text-ink-muted">建物の広さや状態などにより、実際の価格は異なります。</p>
+      <p className="text-center text-xs text-ink-muted">
+        {tab.category === null ? "建物の広さや状態などにより、実際の家賃は異なります。" : "建物の広さや状態などにより、実際の価格は異なります。"}
+      </p>
     </section>
   );
 }

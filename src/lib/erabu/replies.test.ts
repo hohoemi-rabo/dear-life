@@ -74,8 +74,13 @@ describe("erabuReply（要件 4章「えらぶ画面での返事」）", () => {
     });
   });
 
-  it("家：借りる：家賃の情報はまだないことを返す", () => {
-    expect(erabuReply("housing", kamisato({ housing: "rent" }), data)).toEqual({ kind: "rent" });
+  it("家：借りる：飯田市の家賃の平均と、地区の借家の世帯数を返す（034）", () => {
+    expect(erabuReply("housing", kamisato({ housing: "rent" }), data)).toEqual({
+      kind: "rent",
+      districtName: "上郷",
+      rent: data.rent,
+      tenure: data.districts.kamisato.housingTenure,
+    });
   });
 
   it("車：どの台数でも返事なし（028 見本は地図のカードだけ）", () => {

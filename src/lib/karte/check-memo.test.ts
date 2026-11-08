@@ -17,10 +17,11 @@ describe("checkMemoItems（わが家の確認メモ）", () => {
     expect(ids(checkMemoItems({ children: 0, car: null, housing: "new" }))).toEqual(["housing"]);
   });
 
-  it("借りるは家賃の情報がないことを伝え、土地の取引を参考に案内する", () => {
+  it("借りるは家賃の目安と、地区の借家の世帯数を確かめるよう案内する（034）", () => {
     const [housing] = checkMemoItems({ children: 0, car: 1, housing: "rent" });
     expect(housing.tag).toBe("家を借りるなら");
-    expect(housing.note).toContain("家賃の情報はまだありません。");
+    expect(housing.question).toBe("家賃の目安と、住む前の確認点は？");
+    expect(housing.note).toBe("飯田市の家賃の平均と、地区で借家に住む世帯の数を確かめよう。");
   });
 
   it("カードの札はメモと同じ。メモにないカードは null", () => {

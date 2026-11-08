@@ -5,6 +5,7 @@ import { SEASONS } from "@/lib/conditions/scene";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data";
 import { SQUARE_METER, formatManYen } from "@/lib/format";
+import { renterSharePercent } from "@/lib/housing/rent";
 import { EXAMPLE_LAND_AREA, landEstimates, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
 import { busiestStation, hasServiceTimes, trainTrips } from "@/lib/karte/train";
@@ -101,6 +102,25 @@ function CountValue({ count, unit, size }: { count: number; unit: string; size: 
     </span>
   );
 }
+
+// 借りて住む人がどれくらいいるか（034）。家賃は飯田市全体の値で地区ごとにないので、地区くらべには出さない。
+// 割合は「借りやすさ」ではなく事実として出す（点数化しない）
+const RENTER_ROW: CompareRow = {
+  id: "private-rented",
+  label: "民営の借家に住む世帯",
+  note: "住宅に住む世帯のうち、民営の借家に住む世帯の数と割合。",
+  unit: "世帯",
+  cell: (district, size) =>
+    stateCell(district.housingTenure, (tenure) => (
+      <span className="flex flex-col">
+        <CountValue count={tenure.privateRented} unit="世帯" size={size} />
+        <span className="text-sm tabular-nums">
+          <span className="text-ink-muted">住宅に住む世帯の </span>
+          <span className="font-bold">約{renterSharePercent(tenure)}%</span>
+        </span>
+      </span>
+    )),
+};
 
 const MARKET_ROWS: readonly CompareRow[] = [
   {
@@ -222,7 +242,7 @@ const EVENT_ROWS: readonly CompareRow[] = SEASONS.map((season) => ({
 
 // すべての項目の一覧（スマホ・PC）
 export const COMPARE_SECTIONS: readonly CompareSection[] = [
-  { id: "market", title: "住まいの相場", notice: NOTICES.market, rows: MARKET_ROWS },
+  { id: "market", title: "住まいの相場", notice: NOTICES.market, rows: [...MARKET_ROWS, RENTER_ROW] },
   { id: "school-districts", title: "主な学区", notice: NOTICES.schoolDistrict, rows: SCHOOL_DISTRICT_ROWS },
   { id: "facilities", title: "施設の数", rows: FACILITY_ROWS },
   { id: "trains", title: "電車", rows: [TRAIN_ROW] },
@@ -256,7 +276,7 @@ export const COMPARE_TOPIC_CONTENTS: readonly CompareTopicContent[] = [
     title: "住まいの相場",
     lead: "過去の取引からみた参考値",
     leadMobile: "過去の取引の真ん中の値",
-    rows: MARKET_ROWS,
+    rows: [...MARKET_ROWS, RENTER_ROW],
     notices: [NOTICES.market, NOTICES.marketFewCount],
     sourcesTitle: "出典・対象期間・集計方法",
     nextText: "次は、学校や交通も同じ4地区で比べられます。",

@@ -90,6 +90,25 @@ export type Population = {
   age65plus: number | null;
 };
 
+// 地区の住宅の所有の関係別の一般世帯数（034。国勢調査の町丁・字等を4地区に合計）
+export type HousingTenure = {
+  asOf: string;
+  // 住宅に住む一般世帯。持ち家・民営借家のほか、公営の借家・給与住宅・間借りを含む
+  householdsInHousing: number;
+  ownerOccupied: number;
+  privateRented: number;
+};
+
+// 飯田市の民営借家の1か月あたりの家賃の平均（034。住宅・土地統計調査。市全体の値で、地区には分けられない）。
+// 延べ面積の総数・家賃0円を含まない。建て方ごとの値は、推計できなかったものが null
+export type RentReference = {
+  asOf: string;
+  all: number;
+  detached: number | null;
+  apartmentWooden: number | null;
+  apartmentNonWooden: number | null;
+};
+
 export type Trip = {
   // HH:MM（GTFS の書き方。24時以上もありうる）
   departure: string;
@@ -152,6 +171,8 @@ export type DistrictData = {
   // 時刻とは別のオープンデータの本数（031）。時刻が出せないあいだは、こちらを出す
   trainCounts: DataState<readonly StationTrips[]>;
   population: DataState<Population>;
+  // 借家に住む世帯の数（034）
+  housingTenure: DataState<HousingTenure>;
   busOuting: DataState<BusOuting>;
   // 電車の時刻は市の許可が出るまで出典が非公開なので、そのあいだは unavailable になる（026）
   trainOuting: DataState<Outing>;
@@ -201,6 +222,8 @@ export type ScreenData = {
   districtOrder: readonly DistrictId[];
   districts: Readonly<Record<DistrictId, DistrictData>>;
   marketSummary: DataState<MarketSummary>;
+  // 飯田市全体の家賃の参考値（034）
+  rent: DataState<RentReference>;
   supportPrograms: readonly SupportProgram[];
   sceneTemplates: readonly SceneTemplate[];
 };
@@ -286,6 +309,12 @@ type RawDistrict = {
     age_15_64: number | null;
     age_65_plus: number | null;
   }>;
+  housing_tenure: RawSection<{
+    as_of: string;
+    households_in_housing: number;
+    owner_occupied: number;
+    private_rented: number;
+  }>;
   bus_outing: RawSection<RawOuting & { day_type: BusOuting["dayType"]; service_date: string; valid_until: string }>;
   train_outing: RawSection<RawOuting>;
   events: {
@@ -317,6 +346,7 @@ export type RawScreenData = {
     related_party_count: number;
     adjacent_land_count: number;
   }>;
+  rent: RawSection<{ building_type: "all" | "detached" | "apartment_wooden" | "apartment_non_wooden"; average_rent: number; as_of: string }>;
   support_programs: { name: string; summary: string; category: SupportProgram["category"]; official_url: string; checked_on: string }[];
   scene_templates: SceneTemplate[];
 };
@@ -348,6 +378,7 @@ function assertShape(raw: unknown): asserts raw is RawScreenData {
   }
   if (typeof raw.generated_at !== "string") throw new ScreenDataFormatError("generated_at がありません");
   if (!isSection(raw.market_summary)) throw new ScreenDataFormatError("market_summary の欄がありません");
+  if (!isSection(raw.rent)) throw new ScreenDataFormatError("rent の欄がありません");
   for (const district of raw.districts as unknown[]) {
     if (!isObject(district) || !DISTRICT_IDS.includes(district.id as DistrictId)) {
       throw new ScreenDataFormatError(`知らない地区があります：${isObject(district) ? String(district.id) : "?"}`);
@@ -359,6 +390,7 @@ function assertShape(raw: unknown): asserts raw is RawScreenData {
       district.train_departures,
       district.train_counts,
       district.population,
+      district.housing_tenure,
       district.bus_outing,
       district.train_outing,
       ...(isObject(district.facilities) ? Object.values(district.facilities) : [null]),
@@ -487,6 +519,12 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
       age15to64: item.age_15_64,
       age65plus: item.age_65_plus,
     })),
+    housingTenure: singleState(raw.housing_tenure, findSource, (item) => ({
+      asOf: item.as_of,
+      householdsInHousing: item.households_in_housing,
+      ownerOccupied: item.owner_occupied,
+      privateRented: item.private_rented,
+    })),
     busOuting,
     trainOuting: singleState(raw.train_outing, findSource, toOuting),
     events: raw.events.map((event) => ({
@@ -523,6 +561,26 @@ export function parseSources(raw: readonly RawSource[]): { sources: SourceInfo[]
   return { sources, findSource: (id) => sourceById.get(id) };
 }
 
+// 建て方ごとの行を1つにまとめる。民営借家全体の値がなければ取り込まれていないとみて「データ未取得」
+function toRent(section: RawScreenData["rent"], findSource: SourceLookup): DataState<RentReference> {
+  const source = findSource(section.source_id);
+  const valueOf = (type: RawScreenData["rent"]["items"][number]["building_type"]) =>
+    section.items.find((item) => item.building_type === type);
+  const all = valueOf("all");
+  if (!source || all === undefined) return { status: "unavailable" };
+  return {
+    status: "available",
+    source,
+    value: {
+      asOf: all.as_of,
+      all: all.average_rent,
+      detached: valueOf("detached")?.average_rent ?? null,
+      apartmentWooden: valueOf("apartment_wooden")?.average_rent ?? null,
+      apartmentNonWooden: valueOf("apartment_non_wooden")?.average_rent ?? null,
+    },
+  };
+}
+
 // today は日本時間の今日（YYYY-MM-DD）。バスの時刻表の有効期限を見るのに使う
 export function parseScreenData(raw: unknown, today: string): ScreenData {
   assertShape(raw);
@@ -547,6 +605,7 @@ export function parseScreenData(raw: unknown, today: string): ScreenData {
       relatedPartyCount: item.related_party_count,
       adjacentLandCount: item.adjacent_land_count,
     })),
+    rent: toRent(raw.rent, findSource),
     supportPrograms: raw.support_programs.map((program) => ({
       name: program.name,
       summary: program.summary,

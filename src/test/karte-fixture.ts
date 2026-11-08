@@ -1,6 +1,6 @@
 // カルテの一覧（KarteView）と詳細（KarteDetailView）のテストで使う、鼎・伊賀良の値（028）
 import type { BusOuting, DistrictData, ScreenData } from "@/lib/data/screen-data";
-import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture } from "./screen-data-fixture";
+import { availableFixture, MARKET_SOURCE, marketFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "./screen-data-fixture";
 
 const BUS = sourceFixture("gtfs_minamishinshu_bus", { name: "南信州のバス", publisher: "GTFSデータリポジトリ" });
 const STATIONS = sourceFixture("sena_jr_iida_line_stations", { name: "JR飯田線の駅", publisher: "SENA" });
@@ -41,10 +41,11 @@ export const KANAE: Partial<DistrictData> = {
   ),
   population: availableFixture({ asOf: "2020-10-01", total: 12000, age0to14: 1500, age15to64: 6900, age65plus: 3600 }, POPULATION),
   busOuting: availableFixture(BUS_OUTING, BUS),
+  housingTenure: tenureFixture(5292, 1511),
 };
 
 
-// 鼎は値あり、伊賀良は駅が「該当なし」で、ほかは出典が未公開（データ未取得）
+// 鼎は値あり、伊賀良は駅が「該当なし」で、ほかは出典が未公開（データ未取得）。家賃は飯田市全体の値（034）
 export function karteScreenData(): ScreenData {
-  return { ...screenDataFixture({ kanae: KANAE, igara: { trainStations: { status: "none", source: STATIONS } } }) };
+  return { ...screenDataFixture({ kanae: KANAE, igara: { trainStations: { status: "none", source: STATIONS } } }), rent: rentFixture() };
 }

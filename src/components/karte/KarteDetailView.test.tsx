@@ -107,10 +107,17 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(prices()).toHaveTextContent("該当なし");
   });
 
-  it("借りるは「選んだ家」に家賃の情報がないことを出し、売買の相場はほかのタブで見せる", async () => {
+  it("借りるは「選んだ家」に飯田市の家賃の平均と地区の借家の世帯数を出し、売買の相場はほかのタブで見せる（034）", async () => {
     await open("housing", "d=kanae&k=0&h=rent");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("家を借りるとしたら、いくらくらい？");
-    expect(prices()).toHaveTextContent("家賃の情報はまだありません。");
+    expect(prices()).toHaveTextContent("飯田市の民営借家の家賃の平均（1か月）");
+    expect(prices()).toHaveTextContent("約5.0万円");
+    expect(prices()).toHaveTextContent("一戸建約5.2万円");
+    expect(prices()).toHaveTextContent("鼎で民営の借家に住む世帯1,511世帯（住宅に住む5,292世帯の約29%）");
+    expect(prices()).toHaveTextContent("飯田市全体の平均で、地区ごとの値ではありません。");
+    // 数字の根拠：家賃（飯田市）と、借家の世帯数（地区）の出典を分けて出す
+    expect(screen.getByText("飯田市・民営借家（専用住宅）・家賃0円を除く")).toBeInTheDocument();
+    expect(screen.getByText("鼎・住宅に住む一般世帯")).toBeInTheDocument();
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["選んだ家", "築20年以内", "築21年以上", "土地"]);
     await act(async () => {
       fireEvent.click(screen.getByRole("tab", { name: /築20年以内/ }));

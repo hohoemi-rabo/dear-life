@@ -30,11 +30,19 @@ export function housingKnows(category: MarketCategory): string {
 }
 
 function housingTexts(housing: Housing): DetailTexts {
-  const rent = housing === "rent";
+  if (housing === "rent") {
+    // 借りる：家賃は飯田市全体の平均、借家の世帯数は地区の値（034）。売買の相場はとなりのタブで参考に見る
+    return {
+      question: { long: "家を借りるとしたら、いくらくらい？", short: "家を借りるとしたら？" },
+      knows: "飯田市全体の民営借家の家賃の平均と、{district}で借家に住む世帯の数です。",
+      tip: { title: "予算を考える入口に。", body: "今募集している物件の家賃とあわせて見てみましょう。" },
+      checkTitle: "現地・物件で確かめたいこと",
+      checks: ["家賃のほかにかかる費用（共益費・駐車場など）", "建物の状態や広さ", "通学や買い物の動線"],
+      basisNote: "家賃と売買の相場は、調べ方も対象の時点も異なるため、単純に比較できません。",
+    };
+  }
   return {
-    question: rent
-      ? { long: "家を借りるとしたら、いくらくらい？", short: "家を借りるとしたら？" }
-      : { long: "家を買うとしたら、いくらくらい？", short: "家を買うとしたら？" },
+    question: { long: "家を買うとしたら、いくらくらい？", short: "家を買うとしたら？" },
     knows: HOUSING_KNOWS.house_built_within_20y,
     tip: { title: "予算を考える入口に。", body: "個別の物件情報とあわせて見てみましょう。" },
     checkTitle: "現地・物件で確かめたいこと",

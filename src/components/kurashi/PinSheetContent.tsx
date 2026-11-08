@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { MarketSheetBody } from "@/components/data/MarketSheetBody";
+import { RentSheetBody } from "@/components/data/RentFigures";
 import { Notice } from "@/components/ui/Notice";
 import type { Conditions } from "@/lib/conditions/model";
 import type { Season } from "@/lib/conditions/scene";
@@ -60,6 +61,8 @@ export function PinSheetContent({
       )}
 
       {sheet.market && <MarketSheetBody state={sheet.market.state} alwaysFew={sheet.market.alwaysFew} />}
+
+      {sheet.rent && <RentSheetBody {...sheet.rent} />}
 
       {sheet.events &&
         (sheet.events.length === 0 ? (
