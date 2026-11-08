@@ -12,7 +12,7 @@
     "deploy": "npm run build && wrangler deploy",
     "ingest:dev": "wrangler dev --config workers/ingest/wrangler.jsonc --test-scheduled",
     "ingest:deploy": "wrangler deploy --config workers/ingest/wrangler.jsonc",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p workers/ingest",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p workers/ingest && tsc --noEmit -p workers/site",
     "test": "vitest run",
     "test:watch": "vitest",
     "town-map:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-town-district-map-sql.mjs",

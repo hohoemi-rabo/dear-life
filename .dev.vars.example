@@ -1,0 +1,4 @@
+# npm run preview（画面の Worker のローカル実行）で使う秘密情報。このファイルを .dev.vars にコピーして値を入れる（.dev.vars は Git に入れない）
+# 本番の値は wrangler secret put で Cloudflare に登録する（wrangler.jsonc の先頭のコメント）
+# お問い合わせ（035）の送り先。空のままだと、送信は「いまは送れません」になる
+DISCORD_WEBHOOK_URL=
