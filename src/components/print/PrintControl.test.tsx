@@ -43,8 +43,8 @@ describe("PrintControl（023）", () => {
     expect(sheet.getByRole("checkbox", { name: "住まい" })).toBeChecked();
     expect(sheet.getByRole("checkbox", { name: "まとめ" })).not.toBeChecked();
     expect(sheet.getByRole("checkbox", { name: "交通" })).not.toBeChecked();
-    // 開いただけでは印刷用の中身を作らない
-    expect(printed()).toBeNull();
+    // 絵を先に読み込むため、窓を開いているあいだからチェックしているものの中身を作っておく
+    expect(screen.getByTestId("printed")).toHaveTextContent("housing");
   });
 
   it("チェックしたものを、選択肢の並びで body の直下に作ってから印刷を呼ぶ", async () => {
@@ -66,6 +66,14 @@ describe("PrintControl（023）", () => {
     fireEvent.click(sheet.getByRole("button", { name: "すべて選ぶ" }));
     expect(sheet.getAllByRole("checkbox").every((box) => (box as HTMLInputElement).checked)).toBe(true);
     expect(sheet.getByRole("button", { name: "印刷する" })).toBeEnabled();
+  });
+
+  it("印刷は「印刷する」を押したその場で呼ぶ（Safari は時間をおいた印刷を無視する）", () => {
+    const sheet = open(["housing"]);
+    act(() => {
+      fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
+    });
+    expect(print).toHaveBeenCalledTimes(1);
   });
 
   it("ブラウザのメニューから印刷したときは、shortcut を出す", () => {

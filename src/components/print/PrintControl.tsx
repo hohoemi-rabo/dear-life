@@ -10,11 +10,10 @@ import { PrintModeProvider } from "./PrintMode";
 
 export type PrintOption<Id extends string> = { id: Id; label: string; icon?: ReactNode };
 
-// 印刷物の絵を待つ長さの上限。通信が遅くても、印刷の画面がいつまでも出ないことはないようにする
-const IMAGE_WAIT_MS = 3000;
-
 // 見出しの右上の「印刷する」ボタンと「印刷するものをえらぶ」窓（023・F-07。2026-11-09 まさゆきさん）。
-// 選んだものを印刷用の中身（renderDocument）として body の直下に作り、ブラウザの印刷を呼ぶ。印刷用の中身は画面には出さず、
+// 選んだものを印刷用の中身（renderDocument）として body の直下に作り、ブラウザの印刷を呼ぶ。
+// Safari は、タップから時間をおいて呼んだ印刷を無視する（2026-11-09 本番で、押しても印刷の画面が出なかった）ので、
+// 印刷は「印刷する」を押したその場で呼ぶ。絵がそのときまでに届いているよう、印刷用の中身は窓を開いているあいだから作っておく。印刷用の中身は画面には出さず、
 // 印刷のときは中身以外を隠す（globals.css の [data-print-document]）。
 // 窓を通さずにブラウザのメニューや Ctrl+P で印刷したときは shortcut を出す
 export function PrintControl<Id extends string>({
@@ -66,7 +65,7 @@ export function PrintControl<Id extends string>({
     setOpen(true);
   };
 
-  const print = async () => {
+  const print = () => {
     const chosen = orderSelection(ids, selected);
     if (chosen.length === 0) return;
     // 印刷のあとも中身は消さない（iPhone の Safari は印刷の画面を出す前に afterprint が来ることがあり、消すと白紙になる）
@@ -74,11 +73,17 @@ export function PrintControl<Id extends string>({
       setOpen(false);
       setPrinting(chosen);
     });
-    await waitForImages(documentRef.current);
     keepBlocksThatFit(documentRef.current);
     fromButton.current = true;
     window.print();
   };
+
+  // 窓を開いているあいだは、チェックしているものの中身を作っておき、絵を先に読み込む
+  const documentItems = open ? orderSelection(ids, selected) : printing;
+  const documentKey = documentItems?.join(",") ?? "";
+  useEffect(() => {
+    loadImagesNow(documentRef.current);
+  }, [documentKey]);
 
   const allSelected = selected.length === ids.length;
   return (
@@ -117,11 +122,11 @@ export function PrintControl<Id extends string>({
           </Button>
         </div>
       </BottomSheet>
-      {printing !== null &&
+      {documentItems !== null &&
         createPortal(
           <PrintModeProvider value>
             <div ref={documentRef} data-print-document="" className="hidden bg-white text-ink print:block">
-              {renderDocument(printing)}
+              {renderDocument(documentItems)}
             </div>
           </PrintModeProvider>,
           document.body,
@@ -144,20 +149,8 @@ function keepBlocksThatFit(root: HTMLElement | null): void {
   else root.setAttribute("style", previous);
 }
 
-// 印刷用の中身の絵が届くまで待つ。画面に出していない（display: none の）ところでは loading="lazy" の絵は読み込まれないので、
-// すぐ読むように切りかえる
-async function waitForImages(root: HTMLElement | null): Promise<void> {
+// 画面に出していない（display: none の）ところでは loading="lazy" の絵は読み込まれないので、すぐ読むように切りかえる
+function loadImagesNow(root: HTMLElement | null): void {
   if (!root) return;
-  const images = Array.from(root.querySelectorAll("img"));
-  for (const image of images) if (image.loading === "lazy") image.loading = "eager";
-  const pending = images
-    .filter((image) => !image.complete)
-    .map(
-      (image) =>
-        new Promise<void>((resolve) => {
-          image.addEventListener("load", () => resolve(), { once: true });
-          image.addEventListener("error", () => resolve(), { once: true });
-        }),
-    );
-  await Promise.race([Promise.all(pending), new Promise((resolve) => setTimeout(resolve, IMAGE_WAIT_MS))]);
+  for (const image of Array.from(root.querySelectorAll("img"))) if (image.loading === "lazy") image.loading = "eager";
 }
