@@ -463,6 +463,26 @@ const INFO = [
 ];
 
 // 書類（出典・確認日）
+// プリンター（「印刷する」ボタン。023）
+const PRINTER = [
+  "................",
+  "....kkkkkkkk....",
+  "....kwwwwwwk....",
+  "....kwaaaawk....",
+  "....kwwwwwwk....",
+  ".kkkkkkkkkkkkkk.",
+  "kaaaaaaaaaaaaaak",
+  "kaaaaaaaaaaayaak",
+  "kaaaaaaaaaaaaaak",
+  "kakkkkkkkkkkkkak",
+  "kakwwwwwwwwwwkak",
+  "kkkwaaaaaaaawkkk",
+  "..kwwwwwwwwwwk..",
+  "..kwaaaaaawwwk..",
+  "..kwwwwwwwwwwk..",
+  "..kkkkkkkkkkkk..",
+];
+
 const DOCUMENT = [
   "................",
   "...kkkkkkkk.....",
@@ -585,6 +605,7 @@ export const building = (): Canvas => parseSprite(BUILDING);
 export const support = (): Canvas => parseSprite(SUPPORT);
 export const info = (): Canvas => parseSprite(INFO);
 export const documentIcon = (): Canvas => parseSprite(DOCUMENT);
+export const printer = (): Canvas => parseSprite(PRINTER);
 export const bulb = (): Canvas => parseSprite(BULB);
 export const checklist = (): Canvas => parseSprite(CHECKLIST);
 export const logo = (): Canvas => parseSprite(LOGO);

@@ -35,6 +35,7 @@ export const DRAW: Record<PixelAssetId, () => Canvas> = {
   "icon-document": icons.documentIcon,
   "icon-bulb": icons.bulb,
   "icon-checklist": icons.checklist,
+  "icon-print": icons.printer,
   logo: icons.logo,
   "deco-grass": icons.grass,
 };
