@@ -75,25 +75,7 @@ export function HousingPriceCard({
   return (
     <section aria-label="住まいの相場" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
       <div id={panelId} role="tabpanel" aria-label={tab.label} className="flex flex-col gap-3">
-        <div className="flex gap-3 md:gap-5">
-          <TabPicture housing={housing} category={tab.category} />
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            {tab.category === null ? (
-              <>
-                <RentValue state={rent} size="lg" />
-                <RenterHouseholds state={district.housingTenure} districtName={district.name} />
-              </>
-            ) : (
-              <MarketValue category={tab.category} district={district} />
-            )}
-          </div>
-        </div>
-        {/* スマホはカードの幅いっぱい、PC は値段の列にそろえる（見本） */}
-        <NoticeBox
-          title={tab.category === null ? RENT_NOTICE : NOTICES.market}
-          body="この数字は、ご家族の条件に合わせた見積もりではありません。"
-          className="md:ml-[9.25rem]"
-        />
+        <HousingTabPanel district={district} rent={rent} housing={housing} tab={tab} />
       </div>
       <DetailTabs
         label="相場の種類"
@@ -102,10 +84,53 @@ export function HousingPriceCard({
         panelId={panelId}
         onSelect={(id) => onTabChange(tabs.find((item) => item.id === id) ?? tabs[0])}
       />
-      <p className="text-center text-xs text-ink-muted">
-        {tab.category === null ? "建物の広さや状態などにより、実際の家賃は異なります。" : "建物の広さや状態などにより、実際の価格は異なります。"}
-      </p>
+      <HousingTabFootnote tab={tab} />
     </section>
+  );
+}
+
+// 1つのタブの中身：絵・値段（または家賃）・注意書き。印刷（023）では全タブを順に並べる
+export function HousingTabPanel({
+  district,
+  rent,
+  housing,
+  tab,
+}: {
+  district: DistrictData;
+  rent: DataState<RentReference>;
+  housing: Housing;
+  tab: HousingTab;
+}) {
+  return (
+    <>
+      <div className="flex gap-3 md:gap-5">
+        <TabPicture housing={housing} category={tab.category} />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {tab.category === null ? (
+            <>
+              <RentValue state={rent} size="lg" />
+              <RenterHouseholds state={district.housingTenure} districtName={district.name} />
+            </>
+          ) : (
+            <MarketValue category={tab.category} district={district} />
+          )}
+        </div>
+      </div>
+      {/* スマホはカードの幅いっぱい、PC は値段の列にそろえる（見本） */}
+      <NoticeBox
+        title={tab.category === null ? RENT_NOTICE : NOTICES.market}
+        body="この数字は、ご家族の条件に合わせた見積もりではありません。"
+        className="md:ml-[9.25rem]"
+      />
+    </>
+  );
+}
+
+export function HousingTabFootnote({ tab }: { tab: HousingTab }) {
+  return (
+    <p className="text-center text-xs text-ink-muted">
+      {tab.category === null ? "建物の広さや状態などにより、実際の家賃は異なります。" : "建物の広さや状態などにより、実際の価格は異なります。"}
+    </p>
   );
 }
 

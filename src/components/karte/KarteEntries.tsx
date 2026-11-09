@@ -7,6 +7,7 @@ import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { usePrintMode } from "@/components/print/PrintMode";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { buttonClassName } from "@/components/ui/Button";
 import { CountLabel } from "@/components/ui/CountBadge";
@@ -67,11 +68,14 @@ export function KarteEntries({
   const district = data.districts[conditions.district];
   const { main, minor } = splitKarteCards(cards);
   const detailHref = (card: KarteCard) => karteDetailHref(conditions, card, searchParams);
+  // 印刷用の中身（023）では、カードへ移るための id を付けず、移る動きもしない（画面のカードと id が重なるため）
+  const printing = usePrintMode();
 
   useEffect(() => {
+    if (printing) return;
     const id = window.location.hash.slice(1);
     if (id) document.getElementById(id)?.scrollIntoView?.({ block: "start" });
-  }, []);
+  }, [printing]);
 
   const bodies: Record<MainKarteCard, ReactNode> = {
     housing:
@@ -108,14 +112,14 @@ export function KarteEntries({
     <div className="flex flex-col gap-4">
       <ul aria-label="くらしの項目" className="grid gap-4 lg:grid-cols-2">
         {main.map((card) => (
-          <li key={card} id={karteCardAnchor(card)} className={`flex scroll-mt-4 rounded-card ${glow}`}>
+          <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
             <MemoTagContext.Provider value={checkMemoTagFor(memoItems, card)}>{bodies[card]}</MemoTagContext.Provider>
           </li>
         ))}
       </ul>
       <ul aria-label="そのほかの項目" className="grid gap-3 md:grid-cols-3 md:gap-4">
         {minor.map((card) => (
-          <li key={card} id={karteCardAnchor(card)} className={`flex scroll-mt-4 rounded-card ${glow}`}>
+          <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
             <MinorEntry card={card} href={detailHref(card)} />
           </li>
         ))}
@@ -213,7 +217,7 @@ function EntryFrame({
       {children}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex min-w-0 flex-1 basis-56 flex-col gap-2">{footer}</div>
-        <Link href={href} className={buttonClassName("secondary", "shrink-0 text-sm")}>
+        <Link href={href} className={buttonClassName("secondary", "shrink-0 text-sm print:hidden")}>
           {action ?? KARTE_ENTRY_ACTIONS[card]}
           <span aria-hidden="true">→</span>
         </Link>
@@ -252,12 +256,13 @@ function EntrySources({ label, children }: { label: string; children: ReactNode 
   const [open, setOpen] = useState(false);
   return (
     <div className="flex flex-col gap-1">
-      <div className={open ? "" : "hidden lg:block"}>{children}</div>
+      {/* 紙ではいつも出典を出す（023） */}
+      <div className={open ? "" : "hidden lg:block print:block"}>{children}</div>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="flex min-h-tap items-center gap-1 self-start text-sm font-bold text-primary lg:hidden"
+        className="flex min-h-tap items-center gap-1 self-start text-sm font-bold text-primary lg:hidden print:hidden"
       >
         <PixelIcon icon="icon-document" size="sm" />
         {label}
@@ -267,7 +272,7 @@ function EntrySources({ label, children }: { label: string; children: ReactNode 
       </button>
       <Link
         href={ABOUT_DATA_PATH}
-        className="hidden min-h-tap items-center gap-1 self-start text-sm font-bold text-primary underline-offset-4 hover:underline lg:flex"
+        className="hidden min-h-tap items-center gap-1 self-start text-sm font-bold text-primary underline-offset-4 hover:underline lg:flex print:hidden"
       >
         <PixelIcon icon="icon-document" size="sm" />
         {label}
@@ -510,10 +515,10 @@ function MinorEntry({ card, href }: { card: MinorKarteCard; href: string }) {
       <span className="w-20 shrink-0 md:hidden">
         <EntryPicture prop={CARD_PICTURES[card]} sizes="80px" />
       </span>
-      <span aria-hidden="true" className="text-xl text-ink-muted md:hidden">
+      <span aria-hidden="true" className="text-xl text-ink-muted md:hidden print:hidden">
         ›
       </span>
-      <span className={buttonClassName("secondary", "hidden min-h-0 py-1.5 text-sm md:flex")}>
+      <span className={buttonClassName("secondary", "hidden min-h-0 py-1.5 text-sm md:flex print:hidden")}>
         {KARTE_ENTRY_ACTIONS[card]}
         <span aria-hidden="true">→</span>
       </span>

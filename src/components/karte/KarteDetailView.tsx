@@ -13,20 +13,20 @@ import { karteLayout } from "@/lib/conditions/karte-order";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLabel, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
-import type { DataState, DistrictData, HousingTenure, MarketCategory, RentReference, SourceInfo } from "@/lib/data/screen-data";
-import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
-import { MARKET_CATEGORY_PHRASES, transportQuestion } from "@/lib/karte/entries";
+import { transportQuestion } from "@/lib/karte/entries";
 import { karteBackHref } from "@/lib/karte/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { HousingPriceCard, useHousingTab } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
+import { KartePrintButton } from "./KartePrint";
 import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
-import { OtherDetailCard, detailTabs, useDetailTab, type DetailTab } from "./DetailPanels";
+import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows, type BasisRow } from "./DetailBasis";
+import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
 
@@ -52,6 +52,7 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
       <nav aria-label="パンくず" className="text-sm">
         <ol className="flex items-center gap-2">
           <li>
@@ -65,6 +66,9 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
           <li aria-current="page">{KARTE_CARD_LABELS[card]}</li>
         </ol>
       </nav>
+        {/* 見出しの右上の「印刷する」（023） */}
+        <KartePrintButton conditions={conditions} current={card} />
+      </div>
 
       <header className="flex items-center gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -248,7 +252,7 @@ function DetailBody({
             ? housingTab.category === null
               ? rentBasisRows(data.rent, district.housingTenure, districtName)
               : housingBasisRows(district, districtName, housingTab.category)
-            : otherBasisRows(card, otherTab)
+            : otherBasisRows(card, [otherTab])
         }
         note={texts.basisNote}
       />
@@ -306,87 +310,8 @@ function Basis({ rows, note }: { rows: BasisRow[][]; note?: string }) {
         </span>
       </summary>
       <div className="flex flex-col gap-2 px-4 pb-4">
-        {rows.length === 0 ? (
-          <p className="text-sm">データ未取得</p>
-        ) : (
-          rows.map((group, index) => (
-            <table key={index} className="w-full text-left text-sm">
-              <tbody className="divide-y divide-line">
-                {group.map(([label, value]) => (
-                  <tr key={label}>
-                    <th scope="row" className="w-28 bg-kinari px-3 py-1.5 font-normal text-ink-muted">
-                      {label}
-                    </th>
-                    <td className="px-3 py-1.5">{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))
-        )}
-        {note && <p className="text-xs text-ink-muted">{note}</p>}
+        <BasisTables rows={rows} note={note} />
       </div>
     </details>
   );
-}
-
-type BasisRow = readonly [label: string, value: string];
-
-function sourceRows(source: SourceInfo, period?: string): BasisRow[] {
-  const date = source.checkedOn ?? source.fetchedOn;
-  return [
-    ["出典", `${source.publisher}「${source.name}」`],
-    ["対象", period ?? source.periodLabel ?? "記載なし"],
-    ...(date ? [[source.checkedOn ? "確認日" : "取得日", formatJaDate(date)] as const] : []),
-  ];
-}
-
-// 住まいの出典の表。今見ているタブの集計対象と期間を出す
-function housingBasisRows(district: DistrictData, districtName: string, category: MarketCategory): BasisRow[][] {
-  const state = district.market[category];
-  if (state.status === "unavailable") return [];
-  const period = state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined;
-  const [source, , ...dates] = sourceRows(state.source, period);
-  return [
-    [
-      source,
-      ["集計対象", `${districtName}・${MARKET_CATEGORY_PHRASES[category]}`],
-      ["対象期間", period ?? state.source.periodLabel ?? "記載なし"],
-      ...dates,
-    ],
-  ];
-}
-
-// 借りるの「選んだ家」の出典の表：家賃（飯田市全体）と、借家の世帯数（地区）（034）
-function rentBasisRows(rent: DataState<RentReference>, tenure: DataState<HousingTenure>, districtName: string): BasisRow[][] {
-  const groups: BasisRow[][] = [];
-  if (rent.status !== "unavailable") {
-    const [source, ...rest] = sourceRows(rent.source);
-    groups.push([source, ["集計対象", "飯田市・民営借家（専用住宅）・家賃0円を除く"], ...rest]);
-  }
-  if (tenure.status !== "unavailable") {
-    const [source, ...rest] = sourceRows(tenure.source);
-    groups.push([source, ["集計対象", `${districtName}・住宅に住む一般世帯`], ...rest]);
-  }
-  return groups;
-}
-
-// 住まい以外の出典の表。今見ているタブで使っているデータの出典を、同じ出典は1回だけ出す。
-// 支援制度は制度ごとのページが出典で、確認日は一覧の制度ごとに出している
-function otherBasisRows(card: Exclude<KarteCard, "housing">, tab: DetailTab): BasisRow[][] {
-  if (card === "support")
-    return [
-      [
-        ["出典", "飯田市公式サイト（制度ごとのページ）"],
-        ["確認日", "制度ごとに記載"],
-      ],
-    ];
-  const seen = new Set<string>();
-  const groups: BasisRow[][] = [];
-  for (const state of tab.states) {
-    if (state.status === "unavailable" || seen.has(state.source.id)) continue;
-    seen.add(state.source.id);
-    groups.push(sourceRows(state.source));
-  }
-  return groups;
 }

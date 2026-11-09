@@ -25,6 +25,7 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 import { CompareBySection, CompareTable } from "./CompareLayouts";
 import { CompareTopicView } from "./CompareTopicView";
 import { KurabeIcon } from "./KurabeIcon";
+import { KurabePrintButton } from "./KurabePrint";
 
 // 04 地区くらべ（F-05）。4地区を同じ項目で並べる。点数・順位・色の良し悪しは付けず、地区の並びも固定する。
 // 選んだ地区（URL の d）は目印を付けるだけ。地区を選んでいなくても見られる。useSearchParams を使うので <Suspense> の中で使う。
@@ -66,7 +67,11 @@ export function KurabeView() {
           <h1 className="text-2xl font-extrabold lg:text-4xl">
             <span className="hidden lg:inline">4</span>地区をくらべる
           </h1>
-          {viewSwitch("hidden shrink-0 border lg:inline-flex")}
+          <div className="flex shrink-0 items-center gap-2">
+            {viewSwitch("hidden shrink-0 border lg:inline-flex")}
+            {/* 見出しの右上の「印刷する」（023） */}
+            <KurabePrintButton conditions={conditions} />
+          </div>
         </div>
         <p className="lg:hidden">選んだ地区と、気になる地区を比較。</p>
         <p className="hidden gap-x-4 lg:flex lg:items-baseline">

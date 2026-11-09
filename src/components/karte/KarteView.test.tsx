@@ -349,3 +349,38 @@ describe("地区を切りかえたときの知らせ（2026-11-05 まさゆき�
     expect(within(status()).queryByRole("button")).toBeNull();
   });
 });
+
+describe("KarteView：印刷（023）", () => {
+  beforeEach(() => {
+    window.print = vi.fn();
+  });
+
+  it("一覧から開くと、まとめと7項目すべてにチェックが入り、並びはカルテと同じ。まとめのあとに項目ごとのページを出す", async () => {
+    await open("d=kanae&a=2&k=1&h=new&c=0");
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    const sheet = within(screen.getByRole("dialog"));
+    const boxes = sheet.getAllByRole("checkbox") as HTMLInputElement[];
+    expect(boxes.map((box) => box.labels?.[0].textContent)).toEqual([
+      "カルテのまとめ（一覧）",
+      "子育て・学校",
+      "交通",
+      "住まい",
+      "防災",
+      "人口",
+      "公共施設",
+      "支援制度",
+    ]);
+    expect(boxes.every((box) => box.checked)).toBe(true);
+    for (const label of ["交通", "住まい", "防災", "人口", "公共施設", "支援制度"]) fireEvent.click(sheet.getByRole("checkbox", { name: label }));
+    await act(async () => {
+      fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
+    });
+    const paper = document.querySelector("[data-print-document]") as HTMLElement;
+    expect(Array.from(paper.querySelectorAll("section[aria-label]"), (section) => section.getAttribute("aria-label")).slice(0, 2)).toEqual([
+      "カルテのまとめ",
+      "子育て・学校",
+    ]);
+    // 紙のカードには、画面のカードと同じ id を付けない
+    expect(paper.querySelector("[id^='karte-']")).toBeNull();
+  });
+});

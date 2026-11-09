@@ -24,6 +24,7 @@ import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { CheckMemo } from "./CheckMemo";
+import { KartePrintButton } from "./KartePrint";
 import { NextStepScene } from "./NextStepScene";
 import { DistrictSwitchNotice } from "./DistrictSwitchNotice";
 import { KarteEntries, KarteTabs } from "./KarteEntries";
@@ -58,7 +59,13 @@ export function KarteView() {
           />
         </div>
 
-        <KarteHeading conditions={chosen} leads={layout.leads} />
+        <div className="flex flex-col gap-1">
+          {/* 見出しの右上の「印刷する」（023。2026-11-09 まさゆきさん） */}
+          <div className="flex justify-end">
+            <KartePrintButton conditions={chosen} current={null} />
+          </div>
+          <KarteHeading conditions={chosen} leads={layout.leads} />
+        </div>
         <CheckMemo
           conditions={chosen}
           items={memoItems}

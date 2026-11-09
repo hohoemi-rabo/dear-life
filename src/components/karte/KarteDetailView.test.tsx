@@ -309,3 +309,56 @@ describe("KarteDetailView：移動", () => {
     expect(screen.getByRole("link", { name: /地区をえらぶ/ })).toHaveAttribute("href", "/erabu?a=2&k=1&h=new");
   });
 });
+
+describe("KarteDetailView：印刷（023）", () => {
+  beforeEach(() => {
+    window.print = vi.fn();
+  });
+
+  async function printFromSheet() {
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    const sheet = within(screen.getByRole("dialog"));
+    await act(async () => {
+      fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
+    });
+    return sheet;
+  }
+
+  const printed = () => within(document.querySelector("[data-print-document]") as HTMLElement);
+
+  it("窓には、まとめと7項目が並び、開いている項目だけにチェックが入っている", async () => {
+    await open("housing", "d=kanae&a=2&k=1&h=new");
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    const boxes = within(screen.getByRole("dialog")).getAllByRole("checkbox") as HTMLInputElement[];
+    expect(boxes).toHaveLength(8);
+    expect(boxes.filter((box) => box.checked).map((box) => box.labels?.[0].textContent)).toEqual(["住まい"]);
+  });
+
+  it("住まいはすべてのタブ・分かること・空の箱の「現地で確かめたいこと」・数字の根拠・印刷日を出す", async () => {
+    await open("housing", "d=kanae&a=2&k=1&h=new");
+    await printFromSheet();
+    expect(window.print).toHaveBeenCalledTimes(1);
+    const paper = printed();
+    expect(paper.getByRole("heading", { level: 2, name: "家を買うとしたら、いくらくらい？" })).toBeInTheDocument();
+    for (const tab of ["選んだ家", "ほかの築年数", "土地"]) expect(paper.getByRole("heading", { level: 3, name: tab })).toBeInTheDocument();
+    expect(paper.getByText("鼎で過去に取引された住宅の参考値です。")).toBeInTheDocument();
+    // 紙ではペンでチェックするので、押せるチェックではなく空の箱にする
+    expect(paper.getByRole("heading", { name: "現地・物件で確かめたいこと" })).toBeInTheDocument();
+    expect(paper.queryAllByRole("checkbox")).toHaveLength(0);
+    expect(paper.getByText("建物の状態や修繕の必要性")).toBeInTheDocument();
+    expect(paper.getAllByRole("row", { name: /集計対象/ }).map((row) => row.textContent)).toEqual([
+      "集計対象鼎・築20年以内の中古戸建て",
+      "集計対象鼎・築21年以上の中古戸建て",
+      "集計対象鼎・土地（宅地）",
+    ]);
+    expect(paper.getByText(/^印刷日：\d{4}年\d{1,2}月\d{1,2}日$/)).toBeInTheDocument();
+    expect(paper.getByText(/地区：鼎/)).toBeInTheDocument();
+  });
+
+  it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {
+    await open("disaster", "d=kanae&a=2&k=0&h=new");
+    await printFromSheet();
+    const list = document.querySelector("[data-print-document] details") as HTMLDetailsElement | null;
+    expect(list?.open).toBe(true);
+  });
+});

@@ -210,29 +210,43 @@ function TopicSources({ content, data }: { content: CompareTopicContent; data: S
         {summary && <span className="hidden text-sm text-ink-muted lg:inline">{summary}</span>}
       </summary>
       <div className="flex flex-col gap-3 px-3 pb-4 lg:px-4">
-        <DataStateLegend place="その地区" />
-        <ul className="flex flex-col divide-y divide-line">
-          {sources.map(({ source, period }) => (
-            <li key={source.id} className="py-2">
-              <DataSourceNote source={source} period={period} />
-            </li>
-          ))}
-          {events.map((event) => (
-            <li key={`${event.note}-${event.checkedOn}`} className="py-2">
-              <SourceNote source={`地区の行事：${event.note}`} period="確認日の時点の内容" date={event.checkedOn} />
-            </li>
-          ))}
-        </ul>
-        {content.id === "housing" && (
-          <div className="flex flex-col gap-1 text-sm">
-            <h3 className="font-bold">集計方法</h3>
-            <p>対象期間の取引を町名で地区に振り分け、真ん中の値を出しています。「調停・競売等」「関係者間取引」「隣地の購入」の取引は除いています。土地の幅は、下位25%〜上位25%の範囲です。</p>
-            <Link href={`${ABOUT_DATA_PATH}#about-market`} className="inline-flex min-h-tap items-center self-start font-bold text-primary underline underline-offset-4 hover:no-underline">
-              くわしい計算のしかた（データについて）
-            </Link>
-          </div>
-        )}
+        <TopicSourceList content={content} data={data} />
       </div>
     </details>
+  );
+}
+
+// このタブの出典・対象時点と、住まいの集計方法（画面の「出典を見る」と印刷。023）
+export function TopicSourceList({ content, data }: { content: CompareTopicContent; data: ScreenData }) {
+  const sources = compareSources(data, [content.id]);
+  const events = content.id === "events" ? eventSources(data) : [];
+  return (
+    <>
+      <DataStateLegend place="その地区" />
+      <ul className="flex flex-col divide-y divide-line">
+        {sources.map(({ source, period }) => (
+          <li key={source.id} className="py-2">
+            <DataSourceNote source={source} period={period} />
+          </li>
+        ))}
+        {events.map((event) => (
+          <li key={`${event.note}-${event.checkedOn}`} className="py-2">
+            <SourceNote source={`地区の行事：${event.note}`} period="確認日の時点の内容" date={event.checkedOn} />
+          </li>
+        ))}
+      </ul>
+      {content.id === "housing" && (
+        <div className="flex flex-col gap-1 text-sm">
+          <h3 className="font-bold">集計方法</h3>
+          <p>対象期間の取引を町名で地区に振り分け、真ん中の値を出しています。「調停・競売等」「関係者間取引」「隣地の購入」の取引は除いています。土地の幅は、下位25%〜上位25%の範囲です。</p>
+          <Link
+            href={`${ABOUT_DATA_PATH}#about-market`}
+            className="inline-flex min-h-tap items-center self-start font-bold text-primary underline underline-offset-4 hover:no-underline print:hidden"
+          >
+            くわしい計算のしかた（データについて）
+          </Link>
+        </div>
+      )}
+    </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
+import { usePrintMode } from "@/components/print/PrintMode";
 import { GofreelyLink } from "@/components/data/GofreelyLink";
 import { SourceNote } from "@/components/ui/SourceNote";
 import type { KarteCard } from "@/lib/conditions/labels";
@@ -113,6 +114,11 @@ export function detailTabs(
 }
 
 // 今のタブ。データが変わってタブがなくなったら最初のタブに戻す
+// 印刷（023）で並べるタブ。防災・支援制度は「すべて」に全部入っているので、種類ごとのタブは同じものの繰り返しになるため出さない
+export function printTabs(card: OtherCard, tabs: readonly DetailTab[]): readonly DetailTab[] {
+  return card === "disaster" || card === "support" ? tabs.slice(0, 1) : tabs;
+}
+
 export function useDetailTab(tabs: readonly DetailTab[]): [DetailTab, (id: string) => void] {
   const [id, setId] = useState<string | null>(null);
   return [tabs.find((tab) => tab.id === id) ?? tabs[0], setId];
@@ -151,16 +157,47 @@ export function OtherDetailCard({
   return (
     <section aria-label={CARD_LABELS[card]} className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
       <div id={panelId} role="tabpanel" aria-label={tab.label} className="flex flex-col gap-3">
-        <DetailFigure picture={<DetailPicture asset={content.picture} />} title={content.title}>
-          {content.figure}
-        </DetailFigure>
-        {content.notice && <NoticeBox title={content.notice.title} body={content.notice.body} className="md:ml-[9.25rem]" />}
+        <PanelHead content={content} />
       </div>
       {tabs.length > 1 && (
         <DetailTabs label={`${CARD_LABELS[card]}の見る範囲`} tabs={tabs} selectedId={tab.id} panelId={panelId} onSelect={onTabChange} />
       )}
       {content.list}
     </section>
+  );
+}
+
+// 1つのタブの中身をタブの列なしで出す（印刷。023）
+export function OtherTabPanel({
+  card,
+  tab,
+  district,
+  supportPrograms,
+  noCar,
+}: {
+  card: OtherCard;
+  tab: DetailTab;
+  district: DistrictData;
+  supportPrograms: readonly SupportProgram[];
+  noCar: boolean;
+}) {
+  const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
+  return (
+    <>
+      <PanelHead content={content} />
+      {content.list}
+    </>
+  );
+}
+
+function PanelHead({ content }: { content: PanelContent }) {
+  return (
+    <div className="flex break-inside-avoid flex-col gap-3">
+      <DetailFigure picture={<DetailPicture asset={content.picture} />} title={content.title}>
+        {content.figure}
+      </DetailFigure>
+      {content.notice && <NoticeBox title={content.notice.title} body={content.notice.body} className="md:ml-[9.25rem]" />}
+    </div>
   );
 }
 
@@ -316,7 +353,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
           <ListSection title="冬の場面で使ったバスの便">
             <p className="text-xs text-ink-muted">{formatJaDateWithWeekday(outing.value.serviceDate)}の時刻表</p>
             <OutingDetails outing={outing.value} mode="バス" countsShownAbove />
-            <GofreelyLink outing={outing.value} className="self-start" />
+            <GofreelyLink outing={outing.value} className="self-start print:hidden" />
           </ListSection>
         )}
         {district.trainStations.status !== "none" && (
@@ -530,9 +567,9 @@ function supportContent(tabId: string, programs: readonly SupportProgram[]): Pan
     figure: programs.length === 0 ? <DataStateMessage state={{ status: "unavailable" }} /> : <BigCount count={shown.length} unit="件" />,
     notice: { title: NOTICES.support },
     list: shown.length > 0 && (
-      <ul className="flex flex-col divide-y divide-line">
+      <ul className="flex flex-col divide-y divide-line print:block">
         {shown.map((program) => (
-          <li key={program.name} className="flex flex-col items-start gap-1 py-3">
+          <li key={program.name} className="flex break-inside-avoid flex-col items-start gap-1 py-3">
             <span className="rounded-full bg-kinari-deep px-2 py-0.5 text-xs font-bold">{program.category}</span>
             <a
               href={program.officialUrl}
@@ -545,6 +582,8 @@ function supportContent(tabId: string, programs: readonly SupportProgram[]): Pan
               <span aria-hidden="true">↗</span>
             </a>
             <p className="text-sm">{program.summary}</p>
+            {/* 紙ではリンクを押せないので、公式ページの URL を書いておく（023） */}
+            <span className="hidden break-all text-xs print:block">{program.officialUrl}</span>
             <SourceNote source="飯田市公式サイト（制度のページ）" period="確認日の時点の内容" date={program.checkedOn} />
           </li>
         ))}
@@ -578,19 +617,21 @@ function FacilityItems<T extends Facility>({
   label: string;
   extra?: (facility: T) => ReactNode;
 }) {
+  // 紙では開いて出す（閉じた一覧は印刷されない。023）
+  const printing = usePrintMode();
   if (facilities.length === 0) return null;
   const groups = groupBySubkind(facilities);
   return (
-    <details open={facilities.length <= OPEN_LIST_LIMIT} className="group border-t border-line pt-1">
+    <details open={printing || facilities.length <= OPEN_LIST_LIMIT} className="group border-t border-line pt-1">
       <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
         <span className="flex-1">
           {label}の一覧（{facilities.length}か所）
         </span>
-        <span aria-hidden="true" className="transition-transform group-open:rotate-180">
+        <span aria-hidden="true" className="transition-transform group-open:rotate-180 print:hidden">
           ⌄
         </span>
       </summary>
-      <div className="flex flex-col gap-3 pb-1">
+      <div className="flex flex-col gap-3 pb-1 print:block print:space-y-3">
         {groups.map((group) => (
           <div key={group.subkind}>
             {groups.length > 1 && (
@@ -598,7 +639,7 @@ function FacilityItems<T extends Facility>({
                 {group.subkind}（{group.items.length}か所）
               </p>
             )}
-            <ul className="flex flex-col divide-y divide-line">
+            <ul className="flex flex-col divide-y divide-line print:block">
               {group.items.map((facility, index) => (
                 <li key={`${facility.name}-${index}`} className="py-1.5 text-sm">
                   <span className="font-bold">{facility.name}</span>

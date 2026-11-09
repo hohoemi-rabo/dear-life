@@ -34,3 +34,33 @@
     image-rendering: pixelated;
   }
 }
+
+/* 印刷・PDF（023・F-07）。紙は A4 縦。「印刷する」の窓で選んだものは body の直下の [data-print-document] に作るので、
+   印刷のときはそれ以外（ヘッダー・画面・フッター・下のタブ・お知らせ）を隠す。印刷用の中身がないページはふだんどおり印刷する */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html {
+    /* 札や注意書きの背景色も紙に出す（文字は色に頼らずに読めるようにしてある） */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body:has(> [data-print-document]) {
+    min-height: 0;
+    padding-bottom: 0 !important;
+    background: #fff;
+  }
+
+  body:has(> [data-print-document]) > :not([data-print-document]) {
+    display: none !important;
+  }
+
+  /* 紙では影をつけない（にじんで見える） */
+  [data-print-document] * {
+    box-shadow: none !important;
+  }
+}
