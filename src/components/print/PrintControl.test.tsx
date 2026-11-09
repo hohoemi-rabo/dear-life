@@ -99,6 +99,7 @@ describe("PrintControl（023）", () => {
   describe("iPhone のホーム画面のアプリ", () => {
     afterEach(() => {
       delete (window.navigator as Navigator & { standalone?: boolean }).standalone;
+      delete (window.navigator as { clipboard?: unknown }).clipboard;
     });
 
     it("印刷の窓の代わりに、Safari で開く案内を出し、印刷は呼ばない", () => {
@@ -107,9 +108,37 @@ describe("PrintControl（023）", () => {
       fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
       const sheet = within(screen.getByRole("dialog"));
       expect(sheet.getByRole("heading", { name: "Safari で開いて印刷してください" })).toBeInTheDocument();
-      expect(sheet.getByRole("link", { name: "Safari で開く" })).toHaveAttribute("href", window.location.href);
+      expect(sheet.queryByRole("link")).toBeNull();
       expect(sheet.queryAllByRole("checkbox")).toHaveLength(0);
       expect(print).not.toHaveBeenCalled();
+    });
+
+    it("URL をコピーすると、ボタンとその下の両方で、コピーできたことが分かる", async () => {
+      Object.defineProperty(window.navigator, "standalone", { value: true, configurable: true });
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(window.navigator, "clipboard", { value: { writeText }, configurable: true });
+      render(<PrintControl options={OPTIONS} initial={["housing"]} shortcut={["summary"]} renderDocument={(items) => <Document items={items} />} />);
+      fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+      const sheet = within(screen.getByRole("dialog"));
+      await act(async () => {
+        fireEvent.click(sheet.getByRole("button", { name: "この画面の URL をコピーする" }));
+      });
+      expect(writeText).toHaveBeenCalledWith(window.location.href);
+      expect(sheet.getByRole("button", { name: /コピーしました/ })).toBeInTheDocument();
+      expect(sheet.getByRole("status")).toHaveTextContent("URL をコピーしましたSafari のアドレス欄に貼りつけて開いてください。");
+    });
+
+    it("コピーできなかったときは、長押しでコピーできるよう URL をそのまま出す", async () => {
+      Object.defineProperty(window.navigator, "standalone", { value: true, configurable: true });
+      Object.defineProperty(window.navigator, "clipboard", { value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) }, configurable: true });
+      render(<PrintControl options={OPTIONS} initial={["housing"]} shortcut={["summary"]} renderDocument={(items) => <Document items={items} />} />);
+      fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+      const sheet = within(screen.getByRole("dialog"));
+      await act(async () => {
+        fireEvent.click(sheet.getByRole("button", { name: "この画面の URL をコピーする" }));
+      });
+      expect(sheet.getByRole("status")).toHaveTextContent("コピーできませんでした。");
+      expect(sheet.getByRole("status")).toHaveTextContent(window.location.href);
     });
 
     it("目印がない（Android・PC・Safari のブラウザ）ときは、ふだんの印刷の窓を出す", () => {

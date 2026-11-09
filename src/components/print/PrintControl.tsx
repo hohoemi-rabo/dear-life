@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Button, buttonClassName } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { fitsOnOnePage, isIosHomeScreenApp, orderSelection, pageContentWidthPx, toggleAll } from "@/lib/print/print";
 import { PrintModeProvider } from "./PrintMode";
 
@@ -144,7 +144,9 @@ export function PrintControl<Id extends string>({
   );
 }
 
-// iPhone のホーム画面のアプリ向けの案内。条件は URL に入っているので、同じ URL を Safari で開けば同じ画面になる
+// iPhone のホーム画面のアプリ向けの案内。条件は URL に入っているので、同じ URL を Safari で開けば同じ画面になる。
+// アプリから Safari を開くリンクは、iPhone では Safari で開けなかった（2026-11-09 まさゆきさん）ので、URL のコピーだけにする。
+// コピーできたかが分かることが大事（まさゆきさん）なので、ボタンの見た目を変え、その下にも大きく出す
 function SafariGuide() {
   const [url] = useState(() => window.location.href);
   const [copied, setCopied] = useState<"done" | "failed" | null>(null);
@@ -158,19 +160,44 @@ function SafariGuide() {
   };
   return (
     <div className="flex flex-col gap-3">
-      <p>ホーム画面に追加したアプリからは、iPhone では印刷できません。Safari で同じ画面を開くと、「印刷する」から印刷できます。</p>
-      <a href={url} target="_blank" rel="noopener" className={buttonClassName("primary")}>
-        Safari で開く
-      </a>
-      <Button variant="quiet" onClick={copy}>
-        この画面の URL をコピーする
+      <p>ホーム画面に追加したアプリからは、iPhone では印刷できません。次の手順で、Safari から印刷してください。</p>
+      <ol className="flex list-decimal flex-col gap-1 pl-6 text-sm">
+        <li>下のボタンで、この画面の URL をコピーする</li>
+        <li>Safari を開き、アドレス欄に貼りつけて開く</li>
+        <li>同じ画面が開くので、「印刷する」を押す</li>
+      </ol>
+      <Button variant={copied === "done" ? "secondary" : "primary"} onClick={copy}>
+        {copied === "done" ? (
+          <>
+            <span aria-hidden="true" className="text-xl leading-none">
+              ✓
+            </span>
+            コピーしました
+          </>
+        ) : (
+          "この画面の URL をコピーする"
+        )}
       </Button>
-      {copied === "done" && <p role="status" className="text-sm">コピーしました。Safari のアドレス欄に貼りつけて開いてください。</p>}
-      {copied === "failed" && (
-        <p role="status" className="break-all text-sm">
-          コピーできませんでした。この URL を Safari で開いてください：{url}
-        </p>
-      )}
+      <div role="status">
+        {copied === "done" && (
+          <p className="flex items-center gap-3 rounded-button border-2 border-primary bg-primary-soft p-3">
+            <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
+              ✓
+            </span>
+            <span className="flex flex-col">
+              <span className="font-bold">URL をコピーしました</span>
+              <span className="text-sm">Safari のアドレス欄に貼りつけて開いてください。</span>
+            </span>
+          </p>
+        )}
+        {copied === "failed" && (
+          <p className="flex flex-col gap-1 rounded-button border-2 border-autumn p-3 text-sm">
+            <span className="font-bold">コピーできませんでした。</span>
+            <span>下の URL を長押ししてコピーし、Safari で開いてください。</span>
+            <span className="select-all break-all rounded-button bg-kinari p-2">{url}</span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
