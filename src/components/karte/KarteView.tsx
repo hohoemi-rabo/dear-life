@@ -156,10 +156,12 @@ function NextStepBand({ conditions, searchParams }: { conditions: Chosen; search
         <p className="text-sm">気になる場所を地図で見たり、他の地区とくらべてみましょう。</p>
       </div>
       <div className="flex flex-col gap-2 md:w-full lg:w-[min(40%,400px)] xl:w-[min(46%,440px)]">
-        <div className="grid grid-cols-2 gap-2">
+        {/* 2つ並べて収まる幅なら半分ずつ、収まらなければ縦に積む。Android の Chrome は文字を大きくする設定で
+            文字が広がり、2列に固定するとボタンから字がはみ出した（2026-11-09）。!min-w-max で字の幅より縮めない */}
+        <div className="flex flex-wrap gap-2">
           <ButtonLink
             href={mapHref(conditions, searchParams.get(SEASON_PARAM))}
-            className="gap-1 whitespace-nowrap px-2 text-[13px] md:text-sm"
+            className="flex-1 whitespace-nowrap !gap-1 !px-2 !text-[13px] !min-w-max md:!text-sm"
           >
             <PixelIcon icon="icon-map" size="sm" />
             地図で場所を見る
@@ -167,7 +169,7 @@ function NextStepBand({ conditions, searchParams }: { conditions: Chosen; search
           <ButtonLink
             href={kurabeHref(conditions, searchParams.get(SEASON_PARAM))}
             variant="secondary"
-            className="gap-1 whitespace-nowrap px-2 text-[13px] md:text-sm"
+            className="flex-1 whitespace-nowrap !gap-1 !px-2 !text-[13px] !min-w-max md:!text-sm"
           >
             <PixelIcon icon="icon-chart" size="sm" />
             地区をくらべる
