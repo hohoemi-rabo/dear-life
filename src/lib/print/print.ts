@@ -34,3 +34,10 @@ export function fitsOnOnePage(heightPx: number): boolean {
 export function pageContentWidthPx(): number {
   return PAGE_CONTENT_MM.width * PX_PER_MM;
 }
+
+// iPhone・iPad のホーム画面に追加したアプリで開いているか。navigator.standalone は iPhone・iPad の Safari だけが持つ目印で、
+// Android や PC のブラウザにはないので、ほかの端末の印刷には影響しない（2026-11-09 まさゆきさん：Android の印刷は変えない）。
+// このアプリの中では印刷の画面が出ない（2026-11-09 まさゆきさんの iPhone で確認。Safari で開けば印刷できる）
+export function isIosHomeScreenApp(navigator: Navigator): boolean {
+  return (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}

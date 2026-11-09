@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Button } from "@/components/ui/Button";
-import { fitsOnOnePage, orderSelection, pageContentWidthPx, toggleAll } from "@/lib/print/print";
+import { Button, buttonClassName } from "@/components/ui/Button";
+import { fitsOnOnePage, isIosHomeScreenApp, orderSelection, pageContentWidthPx, toggleAll } from "@/lib/print/print";
 import { PrintModeProvider } from "./PrintMode";
 
 export type PrintOption<Id extends string> = { id: Id; label: string; icon?: ReactNode };
@@ -32,6 +32,8 @@ export function PrintControl<Id extends string>({
 }) {
   const ids = options.map((option) => option.id);
   const [open, setOpen] = useState(false);
+  // iPhone のホーム画面のアプリでは印刷できないので、Safari で開くよう案内する窓を出す
+  const [safariGuideOpen, setSafariGuideOpen] = useState(false);
   const [selected, setSelected] = useState<readonly Id[]>(initial);
   const [printing, setPrinting] = useState<readonly Id[] | null>(null);
   const documentRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,10 @@ export function PrintControl<Id extends string>({
   }, [ids.join(",")]);
 
   const openSheet = () => {
+    if (isIosHomeScreenApp(window.navigator)) {
+      setSafariGuideOpen(true);
+      return;
+    }
     setSelected(initial);
     setOpen(true);
   };
@@ -122,6 +128,9 @@ export function PrintControl<Id extends string>({
           </Button>
         </div>
       </BottomSheet>
+      <BottomSheet open={safariGuideOpen} onClose={() => setSafariGuideOpen(false)} title="Safari で開いて印刷してください">
+        <SafariGuide />
+      </BottomSheet>
       {documentItems !== null &&
         createPortal(
           <PrintModeProvider value>
@@ -132,6 +141,37 @@ export function PrintControl<Id extends string>({
           document.body,
         )}
     </>
+  );
+}
+
+// iPhone のホーム画面のアプリ向けの案内。条件は URL に入っているので、同じ URL を Safari で開けば同じ画面になる
+function SafariGuide() {
+  const [url] = useState(() => window.location.href);
+  const [copied, setCopied] = useState<"done" | "failed" | null>(null);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied("done");
+    } catch {
+      setCopied("failed");
+    }
+  };
+  return (
+    <div className="flex flex-col gap-3">
+      <p>ホーム画面に追加したアプリからは、iPhone では印刷できません。Safari で同じ画面を開くと、「印刷する」から印刷できます。</p>
+      <a href={url} target="_blank" rel="noopener" className={buttonClassName("primary")}>
+        Safari で開く
+      </a>
+      <Button variant="quiet" onClick={copy}>
+        この画面の URL をコピーする
+      </Button>
+      {copied === "done" && <p role="status" className="text-sm">コピーしました。Safari のアドレス欄に貼りつけて開いてください。</p>}
+      {copied === "failed" && (
+        <p role="status" className="break-all text-sm">
+          コピーできませんでした。この URL を Safari で開いてください：{url}
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -95,4 +95,26 @@ describe("PrintControl（023）", () => {
     });
     expect(screen.getByTestId("printed")).toHaveTextContent("housing");
   });
+
+  describe("iPhone のホーム画面のアプリ", () => {
+    afterEach(() => {
+      delete (window.navigator as Navigator & { standalone?: boolean }).standalone;
+    });
+
+    it("印刷の窓の代わりに、Safari で開く案内を出し、印刷は呼ばない", () => {
+      Object.defineProperty(window.navigator, "standalone", { value: true, configurable: true });
+      render(<PrintControl options={OPTIONS} initial={["housing"]} shortcut={["summary"]} renderDocument={(items) => <Document items={items} />} />);
+      fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+      const sheet = within(screen.getByRole("dialog"));
+      expect(sheet.getByRole("heading", { name: "Safari で開いて印刷してください" })).toBeInTheDocument();
+      expect(sheet.getByRole("link", { name: "Safari で開く" })).toHaveAttribute("href", window.location.href);
+      expect(sheet.queryAllByRole("checkbox")).toHaveLength(0);
+      expect(print).not.toHaveBeenCalled();
+    });
+
+    it("目印がない（Android・PC・Safari のブラウザ）ときは、ふだんの印刷の窓を出す", () => {
+      const sheet = open(["housing"]);
+      expect(sheet.getAllByRole("checkbox")).toHaveLength(3);
+    });
+  });
 });
