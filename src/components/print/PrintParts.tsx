@@ -53,9 +53,13 @@ export function PrintSection({ first, label, children }: { first: boolean; label
 }
 
 // 紙の上のまとまり（カード・表など）。ふだんは途中で切らない。
-// 長い一覧を含むもの（breakable）は1枚に収まらないことがあり、切らないようにすると見出しだけの紙ができるので、切ってよいことにする
+// 長い一覧を含むもの（breakable）は、印刷の直前に高さを測り、1ページに収まるときだけ分けない（PrintControl の keepBlocksThatFit）
 export function PrintBlock({ children, breakable = false, className = "" }: { children: ReactNode; breakable?: boolean; className?: string }) {
-  return <div className={`${breakable ? "" : "break-inside-avoid"} rounded-card border border-line p-4 ${className}`}>{children}</div>;
+  return (
+    <div data-print-fit={breakable ? "" : undefined} className={`${breakable ? "" : "break-inside-avoid"} rounded-card border border-line p-4 ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 // 「現地で確かめたいこと」：ペンでチェックする空の箱（2026-11-01 まさゆきさん。画面で押したチェックは反映しない）

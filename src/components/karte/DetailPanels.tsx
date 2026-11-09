@@ -595,7 +595,7 @@ function supportContent(tabId: string, programs: readonly SupportProgram[]): Pan
 function ListSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2 border-t border-line pt-3">
-      <h3 className="font-bold">{title}</h3>
+      <h3 className="break-after-avoid font-bold">{title}</h3>
       {children}
     </section>
   );
@@ -623,7 +623,7 @@ function FacilityItems<T extends Facility>({
   const groups = groupBySubkind(facilities);
   return (
     <details open={printing || facilities.length <= OPEN_LIST_LIMIT} className="group border-t border-line pt-1">
-      <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
+      <summary className="flex break-after-avoid min-h-tap cursor-pointer list-none items-center gap-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
         <span className="flex-1">
           {label}の一覧（{facilities.length}か所）
         </span>
@@ -635,7 +635,7 @@ function FacilityItems<T extends Facility>({
         {groups.map((group) => (
           <div key={group.subkind}>
             {groups.length > 1 && (
-              <p className="text-xs font-bold text-ink-muted">
+              <p className="break-after-avoid text-xs font-bold text-ink-muted">
                 {group.subkind}（{group.items.length}か所）
               </p>
             )}

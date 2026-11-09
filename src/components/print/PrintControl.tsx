@@ -5,7 +5,7 @@ import { createPortal, flushSync } from "react-dom";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { orderSelection, toggleAll } from "@/lib/print/print";
+import { fitsOnOnePage, orderSelection, pageContentWidthPx, toggleAll } from "@/lib/print/print";
 import { PrintModeProvider } from "./PrintMode";
 
 export type PrintOption<Id extends string> = { id: Id; label: string; icon?: ReactNode };
@@ -44,7 +44,9 @@ export function PrintControl<Id extends string>({
   useEffect(() => {
     // 印刷の画面を開く直前に呼ばれる。ここで同期して中身を作れば、その中身が印刷される
     const beforePrint = () => {
-      if (!fromButton.current) flushSync(() => setPrinting(orderSelection(ids, shortcutRef.current)));
+      if (fromButton.current) return;
+      flushSync(() => setPrinting(orderSelection(ids, shortcutRef.current)));
+      keepBlocksThatFit(documentRef.current);
     };
     const afterPrint = () => {
       fromButton.current = false;
@@ -73,6 +75,7 @@ export function PrintControl<Id extends string>({
       setPrinting(chosen);
     });
     await waitForImages(documentRef.current);
+    keepBlocksThatFit(documentRef.current);
     fromButton.current = true;
     window.print();
   };
@@ -125,6 +128,20 @@ export function PrintControl<Id extends string>({
         )}
     </>
   );
+}
+
+// 中で分けてよいまとまり（[data-print-fit]。長い一覧を含むもの）のうち、1ページに収まるものは分けないようにする。
+// 印刷用の中身は画面では隠しているので、紙の幅にして見えないところに一度だけ出して高さを測る。
+// 1ページより長いものは分ける（分けないようにすると、Chrome は丸ごと次のページへ送ってから分けるので、前のページに見出しだけが残る）
+function keepBlocksThatFit(root: HTMLElement | null): void {
+  if (!root) return;
+  const previous = root.getAttribute("style");
+  root.setAttribute("style", `display:block;position:absolute;left:-10000px;top:0;visibility:hidden;width:${pageContentWidthPx()}px`);
+  for (const block of Array.from(root.querySelectorAll<HTMLElement>("[data-print-fit]"))) {
+    block.style.breakInside = fitsOnOnePage(block.getBoundingClientRect().height) ? "avoid" : "";
+  }
+  if (previous === null) root.removeAttribute("style");
+  else root.setAttribute("style", previous);
 }
 
 // 印刷用の中身の絵が届くまで待つ。画面に出していない（display: none の）ところでは loading="lazy" の絵は読み込まれないので、

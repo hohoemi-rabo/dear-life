@@ -101,7 +101,7 @@ function TopicPrint({ content, conditions }: { content: CompareTopicContent; con
         </p>
       ))}
       <PrintBlock breakable className="space-y-2 text-sm">
-        <h3 className="font-bold">{content.sourcesTitle}</h3>
+        <h3 className="break-after-avoid font-bold">{content.sourcesTitle}</h3>
         <TopicSourceList content={content} data={data} />
       </PrintBlock>
     </section>

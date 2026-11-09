@@ -17,3 +17,20 @@ export function orderSelection<Id extends string>(options: readonly Id[], select
 export function toggleAll<Id extends string>(options: readonly Id[], selected: readonly Id[]): Id[] {
   return selected.length === options.length ? [] : [...options];
 }
+
+// 紙の中身が入る大きさ（A4 縦 210×297mm から、globals.css の @page の余白 12mm を上下左右に引いたもの）
+export const PAGE_CONTENT_MM = { width: 186, height: 273 } as const;
+
+const PX_PER_MM = 96 / 25.4;
+
+// 画面で測った高さに、紙では少し増える分（紙だけで出す URL など）の余裕を見る
+const FIT_SAFETY = 0.92;
+
+// 1ページに収まる高さか。収まるまとまりは途中で分けず、入りきらなければ丸ごと次のページへ送る（023。2026-11-09 まさゆきさん）
+export function fitsOnOnePage(heightPx: number): boolean {
+  return heightPx <= PAGE_CONTENT_MM.height * PX_PER_MM * FIT_SAFETY;
+}
+
+export function pageContentWidthPx(): number {
+  return PAGE_CONTENT_MM.width * PX_PER_MM;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orderSelection, printedOn, toggleAll } from "./print";
+import { fitsOnOnePage, orderSelection, pageContentWidthPx, printedOn, toggleAll } from "./print";
 
 describe("printedOn", () => {
   it("日本時間の日付で書く（UTC ではまだ前の日でも）", () => {
@@ -29,5 +29,19 @@ describe("toggleAll", () => {
 
   it("すべて選んでいれば、すべて外す", () => {
     expect(toggleAll(options, ["a", "b", "c"])).toEqual([]);
+  });
+});
+
+describe("fitsOnOnePage", () => {
+  // A4 縦から余白 12mm を引いた高さ 273mm は約 1032px
+  it("1ページの高さに余裕を見て収まるものだけを、分けないまとまりにする", () => {
+    expect(fitsOnOnePage(500)).toBe(true);
+    expect(fitsOnOnePage(940)).toBe(true);
+    expect(fitsOnOnePage(960)).toBe(false);
+    expect(fitsOnOnePage(2400)).toBe(false);
+  });
+
+  it("測るときの幅は、紙の中身の幅（186mm）", () => {
+    expect(Math.round(pageContentWidthPx())).toBe(703);
   });
 });
