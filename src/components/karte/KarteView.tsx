@@ -17,6 +17,7 @@ import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { karteHeaderFor, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { checkMemoItems } from "@/lib/karte/check-memo";
+import { SHITAMI_MEMO_ANCHOR } from "@/lib/karte/shitami-memo";
 import { karteDetailHref, kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
@@ -75,6 +76,7 @@ export function KarteView() {
               ? mapHref(chosen, searchParams.get(SEASON_PARAM))
               : karteDetailHref(chosen, item.target.card, searchParams)
           }
+          shitamiMemoHref={`#${SHITAMI_MEMO_ANCHOR}`}
         />
         <KarteTabs cards={layout.cards} />
 

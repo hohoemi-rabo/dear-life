@@ -3,7 +3,7 @@ import { checkMemoItems, checkMemoTagFor } from "./check-memo";
 
 const ids = (items: ReturnType<typeof checkMemoItems>) => items.map((item) => item.id);
 
-describe("checkMemoItems（わが家の確認メモ）", () => {
+describe("checkMemoItems（まずはここから）", () => {
   it("子どもあり・車0台は、子ども → 車なし → 住まいの3つ。車なしは地図へ", () => {
     const items = checkMemoItems({ children: 2, car: 0, housing: "old" });
     expect(ids(items)).toEqual(["childcare", "car-free", "housing"]);

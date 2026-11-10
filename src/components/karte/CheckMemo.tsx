@@ -5,18 +5,26 @@ import { HOUSING_LABELS } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
 import type { CheckMemoItem } from "@/lib/karte/check-memo";
+import { shitamiItemForCard } from "@/lib/karte/shitami-memo";
+import type { DistrictId } from "@/lib/town-district/resolve";
 import { CARD_PICTURES } from "./KarteEntries";
+import { AddToShitamiButton } from "./ShitamiMemo";
 
-// 「わが家の確認メモ」（2026-11-07 まさゆきさんの提案と見本の並び。028）。見出しと分野のタブのあいだに置く。
+// 「まずはここから」（2026-11-07 まさゆきさんの提案と見本の並び。028。はじめの名前は「わが家の確認メモ」）。見出しと分野のタブのあいだに置く。
+// 家でカルテを調べるときの道案内。2026-11-10 まさゆきさん：下の「わが家の下見メモ」（現地で確かめること）と名前が似て
+// 区別がつかないので「メモ」を外し、問いごとに「＋ 下見メモに入れる」を付けて「家で調べる → 気になったら下見メモへ」とつなぐ（036）。
 // 問いは PC・iPad では横に並べ、スマホは縦に積む。右上の札で、どの条件から問いが生まれたかを見せる
 export function CheckMemo({
   conditions,
   items,
   hrefFor,
+  shitamiMemoHref,
 }: {
-  conditions: Conditions;
+  conditions: Conditions & { district: DistrictId };
   items: readonly CheckMemoItem[];
   hrefFor: (item: CheckMemoItem) => string;
+  // 「下見メモを見る」の移り先（同じページの #shitami-memo）
+  shitamiMemoHref: string;
 }) {
   const chips: { icon: IconId; text: string }[] = [
     ...(conditions.children > 0 ? [{ icon: "icon-family" as const, text: `子ども${conditions.children}人` }] : []),
@@ -41,10 +49,10 @@ export function CheckMemo({
             draggable={false}
             className="size-8 shrink-0 select-none object-contain md:size-10"
           />
-          わが家の確認メモ
+          まずはここから
         </h2>
-        <p className="text-sm text-ink-muted">わが家は、ここから確かめよう。</p>
-        <ul aria-label="メモのもとにした条件" className="flex flex-wrap gap-2 md:ml-auto">
+        <p className="text-sm text-ink-muted">わが家の条件から、先に見るところを選びました。</p>
+        <ul aria-label="もとにした条件" className="flex flex-wrap gap-2 md:ml-auto">
           {chips.map((chip) => (
             <li key={chip.text} className="flex items-center gap-1 rounded-full border border-line bg-kinari px-3 py-1 text-xs font-bold">
               <PixelIcon icon={chip.icon} size="sm" />
@@ -68,6 +76,7 @@ export function CheckMemo({
               {item.action}
               <span aria-hidden="true">→</span>
             </Link>
+            <ShitamiFollowUp item={item} conditions={conditions} memoHref={shitamiMemoHref} />
           </li>
         ))}
       </ul>
@@ -88,5 +97,21 @@ function MemoPicture({ item, conditions }: { item: CheckMemoItem; conditions: Co
   return (
     // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
     <img src={propSrc(prop, 240)} srcSet={propSrcSet(prop)} sizes="96px" alt="" loading="lazy" draggable={false} className={className} />
+  );
+}
+
+// 問いに合う下見メモの項目があれば「＋ 下見メモに入れる」を添える（子ども→学校のまわりを歩く、車0台→バスで街へ行って帰る、
+// 買う・古め→古めの家で聞くこと）。新しめの家・借りるには項目がないので出さない
+function ShitamiFollowUp({ item, conditions, memoHref }: { item: CheckMemoItem; conditions: Conditions & { district: DistrictId }; memoHref: string }) {
+  const shitami = shitamiItemForCard(item.card, conditions);
+  if (shitami === null) return null;
+  return (
+    <AddToShitamiButton
+      district={conditions.district}
+      item={shitami}
+      memoHref={memoHref}
+      variant="quiet"
+      className="justify-center text-sm [&>button]:w-full [&>button]:text-sm"
+    />
   );
 }

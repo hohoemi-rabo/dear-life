@@ -116,13 +116,13 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
   });
 });
 
-describe("KarteView：わが家の確認メモ", () => {
-  const memo = () => screen.getByRole("region", { name: "わが家の確認メモ" });
+describe("KarteView：まずはここから（はじめの名前は「わが家の確認メモ」）", () => {
+  const memo = () => screen.getByRole("region", { name: "まずはここから" });
 
   it("子どもあり・車0台は3つの問いを出し、詳細と地図へつなぐ。カードにも同じ札を付ける", async () => {
     await open("s=winter&d=kanae&a=2&k=2&h=old&c=0");
     const box = within(memo());
-    expect(box.getByRole("list", { name: "メモのもとにした条件" })).toHaveTextContent("子ども2人車0台買う・古め");
+    expect(box.getByRole("list", { name: "もとにした条件" })).toHaveTextContent("子ども2人車0台買う・古め");
     expect(box.getByRole("link", { name: "学校・保育施設を見る" })).toHaveAttribute(
       "href",
       "/karte/childcare?s=winter&d=kanae&a=2&k=2&h=old&c=0",
@@ -135,9 +135,23 @@ describe("KarteView：わが家の確認メモ", () => {
     expect(card("disaster")).not.toHaveTextContent("わが家へ");
   });
 
-  it("子どもなし・車ありは住まいの問いだけ", async () => {
+  it("子どもなし・車ありは住まいの問いだけ。新しめの家には下見メモの項目がないので「＋ 下見メモに入れる」も出さない", async () => {
     await open("d=kanae&a=2&k=0&h=new&c=1");
     expect(within(memo()).getAllByRole("link").map((link) => link.textContent)).toEqual(["住まいの詳細を見る→"]);
+    expect(within(memo()).queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+  });
+
+  it("問いごとに「＋ 下見メモに入れる」を添え、押すと下の「わが家の下見メモ」に入る（036）", async () => {
+    await open("d=kanae&a=2&k=1&h=old&c=0");
+    const box = within(memo());
+    expect(box.getAllByRole("button", { name: /下見メモに入れる/ })).toHaveLength(3);
+    await act(async () => {
+      fireEvent.click(box.getByRole("button", { name: /下見メモに入れる.*学校のまわりを歩く/ }));
+    });
+    expect(box.getByRole("status")).toHaveTextContent("追加済み");
+    expect(box.getByRole("link", { name: /下見メモを見る/ })).toHaveAttribute("href", "#shitami-memo");
+    const visit = within(screen.getByRole("region", { name: "わが家の下見メモ" }));
+    expect(visit.getByText("学校のまわりを歩く")).toBeInTheDocument();
   });
 });
 
@@ -409,6 +423,7 @@ describe("KarteView：わが家の下見メモ（036）", () => {
     const bus = within(entry("バスで街へ行って帰る"));
     expect(bus.getByText("鼎公民館前 → 飯田駅前")).toBeInTheDocument();
     expect(bus.getByText("2027年1月16日（土）の例（冬の時刻表）")).toBeInTheDocument();
+    expect(bus.getByText("冬の場面で使った1本の例です。ほかの行き先は gofreely で調べられます。")).toBeInTheDocument();
     expect(entry("バスで街へ行って帰る")).toHaveTextContent("10:01 発 → 10:11 着");
     expect(bus.getByText("次の便はありません")).toBeInTheDocument();
     expect(bus.getByRole("link", { name: /停留所を地図で見る/ })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=old&c=0");

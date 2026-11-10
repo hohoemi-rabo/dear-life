@@ -59,7 +59,7 @@ export function KarteEntries({
 }: {
   cards: readonly KarteCard[];
   conditions: Chosen;
-  // 「わが家の確認メモ」の問い。同じ札をカードの見出しにも付ける
+  // 「まずはここから」の問い。同じ札をカードの見出しにも付ける
   memoItems: readonly CheckMemoItem[];
   highlighted: boolean;
 }) {
@@ -172,7 +172,7 @@ export function KarteTabs({ cards }: { cards: readonly KarteCard[] }) {
   );
 }
 
-// カードの見出しの横に付ける「わが家の確認メモ」の札。カードの中身の部品ごとに渡さずにすむよう、枠だけが読む
+// カードの見出しの横に付ける「まずはここから」の札。カードの中身の部品ごとに渡さずにすむよう、枠だけが読む
 const MemoTagContext = createContext<string | null>(null);
 
 // 大きいカードの枠：見出し（印と項目名）・問い・短い説明（beside）と右の絵、その下に幅いっぱいの中身（値段など）、

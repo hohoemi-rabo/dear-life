@@ -51,11 +51,14 @@ export function AddToShitamiButton({
   district,
   item,
   memoHref,
+  variant = "primary",
   className = "",
 }: {
   district: DistrictId;
   item: ShitamiItemId;
   memoHref: string;
+  // 別のボタンの下に添えるときは控えめにする（カルテ一覧の「まずはここから」）
+  variant?: "primary" | "quiet";
   className?: string;
 }) {
   const memo = useShitamiMemo(district);
@@ -77,7 +80,7 @@ export function AddToShitamiButton({
           </Link>
         </>
       ) : (
-        <Button onClick={() => memo.add(item)} className="w-full sm:w-auto">
+        <Button variant={variant} onClick={() => memo.add(item)} className="w-full sm:w-auto">
           <span aria-hidden="true">＋</span>
           下見メモに入れる
           <span className="sr-only">（{title}）</span>
@@ -270,6 +273,7 @@ export function OutingExample({ outing }: { outing: BusOuting }) {
           {outing.originName} → {outing.destinationName}
         </span>
         <span className="text-sm text-ink-muted">{formatJaDateWithWeekday(outing.serviceDate)}の例（冬の時刻表）</span>
+        <span className="text-sm text-ink-muted">冬の場面で使った1本の例です。ほかの行き先は gofreely で調べられます。</span>
       </p>
       <dl className="flex flex-col gap-1.5">
         {row(
