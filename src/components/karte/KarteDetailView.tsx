@@ -226,8 +226,8 @@ function DetailBody({
         </Box>
         <Box title={texts.checkTitle} icon="icon-checklist" tone="bg-warm-soft">
           <div className="flex items-start gap-3">
-            {/* 確かめたいことは箇条書きにし、現地で使うものは下見メモに入れる（036。2026-11-10 まさゆきさん：
-                押せても残らないチェックの箱と、下見メモのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
+            {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
+                押せても残らないチェックの箱と、下見プランのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
             <ul className="flex flex-1 list-disc flex-col gap-2 pl-5">
               {texts.checks.map((check) => (
                 <li key={check}>{check}</li>
@@ -247,7 +247,7 @@ function DetailBody({
           {shitamiItem && (
             <div className="flex flex-col gap-2 border-t border-line pt-3">
               <p className="text-sm">
-                <span className="font-bold">下見メモ：</span>
+                <span className="font-bold">下見プラン：</span>
                 {SHITAMI_ITEMS[shitamiItem].title}
               </p>
               <AddToShitamiButton district={conditions.district} item={shitamiItem} memoHref={memoHref} />

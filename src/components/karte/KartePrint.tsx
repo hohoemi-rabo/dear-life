@@ -24,7 +24,7 @@ import { OutingExample } from "./ShitamiMemo";
 type Chosen = Conditions & { district: DistrictId };
 
 // 印刷で選べるもの：カルテのまとめ（一覧）と7項目（023。2026-11-09 まさゆきさん：項目ごとに選ぶ）と、
-// わが家の下見メモ（036。紙でも持っていけるように。メモが空のときは選べるものに出さない）
+// わが家の下見プラン（036。紙でも持っていけるように。メモが空のときは選べるものに出さない）
 export type KartePrintItem = "summary" | KarteCard | "shitami";
 
 // カルテ一覧と詳細の見出しの右上に置く「印刷する」。一覧から開くとすべてに、詳細から開くとその項目だけにチェックを入れる。
@@ -48,7 +48,7 @@ export function KartePrintButton({ conditions, current }: { conditions: Chosen; 
       ? [
           {
             id: "shitami" as const,
-            label: "わが家の下見メモ",
+            label: "わが家の下見プラン",
             icon: (
               <span className="flex size-6 shrink-0 items-center justify-center">
                 <PixelIcon icon="icon-checklist" size="sm" />
@@ -74,7 +74,7 @@ function KartePrintDocument({ conditions, items }: { conditions: Chosen; items: 
     <ScreenDataBoundary fallback={null}>
       <PrintHeader title="わが家のカルテ" conditions={conditions} />
       {items.map((item, index) => (
-        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : item === "shitami" ? "わが家の下見メモ" : KARTE_CARD_LABELS[item]}>
+        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : item === "shitami" ? "わが家の下見プラン" : KARTE_CARD_LABELS[item]}>
           {item === "summary" ? (
             <SummaryPrint conditions={conditions} />
           ) : item === "shitami" ? (
@@ -107,7 +107,7 @@ function SummaryPrint({ conditions }: { conditions: Chosen }) {
   );
 }
 
-// 下見メモ：入れた項目ごとに、名前・バスの便の例・確認点（ペンで印を付ける空の箱）・添え書き。地図などのリンクは紙では使えないので出さない
+// 下見プラン：入れた項目ごとに、名前・バスの便の例・確認点（ペンで印を付ける空の箱）・添え書き。地図などのリンクは紙では使えないので出さない
 function ShitamiPrint({ conditions }: { conditions: Chosen }) {
   const data = useScreenData();
   const { ids } = useShitamiMemo(conditions.district);
@@ -115,14 +115,15 @@ function ShitamiPrint({ conditions }: { conditions: Chosen }) {
   return (
     <>
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-extrabold">わが家の下見メモ</h2>
-        <p>{DISTRICT_NAMES[conditions.district]}で、気になったことを飯田に行った日に試してみよう。</p>
+        <h2 className="text-xl font-extrabold">わが家の下見プラン</h2>
+        <p>{DISTRICT_NAMES[conditions.district]}：飯田に行った日に、見たい・試したいこと。</p>
       </div>
       {ids.map((id) => {
         const item = SHITAMI_ITEMS[id];
         return (
           <PrintBlock key={id} className="flex flex-col gap-3">
             <h3 className="text-lg font-bold">{item.title}</h3>
+            <p>{item.summary}</p>
             {item.lead && <p className="text-sm">{item.lead}</p>}
             {id === "bus-to-town" &&
               (outing.status === "available" ? <OutingExample outing={outing.value} /> : <DataStateMessage state={outing} />)}

@@ -84,8 +84,8 @@ export function KarteView() {
           <KarteEntries cards={layout.cards} conditions={chosen} memoItems={memoItems} highlighted={cardsHighlighted} />
         </ScreenDataBoundary>
 
-        {/* わが家の下見メモ（036）。カードと「次は、現地で確かめよう」のあいだに置く */}
-        <ScreenDataBoundary fallback={<ScreenSkeleton label="下見メモを読み込んでいます" />}>
+        {/* わが家の下見プラン（036）。カードと「次は、現地で確かめよう」のあいだに置く */}
+        <ScreenDataBoundary fallback={<ScreenSkeleton label="下見プランを読み込んでいます" />}>
           <ShitamiMemoSection
             conditions={chosen}
             links={{ map: mapHref(chosen, searchParams.get(SEASON_PARAM)), housing: karteDetailHref(chosen, "housing", searchParams) }}

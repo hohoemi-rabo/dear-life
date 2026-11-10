@@ -91,7 +91,7 @@ export function PinSheetContent({
 
       {sheet.sources.length > 0 && <SheetSources sources={sheet.sources} />}
 
-      {/* 見本 shitami-memo-overview-bus.png の「＋ 下見に入れる」（036）。押してもシートは閉じない */}
+      {/* 見本 shitami-memo-overview-bus.png の「＋ 下見プランに入れる」（036）。押してもシートは閉じない */}
       {shitamiItem && conditions.district && (
         <AddToShitamiButton
           district={conditions.district}

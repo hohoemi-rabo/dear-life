@@ -24,7 +24,7 @@ export function karteDetailHref(conditions: Conditions, card: KarteCard, current
   return seasonalHref(karteDetailPath(card), conditions, current.get(SEASON_PARAM));
 }
 
-// 「下見メモを見る」：カルテ一覧の「わが家の下見メモ」の欄へ（036）。くらしからは見ていた季節を渡す
+// 「下見プランを見る」：カルテ一覧の「わが家の下見プラン」へ（036）。くらしからは見ていた季節を渡す
 export function shitamiMemoHref(conditions: Conditions, seasonSlug: string | null): string {
   return seasonalHref(KARTE_PATH, conditions, seasonSlug, SHITAMI_MEMO_ANCHOR);
 }

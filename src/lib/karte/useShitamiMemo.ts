@@ -5,9 +5,9 @@ import { deviceStorage } from "../device-storage.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 import { parseShitamiMemo, serializeShitamiMemo, shitamiStorageKey, type ShitamiItemId } from "./shitami-memo.ts";
 
-// 下見メモを端末（localStorage）に地区ごとに残す（036・要件 8.2）。残すのは利用者が入れた項目の ID だけで、サーバーには送らない。
+// 下見プランを端末（localStorage）に地区ごとに残す（036・要件 8.2）。残すのは利用者が入れた項目の ID だけで、サーバーには送らない。
 // 保存できない端末では、開いているあいだだけこのページの中に持つ（読み直すと消える）。
-// 同じ画面の別の場所（詳細の「＋ 下見メモに入れる」とメモ欄など）と、別のタブの変更にもすぐ合わせる
+// 同じ画面の別の場所（詳細の「＋ 下見プランに入れる」とプランの欄など）と、別のタブの変更にもすぐ合わせる
 
 const CHANGE_EVENT = "dearlife:shitami-memo-change";
 const EMPTY: readonly ShitamiItemId[] = [];

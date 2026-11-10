@@ -558,43 +558,43 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     });
     const sheet = () => within(screen.getByRole("dialog", { name: "上郷のバス停は2か所" }));
     await act(async () => {
-      fireEvent.click(sheet().getByRole("button", { name: /下見メモに入れる.*バスで街へ行って帰る/ }));
+      fireEvent.click(sheet().getByRole("button", { name: /下見プランに入れる.*バスで街へ行って帰る/ }));
     });
     expect(sheet().getByRole("status")).toHaveTextContent("追加済み");
-    expect(sheet().getByRole("link", { name: /下見メモを見る/ })).toHaveAttribute(
+    expect(sheet().getByRole("link", { name: /下見プランを見る/ })).toHaveAttribute(
       "href",
       "/karte?s=winter&d=kamisato&a=2&k=1&h=new&c=0#shitami-memo",
     );
     expect(localStorage.getItem("dearlife:shitami-memo:kamisato")).toBe('["bus-to-town"]');
   });
 
-  it("車ありのバス・電車のピンと、新しめの家の住まいのピンには「下見メモに入れる」を出さない。学校は子どもがいれば出す（036）", async () => {
+  it("車ありのバス・電車のピンと、新しめの家の住まいのピンには「下見プランに入れる」を出さない。学校は子どもがいれば出す（036）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&s=winter");
     await act(async () => {
       fireEvent.click(pin("バス・電車"));
     });
-    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /下見プランに入れる/ })).toBeNull();
     cleanup();
 
     await open("d=kamisato&a=2&k=1&h=new&s=winter");
     await act(async () => {
       fireEvent.click(pin("住まい"));
     });
-    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /下見プランに入れる/ })).toBeNull();
     cleanup();
 
     await open("d=kamisato&a=2&k=1&h=old&s=winter");
     await act(async () => {
       fireEvent.click(pin("住まい"));
     });
-    expect(screen.getByRole("button", { name: /下見メモに入れる.*古めの家で聞くこと/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /下見プランに入れる.*古めの家で聞くこと/ })).toBeInTheDocument();
     cleanup();
 
     await open("d=kamisato&a=2&k=1&h=new&s=winter");
     await act(async () => {
       fireEvent.click(pin("学校"));
     });
-    expect(screen.getByRole("button", { name: /下見メモに入れる.*学校のまわりを歩く/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /下見プランに入れる.*学校のまわりを親子で歩く/ })).toBeInTheDocument();
   });
 
   it("車あり：雪の道のピンを足し、雪と凍結の場面の文はそこに出す。バス・電車のピンはバス停の数だけ", async () => {

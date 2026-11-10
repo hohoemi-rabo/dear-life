@@ -40,13 +40,14 @@ function AddedBadge() {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary">
       <span aria-hidden="true">✓</span>
-      追加済み
+      プランに追加済み
     </span>
   );
 }
 
-// 「＋ 下見メモに入れる」（036）。カルテの詳細の確認点の近くと、くらしのピンの吹き出しに置く。
-// 押してもその場で「追加済み」になるだけで、画面は切りかえない。「下見メモを見る」でカルテ一覧のメモ欄へ移る
+// 「＋ 下見プランに入れる」（036）。カルテ一覧の「わが家の確認ポイント」、カルテの詳細の確認点の近く、くらしのピンの吹き出しに置く。
+// 押してもその場で「✓ プランに追加済み」になるだけで、画面は切りかえない。
+// 「下見プランを見る」でカルテ一覧の下見プランへ移る（確認ポイントでは、見出しの横の1つにまとめるので出さない）
 export function AddToShitamiButton({
   district,
   item,
@@ -56,8 +57,9 @@ export function AddToShitamiButton({
 }: {
   district: DistrictId;
   item: ShitamiItemId;
-  memoHref: string;
-  // 別のボタンの下に添えるときは控えめにする（カルテ一覧の「まずはここから」）
+  // 「下見プランを見る」の移り先。null なら出さない
+  memoHref: string | null;
+  // 別のボタンの下に添えるときは控えめにする（カルテ一覧の「わが家の確認ポイント」）
   variant?: "primary" | "quiet";
   className?: string;
 }) {
@@ -69,20 +71,22 @@ export function AddToShitamiButton({
         <>
           <p role="status" className="flex min-h-tap items-center gap-2 font-bold text-primary">
             <AddedBadge />
-            <span className="sr-only">「{title}」を下見メモに入れました。</span>
+            <span className="sr-only">「{title}」を下見プランに入れました。</span>
           </p>
-          <Link
-            href={memoHref}
-            className="inline-flex min-h-tap items-center gap-1 text-sm font-bold text-primary underline underline-offset-4"
-          >
-            下見メモを見る
-            <span aria-hidden="true">→</span>
-          </Link>
+          {memoHref !== null && (
+            <Link
+              href={memoHref}
+              className="inline-flex min-h-tap items-center gap-1 text-sm font-bold text-primary underline underline-offset-4"
+            >
+              下見プランを見る
+              <span aria-hidden="true">→</span>
+            </Link>
+          )}
         </>
       ) : (
         <Button variant={variant} onClick={() => memo.add(item)} className="w-full sm:w-auto">
           <span aria-hidden="true">＋</span>
-          下見メモに入れる
+          下見プランに入れる
           <span className="sr-only">（{title}）</span>
         </Button>
       )}
@@ -90,12 +94,14 @@ export function AddToShitamiButton({
   );
 }
 
-// カルテ一覧の下の「わが家の下見メモ」の欄（036。見本 shitami-memo-*.png。新しいページは作らず一覧の中に置く）。
-// 入れた項目だけを出し、項目ごとに開閉できる。ScreenDataBoundary の中で使う（バスの便を出すため）
+// カルテ一覧の下の「わが家の下見プラン」（036。見本 shitami-memo-*.png。新しいページは作らず一覧の中に置く）。
+// 上の「わが家の確認ポイント」が調べる入口、こちらは現地でやることを見返すリスト（2026-11-10 まさゆきさん）。
+// 入れた項目だけを出し、閉じたままでも当日にすることの一文を出す。詳しい中身・リンク・「プランから外す」は開いて見る。
+// ScreenDataBoundary の中で使う（バスの便を出すため）
 export function ShitamiMemoSection({ conditions, links }: { conditions: Chosen; links: ShitamiLinks }) {
   const memo = useShitamiMemo(conditions.district);
 
-  // 「下見メモを見る」（#shitami-memo）で開いたら、データが届いて欄が出てからここまで移る
+  // 「下見プランを見る」（#shitami-memo）で開いたら、データが届いて欄が出てからここまで移る
   useEffect(() => {
     if (window.location.hash.slice(1) === SHITAMI_MEMO_ANCHOR) {
       document.getElementById(SHITAMI_MEMO_ANCHOR)?.scrollIntoView?.({ block: "start" });
@@ -111,17 +117,17 @@ export function ShitamiMemoSection({ conditions, links }: { conditions: Chosen; 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 id="shitami-memo-title" className="flex items-center gap-2 text-xl font-extrabold md:text-2xl">
           <PixelIcon icon="icon-checklist" />
-          わが家の下見メモ
+          わが家の下見プラン
         </h2>
         <p className="flex items-center gap-1 rounded-full border border-line bg-kinari px-3 py-1 text-xs font-bold md:ml-auto">
           <PixelIcon icon="icon-pin" size="sm" />
           {DISTRICT_NAMES[conditions.district]}
         </p>
       </div>
-      <p className="text-sm">気になったことを、飯田に行った日に試してみよう。</p>
+      <p className="text-sm">飯田に行った日に、見たい・試したいこと。</p>
 
       {memo.ids.length === 0 ? (
-        <p className="rounded-card bg-kinari p-4 text-sm text-ink-muted">カルテから、現地で確かめたいことを追加できます。</p>
+        <p className="rounded-card bg-kinari p-4 text-sm text-ink-muted">現地で確かめたいことを、上の確認ポイントから追加できます。</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {memo.ids.map((id) => (
@@ -136,25 +142,25 @@ export function ShitamiMemoSection({ conditions, links }: { conditions: Chosen; 
 
       <p className="text-xs text-ink-muted">
         {memo.persistent
-          ? "下見メモは、この端末のこのブラウザにだけ残ります（地区ごとに分けて残し、サーバーには送りません）。"
-          : "この端末では下見メモを残せません。ページを読み直すと消えます。"}
+          ? "下見プランは、この端末のこのブラウザにだけ残ります（地区ごとに分けて残し、サーバーには送りません）。"
+          : "この端末では下見プランを残せません。ページを読み直すと消えます。"}
       </p>
     </section>
   );
 }
 
-// メモからたどる先。どれも今のカルテ・地図・gofreely へのリンク（新しい地図や経路検索は作らない）
+// プランからたどる先。どれも今のカルテ・地図・gofreely へのリンク（新しい地図や経路検索は作らない）
 export type ShitamiLinks = { map: string; housing: string };
 
-// 1項目（見本：閉じた形は絵・名前・「追加済み」・開く印。開いた形は確認点の箱・リンク・「メモから外す」）
+// 1項目。閉じた形は絵・名前・当日にすることの一文・開く印。開いた形は確認点の箱・リンク・「プランから外す」
 function MemoEntry({ item, children }: { item: ShitamiItem; children: ReactNode }) {
   return (
     <details className="group rounded-card border border-line bg-surface open:border-2 open:border-primary">
       <summary className="flex min-h-tap cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
         <ItemPicture id={item.id} className="h-auto w-16 shrink-0 select-none object-contain md:w-24" />
-        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-base font-extrabold md:text-xl">{item.title}</span>
-          <AddedBadge />
+          <span className="text-sm">{item.summary}</span>
         </span>
         <span aria-hidden="true" className="text-xl text-primary transition-transform group-open:rotate-180">
           ⌄
@@ -175,13 +181,13 @@ function RemoveButton({ item, onRemove }: { item: ShitamiItem; onRemove: () => v
       onClick={onRemove}
       className="inline-flex min-h-tap shrink-0 items-center self-end text-sm font-bold text-primary underline underline-offset-4 sm:self-center"
     >
-      メモから外す
+      プランから外す
       <span className="sr-only">（{item.title}）</span>
     </button>
   );
 }
 
-// リンクのボタンと「メモから外す」の行（見本：PC はボタンの右に「メモから外す」、スマホはボタンの下の右）
+// リンクのボタンと「プランから外す」の行（見本：PC はボタンの右に「プランから外す」、スマホはボタンの下の右）
 function Actions({ children, remove }: { children: ReactNode; remove: ReactNode }) {
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">

@@ -116,8 +116,8 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
   });
 });
 
-describe("KarteView：まずはここから（はじめの名前は「わが家の確認メモ」）", () => {
-  const memo = () => screen.getByRole("region", { name: "まずはここから" });
+describe("KarteView：わが家の確認ポイント（はじめの名前は「わが家の確認メモ」）", () => {
+  const memo = () => screen.getByRole("region", { name: "わが家の確認ポイント" });
 
   it("子どもあり・車0台は3つの問いを出し、詳細と地図へつなぐ。カードにも同じ札を付ける", async () => {
     await open("s=winter&d=kanae&a=2&k=2&h=old&c=0");
@@ -135,23 +135,36 @@ describe("KarteView：まずはここから（はじめの名前は「わが家�
     expect(card("disaster")).not.toHaveTextContent("わが家へ");
   });
 
-  it("子どもなし・車ありは住まいの問いだけ。新しめの家には下見メモの項目がないので「＋ 下見メモに入れる」も出さない", async () => {
+  it("子どもなし・車ありは住まいの問いだけ。新しめの家には下見プランの項目がないので「＋ 下見プランに入れる」も出さない", async () => {
     await open("d=kanae&a=2&k=0&h=new&c=1");
-    expect(within(memo()).getAllByRole("link").map((link) => link.textContent)).toEqual(["住まいの詳細を見る→"]);
-    expect(within(memo()).queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    expect(within(memo()).getAllByRole("link").map((link) => link.textContent)).toEqual(["下見プランを見る↓", "住まいの詳細を見る→"]);
+    expect(within(memo()).queryByRole("button", { name: /下見プランに入れる/ })).toBeNull();
   });
 
-  it("問いごとに「＋ 下見メモに入れる」を添え、押すと下の「わが家の下見メモ」に入る（036）", async () => {
+  it("問いごとに「＋ 下見プランに入れる」を添え、押すとその場で「✓ プランに追加済み」。見出しの横の「下見プランを見る」に件数が出て、下のプランに入る（036）", async () => {
     await open("d=kanae&a=2&k=1&h=old&c=0");
     const box = within(memo());
-    expect(box.getAllByRole("button", { name: /下見メモに入れる/ })).toHaveLength(3);
+    expect(box.getAllByRole("button", { name: /下見プランに入れる/ })).toHaveLength(3);
+    const planLink = () => box.getByRole("link", { name: /下見プランを見る/ });
+    expect(planLink()).toHaveTextContent(/^下見プランを見る↓$/);
+    expect(planLink()).toHaveAttribute("href", "#shitami-memo");
     await act(async () => {
-      fireEvent.click(box.getByRole("button", { name: /下見メモに入れる.*学校のまわりを歩く/ }));
+      fireEvent.click(box.getByRole("button", { name: /下見プランに入れる.*学校のまわりを親子で歩く/ }));
     });
-    expect(box.getByRole("status")).toHaveTextContent("追加済み");
-    expect(box.getByRole("link", { name: /下見メモを見る/ })).toHaveAttribute("href", "#shitami-memo");
-    const visit = within(screen.getByRole("region", { name: "わが家の下見メモ" }));
-    expect(visit.getByText("学校のまわりを歩く")).toBeInTheDocument();
+    expect(box.getByRole("status")).toHaveTextContent("✓プランに追加済み");
+    // 問いごとの「下見プランを見る」は出さず、見出しの横の1つにまとめる
+    expect(box.getAllByRole("link", { name: /下見プランを見る/ })).toHaveLength(1);
+    expect(planLink()).toHaveTextContent("下見プランを見る（1件）↓");
+    await act(async () => {
+      fireEvent.click(box.getByRole("button", { name: /下見プランに入れる.*バスで街へ行って帰る/ }));
+    });
+    expect(planLink()).toHaveTextContent("下見プランを見る（2件）↓");
+    const plan = within(screen.getByRole("region", { name: "わが家の下見プラン" }));
+    expect(plan.getByText("学校のまわりを親子で歩く")).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(plan.getByRole("button", { name: /プランから外す.*学校/ }));
+    });
+    expect(planLink()).toHaveTextContent("下見プランを見る（1件）↓");
   });
 });
 
@@ -400,13 +413,13 @@ describe("KarteView：印刷（023）", () => {
   });
 });
 
-describe("KarteView：わが家の下見メモ（036）", () => {
-  const memo = () => screen.getByRole("region", { name: "わが家の下見メモ" });
+describe("KarteView：わが家の下見プラン（036。はじめの名前は「わが家の下見メモ」）", () => {
+  const memo = () => screen.getByRole("region", { name: "わが家の下見プラン" });
   const entry = (title: string) => within(memo()).getByText(title).closest("details") as HTMLDetailsElement;
 
   it("空なら、カルテから追加できると案内する", async () => {
     await open("d=kanae&k=1&h=old&c=0");
-    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    expect(memo()).toHaveTextContent("現地で確かめたいことを、上の確認ポイントから追加できます。");
     expect(document.getElementById("shitami-memo")).toBe(memo());
   });
 
@@ -417,8 +430,12 @@ describe("KarteView：わが家の下見メモ（036）", () => {
       .getAllByRole("listitem")
       .filter((item) => item.querySelector("details"))
       .map((item) => item.querySelector("summary")?.textContent);
-    expect(titles).toEqual(["バスで街へ行って帰る✓追加済み⌄", "古めの家で聞くこと✓追加済み⌄"]);
-    expect(within(memo()).queryByText("学校のまわりを歩く")).toBeNull();
+    // 閉じたままでも、当日にすることの一文が読める
+    expect(titles).toEqual([
+      "バスで街へ行って帰る停留所まで歩き、行きと帰りの便を確かめる。⌄",
+      "古めの家で聞くこと見学のときに、冬の暖房や断熱、修繕のことを聞く。⌄",
+    ]);
+    expect(within(memo()).queryByText("学校のまわりを親子で歩く")).toBeNull();
 
     const bus = within(entry("バスで街へ行って帰る"));
     expect(bus.getByText("鼎公民館前 → 飯田駅前")).toBeInTheDocument();
@@ -448,22 +465,22 @@ describe("KarteView：わが家の下見メモ（036）", () => {
   it("読み直しても残り、地区を変えると別の地区のメモになり、メモから外せる", async () => {
     localStorage.setItem("dearlife:shitami-memo:kanae", '["walk-around-school"]');
     await open("d=kanae&k=1&h=new");
-    expect(within(memo()).getByText("学校のまわりを歩く")).toBeInTheDocument();
-    expect(within(entry("学校のまわりを歩く")).getByText("通う学校は、住む住所が決まってから確認しましょう。")).toBeInTheDocument();
+    expect(within(memo()).getByText("学校のまわりを親子で歩く")).toBeInTheDocument();
+    expect(within(entry("学校のまわりを親子で歩く")).getByText("通う学校は、住む住所が決まってから確認しましょう。")).toBeInTheDocument();
 
     await act(async () => {
       fireEvent.change(screen.getByRole("combobox", { name: "地区を切り替える" }), { target: { value: "igara" } });
     });
-    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    expect(memo()).toHaveTextContent("現地で確かめたいことを、上の確認ポイントから追加できます。");
     await act(async () => {
       fireEvent.change(screen.getByRole("combobox", { name: "地区を切り替える" }), { target: { value: "kanae" } });
     });
-    expect(within(memo()).getByText("学校のまわりを歩く")).toBeInTheDocument();
+    expect(within(memo()).getByText("学校のまわりを親子で歩く")).toBeInTheDocument();
 
     await act(async () => {
-      fireEvent.click(within(memo()).getByRole("button", { name: /メモから外す/ }));
+      fireEvent.click(within(memo()).getByRole("button", { name: /プランから外す/ }));
     });
-    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    expect(memo()).toHaveTextContent("現地で確かめたいことを、上の確認ポイントから追加できます。");
     expect(localStorage.getItem("dearlife:shitami-memo:kanae")).toBe("[]");
   });
 
@@ -471,20 +488,20 @@ describe("KarteView：わが家の下見メモ（036）", () => {
     window.print = vi.fn();
     await open("d=kanae&k=1&h=old");
     fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
-    expect(within(screen.getByRole("dialog")).queryByRole("checkbox", { name: "わが家の下見メモ" })).toBeNull();
+    expect(within(screen.getByRole("dialog")).queryByRole("checkbox", { name: "わが家の下見プラン" })).toBeNull();
     cleanup();
 
     localStorage.setItem("dearlife:shitami-memo:kanae", '["old-house-questions"]');
     await open("d=kanae&k=1&h=old");
     fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
     const sheet = within(screen.getByRole("dialog"));
-    expect(sheet.getByRole("checkbox", { name: "わが家の下見メモ" })).toBeChecked();
+    expect(sheet.getByRole("checkbox", { name: "わが家の下見プラン" })).toBeChecked();
     // 印刷用の中身はデータを待つので、押すたびに描き終わるのを待つ
     await act(async () => {
       fireEvent.click(sheet.getByRole("button", { name: "すべて外す" }));
     });
     await act(async () => {
-      fireEvent.click(sheet.getByRole("checkbox", { name: "わが家の下見メモ" }));
+      fireEvent.click(sheet.getByRole("checkbox", { name: "わが家の下見プラン" }));
     });
     await act(async () => {
       fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
