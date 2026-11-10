@@ -11,10 +11,14 @@ import type { Conditions } from "@/lib/conditions/model";
 import type { Season } from "@/lib/conditions/scene";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId } from "@/lib/illust/assets";
+import { shitamiMemoHref } from "@/lib/karte/links";
+import { shitamiItemForPin } from "@/lib/karte/shitami-memo";
 import { karteHref } from "@/lib/kurashi/links";
+import { SEASON_SLUGS } from "@/lib/kurashi/season";
 import type { PinSheet, SheetSource } from "@/lib/kurashi/pin-sheets";
 import { thumbnailPosition, type PinSpot } from "@/lib/kurashi/pins";
 import { buttonClassName } from "@/components/ui/Button";
+import { AddToShitamiButton } from "@/components/karte/ShitamiMemo";
 import { EventItem } from "./EventItem";
 import { SceneLineView, timetableNotePositions } from "./SceneLineView";
 
@@ -41,6 +45,7 @@ export function PinSheetContent({
   const sourceNumbers = new Map(sheet.sources.map(({ source }, index) => [source.id, index + 1]));
   // バス・電車の文には、いつの時刻表かと gofreely へのリンクを添える（冬・車0台。場面の文と同じ）
   const timetableNoteAt = timetableNotePositions(sheet.lines);
+  const shitamiItem = shitamiItemForPin(sheet.id, conditions);
   return (
     <div className="flex flex-col gap-3">
       <div className={compact ? "flex flex-col gap-2" : "flex items-center gap-3"}>
@@ -85,6 +90,16 @@ export function PinSheetContent({
       ))}
 
       {sheet.sources.length > 0 && <SheetSources sources={sheet.sources} />}
+
+      {/* 見本 shitami-memo-overview-bus.png の「＋ 下見に入れる」（036）。押してもシートは閉じない */}
+      {shitamiItem && conditions.district && (
+        <AddToShitamiButton
+          district={conditions.district}
+          item={shitamiItem}
+          memoHref={shitamiMemoHref(conditions, SEASON_SLUGS[season])}
+          className="[&>button]:w-full [&>button]:rounded-full"
+        />
+      )}
 
       {sheet.karteCard && sheet.action && (
         <Link href={karteHref(conditions, season, sheet.karteCard)} className={buttonClassName("primary", "w-full rounded-full")}>

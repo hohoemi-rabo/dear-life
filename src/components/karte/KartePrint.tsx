@@ -1,5 +1,6 @@
 "use client";
 
+import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PrintControl, type PrintOption } from "@/components/print/PrintControl";
@@ -10,22 +11,27 @@ import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { checkMemoItems } from "@/lib/karte/check-memo";
 import { detailTexts, entryNumber, housingKnows, withDistrict } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
+import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
+import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
 import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
 import { HousingTabFootnote, HousingTabPanel, housingTabs } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KarteEntries } from "./KarteEntries";
+import { OutingExample } from "./ShitamiMemo";
 
 type Chosen = Conditions & { district: DistrictId };
 
-// 印刷で選べるもの：カルテのまとめ（一覧）と7項目（023。2026-11-09 まさゆきさん：項目ごとに選ぶ）
-export type KartePrintItem = "summary" | KarteCard;
+// 印刷で選べるもの：カルテのまとめ（一覧）と7項目（023。2026-11-09 まさゆきさん：項目ごとに選ぶ）と、
+// わが家の下見メモ（036。紙でも持っていけるように。メモが空のときは選べるものに出さない）
+export type KartePrintItem = "summary" | KarteCard | "shitami";
 
 // カルテ一覧と詳細の見出しの右上に置く「印刷する」。一覧から開くとすべてに、詳細から開くとその項目だけにチェックを入れる。
 // ブラウザのメニューから印刷したときは、開いているページの分（一覧ならまとめ、詳細ならその項目）を出す
 export function KartePrintButton({ conditions, current }: { conditions: Chosen; current: KarteCard | null }) {
   const { cards } = karteLayout(conditions);
+  const shitami = useShitamiMemo(conditions.district);
   const options: PrintOption<KartePrintItem>[] = [
     {
       id: "summary",
@@ -38,6 +44,19 @@ export function KartePrintButton({ conditions, current }: { conditions: Chosen; 
       ),
     },
     ...cards.map((card) => ({ id: card, label: KARTE_CARD_LABELS[card], icon: <KarteCardIcon card={card} size="sm" /> })),
+    ...(shitami.ids.length > 0
+      ? [
+          {
+            id: "shitami" as const,
+            label: "わが家の下見メモ",
+            icon: (
+              <span className="flex size-6 shrink-0 items-center justify-center">
+                <PixelIcon icon="icon-checklist" size="sm" />
+              </span>
+            ),
+          },
+        ]
+      : []),
   ];
   const all = options.map((option) => option.id);
   return (
@@ -55,8 +74,14 @@ function KartePrintDocument({ conditions, items }: { conditions: Chosen; items: 
     <ScreenDataBoundary fallback={null}>
       <PrintHeader title="わが家のカルテ" conditions={conditions} />
       {items.map((item, index) => (
-        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : KARTE_CARD_LABELS[item]}>
-          {item === "summary" ? <SummaryPrint conditions={conditions} /> : <CardPrint card={item} conditions={conditions} />}
+        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : item === "shitami" ? "わが家の下見メモ" : KARTE_CARD_LABELS[item]}>
+          {item === "summary" ? (
+            <SummaryPrint conditions={conditions} />
+          ) : item === "shitami" ? (
+            <ShitamiPrint conditions={conditions} />
+          ) : (
+            <CardPrint card={item} conditions={conditions} />
+          )}
         </PrintSection>
       ))}
     </ScreenDataBoundary>
@@ -78,6 +103,34 @@ function SummaryPrint({ conditions }: { conditions: Chosen }) {
         ))}
       </div>
       <KarteEntries cards={layout.cards} conditions={conditions} memoItems={checkMemoItems(conditions)} highlighted={false} />
+    </>
+  );
+}
+
+// 下見メモ：入れた項目ごとに、名前・バスの便の例・確認点（ペンで印を付ける空の箱）・添え書き。地図などのリンクは紙では使えないので出さない
+function ShitamiPrint({ conditions }: { conditions: Chosen }) {
+  const data = useScreenData();
+  const { ids } = useShitamiMemo(conditions.district);
+  const outing = data.districts[conditions.district].busOuting;
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-extrabold">わが家の下見メモ</h2>
+        <p>{DISTRICT_NAMES[conditions.district]}で、気になったことを飯田に行った日に試してみよう。</p>
+      </div>
+      {ids.map((id) => {
+        const item = SHITAMI_ITEMS[id];
+        return (
+          <PrintBlock key={id} className="flex flex-col gap-3">
+            <h3 className="text-lg font-bold">{item.title}</h3>
+            {item.lead && <p className="text-sm">{item.lead}</p>}
+            {id === "bus-to-town" &&
+              (outing.status === "available" ? <OutingExample outing={outing.value} /> : <DataStateMessage state={outing} />)}
+            <PrintCheckList title={item.checkTitle} items={item.checks} />
+            {item.note && <p className="text-sm">{item.note}</p>}
+          </PrintBlock>
+        );
+      })}
     </>
   );
 }

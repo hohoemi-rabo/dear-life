@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup as cleanupRender, fireEvent, render, screen, within } from "@testing-library/react";
 import type { KarteCard } from "@/lib/conditions/labels";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
@@ -58,6 +58,7 @@ const basis = () => screen.getByText("数字の根拠を見る").closest("detail
 
 beforeEach(() => {
   screenData = karteScreenData();
+  localStorage.clear();
 });
 
 describe("KarteDetailView：住まい（5章）", () => {
@@ -125,12 +126,43 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(prices()).toHaveTextContent("3,350万円");
   });
 
-  it("確かめたいことは押せる（どこにも保存しない）", async () => {
+  it("確かめたいことは箇条書きにし、チェックの箱は出さない（036）", async () => {
     await open("housing", "d=kanae&k=0&h=new");
-    const check = screen.getByRole("checkbox", { name: "土地・建物の広さ" });
-    fireEvent.click(check);
-    expect(check).toBeChecked();
-    expect(url.query).toBe("d=kanae&k=0&h=new");
+    expect(screen.getByText("土地・建物の広さ")).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    // 新しめの家には下見メモの項目がない
+    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+  });
+});
+
+describe("KarteDetailView：下見メモに入れる（036）", () => {
+  it("古めの家は「＋ 下見メモに入れる」。押すとその場で「追加済み」になり、画面は移らない。端末には地区ごとに ID だけを残す", async () => {
+    await open("housing", "s=winter&d=kanae&k=0&h=old");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /下見メモに入れる.*古めの家で聞くこと/ }));
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("追加済み");
+    expect(screen.getByRole("link", { name: /下見メモを見る/ })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=0&h=old#shitami-memo");
+    expect(url.query).toBe("s=winter&d=kanae&k=0&h=old");
+    expect(localStorage.getItem("dearlife:shitami-memo:kanae")).toBe('["old-house-questions"]');
+    expect(localStorage.getItem("dearlife:shitami-memo:igara")).toBeNull();
+  });
+
+  it("学校は子どもがいるとき、バスは車0台のときだけ出す", async () => {
+    await open("childcare", "d=kanae&k=1&h=new");
+    expect(screen.getByRole("button", { name: /学校のまわりを歩く/ })).toBeInTheDocument();
+    cleanupRender();
+    await open("transport", "d=kanae&k=1&h=new&c=1");
+    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    cleanupRender();
+    await open("transport", "d=kanae&k=1&h=new&c=0");
+    expect(screen.getByRole("button", { name: /バスで街へ行って帰る/ })).toBeInTheDocument();
+  });
+
+  it("前に入れた項目は、開いたときから「追加済み」", async () => {
+    localStorage.setItem("dearlife:shitami-memo:kanae", '["walk-around-school"]');
+    await open("childcare", "d=kanae&k=1&h=new");
+    expect(screen.getByRole("status")).toHaveTextContent("追加済み");
   });
 });
 

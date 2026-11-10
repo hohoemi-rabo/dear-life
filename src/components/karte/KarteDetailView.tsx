@@ -16,13 +16,15 @@ import { useConditions } from "@/lib/conditions/useConditions";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
-import { karteBackHref } from "@/lib/karte/links";
+import { karteBackHref, shitamiMemoHref } from "@/lib/karte/links";
+import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { HousingPriceCard, useHousingTab } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KartePrintButton } from "./KartePrint";
+import { AddToShitamiButton } from "./ShitamiMemo";
 import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows, type BasisRow } from "./DetailBasis";
@@ -185,12 +187,15 @@ function DetailBody({
   districtName: string;
 }) {
   const data = useScreenData();
+  const searchParams = useSearchParams();
   const district = data.districts[conditions.district];
   const noCar = hasNoCar(conditions);
   const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
   const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
   const knows = card === "housing" && housingTab.category ? housingKnows(housingTab.category) : texts.knows;
+  const shitamiItem = shitamiItemForCard(card, conditions);
+  const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
 
   return (
     <div className="flex flex-col gap-4">
@@ -221,15 +226,11 @@ function DetailBody({
         </Box>
         <Box title={texts.checkTitle} icon="icon-checklist" tone="bg-warm-soft">
           <div className="flex items-start gap-3">
-            <ul className="flex flex-1 flex-col">
+            {/* 確かめたいことは箇条書きにし、現地で使うものは下見メモに入れる（036。2026-11-10 まさゆきさん：
+                押せても残らないチェックの箱と、下見メモのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
+            <ul className="flex flex-1 list-disc flex-col gap-2 pl-5">
               {texts.checks.map((check) => (
-                <li key={check}>
-                  {/* 押せるが、どこにも保存しない（条件は URL だけに持つ。F-02） */}
-                  <label className="flex min-h-tap cursor-pointer items-center gap-3">
-                    <input type="checkbox" className="size-5 shrink-0 accent-primary" />
-                    {check}
-                  </label>
-                </li>
+                <li key={check}>{check}</li>
               ))}
             </ul>
             {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
@@ -243,6 +244,15 @@ function DetailBody({
               className="hidden h-auto w-32 shrink-0 select-none sm:block"
             />
           </div>
+          {shitamiItem && (
+            <div className="flex flex-col gap-2 border-t border-line pt-3">
+              <p className="text-sm">
+                <span className="font-bold">下見メモ：</span>
+                {SHITAMI_ITEMS[shitamiItem].title}
+              </p>
+              <AddToShitamiButton district={conditions.district} item={shitamiItem} memoHref={memoHref} />
+            </div>
+          )}
         </Box>
       </div>
 

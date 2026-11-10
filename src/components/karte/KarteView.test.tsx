@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
@@ -69,6 +69,7 @@ const tabLabels = () =>
 
 beforeEach(() => {
   screenData = karteScreenData();
+  localStorage.clear();
 });
 
 describe("KarteView：並びと上部の一文（F-03・4章）", () => {
@@ -382,5 +383,99 @@ describe("KarteView：印刷（023）", () => {
     ]);
     // 紙のカードには、画面のカードと同じ id を付けない
     expect(paper.querySelector("[id^='karte-']")).toBeNull();
+  });
+});
+
+describe("KarteView：わが家の下見メモ（036）", () => {
+  const memo = () => screen.getByRole("region", { name: "わが家の下見メモ" });
+  const entry = (title: string) => within(memo()).getByText(title).closest("details") as HTMLDetailsElement;
+
+  it("空なら、カルテから追加できると案内する", async () => {
+    await open("d=kanae&k=1&h=old&c=0");
+    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    expect(document.getElementById("shitami-memo")).toBe(memo());
+  });
+
+  it("入れた項目だけを決まった並びで出し、開くと確認点とリンクが出る。バスは今のデータの便を、対象の日と「例」を添えて出す", async () => {
+    localStorage.setItem("dearlife:shitami-memo:kanae", '["old-house-questions","bus-to-town"]');
+    await open("s=winter&d=kanae&a=2&k=1&h=old&c=0");
+    const titles = within(memo())
+      .getAllByRole("listitem")
+      .filter((item) => item.querySelector("details"))
+      .map((item) => item.querySelector("summary")?.textContent);
+    expect(titles).toEqual(["バスで街へ行って帰る✓追加済み⌄", "古めの家で聞くこと✓追加済み⌄"]);
+    expect(within(memo()).queryByText("学校のまわりを歩く")).toBeNull();
+
+    const bus = within(entry("バスで街へ行って帰る"));
+    expect(bus.getByText("鼎公民館前 → 飯田駅前")).toBeInTheDocument();
+    expect(bus.getByText("2027年1月16日（土）の例（冬の時刻表）")).toBeInTheDocument();
+    expect(entry("バスで街へ行って帰る")).toHaveTextContent("10:01 発 → 10:11 着");
+    expect(bus.getByText("次の便はありません")).toBeInTheDocument();
+    expect(bus.getByRole("link", { name: /停留所を地図で見る/ })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=old&c=0");
+    expect(bus.getByRole("link", { name: /gofreely/ })).toBeInTheDocument();
+
+    const house = within(entry("古めの家で聞くこと"));
+    expect(house.getByText("見学で聞くこと")).toBeInTheDocument();
+    expect(house.getByText("冬はどんな暖房を使っていますか？")).toBeInTheDocument();
+    expect(house.getByRole("link", { name: /住まいのカルテを見る/ })).toHaveAttribute("href", "/karte/housing?s=winter&d=kanae&a=2&k=1&h=old&c=0");
+    // 相場はカルテに置き、メモには出さない
+    expect(entry("古めの家で聞くこと")).not.toHaveTextContent("万円");
+  });
+
+  it("バスの便がデータ未取得なら、時刻を出さずにその旨を出す", async () => {
+    localStorage.setItem("dearlife:shitami-memo:igara", '["bus-to-town"]');
+    await open("d=igara&k=1&h=new&c=0");
+    const bus = within(entry("バスで街へ行って帰る"));
+    expect(bus.getByText(/データ未取得/)).toBeInTheDocument();
+    expect(bus.queryByRole("link", { name: /gofreely/ })).toBeNull();
+  });
+
+  it("読み直しても残り、地区を変えると別の地区のメモになり、メモから外せる", async () => {
+    localStorage.setItem("dearlife:shitami-memo:kanae", '["walk-around-school"]');
+    await open("d=kanae&k=1&h=new");
+    expect(within(memo()).getByText("学校のまわりを歩く")).toBeInTheDocument();
+    expect(within(entry("学校のまわりを歩く")).getByText("通う学校は、住む住所が決まってから確認しましょう。")).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.change(screen.getByRole("combobox", { name: "地区を切り替える" }), { target: { value: "igara" } });
+    });
+    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    await act(async () => {
+      fireEvent.change(screen.getByRole("combobox", { name: "地区を切り替える" }), { target: { value: "kanae" } });
+    });
+    expect(within(memo()).getByText("学校のまわりを歩く")).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(within(memo()).getByRole("button", { name: /メモから外す/ }));
+    });
+    expect(memo()).toHaveTextContent("カルテから、現地で確かめたいことを追加できます。");
+    expect(localStorage.getItem("dearlife:shitami-memo:kanae")).toBe("[]");
+  });
+
+  it("メモがあれば印刷で選べ、紙には確認点を空の箱つきで出す。空なら選べるものに出さない", async () => {
+    window.print = vi.fn();
+    await open("d=kanae&k=1&h=old");
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    expect(within(screen.getByRole("dialog")).queryByRole("checkbox", { name: "わが家の下見メモ" })).toBeNull();
+    cleanup();
+
+    localStorage.setItem("dearlife:shitami-memo:kanae", '["old-house-questions"]');
+    await open("d=kanae&k=1&h=old");
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    const sheet = within(screen.getByRole("dialog"));
+    expect(sheet.getByRole("checkbox", { name: "わが家の下見メモ" })).toBeChecked();
+    // 印刷用の中身はデータを待つので、押すたびに描き終わるのを待つ
+    await act(async () => {
+      fireEvent.click(sheet.getByRole("button", { name: "すべて外す" }));
+    });
+    await act(async () => {
+      fireEvent.click(sheet.getByRole("checkbox", { name: "わが家の下見メモ" }));
+    });
+    await act(async () => {
+      fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
+    });
+    const paper = document.querySelector("[data-print-document]") as HTMLElement;
+    expect(within(paper).getByRole("heading", { name: "古めの家で聞くこと" })).toBeInTheDocument();
+    expect(paper).toHaveTextContent("窓や床の断熱工事はしましたか？");
   });
 });

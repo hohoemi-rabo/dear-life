@@ -5,6 +5,7 @@ import { seasonalHref } from "../kurashi/links.ts";
 import { SEASON_PARAM } from "../kurashi/season.ts";
 import { KARTE_PATH, KURASHI_PATH } from "../site.ts";
 import { karteDetailPath } from "./entries.ts";
+import { SHITAMI_MEMO_ANCHOR } from "./shitami-memo.ts";
 
 type ReadableParams = { get(name: string): string | null };
 
@@ -21,4 +22,9 @@ export function karteBackHref(conditions: Conditions, current: ReadableParams): 
 // 一覧のカードから、その項目の詳細のページ（図鑑の1ページ。028）へ。条件と季節を持ったまま移る
 export function karteDetailHref(conditions: Conditions, card: KarteCard, current: ReadableParams): string {
   return seasonalHref(karteDetailPath(card), conditions, current.get(SEASON_PARAM));
+}
+
+// 「下見メモを見る」：カルテ一覧の「わが家の下見メモ」の欄へ（036）。くらしからは見ていた季節を渡す
+export function shitamiMemoHref(conditions: Conditions, seasonSlug: string | null): string {
+  return seasonalHref(KARTE_PATH, conditions, seasonSlug, SHITAMI_MEMO_ANCHOR);
 }

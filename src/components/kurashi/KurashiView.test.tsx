@@ -113,6 +113,7 @@ const params = () => new URLSearchParams(url.query);
 
 beforeEach(() => {
   screenData = published();
+  localStorage.clear();
 });
 
 describe("KurashiView：季節の切り替え（F-11）", () => {
@@ -548,6 +549,52 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
       "href",
       "/karte/transport?s=winter&d=kamisato&a=2&k=1&h=new&c=0",
     );
+  });
+
+  it("車0台：バス・電車のピンから下見メモに入れられる。押すとその場で「追加済み」になり、シートは閉じない（036）", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("バス・電車"));
+    });
+    const sheet = () => within(screen.getByRole("dialog", { name: "上郷のバス停は2か所" }));
+    await act(async () => {
+      fireEvent.click(sheet().getByRole("button", { name: /下見メモに入れる.*バスで街へ行って帰る/ }));
+    });
+    expect(sheet().getByRole("status")).toHaveTextContent("追加済み");
+    expect(sheet().getByRole("link", { name: /下見メモを見る/ })).toHaveAttribute(
+      "href",
+      "/karte?s=winter&d=kamisato&a=2&k=1&h=new&c=0#shitami-memo",
+    );
+    expect(localStorage.getItem("dearlife:shitami-memo:kamisato")).toBe('["bus-to-town"]');
+  });
+
+  it("車ありのバス・電車のピンと、新しめの家の住まいのピンには「下見メモに入れる」を出さない。学校は子どもがいれば出す（036）", async () => {
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("バス・電車"));
+    });
+    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    cleanup();
+
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("住まい"));
+    });
+    expect(screen.queryByRole("button", { name: /下見メモに入れる/ })).toBeNull();
+    cleanup();
+
+    await open("d=kamisato&a=2&k=1&h=old&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("住まい"));
+    });
+    expect(screen.getByRole("button", { name: /下見メモに入れる.*古めの家で聞くこと/ })).toBeInTheDocument();
+    cleanup();
+
+    await open("d=kamisato&a=2&k=1&h=new&s=winter");
+    await act(async () => {
+      fireEvent.click(pin("学校"));
+    });
+    expect(screen.getByRole("button", { name: /下見メモに入れる.*学校のまわりを歩く/ })).toBeInTheDocument();
   });
 
   it("車あり：雪の道のピンを足し、雪と凍結の場面の文はそこに出す。バス・電車のピンはバス停の数だけ", async () => {

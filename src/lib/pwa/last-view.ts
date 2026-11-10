@@ -1,5 +1,6 @@
 // 最後に見た画面と条件を端末に残し、ホーム画面のアイコンから開いたとき（いつも「/」から始まる）に続きへ戻れるようにする（024・要件 8.2）。
 // 残すのは画面の場所と URL パラメータの条件だけ（要件 8.2「端末に残すもの」）。条件はもともと URL に出ているもの（F-02）
+import { deviceStorage as storage } from "../device-storage.ts";
 import { KARTE_PATH, KURABE_PATH, KURASHI_PATH, MAP_PATH } from "../site.ts";
 
 const STORAGE_KEY = "dearlife:last-view";
@@ -16,15 +17,6 @@ export const RESUMABLE_VIEWS: Readonly<Record<string, string>> = {
 const SEARCH_PATTERN = /^(\?[\w=&,%.-]{0,500})?$/;
 
 export type LastView = { href: string; label: string };
-
-function storage(): Storage | null {
-  try {
-    return typeof localStorage === "undefined" ? null : localStorage;
-  } catch {
-    // Safari のプライベートモードなどで、読むだけで止まることがある
-    return null;
-  }
-}
 
 export function saveLastView(path: string, search: string): void {
   if (!Object.hasOwn(RESUMABLE_VIEWS, path) || !SEARCH_PATTERN.test(search)) return;
