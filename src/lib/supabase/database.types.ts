@@ -20,8 +20,10 @@ export type Database = {
           created_at: string
           day_type: string
           depart_after: string
+          destination_place_name: string
           destination_stop_name: string
           district_id: string
+          district_stop_count: number
           id: number
           next_return_arrival: string | null
           next_return_departure: string | null
@@ -32,6 +34,7 @@ export type Database = {
           outbound_departure: string | null
           outbound_route_name: string | null
           outbound_trips_per_day: number
+          reachable_stop_count: number
           return_after: string
           return_arrival: string | null
           return_departure: string | null
@@ -48,8 +51,10 @@ export type Database = {
           created_at?: string
           day_type: string
           depart_after: string
+          destination_place_name: string
           destination_stop_name: string
           district_id: string
+          district_stop_count: number
           id?: never
           next_return_arrival?: string | null
           next_return_departure?: string | null
@@ -60,6 +65,7 @@ export type Database = {
           outbound_departure?: string | null
           outbound_route_name?: string | null
           outbound_trips_per_day: number
+          reachable_stop_count: number
           return_after: string
           return_arrival?: string | null
           return_departure?: string | null
@@ -76,8 +82,10 @@ export type Database = {
           created_at?: string
           day_type?: string
           depart_after?: string
+          destination_place_name?: string
           destination_stop_name?: string
           district_id?: string
+          district_stop_count?: number
           id?: never
           next_return_arrival?: string | null
           next_return_departure?: string | null
@@ -88,6 +96,7 @@ export type Database = {
           outbound_departure?: string | null
           outbound_route_name?: string | null
           outbound_trips_per_day?: number
+          reachable_stop_count?: number
           return_after?: string
           return_arrival?: string | null
           return_departure?: string | null
