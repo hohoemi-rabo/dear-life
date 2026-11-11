@@ -115,7 +115,8 @@ export const SCENE_TEMPLATE_DRAFTS: readonly SceneTemplateDraft[] = [
     car: "車なし",
     housing: null,
     title: "冬・車なし・バスと電車でおでかけ",
-    reviewed_on: "2026-10-27",
+    // 2026-11-11：バス停の名前と時刻をやめ、行けるバス停の数にした文をまさゆきさんが確認（036）
+    reviewed_on: "2026-11-11",
     sentences: sentences(
       ["想定", "冬の休みの日、車を使わずに出かけます。"],
       // バス停の名前と時刻は出さない（036。2026-11-11 まさゆきさん）。家の近くのバス停からの便は gofreely の枠で案内する

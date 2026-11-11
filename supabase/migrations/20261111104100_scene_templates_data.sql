@@ -62,7 +62,7 @@ from template, (values
 
 with template as (
   insert into public.scene_templates (season, has_children, car, housing, title, reviewed_on, is_published)
-  values ('冬'::public.season, null::boolean, '車なし'::public.car_choice, null::public.housing_choice, '冬・車なし・バスと電車でおでかけ', '2026-10-27'::date, true)
+  values ('冬'::public.season, null::boolean, '車なし'::public.car_choice, null::public.housing_choice, '冬・車なし・バスと電車でおでかけ', '2026-11-11'::date, true)
   returning id
 )
 insert into public.scene_sentences (template_id, position, kind, body, fallback_body, karte_card, source_id, has_children, car, housing)
