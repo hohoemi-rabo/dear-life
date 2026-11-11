@@ -70,7 +70,8 @@ export function detailTabs(
         id: "outing",
         label: "冬のおでかけ",
         icon: "icon-winter",
-        states: hasStation ? [district.busOuting, district.trainOuting] : [district.busOuting],
+        // 電車の時刻は市の許可が出るまで非公開なので、そのあいだは電車の欄も出典も出さない（026。2026-11-11 まさゆきさん）
+        states: hasTrainOuting(district) ? [district.busOuting, district.trainOuting] : [district.busOuting],
       };
       return [outing, bus, train];
     }
@@ -363,7 +364,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
             <GofreelyPanel />
           </ListSection>
         )}
-        {district.trainStations.status !== "none" && (
+        {hasTrainOuting(district) && (
           <ListSection title="冬の場面で使った電車の便">
             {district.trainOuting.status === "available" ? (
               <TrainOutingDetails outing={district.trainOuting.value} />
@@ -375,6 +376,11 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
       </>
     ),
   };
+}
+
+// 冬のおでかけに電車の欄を出すか。駅のない地区（該当なし）と、時刻が非公開のあいだ（データ未取得。026）は出さない
+function hasTrainOuting(district: DistrictData): boolean {
+  return district.trainStations.status !== "none" && district.trainOuting.status !== "unavailable";
 }
 
 // 始発・最終は時刻から数えたときだけ出す（運行本数データには時刻がない。031）

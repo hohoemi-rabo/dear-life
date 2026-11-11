@@ -110,6 +110,9 @@ function busValue(context: PlaceholderContext, pick: (outing: BusOuting) => stri
 function trainValue(context: PlaceholderContext, pick: (outing: Outing) => string | null): PlaceholderValue {
   if (context.district.trainStations.status === "none") return SKIP;
   const state = context.district.trainOuting;
+  // 電車の時刻は市の許可が出るまで非公開（026）。そのあいだは「データ未取得」と出さず、文ごと出さない（2026-11-11 まさゆきさん：
+  // 理由もいつ出るかも分からず、見る人に分かりにくいため）
+  if (state.status === "unavailable") return SKIP;
   const value = fromState(state, pick);
   return value.status === "value" && state.status === "available" ? { ...value, transit: { mode: "train", outing: state.value } } : value;
 }
