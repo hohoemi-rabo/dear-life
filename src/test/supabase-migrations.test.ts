@@ -440,7 +440,7 @@ describe("不動産取引の取り込み（006）", () => {
 });
 
 describe("出典の公開（022）", () => {
-  it("クレジットを画面に出せる出典を公開し、電車の時刻（市の許可待ち）と画面に出さない国の学校・保育施設は未公開のまま", async () => {
+  it("クレジットを画面に出せる出典を公開し、画面に出さない国の学校・保育施設は未公開のまま。電車の時刻は確認用に公開（2026-11-11。市の許可はこのあと）", async () => {
     const rows = await run<{ id: string; is_published: boolean }>(
       "postgres",
       "select id, is_published from data_sources where id not in ('published_src', 'draft_src') order by id",
@@ -453,6 +453,7 @@ describe("出典の公開（022）", () => {
       "iida_childcare",
       "iida_education",
       "iida_evacuation",
+      "iida_jr_timetable",
       "iida_public_facilities",
       "railway_honsu",
       "rakuen_shinshu_iida_sheet",
@@ -461,7 +462,7 @@ describe("出典の公開（022）", () => {
       "reinfolib_xkt005",
       "sena_iida_line_stations",
     ]);
-    expect(rows.filter((row) => !row.is_published).map((row) => row.id)).toEqual(["iida_jr_timetable", "reinfolib_xkt006", "reinfolib_xkt007"]);
+    expect(rows.filter((row) => !row.is_published).map((row) => row.id)).toEqual(["reinfolib_xkt006", "reinfolib_xkt007"]);
   });
 
   it("公開した出典には、どれもクレジットが入っている", async () => {
