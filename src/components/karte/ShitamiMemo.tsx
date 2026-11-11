@@ -156,10 +156,10 @@ export type ShitamiLinks = { map: string; housing: string };
 function MemoEntry({ item, children }: { item: ShitamiItem; children: ReactNode }) {
   return (
     <details className="group rounded-card border border-line bg-surface open:border-2 open:border-primary">
-      <summary className="flex min-h-tap cursor-pointer list-none items-center gap-3 p-3 [&::-webkit-details-marker]:hidden">
-        <ItemPicture id={item.id} className="h-auto w-16 shrink-0 select-none object-contain md:w-24" />
+      <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 p-3 sm:gap-3 [&::-webkit-details-marker]:hidden">
+        <ItemPicture id={item.id} className="h-auto w-14 shrink-0 select-none object-contain md:w-24" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-base font-extrabold md:text-xl">{item.title}</span>
+          <span className="text-[15px] font-extrabold sm:text-base md:text-xl">{item.title}</span>
           <span className="text-sm">{item.summary}</span>
         </span>
         <span aria-hidden="true" className="text-xl text-primary transition-transform group-open:rotate-180">
