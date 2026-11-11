@@ -264,22 +264,35 @@ export function buildOutings(
 }
 
 // ---------------------------------------------------------------------------
-// 用事の場所（data/bus_errands.csv。036）
+// 用事の場所（data/bus_errands.csv。036・037）
+//
+// 行き先はエリアごと（037。2026-11-11 まさゆきさん）。市役所はすべての地区、病院・学校・店は地区ごとに CSV の「地区」で決める。
+// 店は地区をまたいでもよい（地区の人が使う店。住所の地区とは限らない）。駅・診療所・高校はバスで数えない（画面が別のデータから出す）
 
-export const ERRAND_KINDS = ["市役所", "病院", "駅"] as const;
+export const ERRAND_KINDS = ["市役所", "病院", "小学校", "中学校", "店"] as const;
 export type ErrandKind = (typeof ERRAND_KINDS)[number];
 
 export type ErrandConfig = {
   // 画面に出す呼び方（「飯田市役所」）。バス停の名前は出さない
   place: string;
   kind: ErrandKind;
-  // その場所のバス停（名前の違うものが2つ以上あることがある）
+  // どの地区の行き先か
+  districtIds: DistrictId[];
+  // その場所のそばのバス停（名前の違うものが2つ以上あることがある）。店だけ、そばにバス停がなければ空にできる
   stopNames: string[];
+  // 店の名前と住所を確かめた公式ページ。店のときだけ持つ
+  officialUrl: string | null;
   // CSV の並び（画面もこの順）
   sortOrder: number;
 };
 
-const ERRANDS_HEADER = ["行き先の場所", "種類", "バス停"];
+const ERRANDS_HEADER = ["行き先の場所", "種類", "地区", "バス停", "公式ページ"];
+const ALL_DISTRICTS = "すべて";
+const DISTRICT_IDS_BY_NAME: Readonly<Record<string, DistrictId>> = { 上郷: "kamisato", 鼎: "kanae", 伊賀良: "igara", 中心市街地: "chushin" };
+
+function splitList(value: string | undefined): string[] {
+  return (value ?? "").split(";").map((item) => item.trim()).filter(Boolean);
+}
 
 export function parseErrandsCsv(text: string): ErrandConfig[] {
   const firstLine = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0];
@@ -293,23 +306,39 @@ export function parseErrandsCsv(text: string): ErrandConfig[] {
     seen.add(place);
     const kind = record["種類"] as ErrandKind;
     if (!ERRAND_KINDS.includes(kind)) throw new Error(`${at}：種類は ${ERRAND_KINDS.join("・")} のどれか: ${record["種類"]}`);
-    const stopNames = (record["バス停"] ?? "").split(";").map((name) => name.trim()).filter(Boolean);
-    if (stopNames.length === 0) throw new Error(`${at}：バス停が必要`);
-    return { place, kind, stopNames, sortOrder: index + 1 };
+    const districtNames = splitList(record["地区"]);
+    const districtIds =
+      districtNames.length === 1 && districtNames[0] === ALL_DISTRICTS
+        ? Object.values(DISTRICT_IDS_BY_NAME)
+        : districtNames.map((name) => {
+            const id = DISTRICT_IDS_BY_NAME[name];
+            if (!id) throw new Error(`${at}：地区は ${ALL_DISTRICTS} か ${Object.keys(DISTRICT_IDS_BY_NAME).join("・")}（; で区切る）: ${name}`);
+            return id;
+          });
+    if (districtIds.length === 0) throw new Error(`${at}：地区が必要`);
+    const stopNames = splitList(record["バス停"]);
+    // そばにバス停がないことがわかっている店だけ、空にできる（「バスでは数えていません」と出す）
+    if (stopNames.length === 0 && kind !== "店") throw new Error(`${at}：バス停が必要`);
+    const officialUrl = record["公式ページ"] || null;
+    if ((kind === "店") !== (officialUrl !== null)) throw new Error(`${at}：公式ページは店のときだけ書く（店には必要）`);
+    if (officialUrl !== null && !officialUrl.startsWith("https://")) throw new Error(`${at}：公式ページは https:// で始める: ${officialUrl}`);
+    return { place, kind, districtIds, stopNames, officialUrl, sortOrder: index + 1 };
   });
 }
 
-export type ErrandRow = ErrandConfig &
+export type ErrandRow = Omit<ErrandConfig, "districtIds"> &
   ErrandReach & {
     districtId: DistrictId;
+    // そばにバス停があるか。false なら数えていない（reachableStopCount は 0）
+    hasStop: boolean;
     dayType: DayType;
     serviceDate: string;
     districtStopCount: number;
     validUntil: string;
   };
 
-// 4地区それぞれについて、用事の場所へ乗りかえなしで行けるバス停の数と、1日の本数の幅を数える。
-// 平日で数える（市役所も病院の外来も平日に行くことが多いため。2026-11-11）
+// 地区ごとに、その地区の用事の場所へ乗りかえなしで行けるバス停の数と、1日の本数の幅を数える。
+// 平日で数える（市役所も病院の外来も学校も平日に行くことが多いため。買い物も比べやすいよう平日にそろえる。2026-11-11）
 export function buildErrands(
   feeds: readonly LoadedFeed[],
   configs: readonly ErrandConfig[],
@@ -331,15 +360,24 @@ export function buildErrands(
   return districtIds.flatMap((districtId) => {
     const districtStops = [...new Set(stops.filter((stop) => stop.districtId === districtId).map((stop) => stop.name))];
     if (districtStops.length === 0) throw new Error(`${districtId} にバス停がない`);
-    return configs.map((config) => ({
-      ...config,
-      ...errandReach(gtfsFeeds, districtStops, config.stopNames, serviceDate),
-      districtId,
-      dayType,
-      serviceDate: isoDate(serviceDate),
-      districtStopCount: districtStops.length,
-      validUntil: isoDate(validUntil),
-    }));
+    return configs
+      .filter((config) => config.districtIds.includes(districtId))
+      .map((config) => ({
+        place: config.place,
+        kind: config.kind,
+        stopNames: config.stopNames,
+        officialUrl: config.officialUrl,
+        sortOrder: config.sortOrder,
+        ...(config.stopNames.length > 0
+          ? errandReach(gtfsFeeds, districtStops, config.stopNames, serviceDate)
+          : { reachableStopCount: 0, minTripsPerDay: null, maxTripsPerDay: null }),
+        districtId,
+        hasStop: config.stopNames.length > 0,
+        dayType,
+        serviceDate: isoDate(serviceDate),
+        districtStopCount: districtStops.length,
+        validUntil: isoDate(validUntil),
+      }));
   });
 }
 
@@ -442,6 +480,8 @@ export function buildBusSql({ feeds, stops, outings, errands, importedAt }: BusS
         String(errand.sortOrder),
         sqlLiteral(errand.place),
         sqlLiteral(errand.kind),
+        errand.hasStop ? "true" : "false",
+        errand.officialUrl === null ? "null" : sqlLiteral(errand.officialUrl),
         sqlLiteral(errand.dayType),
         `${sqlLiteral(errand.serviceDate)}::date`,
         String(errand.districtStopCount),
@@ -504,7 +544,7 @@ ${outingValues};
 
 delete from public.bus_errands where source_id = ${source};
 insert into public.bus_errands (
-  district_id, sort_order, place_name, kind, day_type, service_date,
+  district_id, sort_order, place_name, kind, has_stop, official_url, day_type, service_date,
   district_stop_count, reachable_stop_count, min_trips_per_day, max_trips_per_day, valid_until, source_id
 ) values
 ${errandValues};

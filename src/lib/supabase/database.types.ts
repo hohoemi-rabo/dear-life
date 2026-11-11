@@ -21,10 +21,12 @@ export type Database = {
           day_type: string
           district_id: string
           district_stop_count: number
+          has_stop: boolean
           id: number
           kind: string
           max_trips_per_day: number | null
           min_trips_per_day: number | null
+          official_url: string | null
           place_name: string
           reachable_stop_count: number
           service_date: string
@@ -38,10 +40,12 @@ export type Database = {
           day_type: string
           district_id: string
           district_stop_count: number
+          has_stop: boolean
           id?: never
           kind: string
           max_trips_per_day?: number | null
           min_trips_per_day?: number | null
+          official_url?: string | null
           place_name: string
           reachable_stop_count: number
           service_date: string
@@ -55,10 +59,12 @@ export type Database = {
           day_type?: string
           district_id?: string
           district_stop_count?: number
+          has_stop?: boolean
           id?: never
           kind?: string
           max_trips_per_day?: number | null
           min_trips_per_day?: number | null
+          official_url?: string | null
           place_name?: string
           reachable_stop_count?: number
           service_date?: string
@@ -188,6 +194,51 @@ export type Database = {
           },
           {
             foreignKeyName: "bus_outings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_counts: {
+        Row: {
+          as_of: string
+          clinic_count: number
+          created_at: string
+          district_id: string
+          excluded_count: number
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          as_of: string
+          clinic_count: number
+          created_at?: string
+          district_id: string
+          excluded_count: number
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          as_of?: string
+          clinic_count?: number
+          created_at?: string
+          district_id?: string
+          excluded_count?: number
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_counts_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_counts_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "data_sources"

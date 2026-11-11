@@ -254,6 +254,8 @@ describe("parseScreenData：おでかけの便（010・026）", () => {
     const item = {
       place_name: "飯田市役所",
       kind: "市役所",
+      has_stop: true,
+      official_url: null,
       day_type: "平日",
       service_date: "2027-01-15",
       valid_until: "2027-03-31",
@@ -266,10 +268,25 @@ describe("parseScreenData：おでかけの便（010・026）", () => {
       raw({ sources: [source("gtfs_minamishinshu_bus")], kanae: { bus_errands: section("gtfs_minamishinshu_bus", [{ ...item, ...extra }]) } });
     expect(parseScreenData(withErrands({}), TODAY).districts.kanae.busErrands).toMatchObject({
       status: "available",
-      value: [{ place: "飯田市役所", kind: "市役所", dayType: "平日", districtStopCount: 25, reachableStopCount: 18, minTripsPerDay: 4, maxTripsPerDay: 14 }],
+      value: [
+        { place: "飯田市役所", kind: "市役所", hasStop: true, officialUrl: null, dayType: "平日", districtStopCount: 25, reachableStopCount: 18, minTripsPerDay: 4, maxTripsPerDay: 14 },
+      ],
     });
+    // 037 より前の版（4地区共通の行き先で、駅も入っている）は出さない
+    expect(parseScreenData(withErrands({ has_stop: undefined }), TODAY).districts.kanae.busErrands).toEqual({ status: "unavailable" });
     expect(parseScreenData(withErrands({ valid_until: "2026-10-25" }), TODAY).districts.kanae.busErrands).toEqual({ status: "unavailable" });
     expect(parseScreenData(withBus({}), TODAY).districts.kanae.busErrands).toEqual({ status: "unavailable" });
+  });
+
+  it("診療所の数を返す。出典が未公開か、037 より前の版の RPC ならデータ未取得（037）", () => {
+    const withClinics = (sources: ReturnType<typeof source>[]) =>
+      raw({ sources, kanae: { clinic_count: section("mhlw_medical_clinics", [{ as_of: "2026-06-01", clinic_count: 8 }]) } });
+    expect(parseScreenData(withClinics([source("mhlw_medical_clinics")]), TODAY).districts.kanae.clinicCount).toMatchObject({
+      status: "available",
+      value: { asOf: "2026-06-01", count: 8 },
+    });
+    expect(parseScreenData(withClinics([]), TODAY).districts.kanae.clinicCount).toEqual({ status: "unavailable" });
+    expect(parseScreenData(withBus({}), TODAY).districts.kanae.clinicCount).toEqual({ status: "unavailable" });
   });
 
   it("時刻表の有効期間を過ぎたらデータ未取得。最終日までは使う", () => {

@@ -7,6 +7,7 @@ import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { SourceNote } from "@/components/ui/SourceNote";
 import type { KarteCard } from "@/lib/conditions/labels";
 import type {
+  BusErrand,
   DataState,
   DistrictData,
   EvacuationHazard,
@@ -20,6 +21,7 @@ import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
+import { ERRAND_STATIONS, errandsOf, errandStation, highSchoolNames, STORES_CHECKED_ON } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
 import { busReachDateNote, busReachSentence, errandReachText, tripsPerDayRange } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
@@ -65,8 +67,18 @@ export function detailTabs(
         icon: "icon-transport",
         states: hasStation ? [district.trainStations, trainTrips(district)] : [district.trainStations],
       };
-      // 用事の場所（市役所・病院など）へ、地区のバス停から乗りかえなしで行けるか（036）。車0台なら最初に開く
-      const errands: DetailTab = { id: "errands", label: "用事の場所", icon: "icon-public", states: [district.busErrands] };
+      // 用事の場所（市役所・病院・診療所・駅・学校・買い物。地区ごと。036・037）。車0台なら最初に開く
+      const errands: DetailTab = {
+        id: "errands",
+        label: "用事の場所",
+        icon: "icon-public",
+        states: [
+          district.busErrands,
+          district.clinicCount,
+          ...(ERRAND_STATIONS[district.id] === null ? [] : [trainTrips(district)]),
+          district.schools,
+        ],
+      };
       if (!noCar) return [bus, train, errands];
       const outing: DetailTab = {
         id: "outing",
@@ -380,43 +392,138 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
   };
 }
 
-// 用事の場所（036。2026-11-11 まさゆきさん）：バス停の名前は出さず、地区のバス停のうち乗りかえなしで行けるバス停の数と、
-// 1日の本数の幅（乗るバス停によって違う）を、行き先ごとに出す。家からの行き方は gofreely で調べてもらう
+// 用事の場所（036・037。2026-11-11 まさゆきさん）：行き先はエリアごと。バス停の名前は出さず、地区のバス停のうち乗りかえなしで
+// 行けるバス停の数と、1日の本数の幅（乗るバス停によって違う）を出す。診療所は数だけ、駅はその駅を出る電車の本数、高校は名前だけ。
+// 家からの行き方は gofreely で調べてもらう
 function errandsContent(district: DistrictData, notice: PanelContent["notice"]): PanelContent {
   const state = district.busErrands;
-  if (state.status !== "available") {
-    return { picture: "detail-bus", title: "主な用事の場所へ行けるバス", figure: <DataStateMessage state={state} />, notice };
-  }
-  const errands = state.value;
-  const reachable = errands.filter((errand) => errand.reachableStopCount > 0).length;
-  const { dayType, serviceDate } = errands[0];
+  const errands = state.status === "available" ? state.value : [];
+  const counted = errands.filter((errand) => errand.hasStop);
+  const reachable = counted.filter((errand) => errand.reachableStopCount > 0).length;
+  const busSection = (title: string, group: Parameters<typeof errandsOf>[1], extra?: ReactNode) => (
+    <ListSection title={title}>
+      {state.status === "available" ? <ErrandRows districtName={district.name} errands={errandsOf(errands, group)} /> : <DataStateMessage state={state} />}
+      {extra}
+    </ListSection>
+  );
   return {
     picture: "detail-bus",
-    title: `主な用事の場所へ、乗りかえなしで行けるバス（${dayType}）`,
-    figure: <BigCount count={reachable} unit="か所" after={<span className="text-sm">主な用事の場所 {errands.length}か所のうち</span>} />,
+    title: state.status === "available" ? `主な用事の場所へ、乗りかえなしで行けるバス（${errands[0]?.dayType ?? "平日"}）` : "主な用事の場所へ行けるバス",
+    figure:
+      state.status === "available" ? (
+        <BigCount count={reachable} unit="か所" after={<span className="text-sm">バスで数えた用事の場所 {counted.length}か所のうち</span>} />
+      ) : (
+        <DataStateMessage state={state} />
+      ),
     notice,
     list: (
-      <ListSection title="行き先ごとのバス">
-        <ul className="flex flex-col divide-y divide-line">
-          {errands.map((errand) => (
-            <li key={errand.place} className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:gap-4">
-              <p className="shrink-0 font-bold sm:w-40">{errand.place}</p>
-              <p className="flex flex-1 flex-col text-sm sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3">
-                <span>{errandReachText(district.name, errand)}</span>
-                {errand.minTripsPerDay !== null && errand.maxTripsPerDay !== null && (
-                  <span className="text-lg font-bold tabular-nums">{tripsPerDayRange(errand.minTripsPerDay, errand.maxTripsPerDay)}</span>
-                )}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-ink-muted">
-          {formatJaDateWithWeekday(serviceDate)}の時刻表で数えました。本数は行きの便の数で、乗るバス停によって違います。
-        </p>
-        <GofreelyPanel />
-      </ListSection>
+      <>
+        {busSection("市役所・病院", "office")}
+        <ListSection title="診療所（クリニック）">
+          <ClinicCountLine district={district} />
+        </ListSection>
+        <ListSection title="駅">
+          <ErrandStationLine district={district} />
+        </ListSection>
+        {busSection("小学校・中学校", "school", <HighSchools district={district} />)}
+        {busSection(
+          "買い物",
+          "store",
+          <p className="text-xs text-ink-muted">店の名前と住所は、各店の公式ページで確かめました（{formatJaDate(STORES_CHECKED_ON)}）。地区の人がよく使う店で、住所がほかの地区の店もあります。</p>,
+        )}
+        <section className="flex flex-col gap-2 border-t border-line pt-3">
+          {errands[0] && (
+            <p className="text-xs text-ink-muted">
+              バスは{formatJaDateWithWeekday(errands[0].serviceDate)}の時刻表で数えました。本数は行きの便の数で、乗るバス停によって違います。
+            </p>
+          )}
+          <GofreelyPanel />
+        </section>
+      </>
     ),
   };
+}
+
+function ErrandRows({ districtName, errands }: { districtName: string; errands: readonly BusErrand[] }) {
+  return (
+    <ul className="flex flex-col divide-y divide-line">
+      {errands.map((errand) => (
+        <li key={errand.place} className="flex break-inside-avoid flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:gap-4">
+          <p className="shrink-0 font-bold sm:w-48">
+            {errand.officialUrl === null ? (
+              errand.place
+            ) : (
+              <a
+                href={errand.officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-tap items-center gap-1 text-primary underline underline-offset-4 hover:no-underline sm:min-h-0"
+              >
+                {errand.place}
+                <span className="sr-only">（店の公式ページが新しいタブで開きます）</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </p>
+          <p className="flex flex-1 flex-col text-sm sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3">
+            {errand.hasStop ? (
+              <>
+                <span>{errandReachText(districtName, errand)}</span>
+                {errand.minTripsPerDay !== null && errand.maxTripsPerDay !== null && (
+                  <span className="text-xl font-bold tabular-nums">{tripsPerDayRange(errand.minTripsPerDay, errand.maxTripsPerDay)}</span>
+                )}
+              </>
+            ) : (
+              <span>そばにバス停がないため、バスでは数えていません</span>
+            )}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ClinicCountLine({ district }: { district: DistrictData }) {
+  const state = district.clinicCount;
+  if (state.status !== "available") return <DataStateMessage state={state} />;
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="flex flex-wrap items-baseline gap-x-2">
+        <span className="text-sm">{district.name}の中に</span>
+        <span className="text-xl font-bold tabular-nums">{state.value.count}か所</span>
+      </p>
+      <p className="text-xs text-ink-muted">国の医療機関の一覧（{formatJaDate(state.value.asOf)}時点）で、住所が{district.name}の診療所を数えました。歯科は入っていません。</p>
+    </div>
+  );
+}
+
+function ErrandStationLine({ district }: { district: DistrictData }) {
+  const station = errandStation(district);
+  if (station.status === "none") return <p className="text-sm">地区内に駅はありません。</p>;
+  if (station.status === "missing") return <DataStateMessage state={station.state} />;
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="flex flex-col sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3">
+        <span className="font-bold">{station.stationName}駅</span>
+        <span className="text-sm">を出る電車（{station.withTimes ? "" : "平日・"}特急を除く）</span>
+        <span className="text-xl font-bold tabular-nums">1日{station.total}本</span>
+      </p>
+      <p className="text-xs text-ink-muted">
+        上り（豊橋方面）{station.up}本・下り（辰野方面）{station.down}本
+      </p>
+    </div>
+  );
+}
+
+function HighSchools({ district }: { district: DistrictData }) {
+  const names = highSchoolNames(district);
+  if (names === null) return null;
+  return (
+    <div className="flex flex-col gap-1 pt-1">
+      <h4 className="text-sm font-bold">近くの高校（紹介）</h4>
+      <p className="text-sm">{names.length > 0 ? names.join("・") : `${district.name}の中に高校はありません。`}</p>
+    </div>
+  );
 }
 
 // 始発・最終は時刻から数えたときだけ出す（運行本数データには時刻がない。031）

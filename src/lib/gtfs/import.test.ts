@@ -201,16 +201,20 @@ describe("リポジトリのマイグレーション", () => {
     }
     expect(sql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(configs.length);
 
-    // 用事の場所（036）：4地区 × bus_errands.csv の行がすべて入っている
+    // 用事の場所（036・037）：bus_errands.csv の行が、その行の地区ごとにすべて入っている
     const errands = parseErrandsCsv(readFileSync(join(ROOT, "data/bus_errands.csv"), "utf8"));
-    for (const district of ["kamisato", "kanae", "igara", "chushin"]) {
-      for (const errand of errands) expect(errandSql).toContain(`('${district}', ${errand.sortOrder}, '${errand.place}', '${errand.kind}', `);
+    for (const errand of errands) {
+      for (const district of errand.districtIds) {
+        expect(errandSql).toContain(`('${district}', ${errand.sortOrder}, '${errand.place}', '${errand.kind}', ${errand.stopNames.length > 0}, `);
+      }
     }
-    expect(errandSql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(errands.length * 4);
+    const rows = errands.reduce((total, errand) => total + errand.districtIds.length, 0);
+    expect(errandSql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(rows);
   });
 });
 
-describe("用事の場所（036）", () => {
+describe("用事の場所（036・037）", () => {
+  const HEADER = "行き先の場所,種類,地区,バス停,公式ページ\n";
   const feed = buildTestFeed({
     stops: { A: "団地", B: "役所前", C: "役所", D: "坂上", E: "川向こう" },
     trips: [
@@ -227,7 +231,8 @@ describe("用事の場所（036）", () => {
   const stops = ["団地", "坂上", "川向こう"].map((name) => ({ name, districtId: "kanae" as const }));
 
   it("行き先のバス停をまとめ、行きと帰りに直通便のあるバス停の数と、行きの本数の幅を平日で数える", () => {
-    const errands = parseErrandsCsv("行き先の場所,種類,バス停\n飯田市役所,市役所,役所前;役所\n");
+    const errands = parseErrandsCsv(`${HEADER}飯田市役所,市役所,すべて,役所前;役所,\n`);
+    expect(errands[0].districtIds).toEqual(["kamisato", "kanae", "igara", "chushin"]);
     const [row] = buildErrands(loaded, errands, stops, ["kanae"]);
     expect(row).toMatchObject({
       place: "飯田市役所",
@@ -241,15 +246,34 @@ describe("用事の場所（036）", () => {
   });
 
   it("行けるバス停がなければ本数は持たない。書き間違いのバス停と、おかしい行は止める", () => {
-    const errands = parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,川向こう\n");
+    const errands = parseErrandsCsv(`${HEADER}丘,病院,鼎,川向こう,\n`);
     expect(buildErrands(loaded, errands, [{ name: "役所", districtId: "kanae" }], ["kanae"])[0]).toMatchObject({
       reachableStopCount: 0,
       minTripsPerDay: null,
       maxTripsPerDay: null,
     });
-    expect(() => buildErrands(loaded, parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,丘のうえ\n"), stops, ["kanae"])).toThrow("丘のうえ");
-    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,店,丘\n")).toThrow("種類");
-    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,\n")).toThrow("バス停");
-    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,丘\n丘,病院,丘\n")).toThrow("重複");
+    expect(() => buildErrands(loaded, parseErrandsCsv(`${HEADER}丘,病院,鼎,丘のうえ,\n`), stops, ["kanae"])).toThrow("丘のうえ");
+    expect(() => parseErrandsCsv(`${HEADER}丘,駅,鼎,丘,\n`)).toThrow("種類");
+    expect(() => parseErrandsCsv(`${HEADER}丘,病院,鼎,,\n`)).toThrow("バス停");
+    expect(() => parseErrandsCsv(`${HEADER}丘,病院,鼎,丘,\n丘,病院,鼎,丘,\n`)).toThrow("重複");
+    expect(() => parseErrandsCsv(`${HEADER}丘,病院,松尾,丘,\n`)).toThrow("地区");
+    expect(() => parseErrandsCsv(`${HEADER}丘,病院,,丘,\n`)).toThrow("地区");
+    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,丘\n")).toThrow("見出し");
+  });
+
+  it("行き先は CSV の地区だけに入る（エリアごと。037）", () => {
+    const errands = parseErrandsCsv(`${HEADER}飯田市役所,市役所,すべて,役所,\n丘の病院,病院,上郷;伊賀良,役所,\n`);
+    expect(buildErrands(loaded, errands, stops, ["kanae"]).map((row) => row.place)).toEqual(["飯田市役所"]);
+    expect(errands[1].districtIds).toEqual(["kamisato", "igara"]);
+  });
+
+  it("店は公式ページが必要で、そばにバス停がなければバスでは数えない（037）", () => {
+    const [store] = buildErrands(loaded, parseErrandsCsv(`${HEADER}丘の店,店,鼎,,https://example.jp/store\n`), stops, ["kanae"]);
+    expect(store).toMatchObject({ hasStop: false, officialUrl: "https://example.jp/store", reachableStopCount: 0, minTripsPerDay: null, maxTripsPerDay: null });
+    const [near] = buildErrands(loaded, parseErrandsCsv(`${HEADER}役所の店,店,鼎,役所前;役所,https://example.jp/near\n`), stops, ["kanae"]);
+    expect(near).toMatchObject({ hasStop: true, reachableStopCount: 2 });
+    expect(() => parseErrandsCsv(`${HEADER}丘の店,店,鼎,丘,\n`)).toThrow("公式ページ");
+    expect(() => parseErrandsCsv(`${HEADER}丘の病院,病院,鼎,丘,https://example.jp/\n`)).toThrow("公式ページ");
+    expect(() => parseErrandsCsv(`${HEADER}丘の店,店,鼎,丘,http://example.jp/\n`)).toThrow("https://");
   });
 });

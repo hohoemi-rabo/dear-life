@@ -81,6 +81,7 @@ const PUBLIC_TABLES = [
   "train_station_counts",
   "housing_tenure",
   "rent_averages",
+  "clinic_counts",
 ];
 const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
 
@@ -456,6 +457,7 @@ describe("出典の公開（022）", () => {
       "iida_evacuation",
       "iida_jr_timetable",
       "iida_public_facilities",
+      "mhlw_medical_clinics",
       "railway_honsu",
       "rakuen_shinshu_iida_sheet",
       "reinfolib_xit001",

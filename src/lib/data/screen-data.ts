@@ -144,10 +144,15 @@ export type BusOuting = {
   reachableStopCount: number;
 };
 
-// 用事の場所（市役所・病院など）へ、地区のバス停から乗りかえなしで行けるか（036）。バス停の名前は持たない
+// 用事の場所（市役所・病院・学校・店）へ、地区のバス停から乗りかえなしで行けるか（036・037）。バス停の名前は持たない。
+// 行き先は地区ごと（037）。駅・診療所・高校はここに入らない（電車の本数・clinicCount・schools から出す）
 export type BusErrand = {
   place: string;
-  kind: "市役所" | "病院" | "駅";
+  kind: "市役所" | "病院" | "小学校" | "中学校" | "店";
+  // そばにバス停がない店は false（バスでは数えていない）
+  hasStop: boolean;
+  // 店の名前と住所を確かめた公式ページ（店のときだけ）
+  officialUrl: string | null;
   dayType: "平日" | "土曜" | "日曜";
   serviceDate: string;
   districtStopCount: number;
@@ -155,6 +160,12 @@ export type BusErrand = {
   reachableStopCount: number;
   minTripsPerDay: number | null;
   maxTripsPerDay: number | null;
+};
+
+// 地区の診療所（クリニック）の数（037。国の医療機関の一覧を住所で振り分けた）
+export type ClinicCount = {
+  asOf: string;
+  count: number;
 };
 
 export type DistrictEvent = {
@@ -196,6 +207,8 @@ export type DistrictData = {
   busOuting: DataState<BusOuting>;
   // 用事の場所（036）。時刻表の有効期間を過ぎたら「データ未取得」
   busErrands: DataState<readonly BusErrand[]>;
+  // 診療所（クリニック）の数（037）
+  clinicCount: DataState<ClinicCount>;
   // 電車の時刻は市の許可が出るまで出典が非公開なので、そのあいだは unavailable になる（026）
   trainOuting: DataState<Outing>;
   // 手入力の行事。公開済みのものだけが季節順に入る。その季節の行事がなければ「この季節の行事は準備中です」（F-13）
@@ -351,6 +364,9 @@ type RawDistrict = {
   bus_errands?: RawSection<{
     place_name: string;
     kind: BusErrand["kind"];
+    // 037 より前の版の RPC にはない
+    has_stop?: boolean;
+    official_url?: string | null;
     day_type: BusErrand["dayType"];
     service_date: string;
     valid_until: string;
@@ -359,6 +375,8 @@ type RawDistrict = {
     min_trips_per_day: number | null;
     max_trips_per_day: number | null;
   }>;
+  // 037 より前の版の RPC（圏外用に端末に残った古いデータ）にはない
+  clinic_count?: RawSection<{ as_of: string; clinic_count: number }>;
   events: {
     season: DistrictEvent["season"];
     name: string;
@@ -536,11 +554,14 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
 
   const errands = raw.bus_errands;
   const busErrands: DataState<readonly BusErrand[]> =
-    errands === undefined || errands.items.some((item) => item.valid_until < today)
+    // 037 より前の版は行き先が4地区共通で、駅も入っているので出さない
+    errands === undefined || errands.items.some((item) => item.valid_until < today || item.has_stop === undefined)
       ? { status: "unavailable" }
       : listState(errands, findSource, (item) => ({
           place: item.place_name,
           kind: item.kind,
+          hasStop: item.has_stop!,
+          officialUrl: item.official_url ?? null,
           dayType: item.day_type,
           serviceDate: item.service_date,
           districtStopCount: item.district_stop_count,
@@ -590,6 +611,10 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
     })),
     busOuting,
     busErrands,
+    clinicCount:
+      raw.clinic_count === undefined
+        ? { status: "unavailable" }
+        : singleState(raw.clinic_count, findSource, (item) => ({ asOf: item.as_of, count: item.clinic_count })),
     trainOuting: singleState(raw.train_outing, findSource, toOuting),
     events: raw.events.map((event) => ({
       season: event.season,

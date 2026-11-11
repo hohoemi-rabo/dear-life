@@ -4,7 +4,7 @@
 //   2. 乗り場の緯度経度を町名にする（国土地理院の逆ジオコーダ。結果は data/bus_stop_towns.csv にためて、新しい位置だけ問い合わせる）
 //   3. 町名を data/iida_district_map.csv で地区に振り分ける（対応表にない町名があれば止める）
 //   4. data/bus_outings.csv のおでかけの便と本数、地区のバス停のうち行き先へ乗りかえなしで行き帰りできる数を計算する（036）
-//      data/bus_errands.csv の用事の場所（市役所・病院など）へ、地区のバス停から乗りかえなしで行ける数と1日の本数の幅を数える（036）
+//      data/bus_errands.csv の用事の場所（市役所・病院・学校・店。地区ごと）へ、地区のバス停から乗りかえなしで行ける数と1日の本数の幅を数える（036・037）
 //   5. supabase/migrations/<版番号>_bus_gtfs_data.sql を書き出す。いちばん新しいものと中身が同じなら何もしない
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -109,7 +109,7 @@ for (const outing of outings) {
 
 console.log("\n用事の場所（平日。行けるバス停／地区のバス停、1日の本数の幅）：");
 for (const errand of errands) {
-  const range = errand.minTripsPerDay === null ? "直通なし" : `${errand.minTripsPerDay}〜${errand.maxTripsPerDay}本`;
+  const range = !errand.hasStop ? "そばにバス停なし" : errand.minTripsPerDay === null ? "直通なし" : `${errand.minTripsPerDay}〜${errand.maxTripsPerDay}本`;
   console.log(`  ${errand.districtId} ${errand.place} ${errand.reachableStopCount}/${errand.districtStopCount} ${range}`);
 }
 

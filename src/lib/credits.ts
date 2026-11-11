@@ -1,3 +1,6 @@
+import { formatJaDate } from "./format.ts";
+import { STORES_CHECKED_ON } from "./karte/errands.ts";
+
 // 出典ごとの行（data_sources）に持たないクレジットと、サービス全体の表示（要件 7.3）。文言はここだけで管理する。
 // 出典ごとのクレジットは data_sources.credit_text が正で、データについてページ（022）でそのまま出す
 
@@ -19,6 +22,9 @@ export const EVENTS_CREDIT =
 // 高速バスの行き先は市のページを手で確かめたもので、出典の行を持たない（028）
 export const HIGHWAY_BUS_CREDIT =
   "高速バスの行き先は、飯田市「公共交通機関等のご案内」（2026年2月18日更新。2026年11月5日確認）をもとにしています。本数や時刻は載せていません。";
+
+// 用事の場所の店（037）は手で確かめたもので、出典の行を持たない。バスの本数は南信州のバスの時刻表から数える
+export const STORES_CREDIT = `カルテの交通「用事の場所」の店の名前と住所は、各店の公式ページで確かめたものです（${formatJaDate(STORES_CHECKED_ON)}確認）。営業時間や品ぞろえ、口コミは載せていません。`;
 
 // 地図の画面の背景（032）。地図の中の Google のロゴと「地図データ ©…」は Google が出すので消さない（Google マップの規約）
 export const GOOGLE_MAPS_CREDIT = "背景の地図・航空写真・立体の建物：Google マップ（地図データの出典は、地図の右下に Google が表示しています）";

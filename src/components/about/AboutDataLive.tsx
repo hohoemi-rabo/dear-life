@@ -4,7 +4,7 @@ import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { orderedSources, supportCheckedRange } from "@/lib/about/sources";
-import { EVENTS_CREDIT, HIGHWAY_BUS_CREDIT } from "@/lib/credits";
+import { EVENTS_CREDIT, HIGHWAY_BUS_CREDIT, STORES_CREDIT } from "@/lib/credits";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { eventSources } from "@/lib/kurabe/compare";
 
@@ -158,6 +158,12 @@ function ManualDataListBody() {
           高速バスの行き先
         </h3>
         <p>{HIGHWAY_BUS_CREDIT}</p>
+      </section>
+      <section aria-labelledby="about-stores" className="flex flex-col gap-2">
+        <h3 id="about-stores" className="font-bold">
+          買い物の店
+        </h3>
+        <p>{STORES_CREDIT}</p>
       </section>
       <section aria-labelledby="about-events" className="flex flex-col gap-2">
         <h3 id="about-events" className="font-bold">
