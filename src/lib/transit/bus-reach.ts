@@ -1,7 +1,7 @@
 // 冬・車0台のバスのおでかけを、バス停の名前を出さずに伝える一文（036。2026-11-11 まさゆきさん：
 // 乗る所は住む場所で決まるので、名前を出すと「そのバス停から乗る」と受け取られる）。
 // 家の近くのバス停からの便は gofreely で調べてもらう（要件 1.1）
-import type { BusOuting } from "../data/screen-data.ts";
+import type { BusErrand, BusOuting } from "../data/screen-data.ts";
 import { formatJaDateWithWeekday } from "../format.ts";
 
 // 「11か所すべて」「16か所のうち8か所」。行けるバス停がなければ null
@@ -22,4 +22,17 @@ export function busReachSentence(districtName: string, outing: BusOuting): strin
 // いつの時刻表で数えたか（「2027年1月16日（土）の時刻表で数えました」）
 export function busReachDateNote(outing: Pick<BusOuting, "serviceDate">): string {
   return `${formatJaDateWithWeekday(outing.serviceDate)}の時刻表で数えました`;
+}
+
+// 用事の場所（036）の1日の本数：「1日4〜14本」。どのバス停も同じなら「1日4本」
+export function tripsPerDayRange(min: number, max: number): string {
+  return min === max ? `1日${min}本` : `1日${min}〜${max}本`;
+}
+
+// 用事の場所の一言：「鼎のバス停25か所のうち18か所から、乗りかえなしで行けます」
+export function errandReachText(districtName: string, errand: Pick<BusErrand, "districtStopCount" | "reachableStopCount">): string {
+  const phrase = reachableStopsPhrase(errand);
+  return phrase === null
+    ? `${districtName}のバス停からは、乗りかえなしで行けるバスはありません`
+    : `${districtName}のバス停${phrase}から、乗りかえなしで行けます`;
 }

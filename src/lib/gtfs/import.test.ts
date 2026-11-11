@@ -9,6 +9,8 @@ import {
   buildOutings,
   buildPeriodLabel,
   coordinateKey,
+  buildErrands,
+  parseErrandsCsv,
   parseOutingsCsv,
   type FeedMeta,
   type LoadedFeed,
@@ -179,7 +181,7 @@ describe("buildBusSql", () => {
   });
 
   it("中身が空なら、今あるデータを消さないよう SQL を作らない", () => {
-    expect(() => buildBusSql({ feeds: [meta("A")], stops: [], outings: [], importedAt: "2026-10-23T00:00:00Z" })).toThrow("空");
+    expect(() => buildBusSql({ feeds: [meta("A")], stops: [], outings: [], errands: [], importedAt: "2026-10-23T00:00:00Z" })).toThrow("空");
   });
 });
 
@@ -188,7 +190,7 @@ describe("リポジトリのマイグレーション", () => {
     const dir = join(ROOT, "supabase/migrations");
     const latest = readdirSync(dir).filter((file) => file.endsWith("_bus_gtfs_data.sql")).sort().at(-1);
     expect(latest).toBeDefined();
-    const sql = readFileSync(join(dir, latest!), "utf8");
+    const [sql, errandSql] = readFileSync(join(dir, latest!), "utf8").split("insert into public.bus_errands");
     const configs = parseOutingsCsv(readFileSync(join(ROOT, "data/bus_outings.csv"), "utf8"));
     for (const config of configs) {
       const prefix = `('${config.districtId}', ${config.sortOrder}, '${config.dayType}', `;
@@ -198,5 +200,56 @@ describe("リポジトリのマイグレーション", () => {
       expect(line).toContain(`'${config.destinationPlace}', `);
     }
     expect(sql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(configs.length);
+
+    // 用事の場所（036）：4地区 × bus_errands.csv の行がすべて入っている
+    const errands = parseErrandsCsv(readFileSync(join(ROOT, "data/bus_errands.csv"), "utf8"));
+    for (const district of ["kamisato", "kanae", "igara", "chushin"]) {
+      for (const errand of errands) expect(errandSql).toContain(`('${district}', ${errand.sortOrder}, '${errand.place}', '${errand.kind}', `);
+    }
+    expect(errandSql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(errands.length * 4);
+  });
+});
+
+describe("用事の場所（036）", () => {
+  const feed = buildTestFeed({
+    stops: { A: "団地", B: "役所前", C: "役所", D: "坂上", E: "川向こう" },
+    trips: [
+      // 団地からは役所前・役所の両方を通る便（1本に数える）と、役所だけへ行く便
+      { id: "t1", service: "平日", stops: [{ stop: "A", time: "09:00:00" }, { stop: "B", time: "09:10:00" }, { stop: "C", time: "09:12:00" }] },
+      { id: "t2", service: "平日", stops: [{ stop: "A", time: "10:00:00" }, { stop: "C", time: "10:10:00" }] },
+      { id: "back", service: "平日", stops: [{ stop: "C", time: "12:00:00" }, { stop: "D", time: "12:10:00" }, { stop: "A", time: "12:20:00" }] },
+      // 坂上は行き1本・帰りあり。川向こうは行きだけ（帰りがないので数えない）
+      { id: "t3", service: "平日", stops: [{ stop: "D", time: "11:00:00" }, { stop: "B", time: "11:10:00" }] },
+      { id: "t4", service: "平日", stops: [{ stop: "E", time: "11:00:00" }, { stop: "C", time: "11:10:00" }] },
+    ],
+  });
+  const loaded: LoadedFeed[] = [{ meta: meta("f"), feed }];
+  const stops = ["団地", "坂上", "川向こう"].map((name) => ({ name, districtId: "kanae" as const }));
+
+  it("行き先のバス停をまとめ、行きと帰りに直通便のあるバス停の数と、行きの本数の幅を平日で数える", () => {
+    const errands = parseErrandsCsv("行き先の場所,種類,バス停\n飯田市役所,市役所,役所前;役所\n");
+    const [row] = buildErrands(loaded, errands, stops, ["kanae"]);
+    expect(row).toMatchObject({
+      place: "飯田市役所",
+      dayType: "平日",
+      serviceDate: "2027-01-15",
+      districtStopCount: 3,
+      reachableStopCount: 2,
+      minTripsPerDay: 1,
+      maxTripsPerDay: 2,
+    });
+  });
+
+  it("行けるバス停がなければ本数は持たない。書き間違いのバス停と、おかしい行は止める", () => {
+    const errands = parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,川向こう\n");
+    expect(buildErrands(loaded, errands, [{ name: "役所", districtId: "kanae" }], ["kanae"])[0]).toMatchObject({
+      reachableStopCount: 0,
+      minTripsPerDay: null,
+      maxTripsPerDay: null,
+    });
+    expect(() => buildErrands(loaded, parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,丘のうえ\n"), stops, ["kanae"])).toThrow("丘のうえ");
+    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,店,丘\n")).toThrow("種類");
+    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,\n")).toThrow("バス停");
+    expect(() => parseErrandsCsv("行き先の場所,種類,バス停\n丘,病院,丘\n丘,病院,丘\n")).toThrow("重複");
   });
 });

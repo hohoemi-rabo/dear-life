@@ -174,3 +174,39 @@ export function countReachableStops(feeds: readonly GtfsFeed[], stopNames: reado
       findDirectTrips(feeds, destination, name, date).length > 0,
   ).length;
 }
+
+// 用事の場所（市役所・病院など。036）へ、地区のバス停から乗りかえなしで行けるか。行き先は名前の違うバス停が2つ以上あることがある
+// （飯田市役所なら「市役所前」「飯田市役所」）ので、まとめて1つの行き先として数える。
+// バス停ごとに、その日の行きの直通便の数を数え、行きと帰りの両方に直通便があるバス停だけを「行ける」とする。
+// 画面ではバス停の名前を出さず、「◯か所のうち◯か所から、1日◯〜◯本（バス停によって違う）」とだけ伝える（2026-11-11 まさゆきさん）
+export type ErrandReach = {
+  // 行きと帰りの両方に直通便があるバス停の数
+  reachableStopCount: number;
+  // そのバス停ごとの、行きの直通便の数のいちばん少ない・多い（行けるバス停がなければ null）
+  minTripsPerDay: number | null;
+  maxTripsPerDay: number | null;
+};
+
+function directTripCount(feeds: readonly GtfsFeed[], from: string, to: string, date: string): number {
+  return findDirectTrips(feeds, from, to, date).length;
+}
+
+// 1本の便が行き先のバス停を2つ通っても1本に数える
+function directTripsToAny(feeds: readonly GtfsFeed[], from: string, destinations: readonly string[], date: string): number {
+  return new Set(
+    destinations.filter((to) => to !== from).flatMap((to) => findDirectTrips(feeds, from, to, date).map((trip) => `${trip.feedId}:${trip.tripId}`)),
+  ).size;
+}
+
+export function errandReach(feeds: readonly GtfsFeed[], stopNames: readonly string[], destinations: readonly string[], date: string): ErrandReach {
+  const counts = stopNames
+    .filter((name) => !destinations.includes(name))
+    .filter((name) => destinations.some((to) => directTripCount(feeds, to, name, date) > 0))
+    .map((name) => directTripsToAny(feeds, name, destinations, date))
+    .filter((count) => count > 0);
+  return {
+    reachableStopCount: counts.length,
+    minTripsPerDay: counts.length > 0 ? Math.min(...counts) : null,
+    maxTripsPerDay: counts.length > 0 ? Math.max(...counts) : null,
+  };
+}

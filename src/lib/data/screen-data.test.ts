@@ -250,6 +250,28 @@ describe("parseScreenData：おでかけの便（010・026）", () => {
     expect(parseScreenData(withBus(old), TODAY).districts.kanae.busOuting).toEqual({ status: "unavailable" });
   });
 
+  it("用事の場所は行き先ごとの数と本数の幅を返す。古い形の RPC と有効期間切れはデータ未取得（036）", () => {
+    const item = {
+      place_name: "飯田市役所",
+      kind: "市役所",
+      day_type: "平日",
+      service_date: "2027-01-15",
+      valid_until: "2027-03-31",
+      district_stop_count: 25,
+      reachable_stop_count: 18,
+      min_trips_per_day: 4,
+      max_trips_per_day: 14,
+    };
+    const withErrands = (extra: Record<string, unknown>) =>
+      raw({ sources: [source("gtfs_minamishinshu_bus")], kanae: { bus_errands: section("gtfs_minamishinshu_bus", [{ ...item, ...extra }]) } });
+    expect(parseScreenData(withErrands({}), TODAY).districts.kanae.busErrands).toMatchObject({
+      status: "available",
+      value: [{ place: "飯田市役所", kind: "市役所", dayType: "平日", districtStopCount: 25, reachableStopCount: 18, minTripsPerDay: 4, maxTripsPerDay: 14 }],
+    });
+    expect(parseScreenData(withErrands({ valid_until: "2026-10-25" }), TODAY).districts.kanae.busErrands).toEqual({ status: "unavailable" });
+    expect(parseScreenData(withBus({}), TODAY).districts.kanae.busErrands).toEqual({ status: "unavailable" });
+  });
+
   it("時刻表の有効期間を過ぎたらデータ未取得。最終日までは使う", () => {
     expect(parseScreenData(withBus({ valid_until: "2026-10-25" }), TODAY).districts.kanae.busOuting).toEqual({ status: "unavailable" });
     expect(parseScreenData(withBus({ valid_until: TODAY }), TODAY).districts.kanae.busOuting.status).toBe("available");

@@ -176,11 +176,27 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     });
   };
 
-  it("車0台の交通は、冬のおでかけのタブから開き、バス停の名前と時刻は出さずに行けるバス停の数・注意書き・gofreely の枠を出す（036）", async () => {
+  it("車0台の交通は、用事の場所のタブから開き、行き先ごとに行けるバス停の数と1日の本数の幅を出す（バス停の名前は出さない。036）", async () => {
     await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("車なしで、どう動く？");
-    expect(tabNames()).toEqual(["冬のおでかけ", "バス停", "電車"]);
-    expect(screen.getByRole("tab", { name: /冬のおでかけ/ })).toHaveAttribute("aria-selected", "true");
+    expect(tabNames()).toEqual(["用事の場所", "冬のおでかけ", "バス停", "電車"]);
+    expect(screen.getByRole("tab", { name: /用事の場所/ })).toHaveAttribute("aria-selected", "true");
+    expect(figure()).toHaveTextContent("主な用事の場所へ、乗りかえなしで行けるバス（平日）");
+    expect(figure()).toHaveTextContent("1か所");
+    expect(figure()).toHaveTextContent("主な用事の場所 2か所のうち");
+    const main = card("交通");
+    const cityHall = within(main).getByText("飯田市役所").closest("li") as HTMLElement;
+    expect(cityHall).toHaveTextContent("鼎のバス停25か所のうち18か所から、乗りかえなしで行けます");
+    expect(cityHall).toHaveTextContent("1日4〜14本");
+    expect(within(main).getByText("健和会病院").closest("li")).toHaveTextContent("鼎のバス停からは、乗りかえなしで行けるバスはありません");
+    expect(main).toHaveTextContent("2027年1月15日（金）の時刻表で数えました。本数は行きの便の数で、乗るバス停によって違います。");
+    expect(within(main).getByRole("link", { name: /gofreely で行き方を調べる/ })).toBeInTheDocument();
+    expect(main).not.toHaveTextContent("市役所前");
+  });
+
+  it("車0台の冬のおでかけのタブは、バス停の名前と時刻は出さずに行けるバス停の数・注意書き・gofreely の枠を出す（036）", async () => {
+    await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
+    await choose(/冬のおでかけ/);
     expect(figure()).toHaveTextContent("飯田駅へ乗りかえなしで行けるバスがあるバス停（土曜）");
     expect(figure()).toHaveTextContent("25か所");
     expect(figure()).toHaveTextContent("地区のバス停 25か所のうち");
@@ -195,7 +211,7 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
 
   it("車1台以上は冬のおでかけのタブを出さず、バス停から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
     await open("transport", "d=kanae&k=1&c=1");
-    expect(tabNames()).toEqual(["バス停", "電車"]);
+    expect(tabNames()).toEqual(["バス停", "電車", "用事の場所"]);
     expect(figure()).toHaveTextContent("地区のバス停2か所");
     expect(figure()).not.toHaveTextContent(NOTICES.carFree);
     await choose(/電車/);

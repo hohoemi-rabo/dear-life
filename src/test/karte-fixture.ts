@@ -29,6 +29,13 @@ export const KANAE: Partial<DistrictData> = {
   ),
   population: availableFixture({ asOf: "2020-10-01", total: 12000, age0to14: 1500, age15to64: 6900, age65plus: 3600 }, POPULATION),
   busOuting: availableFixture(BUS_OUTING, BUS),
+  busErrands: availableFixture(
+    [
+      { place: "飯田市役所", kind: "市役所", dayType: "平日", serviceDate: "2027-01-15", districtStopCount: 25, reachableStopCount: 18, minTripsPerDay: 4, maxTripsPerDay: 14 },
+      { place: "健和会病院", kind: "病院", dayType: "平日", serviceDate: "2027-01-15", districtStopCount: 25, reachableStopCount: 0, minTripsPerDay: null, maxTripsPerDay: null },
+    ],
+    BUS,
+  ),
   housingTenure: tenureFixture(5292, 1511),
 };
 

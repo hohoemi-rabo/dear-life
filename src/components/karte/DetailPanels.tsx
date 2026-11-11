@@ -16,12 +16,12 @@ import type {
   StationTrips,
   SupportProgram,
 } from "@/lib/data/screen-data";
-import { formatJaDate, formatServiceTime } from "@/lib/format";
+import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
-import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
+import { busReachDateNote, busReachSentence, errandReachText, tripsPerDayRange } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 
@@ -65,14 +65,16 @@ export function detailTabs(
         icon: "icon-transport",
         states: hasStation ? [district.trainStations, trainTrips(district)] : [district.trainStations],
       };
-      if (!noCar) return [bus, train];
+      // 用事の場所（市役所・病院など）へ、地区のバス停から乗りかえなしで行けるか（036）。車0台なら最初に開く
+      const errands: DetailTab = { id: "errands", label: "用事の場所", icon: "icon-public", states: [district.busErrands] };
+      if (!noCar) return [bus, train, errands];
       const outing: DetailTab = {
         id: "outing",
         label: "冬のおでかけ",
         icon: "icon-winter",
         states: hasStation ? [district.busOuting, district.trainOuting] : [district.busOuting],
       };
-      return [outing, bus, train];
+      return [errands, outing, bus, train];
     }
     case "disaster": {
       const state = district.evacuationSites;
@@ -334,6 +336,7 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
       ),
     };
   }
+  if (tabId === "errands") return errandsContent(district, notice);
   // 冬のおでかけ：バス停の名前と時刻は出さず、地区のバス停のうち行き先へ乗りかえなしで行けるバス停の数を出す（036。2026-11-11 まさゆきさん）。
   // 家の近くのバス停からの便は gofreely で調べてもらう
   const outing = district.busOuting;
@@ -373,6 +376,45 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
           </ListSection>
         )}
       </>
+    ),
+  };
+}
+
+// 用事の場所（036。2026-11-11 まさゆきさん）：バス停の名前は出さず、地区のバス停のうち乗りかえなしで行けるバス停の数と、
+// 1日の本数の幅（乗るバス停によって違う）を、行き先ごとに出す。家からの行き方は gofreely で調べてもらう
+function errandsContent(district: DistrictData, notice: PanelContent["notice"]): PanelContent {
+  const state = district.busErrands;
+  if (state.status !== "available") {
+    return { picture: "detail-bus", title: "主な用事の場所へ行けるバス", figure: <DataStateMessage state={state} />, notice };
+  }
+  const errands = state.value;
+  const reachable = errands.filter((errand) => errand.reachableStopCount > 0).length;
+  const { dayType, serviceDate } = errands[0];
+  return {
+    picture: "detail-bus",
+    title: `主な用事の場所へ、乗りかえなしで行けるバス（${dayType}）`,
+    figure: <BigCount count={reachable} unit="か所" after={<span className="text-sm">主な用事の場所 {errands.length}か所のうち</span>} />,
+    notice,
+    list: (
+      <ListSection title="行き先ごとのバス">
+        <ul className="flex flex-col divide-y divide-line">
+          {errands.map((errand) => (
+            <li key={errand.place} className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:gap-4">
+              <p className="shrink-0 font-bold sm:w-40">{errand.place}</p>
+              <p className="flex flex-1 flex-col text-sm sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3">
+                <span>{errandReachText(district.name, errand)}</span>
+                {errand.minTripsPerDay !== null && errand.maxTripsPerDay !== null && (
+                  <span className="text-lg font-bold tabular-nums">{tripsPerDayRange(errand.minTripsPerDay, errand.maxTripsPerDay)}</span>
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-ink-muted">
+          {formatJaDateWithWeekday(serviceDate)}の時刻表で数えました。本数は行きの便の数で、乗るバス停によって違います。
+        </p>
+        <GofreelyPanel />
+      </ListSection>
     ),
   };
 }

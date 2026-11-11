@@ -75,6 +75,7 @@ const PUBLIC_TABLES = [
   "scene_templates",
   "scene_sentences",
   "bus_outings",
+  "bus_errands",
   "train_departures",
   "train_outings",
   "train_station_counts",

@@ -15,6 +15,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      bus_errands: {
+        Row: {
+          created_at: string
+          day_type: string
+          district_id: string
+          district_stop_count: number
+          id: number
+          kind: string
+          max_trips_per_day: number | null
+          min_trips_per_day: number | null
+          place_name: string
+          reachable_stop_count: number
+          service_date: string
+          sort_order: number
+          source_id: string
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          day_type: string
+          district_id: string
+          district_stop_count: number
+          id?: never
+          kind: string
+          max_trips_per_day?: number | null
+          min_trips_per_day?: number | null
+          place_name: string
+          reachable_stop_count: number
+          service_date: string
+          sort_order: number
+          source_id: string
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          day_type?: string
+          district_id?: string
+          district_stop_count?: number
+          id?: never
+          kind?: string
+          max_trips_per_day?: number | null
+          min_trips_per_day?: number | null
+          place_name?: string
+          reachable_stop_count?: number
+          service_date?: string
+          sort_order?: number
+          source_id?: string
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_errands_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bus_errands_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bus_outings: {
         Row: {
           created_at: string

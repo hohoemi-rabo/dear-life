@@ -144,6 +144,19 @@ export type BusOuting = {
   reachableStopCount: number;
 };
 
+// 用事の場所（市役所・病院など）へ、地区のバス停から乗りかえなしで行けるか（036）。バス停の名前は持たない
+export type BusErrand = {
+  place: string;
+  kind: "市役所" | "病院" | "駅";
+  dayType: "平日" | "土曜" | "日曜";
+  serviceDate: string;
+  districtStopCount: number;
+  // 行きと帰りの両方に乗りかえなしの便があるバス停の数。0 なら本数は null
+  reachableStopCount: number;
+  minTripsPerDay: number | null;
+  maxTripsPerDay: number | null;
+};
+
 export type DistrictEvent = {
   season: Enums["season"];
   name: string;
@@ -181,6 +194,8 @@ export type DistrictData = {
   // 借家に住む世帯の数（034）
   housingTenure: DataState<HousingTenure>;
   busOuting: DataState<BusOuting>;
+  // 用事の場所（036）。時刻表の有効期間を過ぎたら「データ未取得」
+  busErrands: DataState<readonly BusErrand[]>;
   // 電車の時刻は市の許可が出るまで出典が非公開なので、そのあいだは unavailable になる（026）
   trainOuting: DataState<Outing>;
   // 手入力の行事。公開済みのものだけが季節順に入る。その季節の行事がなければ「この季節の行事は準備中です」（F-13）
@@ -332,6 +347,18 @@ type RawDistrict = {
     reachable_stop_count?: number;
   }>;
   train_outing: RawSection<RawOuting>;
+  // 036 より前の版の RPC（圏外用に端末に残った古いデータ）にはない
+  bus_errands?: RawSection<{
+    place_name: string;
+    kind: BusErrand["kind"];
+    day_type: BusErrand["dayType"];
+    service_date: string;
+    valid_until: string;
+    district_stop_count: number;
+    reachable_stop_count: number;
+    min_trips_per_day: number | null;
+    max_trips_per_day: number | null;
+  }>;
   events: {
     season: DistrictEvent["season"];
     name: string;
@@ -507,6 +534,21 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
             reachableStopCount: item.reachable_stop_count!,
           }));
 
+  const errands = raw.bus_errands;
+  const busErrands: DataState<readonly BusErrand[]> =
+    errands === undefined || errands.items.some((item) => item.valid_until < today)
+      ? { status: "unavailable" }
+      : listState(errands, findSource, (item) => ({
+          place: item.place_name,
+          kind: item.kind,
+          dayType: item.day_type,
+          serviceDate: item.service_date,
+          districtStopCount: item.district_stop_count,
+          reachableStopCount: item.reachable_stop_count,
+          minTripsPerDay: item.min_trips_per_day,
+          maxTripsPerDay: item.max_trips_per_day,
+        }));
+
   return {
     id: raw.id as DistrictId,
     name: raw.name,
@@ -547,6 +589,7 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
       privateRented: item.private_rented,
     })),
     busOuting,
+    busErrands,
     trainOuting: singleState(raw.train_outing, findSource, toOuting),
     events: raw.events.map((event) => ({
       season: event.season,

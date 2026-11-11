@@ -5,7 +5,7 @@ import { TARGET_DISTRICT_IDS } from "../town-district/csv.ts";
 import type { DistrictId, TownMapEntry } from "../town-district/resolve.ts";
 import { parseCsv } from "./csv.ts";
 import { formatGtfsTime, parseClock, type GtfsFeed } from "./feed.ts";
-import { DAY_TYPES, countReachableStops, planOuting, winterReferenceDate, type DayType, type DirectTrip } from "./outing.ts";
+import { DAY_TYPES, countReachableStops, errandReach, planOuting, winterReferenceDate, type DayType, type DirectTrip, type ErrandReach } from "./outing.ts";
 
 export const BUS_SOURCE_ID = "gtfs_minamishinshu_bus";
 export const IIDA_MUNI_CODE = "20205";
@@ -264,6 +264,86 @@ export function buildOutings(
 }
 
 // ---------------------------------------------------------------------------
+// 用事の場所（data/bus_errands.csv。036）
+
+export const ERRAND_KINDS = ["市役所", "病院", "駅"] as const;
+export type ErrandKind = (typeof ERRAND_KINDS)[number];
+
+export type ErrandConfig = {
+  // 画面に出す呼び方（「飯田市役所」）。バス停の名前は出さない
+  place: string;
+  kind: ErrandKind;
+  // その場所のバス停（名前の違うものが2つ以上あることがある）
+  stopNames: string[];
+  // CSV の並び（画面もこの順）
+  sortOrder: number;
+};
+
+const ERRANDS_HEADER = ["行き先の場所", "種類", "バス停"];
+
+export function parseErrandsCsv(text: string): ErrandConfig[] {
+  const firstLine = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0];
+  if (firstLine !== ERRANDS_HEADER.join(",")) throw new Error(`用事の場所の見出しが ${ERRANDS_HEADER.join(",")} ではありません: ${firstLine}`);
+  const seen = new Set<string>();
+  return parseCsv(text).map((record, index) => {
+    const at = `bus_errands.csv ${index + 2}行目`;
+    const place = record["行き先の場所"];
+    if (!place) throw new Error(`${at}：行き先の場所が必要`);
+    if (seen.has(place)) throw new Error(`${at}：${place} が重複している`);
+    seen.add(place);
+    const kind = record["種類"] as ErrandKind;
+    if (!ERRAND_KINDS.includes(kind)) throw new Error(`${at}：種類は ${ERRAND_KINDS.join("・")} のどれか: ${record["種類"]}`);
+    const stopNames = (record["バス停"] ?? "").split(";").map((name) => name.trim()).filter(Boolean);
+    if (stopNames.length === 0) throw new Error(`${at}：バス停が必要`);
+    return { place, kind, stopNames, sortOrder: index + 1 };
+  });
+}
+
+export type ErrandRow = ErrandConfig &
+  ErrandReach & {
+    districtId: DistrictId;
+    dayType: DayType;
+    serviceDate: string;
+    districtStopCount: number;
+    validUntil: string;
+  };
+
+// 4地区それぞれについて、用事の場所へ乗りかえなしで行けるバス停の数と、1日の本数の幅を数える。
+// 平日で数える（市役所も病院の外来も平日に行くことが多いため。2026-11-11）
+export function buildErrands(
+  feeds: readonly LoadedFeed[],
+  configs: readonly ErrandConfig[],
+  stops: readonly Pick<BusStopRow, "name" | "districtId">[],
+  districtIds: readonly DistrictId[],
+): ErrandRow[] {
+  const gtfsFeeds = feeds.map((loaded) => loaded.feed);
+  const stopNames = new Set(gtfsFeeds.flatMap((feed) => [...feed.stops.values()].map((stop) => stop.name)));
+  const validUntil = gtfsFeeds.map((feed) => feed.validTo).filter((date) => date !== null).sort()[0];
+  if (!validUntil) throw new Error("どのフィードにも有効期間（feed_info.txt）がない");
+  const dayType: DayType = "平日";
+  const serviceDate = winterReferenceDate(gtfsFeeds, dayType);
+  if (serviceDate === null) throw new Error(`フィードの有効期間に、冬の${dayType}の日がない`);
+  for (const config of configs) {
+    for (const name of config.stopNames) {
+      if (!stopNames.has(name)) throw new Error(`バス停「${name}」がフィードにない（bus_errands.csv の書き間違い？）`);
+    }
+  }
+  return districtIds.flatMap((districtId) => {
+    const districtStops = [...new Set(stops.filter((stop) => stop.districtId === districtId).map((stop) => stop.name))];
+    if (districtStops.length === 0) throw new Error(`${districtId} にバス停がない`);
+    return configs.map((config) => ({
+      ...config,
+      ...errandReach(gtfsFeeds, districtStops, config.stopNames, serviceDate),
+      districtId,
+      dayType,
+      serviceDate: isoDate(serviceDate),
+      districtStopCount: districtStops.length,
+      validUntil: isoDate(validUntil),
+    }));
+  });
+}
+
+// ---------------------------------------------------------------------------
 // SQL
 
 function tripColumns(trip: DirectTrip | null): string[] {
@@ -298,15 +378,16 @@ export type BusSqlInput = {
   feeds: readonly FeedMeta[];
   stops: readonly BusStopRow[];
   outings: readonly OutingRow[];
+  errands: readonly ErrandRow[];
   // 取り込んだ日時（ISO 8601）
   importedAt: string;
 };
 
 // バス停・おでかけ・フィードの版・出典を、この取り込みの中身にそろえる SQL。何度当てても同じ結果になる
-export function buildBusSql({ feeds, stops, outings, importedAt }: BusSqlInput): string {
+export function buildBusSql({ feeds, stops, outings, errands, importedAt }: BusSqlInput): string {
   // 空のまま当てると、今あるバス停や便を消してしまうので止める
-  if (feeds.length === 0 || stops.length === 0 || outings.length === 0) {
-    throw new Error("フィード・バス停・おでかけのどれかが空で、SQL を作れない");
+  if (feeds.length === 0 || stops.length === 0 || outings.length === 0 || errands.length === 0) {
+    throw new Error("フィード・バス停・おでかけ・用事の場所のどれかが空で、SQL を作れない");
   }
   const source = sqlLiteral(BUS_SOURCE_ID);
   const stopValues = stops
@@ -348,6 +429,26 @@ export function buildBusSql({ feeds, stops, outings, importedAt }: BusSqlInput):
         String(outing.districtStopCount),
         String(outing.reachableStopCount),
         `${sqlLiteral(outing.validUntil)}::date`,
+        source,
+      ].join(", "),
+    )
+    .map((tuple) => `  (${tuple})`)
+    .join(",\n");
+
+  const errandValues = errands
+    .map((errand) =>
+      [
+        sqlLiteral(errand.districtId),
+        String(errand.sortOrder),
+        sqlLiteral(errand.place),
+        sqlLiteral(errand.kind),
+        sqlLiteral(errand.dayType),
+        `${sqlLiteral(errand.serviceDate)}::date`,
+        String(errand.districtStopCount),
+        String(errand.reachableStopCount),
+        errand.minTripsPerDay === null ? "null" : String(errand.minTripsPerDay),
+        errand.maxTripsPerDay === null ? "null" : String(errand.maxTripsPerDay),
+        `${sqlLiteral(errand.validUntil)}::date`,
         source,
       ].join(", "),
     )
@@ -400,5 +501,12 @@ insert into public.bus_outings (
   destination_place_name, district_stop_count, reachable_stop_count, valid_until, source_id
 ) values
 ${outingValues};
+
+delete from public.bus_errands where source_id = ${source};
+insert into public.bus_errands (
+  district_id, sort_order, place_name, kind, day_type, service_date,
+  district_stop_count, reachable_stop_count, min_trips_per_day, max_trips_per_day, valid_until, source_id
+) values
+${errandValues};
 `;
 }

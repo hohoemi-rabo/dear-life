@@ -93,6 +93,7 @@ function districtFixture(id: DistrictId): DistrictData {
     population: UNAVAILABLE,
     housingTenure: UNAVAILABLE,
     busOuting: UNAVAILABLE,
+    busErrands: UNAVAILABLE,
     trainOuting: UNAVAILABLE,
     events: [],
   };
