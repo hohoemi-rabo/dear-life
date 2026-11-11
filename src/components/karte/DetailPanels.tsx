@@ -457,11 +457,12 @@ function ErrandRows({ districtName, errands }: { districtName: string; errands: 
                 href={errand.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-tap items-center gap-1 text-primary underline underline-offset-4 hover:no-underline sm:min-h-0"
+                // 名前が折り返しても ↗ だけが次の行に回らないよう、文の流れのまま置き、↗ の前に改行させない文字（U+2060）を入れる
+                className="inline-block py-2.5 text-primary underline underline-offset-4 hover:no-underline sm:py-0"
               >
                 {errand.place}
+                <span aria-hidden="true">{"⁠ ↗"}</span>
                 <span className="sr-only">（店の公式ページが新しいタブで開きます）</span>
-                <span aria-hidden="true">↗</span>
               </a>
             )}
           </p>
