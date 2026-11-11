@@ -423,7 +423,7 @@ describe("KarteView：わが家の下見プラン（036。はじめの名前は�
     expect(document.getElementById("shitami-memo")).toBe(memo());
   });
 
-  it("入れた項目だけを決まった並びで出し、開くと確認点とリンクが出る。バスは今のデータの便を、対象の日と「例」を添えて出す", async () => {
+  it("入れた項目だけを決まった並びで出し、開くと確認点とリンクが出る。バスはバス停の名前と時刻を出さず、行けるバス停の数と gofreely の枠を出す", async () => {
     localStorage.setItem("dearlife:shitami-memo:kanae", '["old-house-questions","bus-to-town"]');
     await open("s=winter&d=kanae&a=2&k=1&h=old&c=0");
     const titles = within(memo())
@@ -438,13 +438,12 @@ describe("KarteView：わが家の下見プラン（036。はじめの名前は�
     expect(within(memo()).queryByText("学校のまわりを親子で歩く")).toBeNull();
 
     const bus = within(entry("バスで街へ行って帰る"));
-    expect(bus.getByText("鼎公民館前 → 飯田駅前")).toBeInTheDocument();
-    expect(bus.getByText("2027年1月16日（土）の例（冬の時刻表）")).toBeInTheDocument();
-    expect(bus.getByText("冬の場面で使った1本の例です。ほかの行き先は gofreely で調べられます。")).toBeInTheDocument();
-    expect(entry("バスで街へ行って帰る")).toHaveTextContent("10:01 発 → 10:11 着");
-    expect(bus.getByText("次の便はありません")).toBeInTheDocument();
-    expect(bus.getByRole("link", { name: /停留所を地図で見る/ })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=old&c=0");
-    expect(bus.getByRole("link", { name: /gofreely/ })).toBeInTheDocument();
+    expect(bus.getByText("鼎のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。")).toBeInTheDocument();
+    expect(bus.getByText("2027年1月16日（土）の時刻表で数えました")).toBeInTheDocument();
+    expect(entry("バスで街へ行って帰る")).not.toHaveTextContent("鼎公民館前");
+    expect(entry("バスで街へ行って帰る")).not.toHaveTextContent("10:01");
+    expect(bus.getByRole("link", { name: /地図でバス停を見る/ })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=1&h=old&c=0");
+    expect(bus.getByRole("link", { name: /gofreely で行き方を調べる/ })).toBeInTheDocument();
 
     const house = within(entry("古めの家で聞くこと"));
     expect(house.getByText("見学で聞くこと")).toBeInTheDocument();
@@ -454,12 +453,12 @@ describe("KarteView：わが家の下見プラン（036。はじめの名前は�
     expect(entry("古めの家で聞くこと")).not.toHaveTextContent("万円");
   });
 
-  it("バスの便がデータ未取得なら、時刻を出さずにその旨を出す", async () => {
+  it("バスのデータが未取得ならその旨を出す。gofreely の枠はそれでも出す（家からの行き方は gofreely で調べられるため）", async () => {
     localStorage.setItem("dearlife:shitami-memo:igara", '["bus-to-town"]');
     await open("d=igara&k=1&h=new&c=0");
     const bus = within(entry("バスで街へ行って帰る"));
     expect(bus.getByText(/データ未取得/)).toBeInTheDocument();
-    expect(bus.queryByRole("link", { name: /gofreely/ })).toBeNull();
+    expect(bus.getByRole("link", { name: /gofreely で行き方を調べる/ })).toBeInTheDocument();
   });
 
   it("読み直しても残り、地区を変えると別の地区のメモになり、メモから外せる", async () => {

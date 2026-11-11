@@ -130,11 +130,18 @@ export type Outing = {
   originDeparturesPerDay: number;
 };
 
-export type BusOuting = Outing & {
+// 冬・車0台のバスのおでかけ（010・036）。バス停の名前と時刻は画面に出さない（乗る所は住む場所で決まるため。2026-11-11 まさゆきさん）。
+// 「{地区}のバス停{districtStopCount}か所のうち{reachableStopCount}か所から、{destinationPlace}へ乗りかえなしで行けるバスがあります」と出す
+export type BusOuting = {
   dayType: "平日" | "土曜" | "日曜";
   // 時刻表を見た日。「2027年1月16日（土）の時刻表」と出す
   serviceDate: string;
   validUntil: string;
+  // 行き先の呼び方（「飯田駅」など。バス停の名前ではない）
+  destinationPlace: string;
+  // 地区のバス停の数と、そのうち行き先へ乗りかえなしで行けて帰ってこられるバス停の数
+  districtStopCount: number;
+  reachableStopCount: number;
 };
 
 export type DistrictEvent = {
@@ -315,7 +322,15 @@ type RawDistrict = {
     owner_occupied: number;
     private_rented: number;
   }>;
-  bus_outing: RawSection<RawOuting & { day_type: BusOuting["dayType"]; service_date: string; valid_until: string }>;
+  bus_outing: RawSection<{
+    day_type: BusOuting["dayType"];
+    service_date: string;
+    valid_until: string;
+    // 036 より前の版の RPC（圏外用に端末に残った古いデータ）にはない
+    destination_place_name?: string;
+    district_stop_count?: number;
+    reachable_stop_count?: number;
+  }>;
   train_outing: RawSection<RawOuting>;
   events: {
     season: DistrictEvent["season"];
@@ -481,10 +496,16 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
   const busOuting: DataState<BusOuting> =
     !busSource || busItem === undefined || busItem.valid_until < today
       ? { status: "unavailable" }
-      : singleState(raw.bus_outing, findSource, (item) => {
-          const outing = toOuting(item);
-          return outing && { ...outing, dayType: item.day_type, serviceDate: item.service_date, validUntil: item.valid_until };
-        });
+      : busItem.destination_place_name === undefined || busItem.district_stop_count === undefined || busItem.reachable_stop_count === undefined
+        ? { status: "unavailable" }
+        : singleState(raw.bus_outing, findSource, (item) => ({
+            dayType: item.day_type,
+            serviceDate: item.service_date,
+            validUntil: item.valid_until,
+            destinationPlace: item.destination_place_name!,
+            districtStopCount: item.district_stop_count!,
+            reachableStopCount: item.reachable_stop_count!,
+          }));
 
   return {
     id: raw.id as DistrictId,

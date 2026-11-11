@@ -3,7 +3,6 @@ import { DEFAULT_CONDITIONS } from "@/lib/conditions/model";
 import { planScene } from "@/lib/conditions/scene";
 import type { DistrictEvent } from "@/lib/data/screen-data";
 import { screenDataFixture } from "@/test/screen-data-fixture";
-import { gofreelyHref } from "./gofreely";
 import { karteHref } from "./links";
 import { ALL_EVENTS_KEY, EVENT_PINS, PIN_SPOTS, openPinSpec, scenePinFor, scenePins, thumbnailPosition } from "./pins";
 import { parseSeason } from "./season";
@@ -47,33 +46,6 @@ function event(art: DistrictEvent["art"], extra: Partial<DistrictEvent> = {}): D
     ...extra,
   };
 }
-
-describe("gofreelyHref", () => {
-  it("おでかけの乗り場・行き先・日付・着く時刻・帰りの時刻を渡す", () => {
-    const href = gofreelyHref({
-      originName: "鼎公民館前",
-      destinationName: "飯田駅前",
-      outbound: { departure: "10:01", arrival: "10:11", line: "市内線" },
-      return: { departure: "12:00", arrival: "12:10", line: "市内線" },
-      nextReturn: null,
-      outboundTripsPerDay: 17,
-      returnTripsPerDay: 16,
-      originDeparturesPerDay: 21,
-      dayType: "土曜",
-      serviceDate: "2027-01-16",
-      validUntil: "2027-03-31",
-    });
-    const url = new URL(href);
-    expect(url.origin).toBe("https://gofreely.rabo-hohoemi.workers.dev");
-    expect(Object.fromEntries(url.searchParams)).toEqual({
-      from: "鼎公民館前",
-      to: "飯田駅前",
-      date: "2027-01-16",
-      arrive: "10:11",
-      return: "12:00",
-    });
-  });
-});
 
 describe("くらしのピン（028）", () => {
   const plan = (season: "春" | "夏" | "秋" | "冬", children: number, car?: 0 | 1) => planScene(season, { ...DEFAULT_CONDITIONS, district: "kamisato", children, ...(car === undefined ? {} : { car }) });

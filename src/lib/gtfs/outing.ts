@@ -162,3 +162,15 @@ export function planOuting(feeds: readonly GtfsFeed[], request: OutingRequest): 
     originDeparturesPerDay: countDepartures(feeds, request.origin, request.date),
   };
 }
+
+// 地区のバス停のうち、その日に行き先へ乗りかえなしで行けて、乗りかえなしで帰ってこられるバス停の数（036）。
+// 画面ではバス停の名前を出さず「地区のバス停◯か所のうち◯か所から」とだけ伝える（乗る所は住む場所で決まるため。2026-11-11 まさゆきさん）。
+// 行き先そのもののバス停は「行く」ことにならないので数えない（分母の地区のバス停の数には入る）
+export function countReachableStops(feeds: readonly GtfsFeed[], stopNames: readonly string[], destination: string, date: string): number {
+  return stopNames.filter(
+    (name) =>
+      name !== destination &&
+      findDirectTrips(feeds, name, destination, date).length > 0 &&
+      findDirectTrips(feeds, destination, name, date).length > 0,
+  ).length;
+}

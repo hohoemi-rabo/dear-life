@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { usePrintMode } from "@/components/print/PrintMode";
-import { GofreelyLink } from "@/components/data/GofreelyLink";
+import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { SourceNote } from "@/components/ui/SourceNote";
 import type { KarteCard } from "@/lib/conditions/labels";
 import type {
@@ -16,11 +16,12 @@ import type {
   StationTrips,
   SupportProgram,
 } from "@/lib/data/screen-data";
-import { formatJaDate, formatJaDateWithWeekday, formatServiceTime } from "@/lib/format";
+import { formatJaDate, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
+import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 
@@ -333,16 +334,22 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
       ),
     };
   }
+  // 冬のおでかけ：バス停の名前と時刻は出さず、地区のバス停のうち行き先へ乗りかえなしで行けるバス停の数を出す（036。2026-11-11 まさゆきさん）。
+  // 家の近くのバス停からの便は gofreely で調べてもらう
   const outing = district.busOuting;
   return {
     picture: "detail-bus-winter",
     title:
       outing.status === "available"
-        ? `${outing.value.originName}から${outing.value.destinationName}へ乗りかえなしで行くバス（1日）`
+        ? `${outing.value.destinationPlace}へ乗りかえなしで行けるバスがあるバス停（${outing.value.dayType}）`
         : "冬・車なしのおでかけ",
     figure:
       outing.status === "available" ? (
-        <BigCount count={outing.value.outboundTripsPerDay} unit="本" after={<span className="text-sm">帰り {outing.value.returnTripsPerDay}本</span>} />
+        <BigCount
+          count={outing.value.reachableStopCount}
+          unit="か所"
+          after={<span className="text-sm">地区のバス停 {outing.value.districtStopCount}か所のうち</span>}
+        />
       ) : (
         <DataStateMessage state={outing} />
       ),
@@ -350,16 +357,16 @@ function transportContent(tabId: string, district: DistrictData, noCar: boolean)
     list: (
       <>
         {outing.status === "available" && (
-          <ListSection title="冬の場面で使ったバスの便">
-            <p className="text-xs text-ink-muted">{formatJaDateWithWeekday(outing.value.serviceDate)}の時刻表</p>
-            <OutingDetails outing={outing.value} mode="バス" countsShownAbove />
-            <GofreelyLink outing={outing.value} className="self-start print:hidden" />
+          <ListSection title="冬の場面で使ったバス">
+            <p>{busReachSentence(district.name, outing.value)}</p>
+            <p className="text-xs text-ink-muted">{busReachDateNote(outing.value)}</p>
+            <GofreelyPanel />
           </ListSection>
         )}
         {district.trainStations.status !== "none" && (
           <ListSection title="冬の場面で使った電車の便">
             {district.trainOuting.status === "available" ? (
-              <OutingDetails outing={district.trainOuting.value} mode="電車" />
+              <TrainOutingDetails outing={district.trainOuting.value} />
             ) : (
               <DataStateMessage state={district.trainOuting} />
             )}
@@ -417,8 +424,8 @@ function DeparturesTable({ departures }: { departures: readonly StationTripsRow[
   );
 }
 
-// 行き・帰り・帰りの次の便と、本数（要件 6.3）。行き・帰りの本数を上の大きい数字で出したときは、残りの本数だけを出す
-function OutingDetails({ outing, mode, countsShownAbove = false }: { outing: Outing; mode: "バス" | "電車"; countsShownAbove?: boolean }) {
+// 電車のおでかけの行き・帰り・帰りの次の便と、本数（要件 6.3）。バスは名前と時刻を出さない（036）ので使わない
+function TrainOutingDetails({ outing }: { outing: Outing }) {
   const trip = (label: string, from: string, to: string, value: Outing["outbound"]) => (
     <>
       <dt className="text-ink-muted">{label}</dt>
@@ -454,13 +461,9 @@ function OutingDetails({ outing, mode, countsShownAbove = false }: { outing: Out
         )}
       </dl>
       <dl className="flex flex-wrap gap-x-6 gap-y-1">
-        {!countsShownAbove && (
-          <>
-            {count(`${outing.originName}から${outing.destinationName}へ乗りかえなしで行く${mode}（1日）`, outing.outboundTripsPerDay)}
-            {count(`帰りの${mode}（1日）`, outing.returnTripsPerDay)}
-          </>
-        )}
-        {count(`${outing.originName}を出る${mode}（行き先を問わず・1日）`, outing.originDeparturesPerDay)}
+        {count(`${outing.originName}から${outing.destinationName}へ乗りかえなしで行く電車（1日）`, outing.outboundTripsPerDay)}
+        {count("帰りの電車（1日）", outing.returnTripsPerDay)}
+        {count(`${outing.originName}を出る電車（行き先を問わず・1日）`, outing.originDeparturesPerDay)}
       </dl>
     </>
   );

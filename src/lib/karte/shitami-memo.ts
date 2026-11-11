@@ -33,7 +33,7 @@ export const SHITAMI_ITEMS: Readonly<Record<ShitamiItemId, ShitamiItem>> = {
     summary: "停留所まで歩き、行きと帰りの便を確かめる。",
     lead: null,
     checkTitle: "現地で試すこと",
-    checks: ["家族で停留所まで歩いてみる", "停留所の時刻表で、帰りの便の時刻を確かめる", "停留所で待つときの場所を見る"],
+    checks: ["住むあたりのバス停を地図で探す", "gofreely で調べた便に、実際に乗ってみる", "停留所で待つときの場所を見る"],
     note: null,
     card: "transport",
   },

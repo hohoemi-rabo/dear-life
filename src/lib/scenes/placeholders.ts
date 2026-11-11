@@ -3,6 +3,7 @@
 import type { ScenePlan } from "../conditions/scene.ts";
 import type { BusOuting, DataState, DistrictData, DistrictEvent, Facility, Outing, SourceInfo } from "../data/screen-data.ts";
 import { formatJaDate, formatServiceTime } from "../format.ts";
+import { reachableStopsPhrase } from "../transit/bus-reach.ts";
 
 // 値が出せないときに、画面で何のデータの話かを伝える単位。同じ話題の知らせは場面の中で1つにまとめる
 export type SceneTopic =
@@ -16,7 +17,7 @@ export type SceneTopic =
   | "trainOuting"
   | "winterRoads";
 
-// 冬・車0台のおでかけの文は、gofreely（1.1）とカルテの交通カードに渡せるよう便そのものも返す
+// 冬・車0台のおでかけの文は、いつの時刻表かを添え、バスなら gofreely の枠（1.1）を出せるよう、おでかけそのものも返す
 export type TransitRef = { mode: "bus"; outing: BusOuting } | { mode: "train"; outing: Outing };
 
 export type PlaceholderValue =
@@ -176,19 +177,11 @@ export const PLACEHOLDERS = {
   },
   人口の時点: { topic: "population", resolve: ({ district }) => fromState(district.population, (p) => `${formatJaDate(p.asOf)}時点`) },
 
-  // 冬・車0台のバス（010）。本数は行き先へ乗りかえなしで行く便の数
+  // 冬・車0台のバス（010・036）。バス停の名前と時刻は出さず、地区のバス停のうち行き先へ乗りかえなしで行けるバス停の数を言う
+  // （乗る所は住む場所で決まるため。2026-11-11 まさゆきさん）。行けるバス停がなければ「該当なし」で、文の fallback_body に切りかわる
   バスの曜日: { topic: "busOuting", resolve: (context) => busValue(context, (o) => DAY_TYPE_TEXT[o.dayType]) },
-  バスの乗り場: { topic: "busOuting", resolve: (context) => busValue(context, (o) => o.originName) },
-  バスの降り場: { topic: "busOuting", resolve: (context) => busValue(context, (o) => o.destinationName) },
-  バスの発車時刻: { topic: "busOuting", resolve: (context) => busValue(context, (o) => formatServiceTime(o.outbound.departure)) },
-  バスの到着時刻: { topic: "busOuting", resolve: (context) => busValue(context, (o) => formatServiceTime(o.outbound.arrival)) },
-  バスの本数: { topic: "busOuting", resolve: (context) => busValue(context, (o) => count(o.outboundTripsPerDay)) },
-  バスの帰りの発車時刻: { topic: "busOuting", resolve: (context) => busValue(context, (o) => formatServiceTime(o.return.departure)) },
-  // 次の便がなければ「該当なし」。文の fallback_body（「そのあとの帰りの便はありません」）に切りかわる
-  バスの次の便の時刻: {
-    topic: "busOuting",
-    resolve: (context) => busValue(context, (o) => (o.nextReturn === null ? null : formatServiceTime(o.nextReturn.departure))),
-  },
+  バスの行き先: { topic: "busOuting", resolve: (context) => busValue(context, (o) => o.destinationPlace) },
+  行けるバス停: { topic: "busOuting", resolve: (context) => busValue(context, reachableStopsPhrase) },
 
   // 冬・車0台の電車（026）。本数は特急を除いた数
   電車の乗り場: { topic: "trainOuting", resolve: (context) => trainValue(context, (o) => o.originName) },
@@ -245,7 +238,7 @@ export const SCENE_TOPIC_LABELS: Readonly<Record<SceneTopic, string>> = {
 
 const NONE_MESSAGES: Partial<Record<SceneTopic, string>> = {
   events: "この季節の行事は準備中です",
-  busOuting: "この条件で使えるバスの便は見つかりませんでした",
+  busOuting: "この条件で使えるバスは見つかりませんでした",
   trainOuting: "この条件で使える電車の便は見つかりませんでした",
 };
 

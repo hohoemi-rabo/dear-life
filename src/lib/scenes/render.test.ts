@@ -3,7 +3,7 @@ import { DEFAULT_CONDITIONS, type Conditions } from "@/lib/conditions/model";
 import { planScene } from "@/lib/conditions/scene";
 import type { BusOuting, DistrictData, DistrictEvent, Facility, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
-import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, busOutingFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { SCENE_TEMPLATE_DRAFTS } from "./drafts";
 import { pickChildcareExample, pickPublicFacilityExample } from "./placeholders";
 import { renderScene, selectSceneEvents } from "./render";
@@ -19,19 +19,7 @@ const WINTER = sourceFixture("rakuen_shinshu_iida_sheet");
 
 const facility = (name: string, subkind: string | null, address: string | null = `${name}の住所`): Facility => ({ name, subkind, address });
 
-const BUS_OUTING: BusOuting = {
-  originName: "鼎公民館前",
-  destinationName: "飯田駅前",
-  outbound: { departure: "10:01", arrival: "10:11", line: "市内線" },
-  return: { departure: "12:00", arrival: "12:10", line: "市内線" },
-  nextReturn: { departure: "12:20", arrival: "12:30", line: "市内線" },
-  outboundTripsPerDay: 17,
-  returnTripsPerDay: 16,
-  originDeparturesPerDay: 21,
-  dayType: "土曜",
-  serviceDate: "2027-01-16",
-  validUntil: "2027-03-31",
-};
+const BUS_OUTING: BusOuting = busOutingFixture();
 
 function event(name: string, extra: Partial<DistrictEvent> = {}): DistrictEvent {
   return {
@@ -147,29 +135,33 @@ describe("renderScene", () => {
     expect(texts(renderScene("秋", conditions(), dataWith({ events: [] })))?.[1]).toBe("[この季節の行事は準備中です]");
   });
 
-  it("冬・車0台：バスの本物の便を差し込み、駅のない地区では電車の文を出さない", () => {
+  it("冬・車0台：バス停の名前と時刻は出さず、地区のバス停のうち乗りかえなしで行ける数を差し込む。駅のない地区では電車の文を出さない（036）", () => {
     const data = dataWith({
-      busOuting: availableFixture(BUS_OUTING, BUS),
+      busOuting: availableFixture(busOutingFixture({ districtStopCount: 16, reachableStopCount: 8 }), BUS),
       trainStations: { status: "none", source: STATIONS },
     });
     const scene = renderScene("冬", conditions({ car: 0 }), data);
     expect(texts(scene)).toEqual([
       "冬の休みの日、車を使わずに出かけます。",
-      "土曜日、鼎公民館前を10:01に出るバスに乗り、10:11に飯田駅前に着きます。",
-      "鼎公民館前から飯田駅前へ乗りかえなしで行くバスは、この日は1日17本です。帰りは12:00発、その次の便は12:20発です。",
+      "土曜日の時刻表では、鼎のバス停16か所のうち8か所から、飯田駅へ乗りかえなしで行けるバスがあります。",
+      "住む家を決めたら、そこから乗れる便を確かめます。",
     ]);
-    expect(scene?.lines[1]).toMatchObject({ karteCard: "transport", transit: { mode: "bus", outing: BUS_OUTING } });
+    expect(scene?.lines[1]).toMatchObject({ karteCard: "transport", transit: { mode: "bus" } });
     expect(scene?.notices).toEqual([NOTICES.carFree]);
   });
 
-  it("冬・車0台：帰りの次の便がなければ「そのあとの帰りの便はありません」と書く", () => {
-    const data = dataWith({ busOuting: availableFixture({ ...BUS_OUTING, nextReturn: null }, BUS) });
-    expect(texts(renderScene("冬", conditions({ car: 0 }), data))?.[2]).toBe(
-      "鼎公民館前から飯田駅前へ乗りかえなしで行くバスは、この日は1日17本です。帰りは12:00発で、そのあとの帰りの便はありません。",
+  it("冬・車0台：すべてのバス停から行けるときは「すべて」、行けるバス停がなければ「ありません」と書く", () => {
+    const all = dataWith({ busOuting: availableFixture(BUS_OUTING, BUS) });
+    expect(texts(renderScene("冬", conditions({ car: 0 }), all))?.[1]).toBe(
+      "土曜日の時刻表では、鼎のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。",
+    );
+    const none = dataWith({ busOuting: availableFixture(busOutingFixture({ reachableStopCount: 0 }), BUS) });
+    expect(texts(renderScene("冬", conditions({ car: 0 }), none))?.[1]).toBe(
+      "土曜日の時刻表では、鼎のバス停から飯田駅へ乗りかえなしで行けるバスはありません。",
     );
   });
 
-  it("冬・車0台：使える便がない・電車の時刻が未公開なら、それぞれ書き分ける", () => {
+  it("冬・車0台：バスのデータがない・電車の時刻が未公開なら、それぞれ書き分ける", () => {
     const data = dataWith({
       busOuting: { status: "none", source: BUS },
       trainStations: availableFixture([facility("鼎", null)], STATIONS),
@@ -177,7 +169,8 @@ describe("renderScene", () => {
     });
     expect(texts(renderScene("冬", conditions({ car: 0 }), data))).toEqual([
       "冬の休みの日、車を使わずに出かけます。",
-      "[この条件で使えるバスの便は見つかりませんでした]",
+      "[この条件で使えるバスは見つかりませんでした]",
+      "住む家を決めたら、そこから乗れる便を確かめます。",
       "[電車の便：データ未取得]",
     ]);
   });

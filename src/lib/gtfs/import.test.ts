@@ -17,7 +17,7 @@ import {
 import { buildTestFeed } from "./test-feed";
 
 const ROOT = join(__dirname, "../../..");
-const HEADER = "地区,並び順,曜日,乗り場,行き先,行きの時刻以降,帰りの時刻以降";
+const HEADER = "地区,並び順,曜日,乗り場,行き先,行き先の場所,行きの時刻以降,帰りの時刻以降";
 
 const meta = (feedId: string, toDate = "2027-03-31"): FeedMeta => ({
   feedId,
@@ -41,26 +41,28 @@ describe("parseOutingsCsv", () => {
   });
 
   it("時刻を HH:MM にそろえる", () => {
-    expect(parseOutingsCsv(`${HEADER}\n鼎,1,土曜,A,B,9:00,12:30\n`)[0]).toMatchObject({
+    expect(parseOutingsCsv(`${HEADER}\n鼎,1,土曜,A,B,B駅,9:00,12:30\n`)[0]).toMatchObject({
       districtId: "kanae",
       dayType: "土曜",
+      destinationPlace: "B駅",
       departAfter: "09:00",
       returnAfter: "12:30",
     });
   });
 
   it.each([
-    ["松尾,1,土曜,A,B,9:00,12:00", "4地区"],
-    ["鼎,0,土曜,A,B,9:00,12:00", "並び順"],
-    ["鼎,1,祝日,A,B,9:00,12:00", "曜日"],
-    ["鼎,1,土曜,,B,9:00,12:00", "乗り場と行き先"],
-    ["鼎,1,土曜,A,B,9時,12:00", "H:MM"],
+    ["松尾,1,土曜,A,B,B駅,9:00,12:00", "4地区"],
+    ["鼎,0,土曜,A,B,B駅,9:00,12:00", "並び順"],
+    ["鼎,1,祝日,A,B,B駅,9:00,12:00", "曜日"],
+    ["鼎,1,土曜,,B,B駅,9:00,12:00", "乗り場・行き先・行き先の場所"],
+    ["鼎,1,土曜,A,B,,9:00,12:00", "乗り場・行き先・行き先の場所"],
+    ["鼎,1,土曜,A,B,B駅,9時,12:00", "H:MM"],
   ])("おかしい行は止める：%s", (line, message) => {
     expect(() => parseOutingsCsv(`${HEADER}\n${line}\n`)).toThrow(message);
   });
 
   it("同じ地区の並び順の重複と、見出しの違いを止める", () => {
-    expect(() => parseOutingsCsv(`${HEADER}\n鼎,1,土曜,A,B,9:00,12:00\n鼎,1,平日,A,B,9:00,12:00\n`)).toThrow("重複");
+    expect(() => parseOutingsCsv(`${HEADER}\n鼎,1,土曜,A,B,B駅,9:00,12:00\n鼎,1,平日,A,B,B駅,9:00,12:00\n`)).toThrow("重複");
     expect(() => parseOutingsCsv("地区,曜日\n鼎,土曜\n")).toThrow("見出し");
   });
 });
@@ -124,24 +126,46 @@ describe("buildBusStops", () => {
 });
 
 describe("buildOutings", () => {
+  // 団地・坂上からは駅前へ乗りかえなしで行き帰りできる。川向こうは行きだけ、丘の上は便がない
   const feed = buildTestFeed({
-    stops: { A: "団地", B: "駅前" },
+    stops: { A: "団地", B: "駅前", C: "坂上", D: "川向こう", E: "丘の上" },
     trips: [
-      { id: "out", service: "土曜", stops: [{ stop: "A", time: "09:30:00" }, { stop: "B", time: "09:50:00" }] },
-      { id: "back", service: "土曜", stops: [{ stop: "B", time: "13:00:00" }, { stop: "A", time: "13:20:00" }] },
+      { id: "out", service: "土曜", stops: [{ stop: "A", time: "09:30:00" }, { stop: "C", time: "09:40:00" }, { stop: "B", time: "09:50:00" }] },
+      { id: "back", service: "土曜", stops: [{ stop: "B", time: "13:00:00" }, { stop: "C", time: "13:10:00" }, { stop: "A", time: "13:20:00" }] },
+      { id: "oneway", service: "土曜", stops: [{ stop: "D", time: "10:00:00" }, { stop: "B", time: "10:20:00" }] },
+      { id: "weekday", service: "平日", stops: [{ stop: "B", time: "11:00:00" }, { stop: "D", time: "11:20:00" }] },
     ],
     validTo: "20270331",
   });
   const loaded: LoadedFeed[] = [{ meta: meta("f"), feed }];
+  const stops = [
+    { name: "団地", districtId: "kanae" as const },
+    { name: "坂上", districtId: "kanae" as const },
+    // 地区の境のバス停は両側に1つずつあるが、地区の中では1つに数える
+    { name: "坂上", districtId: "kanae" as const },
+    { name: "川向こう", districtId: "kanae" as const },
+    { name: "丘の上", districtId: "kanae" as const },
+    { name: "駅前", districtId: "chushin" as const },
+  ];
 
   it("冬のその曜日の日で便を決め、データの有効期間の終わりを付ける", () => {
-    const [row] = buildOutings(loaded, parseOutingsCsv(`${HEADER}\n鼎,1,土曜,団地,駅前,9:00,12:00\n`));
+    const [row] = buildOutings(loaded, parseOutingsCsv(`${HEADER}\n鼎,1,土曜,団地,駅前,飯田駅,9:00,12:00\n`), stops);
     expect(row).toMatchObject({ serviceDate: "2027-01-16", status: "available", validUntil: "2027-03-31", outboundTripsPerDay: 1 });
     expect(row.return?.tripId).toBe("back");
   });
 
+  it("地区のバス停のうち、その日に行き先へ乗りかえなしで行き帰りできる数を数える（行きだけ・便なし・ほかの曜日は数えない。036）", () => {
+    const [row] = buildOutings(loaded, parseOutingsCsv(`${HEADER}\n鼎,1,土曜,団地,駅前,飯田駅,9:00,12:00\n`), stops);
+    expect(row).toMatchObject({ destinationPlace: "飯田駅", districtStopCount: 4, reachableStopCount: 2 });
+  });
+
+  it("行き先が地区の中にあっても、行き先のバス停そのものは「行ける」に数えない", () => {
+    const [row] = buildOutings(loaded, parseOutingsCsv(`${HEADER}\n中心市街地,1,土曜,団地,駅前,飯田駅,9:00,12:00\n`), stops);
+    expect(row).toMatchObject({ districtStopCount: 1, reachableStopCount: 0 });
+  });
+
   it("フィードにないバス停の名前は、書き間違いとして止める", () => {
-    expect(() => buildOutings(loaded, parseOutingsCsv(`${HEADER}\n鼎,1,土曜,団地,駅まえ,9:00,12:00\n`))).toThrow("駅まえ");
+    expect(() => buildOutings(loaded, parseOutingsCsv(`${HEADER}\n鼎,1,土曜,団地,駅まえ,飯田駅,9:00,12:00\n`), stops)).toThrow("駅まえ");
   });
 });
 
@@ -171,6 +195,7 @@ describe("リポジトリのマイグレーション", () => {
       const line = sql.split("\n").find((row) => row.trimStart().startsWith(prefix));
       expect(line, `${config.districtId} ${config.sortOrder}`).toBeDefined();
       expect(line).toContain(`'${config.origin}', '${config.destination}', '${config.departAfter}', '${config.returnAfter}'`);
+      expect(line).toContain(`'${config.destinationPlace}', `);
     }
     expect(sql.match(/^ {2}\('(kamisato|kanae|igara|chushin)', \d+, /gm)).toHaveLength(configs.length);
   });

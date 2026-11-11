@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
-import { GofreelyLink } from "@/components/data/GofreelyLink";
+import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { DISTRICT_NAMES } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import type { BusOuting } from "@/lib/data/screen-data";
-import { formatJaDateWithWeekday, formatServiceTime } from "@/lib/format";
 import { houseSrc, propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
 import { SHITAMI_ITEMS, SHITAMI_MEMO_ANCHOR, type ShitamiItem, type ShitamiItemId } from "@/lib/karte/shitami-memo";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
+import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 type Chosen = Conditions & { district: DistrictId };
@@ -247,61 +247,31 @@ function EntryBody({ id, conditions, links, remove }: { id: ShitamiItemId; condi
   }
 }
 
-// バスで街へ行って帰る：場面で使った冬のおでかけの便（今のデータ）を、対象の日と「例」であることを添えて出す
+// バスで街へ行って帰る：バス停の名前と時刻は出さず、地区のバス停のうち乗りかえなしで行けるバス停の数を出す（036。2026-11-11 まさゆきさん）。
+// 家の近くのバス停からの便は gofreely の枠で調べてもらう
 function BusBody({ item, conditions, links, remove }: { item: ShitamiItem; conditions: Chosen; links: ShitamiLinks; remove: ReactNode }) {
   const outing = useScreenData().districts[conditions.district].busOuting;
   return (
     <>
-      {outing.status === "available" ? <OutingExample outing={outing.value} /> : <DataStateMessage state={outing} />}
+      {outing.status === "available" ? <BusReach districtName={DISTRICT_NAMES[conditions.district]} outing={outing.value} /> : <DataStateMessage state={outing} />}
       <CheckBox item={item} />
+      <GofreelyPanel />
       <Actions remove={remove}>
         <ButtonLink href={links.map} variant="secondary" className="sm:flex-1">
           <PixelIcon icon="icon-map" size="sm" />
-          停留所を地図で見る
+          地図でバス停を見る
         </ButtonLink>
-        {outing.status === "available" && <GofreelyLink outing={outing.value} className="sm:flex-1" />}
       </Actions>
     </>
   );
 }
 
-export function OutingExample({ outing }: { outing: BusOuting }) {
-  const row = (label: string, body: ReactNode) => (
-    <div className="flex items-center gap-3 rounded-button bg-kinari px-3 py-2">
-      <dt className="shrink-0 rounded-full bg-primary-soft px-3 py-0.5 text-sm font-bold text-primary">{label}</dt>
-      <dd className="font-bold tabular-nums">{body}</dd>
-    </div>
-  );
+// 「上郷のバス停11か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。」と、いつの時刻表で数えたか
+export function BusReach({ districtName, outing }: { districtName: string; outing: BusOuting }) {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="flex flex-col">
-        <span className="font-bold">
-          {outing.originName} → {outing.destinationName}
-        </span>
-        <span className="text-sm text-ink-muted">{formatJaDateWithWeekday(outing.serviceDate)}の例（冬の時刻表）</span>
-        <span className="text-sm text-ink-muted">冬の場面で使った1本の例です。ほかの行き先は gofreely で調べられます。</span>
-      </p>
-      <dl className="flex flex-col gap-1.5">
-        {row(
-          "行き",
-          <>
-            <span className="whitespace-nowrap">{formatServiceTime(outing.outbound.departure)} 発</span> →{" "}
-            <span className="whitespace-nowrap">{formatServiceTime(outing.outbound.arrival)} 着</span>
-          </>,
-        )}
-        {row(
-          "帰り",
-          <>
-            <span className="whitespace-nowrap">{formatServiceTime(outing.return.departure)} 発</span>
-            <span className="mx-2 font-normal text-ink-muted">/</span>
-            {outing.nextReturn ? (
-              <span className="inline-block whitespace-nowrap">次は {formatServiceTime(outing.nextReturn.departure)} 発</span>
-            ) : (
-              <span className="inline-block font-normal">次の便はありません</span>
-            )}
-          </>,
-        )}
-      </dl>
-    </div>
+    <p className="flex flex-col gap-0.5">
+      <span className="font-bold">{busReachSentence(districtName, outing)}</span>
+      <span className="text-sm text-ink-muted">{busReachDateNote(outing)}</span>
+    </p>
   );
 }

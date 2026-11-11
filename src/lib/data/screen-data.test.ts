@@ -215,39 +215,39 @@ describe("parseScreenData：相場の集計で外した取引の件数（022）"
 });
 
 describe("parseScreenData：おでかけの便（010・026）", () => {
+  const BUS_ITEM = {
+    day_type: "土曜",
+    service_date: "2027-01-16",
+    valid_until: "2027-03-31",
+    destination_place_name: "飯田駅",
+    district_stop_count: 25,
+    reachable_stop_count: 20,
+  };
   const withBus = (item: Record<string, unknown>) =>
     raw({
       sources: [source("gtfs_minamishinshu_bus")],
-      kanae: { bus_outing: section("gtfs_minamishinshu_bus", [outing({ day_type: "土曜", service_date: "2027-01-16", valid_until: "2027-03-31", ...item })]) },
+      kanae: { bus_outing: section("gtfs_minamishinshu_bus", [{ ...BUS_ITEM, ...item }]) },
     });
 
-  it("行き・帰りの便を返し、次の便がなければ null にする", () => {
+  it("バスは行き先の呼び方と、地区のバス停のうち乗りかえなしで行ける数だけを返す（バス停の名前と時刻は持たない。036）", () => {
     const state = parseScreenData(withBus({}), TODAY).districts.kanae.busOuting;
     expect(state).toEqual({
       status: "available",
       source: expect.objectContaining({ id: "gtfs_minamishinshu_bus" }),
       value: {
-        originName: "鼎公民館前",
-        destinationName: "飯田駅前",
-        outbound: { departure: "09:10", arrival: "09:30", line: "市民バス" },
-        return: { departure: "12:15", arrival: "12:35", line: "市民バス" },
-        nextReturn: null,
-        outboundTripsPerDay: 5,
-        returnTripsPerDay: 6,
-        originDeparturesPerDay: 12,
         dayType: "土曜",
         serviceDate: "2027-01-16",
         validUntil: "2027-03-31",
+        destinationPlace: "飯田駅",
+        districtStopCount: 25,
+        reachableStopCount: 20,
       },
     });
   });
 
-  it("便が見つからない行は該当なし（この条件で使える便は見つかりませんでした）", () => {
-    const state = parseScreenData(
-      withBus({ status: "no_return", return_departure: null, return_arrival: null, return_line: null }),
-      TODAY,
-    ).districts.kanae.busOuting;
-    expect(state.status).toBe("none");
+  it("036 より前の形（圏外用に端末に残った古いデータ）は、データ未取得にする", () => {
+    const old = { destination_place_name: undefined, district_stop_count: undefined, reachable_stop_count: undefined };
+    expect(parseScreenData(withBus(old), TODAY).districts.kanae.busOuting).toEqual({ status: "unavailable" });
   });
 
   it("時刻表の有効期間を過ぎたらデータ未取得。最終日までは使う", () => {

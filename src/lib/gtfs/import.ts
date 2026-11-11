@@ -5,7 +5,7 @@ import { TARGET_DISTRICT_IDS } from "../town-district/csv.ts";
 import type { DistrictId, TownMapEntry } from "../town-district/resolve.ts";
 import { parseCsv } from "./csv.ts";
 import { formatGtfsTime, parseClock, type GtfsFeed } from "./feed.ts";
-import { DAY_TYPES, planOuting, winterReferenceDate, type DayType, type DirectTrip } from "./outing.ts";
+import { DAY_TYPES, countReachableStops, planOuting, winterReferenceDate, type DayType, type DirectTrip } from "./outing.ts";
 
 export const BUS_SOURCE_ID = "gtfs_minamishinshu_bus";
 export const IIDA_MUNI_CODE = "20205";
@@ -53,11 +53,13 @@ export type OutingConfig = {
   dayType: DayType;
   origin: string;
   destination: string;
+  // 画面に出す行き先の呼び方（「飯田駅」「飯田市立病院」など）。バス停の名前は画面に出さない（036。2026-11-11 まさゆきさん）
+  destinationPlace: string;
   departAfter: string;
   returnAfter: string;
 };
 
-const OUTINGS_HEADER = ["地区", "並び順", "曜日", "乗り場", "行き先", "行きの時刻以降", "帰りの時刻以降"];
+const OUTINGS_HEADER = ["地区", "並び順", "曜日", "乗り場", "行き先", "行き先の場所", "行きの時刻以降", "帰りの時刻以降"];
 
 function toClockLabel(value: string, label: string): string {
   const seconds = parseClock(value);
@@ -82,13 +84,14 @@ export function parseOutingsCsv(text: string): OutingConfig[] {
     seen.add(key);
     const dayType = record["曜日"] as DayType;
     if (!DAY_TYPES.includes(dayType)) throw new Error(`${at}：曜日は ${DAY_TYPES.join("・")} のどれか: ${record["曜日"]}`);
-    if (!record["乗り場"] || !record["行き先"]) throw new Error(`${at}：乗り場と行き先が必要`);
+    if (!record["乗り場"] || !record["行き先"] || !record["行き先の場所"]) throw new Error(`${at}：乗り場・行き先・行き先の場所が必要`);
     return {
       districtId,
       sortOrder,
       dayType,
       origin: record["乗り場"],
       destination: record["行き先"],
+      destinationPlace: record["行き先の場所"],
       departAfter: toClockLabel(record["行きの時刻以降"], `${at}：行きの時刻`),
       returnAfter: toClockLabel(record["帰りの時刻以降"], `${at}：帰りの時刻`),
     };
@@ -212,6 +215,9 @@ export type OutingRow = OutingConfig & {
   outboundTripsPerDay: number;
   returnTripsPerDay: number;
   originDeparturesPerDay: number;
+  // 地区のバス停の数と、そのうち行き先へ乗りかえなしで行き帰りできるバス停の数（036）
+  districtStopCount: number;
+  reachableStopCount: number;
   validUntil: string;
 };
 
@@ -220,7 +226,11 @@ function isoDate(date: string): string {
 }
 
 // 乗り場・行き先の名前がどのフィードにもないときは、書き間違いとして止める（「便がない」と区別する）
-export function buildOutings(feeds: readonly LoadedFeed[], configs: readonly OutingConfig[]): OutingRow[] {
+export function buildOutings(
+  feeds: readonly LoadedFeed[],
+  configs: readonly OutingConfig[],
+  stops: readonly Pick<BusStopRow, "name" | "districtId">[],
+): OutingRow[] {
   const gtfsFeeds = feeds.map((loaded) => loaded.feed);
   const stopNames = new Set(gtfsFeeds.flatMap((feed) => [...feed.stops.values()].map((stop) => stop.name)));
   const validUntil = gtfsFeeds.map((feed) => feed.validTo).filter((date) => date !== null).sort()[0];
@@ -239,7 +249,17 @@ export function buildOutings(feeds: readonly LoadedFeed[], configs: readonly Out
       departAfter: parseClock(config.departAfter),
       returnAfter: parseClock(config.returnAfter),
     });
-    return { ...config, ...plan, serviceDate: isoDate(serviceDate), validUntil: isoDate(validUntil) };
+    // 地区の境のバス停は両側の地区に1つずつある（buildBusStops）。地区の中では名前ごとに1つに数える
+    const districtStops = [...new Set(stops.filter((stop) => stop.districtId === config.districtId).map((stop) => stop.name))];
+    if (districtStops.length === 0) throw new Error(`${config.districtId} にバス停がない`);
+    return {
+      ...config,
+      ...plan,
+      districtStopCount: districtStops.length,
+      reachableStopCount: countReachableStops(gtfsFeeds, districtStops, config.destination, serviceDate),
+      serviceDate: isoDate(serviceDate),
+      validUntil: isoDate(validUntil),
+    };
   });
 }
 
@@ -324,6 +344,9 @@ export function buildBusSql({ feeds, stops, outings, importedAt }: BusSqlInput):
         String(outing.outboundTripsPerDay),
         String(outing.returnTripsPerDay),
         String(outing.originDeparturesPerDay),
+        sqlLiteral(outing.destinationPlace),
+        String(outing.districtStopCount),
+        String(outing.reachableStopCount),
         `${sqlLiteral(outing.validUntil)}::date`,
         source,
       ].join(", "),
@@ -373,7 +396,8 @@ insert into public.bus_outings (
   outbound_departure, outbound_arrival, outbound_route_name,
   return_departure, return_arrival, return_route_name,
   next_return_departure, next_return_arrival, next_return_route_name,
-  outbound_trips_per_day, return_trips_per_day, origin_departures_per_day, valid_until, source_id
+  outbound_trips_per_day, return_trips_per_day, origin_departures_per_day,
+  destination_place_name, district_stop_count, reachable_stop_count, valid_until, source_id
 ) values
 ${outingValues};
 `;

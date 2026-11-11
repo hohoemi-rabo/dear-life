@@ -723,18 +723,34 @@ describe("バス（010）", () => {
   });
 
   it("便の有無と状態が食い違う行は入れられない", async () => {
-    const insert = (status: string, returnColumns: string) => `
+    const insert = (status: string, returnColumns: string, reach = "3, 2") => `
       insert into bus_outings (
         district_id, sort_order, day_type, service_date, origin_stop_name, destination_stop_name, depart_after, return_after, status,
         outbound_departure, outbound_arrival, outbound_route_name, return_departure, return_arrival, return_route_name,
-        outbound_trips_per_day, return_trips_per_day, origin_departures_per_day, valid_until, source_id
+        outbound_trips_per_day, return_trips_per_day, origin_departures_per_day,
+        destination_place_name, district_stop_count, reachable_stop_count, valid_until, source_id
       ) values (
         'kanae', 99, '土曜', '2027-01-16', 'A', 'B', '09:00', '12:00', '${status}',
-        '09:30', '09:50', 'R', ${returnColumns}, 1, 1, 1, '2027-03-31', 'gtfs_minamishinshu_bus'
+        '09:30', '09:50', 'R', ${returnColumns}, 1, 1, 1, 'B駅', ${reach}, '2027-03-31', 'gtfs_minamishinshu_bus'
       )`;
     await expect(run("service_role", insert("available", "null, null, null"))).rejects.toThrow(/bus_outings_trips_match_status/);
     await expect(run("service_role", insert("no_return", "'13:00', '13:20', 'R'"))).rejects.toThrow(/bus_outings_trips_match_status/);
     await expect(run("service_role", insert("available", "'13:00', '13:20', 'R'"))).resolves.toEqual([]);
+  });
+
+  it("行けるバス停の数は、地区のバス停の数を超えられず、なくせない（036）", async () => {
+    const insert = (reach: string) => `
+      insert into bus_outings (
+        district_id, sort_order, day_type, service_date, origin_stop_name, destination_stop_name, depart_after, return_after, status,
+        outbound_departure, outbound_arrival, outbound_route_name, return_departure, return_arrival, return_route_name,
+        outbound_trips_per_day, return_trips_per_day, origin_departures_per_day,
+        destination_place_name, district_stop_count, reachable_stop_count, valid_until, source_id
+      ) values (
+        'kanae', 98, '土曜', '2027-01-16', 'A', 'B', '09:00', '12:00', 'available',
+        '09:30', '09:50', 'R', '13:00', '13:20', 'R', 1, 1, 1, 'B駅', ${reach}, '2027-03-31', 'gtfs_minamishinshu_bus'
+      )`;
+    await expect(run("service_role", insert("2, 3"))).rejects.toThrow(/bus_outings_reach_within_district/);
+    await expect(run("service_role", insert("2, null"))).rejects.toThrow(/null/);
   });
 });
 
@@ -1380,7 +1396,10 @@ describe("画面が読むデータ screen_data（015）", () => {
     ]);
     expect(kanae.elementary_school_districts).toEqual({ source_id: "reinfolib_xkt004", items: [{ school_name: "鼎小学校" }] });
     expect(kanae.population.items).toEqual([expect.objectContaining({ as_of: "2020-10-01", total: expect.any(Number) })]);
-    expect(kanae.bus_outing.items).toEqual([expect.objectContaining({ origin_name: "鼎公民館前", destination_name: "飯田駅前" })]);
+    // バス停の名前と時刻は画面に渡さない（036）
+    expect(kanae.bus_outing.items).toEqual([
+      { day_type: "土曜", service_date: expect.any(String), valid_until: expect.any(String), destination_place_name: "飯田駅", district_stop_count: 25, reachable_stop_count: expect.any(Number) },
+    ]);
   });
 
   it("駅の本数は特急を除いて数え、伊賀良は駅も時刻もない（該当なし）", async () => {
@@ -1491,7 +1510,7 @@ describe("画面が読むデータ screen_data（015）", () => {
         expect(state.status, id).toBe("available");
       }
     }
-    expect(data.districts.kanae.busOuting).toMatchObject({ value: { originName: "鼎公民館前", dayType: "土曜" } });
+    expect(data.districts.kanae.busOuting).toMatchObject({ value: { destinationPlace: "飯田駅", dayType: "土曜", districtStopCount: 25 } });
     expect(data.districts.kanae.trainOuting.status).toBe("available");
   });
 });

@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import { GofreelyLink } from "@/components/data/GofreelyLink";
+import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import type { SourceInfo } from "@/lib/data/screen-data";
 import { formatJaDate, formatJaDateWithWeekday } from "@/lib/format";
 import type { TransitRef } from "@/lib/scenes/placeholders";
 import type { SceneLine } from "@/lib/scenes/render";
 
 // 場面の文1つの見せ方（要件 6.4）。データ・地区の情報・想定で印を変える。ピンのシート（PinSheetContent）で使う。
-// いつの時刻表か（と gofreely へのリンク）は、バス・電車それぞれ最初の文にだけ添える（おでかけはバス2文・電車1文に分かれている）。
+// いつの時刻表か（とバスなら gofreely の枠）は、バス・電車それぞれ最初の文にだけ添える。
 // 添える文の position を返す
 export function timetableNotePositions(lines: readonly SceneLine[]): ReadonlySet<number> {
   const firstOf = new Map<TransitRef["mode"], number>();
@@ -48,7 +48,7 @@ export function SceneLineView({
           {withTimetableNote && line.transit && (
             <>
               <TransitTimetableNote transit={line.transit} sources={line.sources} />
-              {line.transit.mode === "bus" && <GofreelyLink outing={line.transit.outing} className="mt-1 self-start" />}
+              {line.transit.mode === "bus" && <GofreelyPanel className="mt-2" />}
             </>
           )}
         </div>

@@ -3,7 +3,7 @@
 //   1. フィードごとに今の版の情報と zip を取る（ライセンスが CC BY 4.0 でなければ止める）
 //   2. 乗り場の緯度経度を町名にする（国土地理院の逆ジオコーダ。結果は data/bus_stop_towns.csv にためて、新しい位置だけ問い合わせる）
 //   3. 町名を data/iida_district_map.csv で地区に振り分ける（対応表にない町名があれば止める）
-//   4. data/bus_outings.csv のおでかけの便と本数を計算する
+//   4. data/bus_outings.csv のおでかけの便と本数、地区のバス停のうち行き先へ乗りかえなしで行き帰りできる数を計算する（036）
 //   5. supabase/migrations/<版番号>_bus_gtfs_data.sql を書き出す。いちばん新しいものと中身が同じなら何もしない
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -80,7 +80,7 @@ if (stops.unmappedTowns.length > 0) {
   process.exit(1);
 }
 
-const outings = buildOutings(feeds, parseOutingsCsv(readFileSync(join(root, "data/bus_outings.csv"), "utf8")));
+const outings = buildOutings(feeds, parseOutingsCsv(readFileSync(join(root, "data/bus_outings.csv"), "utf8")), stops.rows);
 const sql = buildBusSql({ feeds: feeds.map((loaded) => loaded.meta), stops: stops.rows, outings, importedAt: new Date().toISOString() });
 
 console.log("\n地区ごとのバス停の数：");
@@ -93,7 +93,8 @@ for (const outing of outings) {
   console.log(
     `  ${outing.districtId} ${outing.sortOrder} ${outing.origin}→${outing.destination} ${outing.serviceDate}（${outing.dayType}） ${outing.status}` +
       ` 行き ${time(outing.outbound)} 帰り ${time(outing.return)} 次 ${time(outing.nextReturn)}` +
-      ` 直通 ${outing.outboundTripsPerDay}/${outing.returnTripsPerDay} 乗り場 ${outing.originDeparturesPerDay}`,
+      ` 直通 ${outing.outboundTripsPerDay}/${outing.returnTripsPerDay} 乗り場 ${outing.originDeparturesPerDay}` +
+      ` ／ ${outing.destinationPlace}へ行き帰りできるバス停 ${outing.reachableStopCount}/${outing.districtStopCount}`,
   );
 }
 

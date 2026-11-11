@@ -1,6 +1,6 @@
 // 画面のテストで使う ScreenData（読み込んだあとの形）。既定では出典のあるデータがすべて「データ未取得」で、
 // 確かめたい欄だけを上書きして使う
-import type { DataState, DistrictData, HousingTenure, MarketStat, RentReference, ScreenData, SourceInfo } from "@/lib/data/screen-data";
+import type { BusOuting, DataState, DistrictData, HousingTenure, MarketStat, RentReference, ScreenData, SourceInfo } from "@/lib/data/screen-data";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 export function sourceFixture(id: string, extra: Partial<SourceInfo> = {}): SourceInfo {
@@ -112,5 +112,18 @@ export function screenDataFixture(overrides: Partial<Record<DistrictId, Partial<
     rent: UNAVAILABLE,
     supportPrograms: [],
     sceneTemplates: [],
+  };
+}
+
+// 冬・車0台のバスのおでかけ（036 からはバス停の名前と時刻を持たず、行けるバス停の数だけ）
+export function busOutingFixture(extra: Partial<BusOuting> = {}): BusOuting {
+  return {
+    dayType: "土曜",
+    serviceDate: "2027-01-16",
+    validUntil: "2027-03-31",
+    destinationPlace: "飯田駅",
+    districtStopCount: 25,
+    reachableStopCount: 25,
+    ...extra,
   };
 }

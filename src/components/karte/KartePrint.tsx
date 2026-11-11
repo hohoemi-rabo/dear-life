@@ -19,7 +19,7 @@ import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
 import { HousingTabFootnote, HousingTabPanel, housingTabs } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KarteEntries } from "./KarteEntries";
-import { OutingExample } from "./ShitamiMemo";
+import { BusReach } from "./ShitamiMemo";
 
 type Chosen = Conditions & { district: DistrictId };
 
@@ -126,7 +126,11 @@ function ShitamiPrint({ conditions }: { conditions: Chosen }) {
             <p>{item.summary}</p>
             {item.lead && <p className="text-sm">{item.lead}</p>}
             {id === "bus-to-town" &&
-              (outing.status === "available" ? <OutingExample outing={outing.value} /> : <DataStateMessage state={outing} />)}
+              (outing.status === "available" ? (
+                <BusReach districtName={DISTRICT_NAMES[conditions.district]} outing={outing.value} />
+              ) : (
+                <DataStateMessage state={outing} />
+              ))}
             <PrintCheckList title={item.checkTitle} items={item.checks} />
             {item.note && <p className="text-sm">{item.note}</p>}
           </PrintBlock>

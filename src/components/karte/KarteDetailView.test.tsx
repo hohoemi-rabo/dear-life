@@ -176,18 +176,20 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     });
   };
 
-  it("車0台の交通は、冬のおでかけのタブから開き、本数・注意書き・便・gofreely へのリンクを出す", async () => {
+  it("車0台の交通は、冬のおでかけのタブから開き、バス停の名前と時刻は出さずに行けるバス停の数・注意書き・gofreely の枠を出す（036）", async () => {
     await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("車なしで、どう動く？");
     expect(tabNames()).toEqual(["冬のおでかけ", "バス停", "電車"]);
     expect(screen.getByRole("tab", { name: /冬のおでかけ/ })).toHaveAttribute("aria-selected", "true");
-    expect(figure()).toHaveTextContent("鼎公民館前から飯田駅前へ乗りかえなしで行くバス（1日）");
-    expect(figure()).toHaveTextContent("17本");
+    expect(figure()).toHaveTextContent("飯田駅へ乗りかえなしで行けるバスがあるバス停（土曜）");
+    expect(figure()).toHaveTextContent("25か所");
+    expect(figure()).toHaveTextContent("地区のバス停 25か所のうち");
     expect(figure()).toHaveTextContent(NOTICES.carFree);
     const main = card("交通");
-    expect(main).toHaveTextContent("2027年1月16日（土）の時刻表");
-    expect(main).toHaveTextContent("10:01 鼎公民館前発 → 10:11 飯田駅前着");
-    expect(within(main).getByRole("link", { name: /この便を gofreely で調べる/ }).getAttribute("href")).toContain("from=");
+    expect(main).toHaveTextContent("鼎のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。");
+    expect(main).toHaveTextContent("2027年1月16日（土）の時刻表で数えました");
+    expect(main).not.toHaveTextContent("鼎公民館前");
+    expect(within(main).getByRole("link", { name: /gofreely で行き方を調べる/ })).toHaveAttribute("href", "https://gofreely.rabo-hohoemi.workers.dev/");
     expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("GTFSデータリポジトリ「南信州のバス」");
   });
 

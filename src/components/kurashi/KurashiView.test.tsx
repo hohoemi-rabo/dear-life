@@ -4,7 +4,7 @@ import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate 
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
 import { SCENE_TEMPLATE_DRAFTS } from "@/lib/scenes/drafts";
-import { availableFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
+import { availableFixture, busOutingFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
 import { KurashiView } from "./KurashiView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -45,19 +45,7 @@ const CHILDCARE = sourceFixture("iida_childcare", { name: "子育て施設", pub
 const BUS = sourceFixture("gtfs_minamishinshu_bus", { name: "南信州のバス", publisher: "GTFSデータリポジトリ" });
 const WINTER = sourceFixture("rakuen_shinshu_iida_sheet");
 
-const BUS_OUTING: BusOuting = {
-  originName: "鼎公民館前",
-  destinationName: "飯田駅前",
-  outbound: { departure: "10:01", arrival: "10:11", line: "市内線" },
-  return: { departure: "12:00", arrival: "12:10", line: "市内線" },
-  nextReturn: { departure: "12:20", arrival: "12:30", line: "市内線" },
-  outboundTripsPerDay: 17,
-  returnTripsPerDay: 16,
-  originDeparturesPerDay: 21,
-  dayType: "土曜",
-  serviceDate: "2027-01-16",
-  validUntil: "2027-03-31",
-};
+const BUS_OUTING: BusOuting = busOutingFixture();
 
 function event(name: string, extra: Partial<DistrictEvent> = {}): DistrictEvent {
   return {
@@ -535,15 +523,18 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     expect(screen.queryByRole("button", { name: "雪の道" })).not.toBeInTheDocument();
   });
 
-  it("車0台：バス・電車のピンのシートに、本物の便・いつの時刻表か・gofreely へのリンク・カルテの交通へのボタンを出す", async () => {
+  it("車0台：バス・電車のピンのシートに、バス停の名前と時刻を出さずに行けるバス停の数・いつの時刻表か・gofreely の枠・カルテの交通へのボタンを出す（036）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=0&s=winter");
     await act(async () => {
       fireEvent.click(pin("バス・電車"));
     });
     const sheet = screen.getByRole("dialog", { name: "上郷のバス停は2か所" });
-    expect(sheet).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
+    expect(sheet).toHaveTextContent("土曜日の時刻表では、上郷のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。");
+    expect(sheet).not.toHaveTextContent("10:01");
     expect(within(sheet).getByText("2027年1月16日（土）の時刻表")).toBeInTheDocument();
-    expect(within(sheet).getByRole("link", { name: /この便を gofreely で調べる/ })).toHaveAttribute("target", "_blank");
+    const gofreely = within(sheet).getByRole("region", { name: "家からの行き方は gofreely で" });
+    expect(within(gofreely).getByRole("link", { name: /gofreely で行き方を調べる/ })).toHaveAttribute("href", "https://gofreely.rabo-hohoemi.workers.dev/");
+    expect(within(gofreely).getByRole("link", { name: /gofreely で行き方を調べる/ })).toHaveAttribute("target", "_blank");
     expect(sheet).toHaveTextContent("出典：GTFSデータリポジトリ「南信州のバス」");
     expect(within(sheet).getByRole("link", { name: /バスと電車を確かめる/ })).toHaveAttribute(
       "href",
@@ -627,10 +618,10 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
       fireEvent.click(pin("バス"));
     });
     const bus = screen.getByRole("dialog", { name: /^鼎のバス停/ });
-    expect(bus).toHaveTextContent("土曜日、鼎公民館前を10:01に出るバスに乗り");
+    expect(bus).toHaveTextContent("鼎のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。");
     expect(bus).toHaveTextContent("車を使わずに出かけます");
     expect(bus).not.toHaveTextContent("電車の便");
-    expect(within(bus).getByRole("link", { name: /この便を gofreely で調べる/ })).toBeInTheDocument();
+    expect(within(bus).getByRole("link", { name: /gofreely で行き方を調べる/ })).toBeInTheDocument();
     expect(within(bus).getByRole("link", { name: /バスを確かめる/ })).toHaveAttribute("href", "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0");
     cleanup();
 
@@ -640,7 +631,7 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
     });
     const train = screen.getByRole("dialog", { name: /^鼎の駅/ });
     expect(train).toHaveTextContent("車を使わずに出かけます");
-    expect(train).not.toHaveTextContent("10:01に出るバス");
+    expect(train).not.toHaveTextContent("乗りかえなしで行けるバス");
     expect(within(train).queryByRole("link", { name: /gofreely/ })).not.toBeInTheDocument();
     expect(within(train).getByRole("link", { name: /電車を確かめる/ })).toHaveAttribute("href", "/karte/transport?s=winter&d=kanae&a=2&k=1&h=new&c=0");
   });

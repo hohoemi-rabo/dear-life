@@ -1,25 +1,13 @@
 // カルテの一覧（KarteView）と詳細（KarteDetailView）のテストで使う、鼎・伊賀良の値（028）
 import type { BusOuting, DistrictData, ScreenData } from "@/lib/data/screen-data";
-import { availableFixture, MARKET_SOURCE, marketFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "./screen-data-fixture";
+import { availableFixture, busOutingFixture, MARKET_SOURCE, marketFixture, rentFixture, screenDataFixture, sourceFixture, tenureFixture } from "./screen-data-fixture";
 
 const BUS = sourceFixture("gtfs_minamishinshu_bus", { name: "南信州のバス", publisher: "GTFSデータリポジトリ" });
 const STATIONS = sourceFixture("sena_jr_iida_line_stations", { name: "JR飯田線の駅", publisher: "SENA" });
 const EVACUATION = sourceFixture("iida_evacuation", { name: "指定緊急避難場所一覧", publisher: "飯田市", checkedOn: "2026-10-26", fetchedOn: null });
 const POPULATION = sourceFixture("estat_census_small_area", { name: "国勢調査 小地域集計", publisher: "総務省統計局" });
 
-const BUS_OUTING: BusOuting = {
-  originName: "鼎公民館前",
-  destinationName: "飯田駅前",
-  outbound: { departure: "10:01", arrival: "10:11", line: "市内線" },
-  return: { departure: "12:00", arrival: "12:10", line: "市内線" },
-  nextReturn: null,
-  outboundTripsPerDay: 17,
-  returnTripsPerDay: 16,
-  originDeparturesPerDay: 21,
-  dayType: "土曜",
-  serviceDate: "2027-01-16",
-  validUntil: "2027-03-31",
-};
+const BUS_OUTING: BusOuting = busOutingFixture();
 
 export const KANAE: Partial<DistrictData> = {
   market: {
