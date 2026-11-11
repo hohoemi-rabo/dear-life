@@ -161,7 +161,7 @@ describe("renderScene", () => {
     );
   });
 
-  it("冬・車0台：バスのデータがなければその旨を書き、電車の時刻が未公開（026）なら電車の文ごと出さない", () => {
+  it("冬・車0台：バスのデータがない・電車の時刻が未公開なら、それぞれ書き分ける", () => {
     const data = dataWith({
       busOuting: { status: "none", source: BUS },
       trainStations: availableFixture([facility("鼎", null)], STATIONS),
@@ -171,6 +171,7 @@ describe("renderScene", () => {
       "冬の休みの日、車を使わずに出かけます。",
       "[この条件で使えるバスは見つかりませんでした]",
       "住む家を決めたら、そこから乗れる便を確かめます。",
+      "[電車の便：データ未取得]",
     ]);
   });
 

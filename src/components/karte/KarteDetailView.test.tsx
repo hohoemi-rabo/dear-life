@@ -189,9 +189,6 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(main).toHaveTextContent("鼎のバス停25か所すべてから、飯田駅へ乗りかえなしで行けるバスがあります。");
     expect(main).toHaveTextContent("2027年1月16日（土）の時刻表で数えました");
     expect(main).not.toHaveTextContent("鼎公民館前");
-    // 電車の時刻は市の許可が出るまで非公開なので、電車の欄は出さない（026。2026-11-11 まさゆきさん）
-    expect(main).not.toHaveTextContent("冬の場面で使った電車の便");
-    expect(main).not.toHaveTextContent("データ未取得");
     expect(within(main).getByRole("link", { name: /gofreely で行き方を調べる/ })).toHaveAttribute("href", "https://gofreely.rabo-hohoemi.workers.dev/");
     expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("GTFSデータリポジトリ「南信州のバス」");
   });
