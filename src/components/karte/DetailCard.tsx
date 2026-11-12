@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { PixelIcon, type IconId } from "@/components/pixel/PixelIcon";
-import { propSrc, propSrcSet, type PropId } from "@/lib/illust/assets";
+import { propSrc, propSrcSet, transportTabIconSrc, transportTabIconSrcSet, type PropId, type TransportTabIconId } from "@/lib/illust/assets";
 
 // カルテの詳細のいちばん上のカード（028 見本 karte-detail-housing.png）の部品。住まいもほかの6つも同じ形にする：
 // 絵・見出し・大きい数字 → 注意書き → タブ → タブの中の一覧
@@ -9,6 +9,8 @@ export type DetailTabItem = {
   id: string;
   label: string;
   icon: IconId;
+  // ドット絵の印の代わりに出す生成AIの印（交通のタブ。2026-11-12 受け取り）
+  illust?: TransportTabIconId;
   // 「洪水 25」のように、ラベルの横に出す数
   count?: number;
 };
@@ -46,7 +48,19 @@ export function DetailTabs({
               selected ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
             ].join(" ")}
           >
-            <PixelIcon icon={item.icon} size="sm" className={crowded ? "hidden sm:inline-block" : ""} />
+            {item.illust ? (
+              // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+              <img
+                src={transportTabIconSrc(item.illust, 48)}
+                srcSet={transportTabIconSrcSet(item.illust)}
+                sizes="24px"
+                alt=""
+                draggable={false}
+                className={`size-6 shrink-0 select-none object-contain ${crowded ? "hidden sm:inline-block" : ""}`}
+              />
+            ) : (
+              <PixelIcon icon={item.icon} size="sm" className={crowded ? "hidden sm:inline-block" : ""} />
+            )}
             {item.label}
             {item.count !== undefined && <span className="tabular-nums">{item.count.toLocaleString("ja-JP")}</span>}
             {selected && <span aria-hidden="true" className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 bg-primary" />}

@@ -31,6 +31,9 @@ import {
   TOP_ICON_INDEX,
   TOP_ICON_SOURCE,
   TOP_ICON_WIDTHS,
+  TRANSPORT_TAB_ICON_INDEX,
+  TRANSPORT_TAB_ICON_SOURCE,
+  TRANSPORT_TAB_ICON_WIDTHS,
 } from "../src/lib/illust/assets.ts";
 
 const root = join(import.meta.dirname, "..");
@@ -279,6 +282,14 @@ for (const [icon, index] of Object.entries(TOP_ICON_INDEX)) {
   const figure = topIconFigures[index];
   if (!figure) throw new Error(`${TOP_ICON_SOURCE} の${index + 1}番目の絵がありません（${topIconFigures.length}個）`);
   await writeOpaqueCrop(TOP_ICON_SOURCE, figure, `top-${icon}`, TOP_ICON_WIDTHS);
+}
+
+// カルテの交通のタブの印：1列に並んだ4つを切り分ける。大きさは画面で使わない（正方形の枠の中に収めて出す）
+const transportTabFigures = await figuresOf(TRANSPORT_TAB_ICON_SOURCE);
+for (const [icon, index] of Object.entries(TRANSPORT_TAB_ICON_INDEX)) {
+  const figure = transportTabFigures[index];
+  if (!figure) throw new Error(`${TRANSPORT_TAB_ICON_SOURCE} の${index + 1}番目の絵がありません（${transportTabFigures.length}個）`);
+  await writeOpaqueCrop(TRANSPORT_TAB_ICON_SOURCE, figure, `transport-tab-${icon}`, TRANSPORT_TAB_ICON_WIDTHS);
 }
 
 const spriteLines = Object.entries(sizes).map(([id, { width, height }]) => `  "${id}": { width: ${width}, height: ${height} },`);

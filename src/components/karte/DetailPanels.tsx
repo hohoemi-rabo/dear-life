@@ -60,11 +60,12 @@ export function detailTabs(
       ];
     case "transport": {
       const hasStation = district.trainStations.status !== "none";
-      const bus: DetailTab = { id: "bus", label: "バス停", icon: "icon-pin", states: [district.busStops] };
+      const bus: DetailTab = { id: "bus", label: "バス停", icon: "icon-pin", illust: "bus", states: [district.busStops] };
       const train: DetailTab = {
         id: "train",
         label: "電車",
         icon: "icon-transport",
+        illust: "train",
         states: hasStation ? [district.trainStations, trainTrips(district)] : [district.trainStations],
       };
       // 行ける場所（買い物・病院・診療所・市役所・学校・駅。地区ごと。036・037・038）。車0台なら最初に開く
@@ -72,6 +73,7 @@ export function detailTabs(
         id: "errands",
         label: "行ける場所",
         icon: "icon-transport",
+        illust: "errands",
         states: [
           district.busErrands,
           district.clinicCount,
@@ -84,6 +86,7 @@ export function detailTabs(
         id: "outing",
         label: "冬のおでかけ",
         icon: "icon-winter",
+        illust: "outing",
         states: hasStation ? [district.busOuting, district.trainOuting] : [district.busOuting],
       };
       return [errands, outing, bus, train];

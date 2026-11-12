@@ -67,3 +67,4 @@
 - GoFreely の枠は `GofreelyHomePanel`（`src/components/data/GofreelyPanel.tsx`）。冬のおでかけ・下見プラン・くらしは今の `GofreelyPanel` のまま
 - 本数の書き方を「1日4〜14本」→「4〜14本／日」にした（`tripsPerDayRange`）。使わなくなった `errandReachText` は消した
 - 2026-11-12（まさゆきさん）：見出しの大きい数字の下に「下の表の行き先のうち…数です」の一言を足したが、やめて元に戻した
+- 2026-11-12 追加（まさゆきさん）：交通の4つのタブの印を、まさゆきさんの絵 `transport-tab-icons.png`（バス・雪の結晶・バス停・電車）にした。`TRANSPORT_TAB_ICON_*`（`src/lib/illust/assets.ts`）、`DetailTabItem.illust`。スマホは今までどおり印を出さない

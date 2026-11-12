@@ -934,6 +934,28 @@ export function karteIconSrcSet(card: KarteCard): string {
   return KARTE_ICON_WIDTHS.map((width) => `${karteIconSrc(card, width)} ${width}w`).join(", ");
 }
 
+// カルテの交通のタブの印（2026-11-12 受け取り）。transport-tab-icons.png に左から バス（行ける場所）・雪の結晶（冬のおでかけ）・
+// バス停・電車 が並んでいるので、透明な隙間で切り分ける
+export const TRANSPORT_TAB_ICON_SOURCE = "transport-tab-icons.png";
+export const TRANSPORT_TAB_ICON_INDEX = {
+  errands: 0,
+  outing: 1,
+  bus: 2,
+  train: 3,
+} as const;
+export type TransportTabIconId = keyof typeof TRANSPORT_TAB_ICON_INDEX;
+
+// 書き出す横幅。画面では 24px で出すので、高解像度の画面の分まで用意する
+export const TRANSPORT_TAB_ICON_WIDTHS = [48, 96] as const;
+
+export function transportTabIconSrc(icon: TransportTabIconId, width: number): string {
+  return `/${ILLUST_DIR}/transport-tab-${icon}-${width}.webp`;
+}
+
+export function transportTabIconSrcSet(icon: TransportTabIconId): string {
+  return TRANSPORT_TAB_ICON_WIDTHS.map((width) => `${transportTabIconSrc(icon, width)} ${width}w`).join(", ");
+}
+
 export function illustPictureSrc(id: IllustPictureId, width: number): string {
   return `/${ILLUST_DIR}/${id}-${width}.webp`;
 }
