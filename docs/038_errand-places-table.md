@@ -49,3 +49,9 @@
 - [ ] プラン 1〜6
 - [ ] 本番に出す
 - [ ] （まさゆきさん）見た目と実機の確認
+
+## 次のセッションへの引き継ぎ（2026-11-12）
+
+- 作る前に決めることは全部済み。2026-11-12 にまさゆきさんが実装を許可した（新しいセッションで作る）
+- 始める前に読むもの：このチケット、見本2枚（`docs/design/karte-transport-places-pc.png`・`-open.png`）、037 の「決めたこと」「作ったもの」、`src/components/karte/DetailPanels.tsx` の `detailTabs`・`errandsContent`、`DetailCard.tsx`、`src/lib/karte/errands.ts`、`src/components/data/GofreelyPanel.tsx`
+- 見本は PC だけ。スマホはプランの縦積みで作り、Playwright の画像を見せて確かめてもらう
