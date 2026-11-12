@@ -12,7 +12,7 @@ import type { SchoolZoneGroup, SchoolZoneKind, SchoolZoneSummary, TownSchoolChoi
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { facilityMapHref, schoolDistrictMapHref, type FacilityLayer } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
-import { NoticeBox, PropIcon } from "./DetailCard";
+import { NoticeBox, PanelTitle, PropIcon } from "./DetailCard";
 
 // カルテの子育て・学校の「通う学校（学区）」のタブ（039。見本 karte-detail-childcare-uniform.png・karte-detail-childcare-split.png）。
 // 通う学校は市の通学区域の規則の別表（町名 → 学校）から出す。
@@ -41,17 +41,8 @@ export function SchoolZonePanel({ state, districtName }: { state: DataState<Scho
   return state.value.uniform ? <UniformZone summary={state.value} districtName={districtName} /> : <SplitZones summary={state.value} />;
 }
 
-// カードの頭：地図の絵・見出し・一行の説明（見本）
 function ZoneHead({ title, description }: { title: string; description?: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <PropIcon prop="childcare-zone-map" className="size-12 md:size-14" />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <h2 className="text-lg font-extrabold md:text-xl">{title}</h2>
-        {description && <p className="text-sm">{description}</p>}
-      </div>
-    </div>
-  );
+  return <PanelTitle prop="childcare-zone-map" title={title} description={description} />;
 }
 
 function UniformZone({ summary, districtName }: { summary: SchoolZoneSummary; districtName: string }) {

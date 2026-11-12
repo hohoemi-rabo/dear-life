@@ -16,6 +16,43 @@ export function groupBySubkind<T extends Facility>(facilities: readonly T[]): Fa
   return [...groups].map(([subkind, items]) => ({ subkind, items }));
 }
 
+// 子育て・学校のタブ（039 プラン 8）の種類の並び。届いた順だと「中学校 → 小学校」「その他 → 認定こども園」になるので、
+// 親が見慣れた順にそろえる。ここにない種類は届いた順のまま真ん中に、「その他」は最後に置く
+const CHILDCARE_SUBKIND_ORDER = [
+  "小学校",
+  "中学校",
+  "高等学校",
+  "認可公立保育所",
+  "認可私立保育所",
+  "認定こども園（保育所型）",
+  "認定こども園（幼保連携型）",
+  "認定こども園（幼稚園型）",
+  "認定こども園（地方裁量型）",
+  "幼稚園",
+  "認可外保育所",
+];
+const LAST_SUBKINDS = ["その他", NO_SUBKIND];
+
+function subkindRank(subkind: string): number {
+  if (LAST_SUBKINDS.includes(subkind)) return CHILDCARE_SUBKIND_ORDER.length + 2;
+  const index = CHILDCARE_SUBKIND_ORDER.indexOf(subkind);
+  return index === -1 ? CHILDCARE_SUBKIND_ORDER.length + 1 : index;
+}
+
+export function childcareGroups<T extends Facility>(facilities: readonly T[]): FacilityGroup<T>[] {
+  // sort は同じ順位なら元の並びを保つ
+  return groupBySubkind(facilities).sort((a, b) => subkindRank(a.subkind) - subkindRank(b.subkind));
+}
+
+// 子育て・学校のタブの説明の文。種類が2つ以上なら「小学校1・中学校1・高等学校2の、4校があります。」、
+// 1つか種類がなければ「3か所あります。」、0なら「地区の中にはありません。」
+export function facilityCountSentence(facilities: readonly Facility[], unit: string): string {
+  if (facilities.length === 0) return "地区の中にはありません。";
+  const groups = childcareGroups(facilities);
+  if (groups.length < 2) return `${facilities.length}${unit}あります。`;
+  return `${groups.map((group) => `${group.subkind}${group.items.length}`).join("・")}の、${facilities.length}${unit}があります。`;
+}
+
 // 避難場所の災害の種類（市「指定緊急避難場所一覧」の災害種別。009 で画面に使う4つだけを持っている）
 export const HAZARD_LABELS: Readonly<Record<EvacuationHazard, string>> = {
   flood: "洪水",

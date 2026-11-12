@@ -2,7 +2,7 @@ import { detailTexts, entryNumber, withDistrict } from "./details.ts";
 import { KARTE_DETAIL_SLUGS, karteCardFromSlug, karteDetailPath, splitKarteCards, transportQuestion } from "./entries.ts";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
-import { ageShares, groupBySubkind } from "./facilities";
+import { ageShares, facilityCountSentence, groupBySubkind } from "./facilities";
 import { landEstimates, marketCategoryOrder } from "./housing";
 import { kurashiHref } from "./links";
 
@@ -19,6 +19,22 @@ describe("marketCategoryOrder", () => {
     expect(marketCategoryOrder("new")[0]).toBe("house_built_within_20y");
     expect(marketCategoryOrder("old")[0]).toBe("house_built_over_20y");
     expect(marketCategoryOrder("rent")).toEqual(["land", "house_built_within_20y", "house_built_over_20y"]);
+  });
+});
+
+describe("facilityCountSentence（039 プラン 8）", () => {
+  const facility = (subkind: string | null) => ({ name: "x", subkind, address: null });
+  it("種類が2つ以上なら内訳と合計、1つか種類がなければ数だけ", () => {
+    // 届いた順が「中学校 → 小学校」でも、小学校 → 中学校 → 高等学校 の順にする
+    expect(facilityCountSentence([facility("中学校"), facility("高等学校"), facility("小学校"), facility("高等学校")], "校")).toBe(
+      "小学校1・中学校1・高等学校2の、4校があります。",
+    );
+    expect(facilityCountSentence([facility(null), facility(null), facility(null)], "か所")).toBe("3か所あります。");
+    // 「その他」は最後、知らない種類は届いた順のまま真ん中
+    expect(facilityCountSentence([facility("その他"), facility("新しい種類"), facility("認定こども園（保育所型）")], "か所")).toBe(
+      "認定こども園（保育所型）1・新しい種類1・その他1の、3か所があります。",
+    );
+    expect(facilityCountSentence([], "か所")).toBe("地区の中にはありません。");
   });
 });
 

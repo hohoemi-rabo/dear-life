@@ -24,11 +24,11 @@ import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities
 import { ERRAND_STATIONS } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
 import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
-import type { FacilityLayer } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
-import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
+import { ChildcareFacilityPanel } from "./ChildcareFacilities";
+import { SchoolZonePanel } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -268,38 +268,42 @@ function countOrMessage<T>(state: DataState<readonly T[]>, unit: string, after?:
   return <BigCount count={state.value.length} unit={unit} after={after?.(state.value)} />;
 }
 
-// 「小学校1・中学校1・高等学校3」のような種類ごとの数（種類が2つ以上のときだけ）
-function SubkindBreakdown({ facilities }: { facilities: readonly Facility[] }) {
-  const groups = groupBySubkind(facilities);
-  if (groups.length < 2) return null;
-  return <span className="text-sm">{groups.map((group) => `${group.subkind}${group.items.length}`).join("・")}</span>;
-}
-
 function childcareContent(tabId: string, district: DistrictData): PanelContent {
-  const notice = { title: NOTICES.schoolDistrict };
+  const name = DISTRICT_NAMES[district.id];
+  // 地区の学校・保育園など・放課後クラブは、通う学校（学区）のタブと同じ形（039 プラン 8）。絵と大きい数字の代わりに head を出す
+  const facilityTab = (head: ReactNode): PanelContent => ({ picture: "detail-school", title: null, figure: null, head });
   switch (tabId) {
     case "schools":
-      return {
-        picture: "detail-school",
-        title: "地区にある学校",
-        figure: countOrMessage(district.schools, "校", (schools) => <SubkindBreakdown facilities={schools} />),
-        notice,
-        list: <FacilityListingWithMap state={district.schools} label="学校" layer="schools" />,
-      };
+      return facilityTab(
+        <ChildcareFacilityPanel
+          state={district.schools}
+          prop="childcare-tab-schools"
+          title={`${name}にある学校`}
+          unit="校"
+          layer="schools"
+          notice={NOTICES.schoolDistrict}
+        />,
+      );
     case "childcare":
-      return {
-        picture: "detail-nursery",
-        title: "地区にある保育園・幼稚園など",
-        figure: countOrMessage(district.childcare, "か所", (items) => <SubkindBreakdown facilities={items} />),
-        list: <FacilityListingWithMap state={district.childcare} label="保育園・幼稚園など" layer="childcare" />,
-      };
+      return facilityTab(
+        <ChildcareFacilityPanel
+          state={district.childcare}
+          prop="childcare-tab-nursery"
+          title={`${name}にある保育園・幼稚園など`}
+          unit="か所"
+          layer="childcare"
+        />,
+      );
     case "clubs":
-      return {
-        picture: "detail-afterschool",
-        title: "地区にある放課後児童クラブ",
-        figure: countOrMessage(district.afterSchoolClubs, "か所"),
-        list: <FacilityListingWithMap state={district.afterSchoolClubs} label="放課後児童クラブ" layer="after_school_clubs" />,
-      };
+      return facilityTab(
+        <ChildcareFacilityPanel
+          state={district.afterSchoolClubs}
+          prop="childcare-tab-clubs"
+          title={`${name}にある放課後児童クラブ`}
+          unit="か所"
+          layer="after_school_clubs"
+        />,
+      );
     default:
       // 通う学校（学区）：町名ごとに通う学校（039 見本）。絵と大きい数字の代わりに、地図の絵・見出し・学校の札を出す
       return {
@@ -640,16 +644,6 @@ function ListSection({ title, children }: { title: string; children: ReactNode }
 
 function FacilityListing({ state, label }: { state: DataState<readonly Facility[]>; label: string }) {
   return state.status === "available" && state.value.length > 0 ? <FacilityItems facilities={state.value} label={label} /> : null;
-}
-
-// 子育て・学校のタブは、一覧の下に「地図で場所を見る」を出す（ページの下の地図へのボタンの代わり。039）
-function FacilityListingWithMap({ state, label, layer }: { state: DataState<readonly Facility[]>; label: string; layer: FacilityLayer }) {
-  return (
-    <>
-      <FacilityListing state={state} label={label} />
-      {state.status === "available" && state.value.length > 0 && <FacilityMapLink layer={layer} />}
-    </>
-  );
 }
 
 // 施設の一覧（種類ごと）。詳細のページなので、少なければ開いておき、多ければ閉じておく

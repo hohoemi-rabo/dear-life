@@ -358,8 +358,11 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(within(sources).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市教育委員会");
 
     await choose(/地区の学校/);
-    expect(figure()).toHaveTextContent("地区にある学校2校小学校1・中学校1");
-    expect(card("子育て・学校")).toHaveTextContent("学校の一覧（2か所）");
+    // 学区と同じ形：見出し・件数と内訳の一文・1か所ずつの札（039 プラン 8）
+    expect(screen.getByRole("heading", { name: "鼎にある学校" })).toBeInTheDocument();
+    expect(figure()).toHaveTextContent("小学校1・中学校1の、2校があります。");
+    expect(within(figure()).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["小学校鼎小学校", "中学校鼎中学校"]);
+    expect(figure()).toHaveTextContent(NOTICES.schoolDistrict);
     expect(within(card("子育て・学校")).getByRole("link", { name: /地図で場所を見る/ })).toHaveAttribute(
       "href",
       expect.stringMatching(/^\/chizu\?.*d=kanae.*&layer=schools$/),

@@ -83,6 +83,19 @@ export function PropIcon({ prop, className }: { prop: PropId; className: string 
   );
 }
 
+// 子育て・学校のタブのカードの頭：印・見出し・一行の説明（039 見本）
+export function PanelTitle({ prop, title, description }: { prop: PropId; title: string; description?: ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <PropIcon prop={prop} className="size-12 md:size-14" />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <h2 className="text-lg font-extrabold md:text-xl">{title}</h2>
+        {description && <p className="text-sm">{description}</p>}
+      </div>
+    </div>
+  );
+}
+
 // 「通う学校（学区）」のような括弧の付いた名前は、スマホの狭いタブでは括弧の前で2行にする（4つ横並びに収めるため。039）
 function TabLabel({ label }: { label: string }) {
   const at = label.indexOf("（");
