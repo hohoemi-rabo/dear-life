@@ -104,7 +104,7 @@ export function DetailPicture({ asset }: { asset: PropId }) {
 }
 
 // 絵と、見出し・大きい数字（または「該当なし／データ未取得」）を横に並べる
-export function DetailFigure({ picture, title, children }: { picture: ReactNode; title: string; children: ReactNode }) {
+export function DetailFigure({ picture, title, children }: { picture: ReactNode; title: ReactNode; children: ReactNode }) {
   return (
     <div className="flex gap-3 md:gap-5">
       {picture}

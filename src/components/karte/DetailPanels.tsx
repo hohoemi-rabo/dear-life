@@ -27,7 +27,7 @@ import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
-import { SCHOOL_ZONE_TITLE, SchoolZoneFigure, SchoolZoneList } from "./SchoolZones";
+import { SchoolZoneFigure, SchoolZoneList, SchoolZoneTitle } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -156,7 +156,7 @@ const CARD_LABELS: Readonly<Record<OtherCard, string>> = {
 
 type PanelContent = {
   picture: PropId;
-  title: string;
+  title: ReactNode;
   figure: ReactNode;
   // 絵・見出し・大きい数字の代わりに出す、そのタブだけの見出し（交通の「行ける場所」。038 見本）
   head?: ReactNode;
@@ -302,7 +302,7 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
       const summary = districtSchoolZones(district);
       return {
         picture: "detail-school",
-        title: SCHOOL_ZONE_TITLE,
+        title: <SchoolZoneTitle />,
         figure: <SchoolZoneFigure state={summary} />,
         notice,
         list: <SchoolZoneList state={summary} />,

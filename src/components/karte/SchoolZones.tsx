@@ -14,7 +14,14 @@ import { BigCount } from "./DetailCard";
 // カルテの子育て・学校の「学区」のタブ（039）。通う学校は市の通学区域の規則の別表（町名 → 学校）から出す。
 // 学校のタブの「地区にある学校」（高校なども入る）とは数えるものが違うので、見出しで分ける
 
-export const SCHOOL_ZONE_TITLE = "この地区の子が通う学校（学区）";
+// 「（学区）」の途中で折り返さないようにする（スマホの幅で「（学／区）」になった）
+export function SchoolZoneTitle() {
+  return (
+    <>
+      この地区の子が通う学校<span className="whitespace-nowrap">（学区）</span>
+    </>
+  );
+}
 export const SCHOOL_ZONE_MEANING = "学区：住む場所によって、通う公立の小学校・中学校が決まる範囲です。";
 
 const KIND_NOTES: Readonly<Record<SchoolZoneGroup["kind"], string | null>> = {

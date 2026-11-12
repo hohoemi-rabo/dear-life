@@ -513,7 +513,7 @@ describe("KarteDetailView：印刷（023）", () => {
     await printFromSheet();
     const paper = printed();
     for (const tab of ["学区", "学校", "保育園など", "放課後クラブ"]) expect(paper.getAllByText(tab).length).toBeGreaterThan(0);
-    expect(paper.getByText("この地区の子が通う学校（学区）")).toBeInTheDocument();
+    expect(paper.getByRole("heading", { name: "この地区の子が通う学校（学区）" })).toBeInTheDocument();
     expect(paper.getByText("地区の中は、どの町も同じ学校です。")).toBeInTheDocument();
     expect(paper.getByText("鼎に住んだとき、子どもが通う公立の小学校・中学校です。")).toBeInTheDocument();
     expect(paper.getByText("鼎にある放課後児童クラブです。")).toBeInTheDocument();
