@@ -74,7 +74,7 @@ export function detailTabs(
         illust: "train",
         states: hasStation ? [district.trainStations, trainTrips(district)] : [district.trainStations],
       };
-      // 行ける場所（買い物・病院・診療所・市役所・学校・駅。地区ごと。036・037・038）。いつも最初に開く
+      // 行ける場所（買い物・病院・診療所・市役所・学校・駅。地区ごと。036・037・038）。車0台なら最初に開く
       const errands: DetailTab = {
         id: "errands",
         label: "行ける場所",
@@ -87,8 +87,7 @@ export function detailTabs(
           district.schools,
         ],
       };
-      // 車があっても行ける場所から開く（2026-11-13 まさゆきさん：行ける場所 → バス停 → 電車）
-      if (!noCar) return [errands, bus, train];
+      if (!noCar) return [bus, train, errands];
       const outing: DetailTab = {
         id: "outing",
         label: "冬のおでかけ",

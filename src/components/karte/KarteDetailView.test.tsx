@@ -242,11 +242,9 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("GTFSデータリポジトリ「南信州のバス」");
   });
 
-  it("車1台以上は冬のおでかけのタブを出さず、行ける場所 → バス停 → 電車 の順で、行ける場所から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
+  it("車1台以上は冬のおでかけのタブを出さず、バス停から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
     await open("transport", "d=kanae&k=1&c=1");
-    expect(tabNames()).toEqual(["行ける場所", "バス停", "電車"]);
-    expect(screen.getByRole("tab", { name: /行ける場所/ })).toHaveAttribute("aria-selected", "true");
-    await choose(/バス停/);
+    expect(tabNames()).toEqual(["バス停", "電車", "行ける場所"]);
     expect(figure()).toHaveTextContent("地区のバス停2か所");
     expect(figure()).not.toHaveTextContent(NOTICES.carFree);
     await choose(/電車/);
