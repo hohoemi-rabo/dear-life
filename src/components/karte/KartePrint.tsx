@@ -9,7 +9,7 @@ import { karteLayout } from "@/lib/conditions/karte-order";
 import { DISTRICT_NAMES, KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { checkMemoItems } from "@/lib/karte/check-memo";
-import { detailTexts, entryNumber, housingKnows, tabTexts, withDistrict } from "@/lib/karte/details";
+import { detailTexts, entryNumber, housingKnows, withDistrict } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
 import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
@@ -150,13 +150,11 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
 
   let panels;
   let knows = texts.knows;
-  // タブごとに文の変わる項目（子育て・学校。039）は、タブの名前を付けて全部並べる
-  let knowsByTab: { label: string; knows: string; tip: typeof texts.tip }[] = [];
   let basis;
   if (card === "housing") {
     const tabs = housingTabs(conditions.housing);
     // 「この数字から分かること」は選んだ家のタブの分（画面で最初に開くタブと同じ）
-    if (tabs[0].category !== null) knows = housingKnows(tabs[0].category);
+    if (tabs[0].category !== null && knows) knows = { ...knows, text: housingKnows(tabs[0].category) };
     panels = tabs.map((tab) => (
       <PrintBlock key={tab.id} className="flex flex-col gap-3">
         <h3 className="font-bold">{tab.label}</h3>
@@ -177,8 +175,6 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
       </PrintBlock>
     ));
     basis = otherBasisRows(card, tabs);
-    const perTab = tabs.map((tab) => ({ label: tab.label, ...tabTexts(card, tab.id, texts) }));
-    if (perTab.some((item) => item.knows !== texts.knows)) knowsByTab = perTab;
   }
 
   return (
@@ -191,36 +187,20 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
         <h2 className="text-xl font-extrabold">{texts.question.long}</h2>
       </div>
       {panels}
-      <PrintBlock className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-2 font-bold">
-          <PixelIcon icon="icon-bulb" size="sm" />
-          この数字から分かること
-        </h3>
-        {knowsByTab.length > 0 ? (
-          <dl className="flex flex-col gap-2">
-            {knowsByTab.map((item) => (
-              <div key={item.label} className="break-inside-avoid">
-                <dt className="text-sm font-bold">{item.label}</dt>
-                <dd>
-                  <p className="font-bold">{withDistrict(item.knows, districtName)}</p>
-                  <p className="text-sm">
-                    <span className="font-bold">{item.tip.title}</span>
-                    {item.tip.body}
-                  </p>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <>
-            <p className="font-bold">{withDistrict(knows, districtName)}</p>
-            <p className="text-sm">
-              <span className="font-bold">{texts.tip.title}</span>
-              {texts.tip.body}
-            </p>
-          </>
-        )}
-      </PrintBlock>
+      {/* 子育て・学校は「この数字から分かること」を出さない（2026-11-12 まさゆきさん） */}
+      {knows && (
+        <PrintBlock className="flex flex-col gap-2">
+          <h3 className="flex items-center gap-2 font-bold">
+            <PixelIcon icon="icon-bulb" size="sm" />
+            この数字から分かること
+          </h3>
+          <p className="font-bold">{withDistrict(knows.text, districtName)}</p>
+          <p className="text-sm">
+            <span className="font-bold">{knows.tip.title}</span>
+            {knows.tip.body}
+          </p>
+        </PrintBlock>
+      )}
       <PrintCheckList title={texts.checkTitle} items={texts.checks} />
       <PrintBlock className="flex flex-col gap-2">
         <h3 className="flex items-center gap-2 font-bold">

@@ -14,7 +14,7 @@ import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLa
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
-import { detailTexts, entryNumber, housingKnows, tabTexts, withDistrict, type DetailTexts } from "@/lib/karte/details";
+import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
 import { karteBackHref, shitamiMemoHref } from "@/lib/karte/links";
 import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
@@ -193,8 +193,8 @@ function DetailBody({
   const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
   const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
-  const shown = card === "housing" ? { knows: texts.knows, tip: texts.tip } : tabTexts(card, otherTab.id, texts);
-  const knows = card === "housing" && housingTab.category ? housingKnows(housingTab.category) : shown.knows;
+  const knows =
+    texts.knows && card === "housing" && housingTab.category ? { ...texts.knows, text: housingKnows(housingTab.category) } : texts.knows;
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
 
@@ -214,17 +214,20 @@ function DetailBody({
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Box title="この数字から分かること" icon="icon-bulb" tone="bg-pixel-sky/60">
-          <p className="font-bold">{withDistrict(knows, districtName)}</p>
-          <div className="flex gap-2 rounded-button bg-warm-soft p-3">
-            <PixelIcon icon="icon-sprout" />
-            <p className="flex flex-col text-sm">
-              <span className="font-bold text-kind-local">{shown.tip.title}</span>
-              <span>{shown.tip.body}</span>
-            </p>
-          </div>
-        </Box>
+      {/* 子育て・学校は「この数字から分かること」を出さず、「現地で確かめたいこと」を幅いっぱいにする（2026-11-12 まさゆきさん） */}
+      <div className={`grid gap-4 ${knows ? "md:grid-cols-2" : ""}`}>
+        {knows && (
+          <Box title="この数字から分かること" icon="icon-bulb" tone="bg-pixel-sky/60">
+            <p className="font-bold">{withDistrict(knows.text, districtName)}</p>
+            <div className="flex gap-2 rounded-button bg-warm-soft p-3">
+              <PixelIcon icon="icon-sprout" />
+              <p className="flex flex-col text-sm">
+                <span className="font-bold text-kind-local">{knows.tip.title}</span>
+                <span>{knows.tip.body}</span>
+              </p>
+            </div>
+          </Box>
+        )}
         <Box title={texts.checkTitle} icon="icon-checklist" tone="bg-warm-soft">
           <div className="flex items-start gap-3">
             {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：

@@ -348,13 +348,13 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
       "href",
       expect.stringMatching(/^\/chizu\?.*d=kanae.*&layer=school_districts$/),
     );
-    expect(screen.getByText("鼎に住んだとき、子どもが通う公立の小学校・中学校です。")).toBeInTheDocument();
+    // 「この数字から分かること」は出さない（2026-11-12 まさゆきさん）
+    expect(screen.queryByText("この数字から分かること")).toBeNull();
     expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市教育委員会");
 
     await choose(/学校/);
     expect(figure()).toHaveTextContent("地区にある学校2校小学校1・中学校1");
     expect(card("子育て・学校")).toHaveTextContent("学校の一覧（2か所）");
-    expect(screen.getByText("鼎にある小学校・中学校・高校などです。")).toBeInTheDocument();
     expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「教育機関一覧」");
   });
 
@@ -499,7 +499,7 @@ describe("KarteDetailView：印刷（023）", () => {
     expect(paper.getByText(/地区：鼎/)).toBeInTheDocument();
   });
 
-  it("子育て・学校は学区のタブを含む4つのタブを出し、「この数字から分かること」をタブごとに並べる（039）", async () => {
+  it("子育て・学校は学区のタブを含む4つのタブを出し、「この数字から分かること」は出さない（039）", async () => {
     screenData = screenDataFixture({
       kanae: {
         ...KANAE,
@@ -515,8 +515,7 @@ describe("KarteDetailView：印刷（023）", () => {
     for (const tab of ["学区", "学校", "保育園など", "放課後クラブ"]) expect(paper.getAllByText(tab).length).toBeGreaterThan(0);
     expect(paper.getByRole("heading", { name: "この地区の子が通う学校（学区）" })).toBeInTheDocument();
     expect(paper.getByText("地区の中は、どの町も同じ学校です。")).toBeInTheDocument();
-    expect(paper.getByText("鼎に住んだとき、子どもが通う公立の小学校・中学校です。")).toBeInTheDocument();
-    expect(paper.getByText("鼎にある放課後児童クラブです。")).toBeInTheDocument();
+    expect(paper.queryByText("この数字から分かること")).toBeNull();
   });
 
   it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {
