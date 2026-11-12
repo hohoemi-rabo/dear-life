@@ -16,6 +16,16 @@ export type SchoolZoneGroup = {
   towns: readonly string[];
 };
 
+// 町名を選ぶ欄の1行（丁目ごとに別の行。まとめない。2026-11-12 まさゆきさん）
+export type TownSchoolChoice = {
+  townName: string;
+  elementarySchools: readonly string[];
+  juniorHighSchools: readonly string[];
+  kind: SchoolZoneKind;
+  // 地区の端の町（となりの地区にある学校に通う）
+  edge: boolean;
+};
+
 export type SchoolZoneSummary = {
   // 地区の子が通う学校（端の町の学校を除く）。並びは別表に初めて出た順
   elementarySchools: readonly string[];
@@ -25,6 +35,8 @@ export type SchoolZoneSummary = {
   groups: readonly SchoolZoneGroup[];
   // 地区の端の町（学校がどれも地区の外にある）
   edgeGroups: readonly SchoolZoneGroup[];
+  // 町名を選ぶ欄の町。並びは別表の順（端の町も同じ並びの中に入れる）
+  towns: readonly TownSchoolChoice[];
 };
 
 function zoneKind(zone: TownSchoolZone): SchoolZoneKind {
@@ -110,6 +122,13 @@ export function summarizeSchoolZones(zones: readonly TownSchoolZone[], schoolsIn
     uniform: groups.length === 1 && groups[0].kind === "single",
     groups,
     edgeGroups: group(zones.filter(isEdge)),
+    towns: zones.map((zone) => ({
+      townName: zone.townName,
+      elementarySchools: zone.elementarySchools,
+      juniorHighSchools: zone.juniorHighSchools,
+      kind: zoneKind(zone),
+      edge: isEdge(zone),
+    })),
   };
 }
 

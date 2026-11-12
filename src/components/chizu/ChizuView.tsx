@@ -20,7 +20,7 @@ import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
-import { IIDA_WEB_MAP, MAP_LAYER_PARAM, SCHOOL_DISTRICT_LAYER } from "@/lib/map/links";
+import { IIDA_WEB_MAP, MAP_LAYER_PARAM, SCHOOL_DISTRICT_LAYER, isFacilityLayer } from "@/lib/map/links";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
 import { POINT_STYLES } from "@/lib/map/style";
@@ -34,6 +34,13 @@ import { LazyMapCanvas } from "./LazyMapCanvas";
 const INITIALLY_VISIBLE: readonly MapPointKind[] = ["schools", "childcare", "bus_stops", "train_stations"];
 // カルテの学区のタブから来たとき（?layer=school_districts。039）は、学区の塗り分けと学校だけにして範囲を見やすくする
 const SCHOOL_DISTRICT_VISIBLE: readonly MapPointKind[] = ["schools"];
+
+// 最初に出す種類。カルテの子育て・学校の「地図で場所を見る」から来たとき（?layer=childcare など）は、その種類だけにする
+function initialKinds(layer: string | null): readonly MapPointKind[] {
+  if (layer === SCHOOL_DISTRICT_LAYER) return SCHOOL_DISTRICT_VISIBLE;
+  if (isFacilityLayer(layer)) return [layer];
+  return INITIALLY_VISIBLE;
+}
 
 // 05 地図（F-06）。施設を種類ごとに出し分け、点をタップすると名称・住所・出典を出す。小学校区は面で出し、距離は出さない。
 // 最初は真上から見た平面の Google マップで開き、「立体で見る」で写真の建物の立体にする（032）。useSearchParams を使うので <Suspense> の中で使う
@@ -93,7 +100,7 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
   const schoolDistricts = useMemo(() => schoolDistrictFeatures(data), [data]);
   const searchParams = useSearchParams();
   const [visibleKinds, setVisibleKinds] = useState<ReadonlySet<MapPointKind>>(
-    () => new Set(searchParams.get(MAP_LAYER_PARAM) === SCHOOL_DISTRICT_LAYER ? SCHOOL_DISTRICT_VISIBLE : INITIALLY_VISIBLE),
+    () => new Set(initialKinds(searchParams.get(MAP_LAYER_PARAM))),
   );
   const [showSchoolDistricts, setShowSchoolDistricts] = useState(true);
   const [tilted, setTilted] = useState(false);

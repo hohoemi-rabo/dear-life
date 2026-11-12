@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { MapCanvasProps } from "@/components/chizu/MapCanvas";
 import type { MapData, MapDistrictData } from "@/lib/map/map-data";
@@ -152,6 +152,15 @@ describe("ChizuView（021・032）", () => {
     expect(canvas.props?.visibleKinds.has("evacuation_sites")).toBe(true);
     fireEvent.click(within(row("小学校区")).getByRole("checkbox"));
     expect(canvas.props?.showSchoolDistricts).toBe(false);
+  });
+
+  it("カルテから layer を付けて来たら、その種類だけを出して開く（039）", async () => {
+    await open("d=kanae&layer=school_districts");
+    expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["schools"]);
+    expect(canvas.props?.showSchoolDistricts).toBe(true);
+    cleanup();
+    await open("d=kanae&layer=after_school_clubs");
+    expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["after_school_clubs"]);
   });
 
   it("点をタップすると名称・住所・出典を出す。住所のない駅は「出典に記載なし」", async () => {

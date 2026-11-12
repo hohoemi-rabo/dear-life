@@ -322,7 +322,7 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     isPartial,
   });
 
-  it("子育て・学校は学区から開き、地区の子が通う学校の数と名前を出す。学校のタブは数と種類ごとの内訳・一覧（039）", async () => {
+  it("子育て・学校は通う学校（学区）から開く。どの町も同じ地区は小学校・中学校の札と対象の町名、地図へのボタン（039）", async () => {
     const education = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
     screenData = screenDataFixture({
       kanae: {
@@ -338,27 +338,39 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
       },
     });
     await open("childcare", "d=kanae&k=1");
-    expect(tabNames()).toEqual(["学区", "学校", "保育園など", "放課後クラブ"]);
-    expect(figure()).toHaveTextContent("この地区の子が通う学校（学区）2校小学校1・中学校1");
+    expect(tabNames()).toEqual(["通う学校（学区）", "地区の学校", "保育園など", "放課後クラブ"]);
+    expect(screen.getByRole("heading", { name: "鼎で通う学校" })).toBeInTheDocument();
+    expect(figure()).toHaveTextContent("鼎では、どの町に住んでも同じ学校に通います。");
+    expect(figure()).toHaveTextContent("小学校鼎小学校中学校鼎中学校");
+    expect(screen.getByText("対象の町名を見る").closest("details")).toHaveTextContent("鼎中平、鼎名古熊");
     expect(figure()).toHaveTextContent(NOTICES.schoolDistrict);
-    const main = card("子育て・学校");
-    expect(main).toHaveTextContent("学区：住む場所によって、通う公立の小学校・中学校が決まる範囲です。");
-    expect(main).toHaveTextContent("地区の中は、どの町も同じ学校です。小学校鼎小学校中学校鼎中学校町鼎中平、鼎名古熊");
-    expect(within(main).getByRole("link", { name: /学区の範囲を地図で見る/ })).toHaveAttribute(
+    expect(within(figure()).getByRole("link", { name: /学区の範囲を地図で見る/ })).toHaveAttribute(
       "href",
       expect.stringMatching(/^\/chizu\?.*d=kanae.*&layer=school_districts$/),
     );
-    // 「この数字から分かること」は出さない（2026-11-12 まさゆきさん）
+    // 「この数字から分かること」は出さない。下のボタンは「カルテ一覧へ」だけ（2026-11-12 まさゆきさん）
     expect(screen.queryByText("この数字から分かること")).toBeNull();
-    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市教育委員会");
+    expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /地図で周辺を確かめる|地図で確かめる/ })).toBeNull();
+    // 出典は「〇〇の出典を見る」の閉じた欄
+    const sources = screen.getByText("通う学校（学区）の出典を見る").closest("details") as HTMLDetailsElement;
+    expect(sources.open).toBe(false);
+    expect(within(sources).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市教育委員会");
 
-    await choose(/学校/);
+    await choose(/地区の学校/);
     expect(figure()).toHaveTextContent("地区にある学校2校小学校1・中学校1");
     expect(card("子育て・学校")).toHaveTextContent("学校の一覧（2か所）");
-    expect(within(basis()).getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「教育機関一覧」");
+    expect(within(card("子育て・学校")).getByRole("link", { name: /地図で場所を見る/ })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/chizu\?.*d=kanae.*&layer=schools$/),
+    );
+    expect(screen.getByText("地区の学校の出典を見る")).toBeInTheDocument();
+    expect(within(screen.getByText("地区の学校の出典を見る").closest("details") as HTMLElement).getByRole("row", { name: /出典/ })).toHaveTextContent(
+      "飯田市「教育機関一覧」",
+    );
   });
 
-  it("町によって学校が分かれる地区は、組み合わせごとに町を並べ、選べる町・場所で分かれる町・地区の端の町を分けて出す（039）", async () => {
+  it("町によって学校が分かれる地区は、町名を選ぶと通う学校が出る。選べる町・場所で分かれる町・地区の端の町には一言を添える（039）", async () => {
     const education = sourceFixture("iida_education", { name: "教育機関一覧", publisher: "飯田市" });
     screenData = screenDataFixture({
       chushin: {
@@ -381,24 +393,50 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
       },
     });
     await open("childcare", "d=chushin&k=1");
-    // 八幡町の松尾小・緑ケ丘中は数えない
-    expect(figure()).toHaveTextContent("4校小学校3・中学校1");
-    const main = card("子育て・学校");
-    expect(main).toHaveTextContent("町によって通う学校が分かれます。");
-    const table = within(main).getByRole("table", { name: "町ごとの通う小学校・中学校" });
+    expect(screen.getByRole("heading", { name: "町名から学区を調べる" })).toBeInTheDocument();
+    const picker = screen.getByRole("combobox", { name: "町名" }) as HTMLSelectElement;
+    // はじめは何も選ばない。町は丁目ごとに別の行で、別表の順
+    expect(picker.value).toBe("");
+    expect([...picker.options].map((option) => option.textContent)).toEqual([
+      "町名を選んでください",
+      "江戸町1丁目",
+      "江戸町2丁目",
+      "江戸町3丁目",
+      "吾妻町",
+      "上飯田",
+      "八幡町",
+    ]);
+    expect(figure()).toHaveTextContent("町名を選ぶと、ここに学校が出ます");
+
+    const pick = (town: string) => fireEvent.change(picker, { target: { value: town } });
+    pick("江戸町2丁目");
+    expect(screen.getByRole("heading", { name: "江戸町2丁目の学区" })).toBeInTheDocument();
+    expect(figure()).toHaveTextContent("小学校浜井場小学校中学校飯田東中学校");
+    pick("吾妻町");
+    expect(figure()).toHaveTextContent("小学校浜井場小学校または丸山小学校");
+    expect(figure()).toHaveTextContent("※どちらかを選べます");
+    pick("上飯田");
+    expect(figure()).toHaveTextContent("※場所によって分かれます。番地を市で確かめてください");
+    pick("八幡町");
+    expect(figure()).toHaveTextContent("小学校松尾小学校中学校緑ケ丘中学校※となりの地区にある学校です");
+
+    // すべての町名と学区（閉じた欄）：同じ組み合わせの町をまとめた表と、地区の端の町
+    const all = screen.getByText("すべての町名と学区を見る").closest("details") as HTMLDetailsElement;
+    expect(all.open).toBe(false);
+    const table = within(all).getByRole("table", { name: "町ごとの通う小学校・中学校" });
     expect(within(table).getAllByRole("row").map((row) => row.textContent)).toEqual([
       "小学校中学校町",
       "浜井場小学校飯田東中学校江戸町1〜3丁目",
       "浜井場小学校 または 丸山小学校飯田東中学校吾妻町※どちらかを選べます",
       "丸山小学校 または 追手町小学校飯田東中学校上飯田※場所によって分かれます。番地を市で確かめてください",
     ]);
-    expect(main).toHaveTextContent("地区の端の町");
-    expect(within(main).getByRole("table", { name: "地区の端の町の通う小学校・中学校" })).toHaveTextContent("松尾小学校緑ケ丘中学校八幡町");
+    expect(within(all).getByRole("table", { name: "地区の端の町の通う小学校・中学校" })).toHaveTextContent("松尾小学校緑ケ丘中学校八幡町");
   });
 
   it("学区のデータがなければ「データ未取得」", async () => {
     await open("childcare", "d=kanae&k=1");
-    expect(figure()).toHaveTextContent("この地区の子が通う学校（学区）データ未取得");
+    expect(screen.getByRole("heading", { name: "鼎で通う学校" })).toBeInTheDocument();
+    expect(figure()).toHaveTextContent("データ未取得");
   });
 
   it("出典が未公開なら「データ未取得」、駅のない地区は「地区内に駅はありません。」", async () => {
@@ -499,7 +537,7 @@ describe("KarteDetailView：印刷（023）", () => {
     expect(paper.getByText(/地区：鼎/)).toBeInTheDocument();
   });
 
-  it("子育て・学校は学区のタブを含む4つのタブを出し、「この数字から分かること」は出さない（039）", async () => {
+  it("子育て・学校は4つのタブを出し、「この数字から分かること」は出さない。町名を選ぶ欄の代わりに、すべての町名と学区を開いて出す（039）", async () => {
     screenData = screenDataFixture({
       kanae: {
         ...KANAE,
@@ -508,14 +546,33 @@ describe("KarteDetailView：印刷（023）", () => {
           sourceFixture("iida_school_zone_rule"),
         ),
       },
+      chushin: {
+        ...screenDataFixture().districts.chushin,
+        schoolZones: availableFixture(
+          [
+            { townName: "江戸町1丁目", elementarySchools: ["浜井場小学校"], juniorHighSchools: ["飯田東中学校"], isPartial: false },
+            { townName: "吾妻町", elementarySchools: ["浜井場小学校", "丸山小学校"], juniorHighSchools: ["飯田東中学校"], isPartial: false },
+          ],
+          sourceFixture("iida_school_zone_rule"),
+        ),
+      },
     });
     await open("childcare", "d=kanae&a=2&k=1&h=new");
     await printFromSheet();
-    const paper = printed();
-    for (const tab of ["学区", "学校", "保育園など", "放課後クラブ"]) expect(paper.getAllByText(tab).length).toBeGreaterThan(0);
-    expect(paper.getByRole("heading", { name: "この地区の子が通う学校（学区）" })).toBeInTheDocument();
-    expect(paper.getByText("地区の中は、どの町も同じ学校です。")).toBeInTheDocument();
+    let paper = printed();
+    for (const tab of ["通う学校（学区）", "地区の学校", "保育園など", "放課後クラブ"]) expect(paper.getAllByText(tab).length).toBeGreaterThan(0);
+    expect(paper.getByRole("heading", { name: "鼎で通う学校" })).toBeInTheDocument();
+    expect((paper.getByText("対象の町名").closest("details") as HTMLDetailsElement).open).toBe(true);
     expect(paper.queryByText("この数字から分かること")).toBeNull();
+
+    cleanupRender();
+    document.body.innerHTML = "";
+    await open("childcare", "d=chushin&a=2&k=1&h=new");
+    await printFromSheet();
+    paper = printed();
+    expect(paper.queryByRole("combobox")).toBeNull();
+    expect((paper.getByText("すべての町名と学区").closest("details") as HTMLDetailsElement).open).toBe(true);
+    expect(paper.getByRole("table", { name: "町ごとの通う小学校・中学校" })).toHaveTextContent("吾妻町");
   });
 
   it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {

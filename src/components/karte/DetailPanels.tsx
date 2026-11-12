@@ -5,7 +5,7 @@ import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { usePrintMode } from "@/components/print/PrintMode";
 import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { SourceNote } from "@/components/ui/SourceNote";
-import type { KarteCard } from "@/lib/conditions/labels";
+import { DISTRICT_NAMES, type KarteCard } from "@/lib/conditions/labels";
 import type {
   DataState,
   DistrictData,
@@ -24,10 +24,11 @@ import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities
 import { ERRAND_STATIONS } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
 import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
+import type { FacilityLayer } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
-import { SchoolZoneFigure, SchoolZoneList, SchoolZoneTitle } from "./SchoolZones";
+import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -52,13 +53,14 @@ export function detailTabs(
       return [
         {
           id: "districts",
-          label: "学区",
+          label: "通う学校（学区）",
           icon: "icon-school",
           // 通う学校は市の通学区域の規則の別表から出す（039）
           states: [district.schoolZones],
         },
-        { id: "schools", label: "学校", icon: "icon-school", states: [district.schools] },
-        { id: "childcare", label: "保育園など", icon: "icon-family", states: [district.childcare] },
+        // 「地区の学校」：学区の学校の数と、地区にある学校（高校なども入る）の数を取り違えないように（039）
+        { id: "schools", label: "地区の学校", icon: "icon-school", states: [district.schools] },
+        { id: "childcare", label: "保育園など", icon: "icon-house", states: [district.childcare] },
         { id: "clubs", label: "放課後クラブ", icon: "icon-family", states: [district.afterSchoolClubs] },
       ];
     case "transport": {
@@ -186,8 +188,8 @@ export function OtherDetailCard({
   const tabRow = tabs.length > 1 && (
     <DetailTabs label={`${CARD_LABELS[card]}の見る範囲`} tabs={tabs} selectedId={tab.id} panelId={panelId} onSelect={onTabChange} />
   );
-  // 交通はタブをカードの上に出す（038 見本。2026-11-12 まさゆきさん：タブを変えるとカードの頭もタブごとに変わる）。ほかの項目は今のまま
-  const tabsAbove = card === "transport";
+  // 交通・子育て・学校はタブをカードの上に出す（038・039 見本。2026-11-12 まさゆきさん：タブを変えるとカードの頭もタブごとに変わる）。ほかの項目は今のまま
+  const tabsAbove = card === "transport" || card === "childcare";
   return (
     <>
       {tabsAbove && tabRow}
@@ -281,33 +283,30 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
         title: "地区にある学校",
         figure: countOrMessage(district.schools, "校", (schools) => <SubkindBreakdown facilities={schools} />),
         notice,
-        list: <FacilityListing state={district.schools} label="学校" />,
+        list: <FacilityListingWithMap state={district.schools} label="学校" layer="schools" />,
       };
     case "childcare":
       return {
         picture: "detail-nursery",
         title: "地区にある保育園・幼稚園など",
         figure: countOrMessage(district.childcare, "か所", (items) => <SubkindBreakdown facilities={items} />),
-        list: <FacilityListing state={district.childcare} label="保育園・幼稚園など" />,
+        list: <FacilityListingWithMap state={district.childcare} label="保育園・幼稚園など" layer="childcare" />,
       };
     case "clubs":
       return {
         picture: "detail-afterschool",
         title: "地区にある放課後児童クラブ",
         figure: countOrMessage(district.afterSchoolClubs, "か所"),
-        list: <FacilityListing state={district.afterSchoolClubs} label="放課後児童クラブ" />,
+        list: <FacilityListingWithMap state={district.afterSchoolClubs} label="放課後児童クラブ" layer="after_school_clubs" />,
       };
-    default: {
-      // 学区：町名ごとに通う学校（039）。学校のタブの「地区にある学校」とは見出しで分ける
-      const summary = districtSchoolZones(district);
+    default:
+      // 通う学校（学区）：町名ごとに通う学校（039 見本）。絵と大きい数字の代わりに、地図の絵・見出し・学校の札を出す
       return {
         picture: "detail-school",
-        title: <SchoolZoneTitle />,
-        figure: <SchoolZoneFigure state={summary} />,
-        notice,
-        list: <SchoolZoneList state={summary} />,
+        title: null,
+        figure: null,
+        head: <SchoolZonePanel state={districtSchoolZones(district)} districtName={DISTRICT_NAMES[district.id]} />,
       };
-    }
   }
 }
 
@@ -640,6 +639,16 @@ function ListSection({ title, children }: { title: string; children: ReactNode }
 
 function FacilityListing({ state, label }: { state: DataState<readonly Facility[]>; label: string }) {
   return state.status === "available" && state.value.length > 0 ? <FacilityItems facilities={state.value} label={label} /> : null;
+}
+
+// 子育て・学校のタブは、一覧の下に「地図で場所を見る」を出す（ページの下の地図へのボタンの代わり。039）
+function FacilityListingWithMap({ state, label, layer }: { state: DataState<readonly Facility[]>; label: string; layer: FacilityLayer }) {
+  return (
+    <>
+      <FacilityListing state={state} label={label} />
+      {state.status === "available" && state.value.length > 0 && <FacilityMapLink layer={layer} />}
+    </>
+  );
 }
 
 // 施設の一覧（種類ごと）。詳細のページなので、少なければ開いておき、多ければ閉じておく

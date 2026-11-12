@@ -94,6 +94,13 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
         <DetailBody card={card} conditions={conditions} texts={texts} districtName={districtName} />
       </ScreenDataBoundary>
 
+      {card === "childcare" ? (
+        // 子育て・学校は「カルテ一覧へ」だけ。地図へは、タブごとのカードの中のボタンから行く（039 見本。2026-11-12 まさゆきさん）
+        <ButtonLink href={listHref} variant="secondary" className="md:self-start">
+          <span aria-hidden="true">←</span>
+          カルテ一覧へ
+        </ButtonLink>
+      ) : (
       <div className="flex flex-col gap-2 md:flex-row-reverse md:gap-4">
         <ButtonLink href={map} className="md:flex-1">
           <PixelIcon icon="icon-map" size="sm" />
@@ -107,6 +114,7 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
           <span className="hidden md:inline">カルテ一覧へ</span>
         </ButtonLink>
       </div>
+      )}
 
       <ScreenTabBar current="karte" linkCurrent conditions={conditions} seasonSlug={searchParams.get(SEASON_PARAM)} />
     </div>
@@ -269,6 +277,8 @@ function DetailBody({
             : otherBasisRows(card, [otherTab])
         }
         note={texts.basisNote}
+        // 子育て・学校は「〇〇の出典を見る」の閉じた欄（〇〇は今のタブの名前。039 見本）
+        title={card === "childcare" ? `${otherTab.label}の出典を見る` : null}
       />
     </div>
   );
@@ -304,20 +314,24 @@ function Box({ title, icon, tone, children }: { title: string; icon: "icon-bulb"
 }
 
 // 「数字の根拠を見る」（見本）：出典・集計対象・対象期間・取得日。PC は最初から開き、スマホは閉じておく
-function Basis({ rows, note }: { rows: BasisRow[][]; note?: string }) {
+function Basis({ rows, note, title }: { rows: BasisRow[][]; note?: string; title: string | null }) {
   const wide = useWideScreen();
   const [open, setOpen] = useState<boolean | null>(null);
   return (
     <details
-      open={open ?? wide}
+      open={open ?? (title === null && wide)}
       onToggle={(event) => setOpen(event.currentTarget.open)}
       className="group rounded-card border border-line bg-surface shadow-card"
     >
       <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 px-4 py-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
-        <PixelIcon icon="icon-document" size="sm" />
+        <PixelIcon icon={title === null ? "icon-document" : "icon-book"} size="sm" />
         <h2 className="flex-1">
-          <span className="md:hidden">出典・対象期間・取得日</span>
-          <span className="hidden md:inline">数字の根拠を見る</span>
+          {title ?? (
+            <>
+              <span className="md:hidden">出典・対象期間・取得日</span>
+              <span className="hidden md:inline">数字の根拠を見る</span>
+            </>
+          )}
         </h2>
         <span aria-hidden="true" className="transition-transform group-open:rotate-180">
           ⌄

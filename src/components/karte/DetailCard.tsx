@@ -61,13 +61,25 @@ export function DetailTabs({
             ) : (
               <PixelIcon icon={item.icon} size="sm" className={crowded ? "hidden sm:inline-block" : ""} />
             )}
-            {item.label}
+            <TabLabel label={item.label} />
             {item.count !== undefined && <span className="tabular-nums">{item.count.toLocaleString("ja-JP")}</span>}
             {selected && <span aria-hidden="true" className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 bg-primary" />}
           </button>
         );
       })}
     </div>
+  );
+}
+
+// 「通う学校（学区）」のような括弧の付いた名前は、スマホの狭いタブでは括弧の前で2行にする（4つ横並びに収めるため。039）
+function TabLabel({ label }: { label: string }) {
+  const at = label.indexOf("（");
+  if (at <= 0) return <>{label}</>;
+  return (
+    <span className="flex flex-col items-center leading-tight sm:flex-row">
+      <span>{label.slice(0, at)}</span>
+      <span>{label.slice(at)}</span>
+    </span>
   );
 }
 

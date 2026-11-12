@@ -55,6 +55,17 @@ describe("summarizeSchoolZones（039）", () => {
     expect(count(summary.groups) + count(summary.edgeGroups)).toBeGreaterThan(0);
   });
 
+  it("町名を選ぶ欄は、丁目ごとに別の行で別表の順。選べる町・場所で分かれる町・端の町に印が付く", () => {
+    const inside = ["丸山小学校", "浜井場小学校", "追手町小学校", "飯田東中学校", "飯田西中学校"].map(school);
+    const zones = zonesOf("中心市街地");
+    const { towns } = summarizeSchoolZones(zones, inside);
+    expect(towns.map((town) => town.townName)).toEqual(zones.map((zone) => zone.townName));
+    expect(towns.filter((town) => town.townName.startsWith("育良町")).map((town) => town.townName)).toEqual(["育良町1丁目", "育良町2丁目", "育良町3丁目"]);
+    expect(towns.find((town) => town.townName === "吾妻町")).toMatchObject({ kind: "choice", edge: false });
+    expect(towns.find((town) => town.townName === "上飯田")).toMatchObject({ kind: "partial", edge: false });
+    expect(towns.find((town) => town.townName === "八幡町")).toMatchObject({ kind: "single", edge: true, elementarySchools: ["松尾小学校"] });
+  });
+
   it("地区の学校の一覧がデータ未取得なら、端の町を分けずにすべての学校を数える", () => {
     const summary = summarizeSchoolZones(zonesOf("中心市街地"), null);
     expect(summary.edgeGroups).toEqual([]);
