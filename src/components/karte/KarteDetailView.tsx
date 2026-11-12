@@ -14,7 +14,7 @@ import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLa
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
-import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
+import { detailTexts, entryNumber, housingKnows, tabTexts, withDistrict, type DetailTexts } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
 import { karteBackHref, shitamiMemoHref } from "@/lib/karte/links";
 import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
@@ -193,7 +193,8 @@ function DetailBody({
   const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
   const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
-  const knows = card === "housing" && housingTab.category ? housingKnows(housingTab.category) : texts.knows;
+  const shown = card === "housing" ? { knows: texts.knows, tip: texts.tip } : tabTexts(card, otherTab.id, texts);
+  const knows = card === "housing" && housingTab.category ? housingKnows(housingTab.category) : shown.knows;
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
 
@@ -219,8 +220,8 @@ function DetailBody({
           <div className="flex gap-2 rounded-button bg-warm-soft p-3">
             <PixelIcon icon="icon-sprout" />
             <p className="flex flex-col text-sm">
-              <span className="font-bold text-kind-local">{texts.tip.title}</span>
-              <span>{texts.tip.body}</span>
+              <span className="font-bold text-kind-local">{shown.tip.title}</span>
+              <span>{shown.tip.body}</span>
             </p>
           </div>
         </Box>

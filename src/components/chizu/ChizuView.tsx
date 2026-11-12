@@ -20,7 +20,7 @@ import type { SourceInfo } from "@/lib/data/screen-data";
 import { karteBackHref, kurashiHref } from "@/lib/karte/links";
 import { findPoint, pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
-import { IIDA_WEB_MAP } from "@/lib/map/links";
+import { IIDA_WEB_MAP, MAP_LAYER_PARAM, SCHOOL_DISTRICT_LAYER } from "@/lib/map/links";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import { MAP_POINT_KINDS, type MapData, type MapPointKind } from "@/lib/map/map-data";
 import { POINT_STYLES } from "@/lib/map/style";
@@ -32,6 +32,8 @@ import { LazyMapCanvas } from "./LazyMapCanvas";
 
 // 最初に出す種類。避難場所（4地区で155か所）と放課後児童クラブは点が多くなるので、切り替えで出す
 const INITIALLY_VISIBLE: readonly MapPointKind[] = ["schools", "childcare", "bus_stops", "train_stations"];
+// カルテの学区のタブから来たとき（?layer=school_districts。039）は、学区の塗り分けと学校だけにして範囲を見やすくする
+const SCHOOL_DISTRICT_VISIBLE: readonly MapPointKind[] = ["schools"];
 
 // 05 地図（F-06）。施設を種類ごとに出し分け、点をタップすると名称・住所・出典を出す。小学校区は面で出し、距離は出さない。
 // 最初は真上から見た平面の Google マップで開き、「立体で見る」で写真の建物の立体にする（032）。useSearchParams を使うので <Suspense> の中で使う
@@ -89,7 +91,10 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
   const data = useMapData();
   const points = useMemo(() => pointFeatures(data), [data]);
   const schoolDistricts = useMemo(() => schoolDistrictFeatures(data), [data]);
-  const [visibleKinds, setVisibleKinds] = useState<ReadonlySet<MapPointKind>>(() => new Set(INITIALLY_VISIBLE));
+  const searchParams = useSearchParams();
+  const [visibleKinds, setVisibleKinds] = useState<ReadonlySet<MapPointKind>>(
+    () => new Set(searchParams.get(MAP_LAYER_PARAM) === SCHOOL_DISTRICT_LAYER ? SCHOOL_DISTRICT_VISIBLE : INITIALLY_VISIBLE),
+  );
   const [showSchoolDistricts, setShowSchoolDistricts] = useState(true);
   const [tilted, setTilted] = useState(false);
   const [selected, setSelected] = useState<MapSelection | null>(null);
@@ -253,6 +258,7 @@ function LayerToggles({
             label="小学校区"
             note={summaryText(schoolDistrictSummary(data))}
           />
+          {showSchoolDistricts && <p className="pb-1 pl-8 text-xs text-ink-muted">{NOTICES.schoolDistrictMap}</p>}
           {showSchoolDistricts && schoolDistricts.length > 0 && (
             <ul aria-label="小学校区の色" className="flex flex-wrap gap-x-4 gap-y-1 pb-1 pl-8 text-sm">
               {schoolDistricts.map(({ schoolName, color }) => (
@@ -308,6 +314,7 @@ function SelectionDetail({ data, selected }: { data: MapData; selected: MapSelec
         <>
           <p className="text-lg font-bold">{selected.schoolName}の学区</p>
           <p className="text-sm">学校がある地区：{DISTRICT_NAMES[selected.district]}</p>
+          <Notice>{NOTICES.schoolDistrictMap}</Notice>
           <Notice>{NOTICES.schoolDistrict}</Notice>
         </>
       )}

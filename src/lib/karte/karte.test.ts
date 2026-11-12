@@ -84,7 +84,7 @@ describe("カルテの図鑑の形（028）", () => {
   it("図鑑の番号は一覧の並びで決まり、文の {district} は地区名になる", () => {
     expect(entryNumber(["childcare", "housing"], "housing")).toBe("02");
     expect(withDistrict(detailTexts("childcare", { housing: "new", transportQuestion: "" }).knows, "鼎")).toBe(
-      "鼎にある学校・保育施設と、主な学区です。",
+      "鼎にある学校・保育施設と、通う学校（学区）です。",
     );
   });
 });

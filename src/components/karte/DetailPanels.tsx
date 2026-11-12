@@ -26,6 +26,7 @@ import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
+import { SCHOOL_ZONE_TITLE, SchoolZoneFigure, SchoolZoneList, schoolZoneSummary } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -52,7 +53,8 @@ export function detailTabs(
           id: "districts",
           label: "学区",
           icon: "icon-school",
-          states: [district.elementarySchoolDistricts, district.juniorHighSchoolDistricts],
+          // 通う学校は市の通学区域の規則の別表から出す（039）
+          states: [district.schoolZones],
         },
         { id: "schools", label: "学校", icon: "icon-school", states: [district.schools] },
         { id: "childcare", label: "保育園など", icon: "icon-family", states: [district.childcare] },
@@ -294,30 +296,18 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
         figure: countOrMessage(district.afterSchoolClubs, "か所"),
         list: <FacilityListing state={district.afterSchoolClubs} label="放課後児童クラブ" />,
       };
-    default:
+    default: {
+      // 学区：町名ごとに通う学校（039）。学校のタブの「地区にある学校」とは見出しで分ける
+      const summary = schoolZoneSummary(district);
       return {
         picture: "detail-school",
-        title: "主な小学校区・中学校区",
-        figure: (
-          <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1">
-            <SchoolDistrictRow label="小学校" state={district.elementarySchoolDistricts} />
-            <SchoolDistrictRow label="中学校" state={district.juniorHighSchoolDistricts} />
-          </dl>
-        ),
+        title: SCHOOL_ZONE_TITLE,
+        figure: <SchoolZoneFigure state={summary} />,
         notice,
+        list: <SchoolZoneList state={summary} />,
       };
+    }
   }
-}
-
-function SchoolDistrictRow({ label, state }: { label: string; state: DataState<readonly string[]> }) {
-  return (
-    <>
-      <dt className="text-sm text-ink-muted">{label}</dt>
-      <dd className="text-2xl font-extrabold md:text-3xl">
-        {state.status === "available" ? state.value.join("・") : <DataStateMessage state={state} />}
-      </dd>
-    </>
-  );
 }
 
 // 上りは豊橋方面、下りは辰野方面（JR飯田線。026）

@@ -54,7 +54,8 @@ function housingTexts(housing: Housing): DetailTexts {
 const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, DetailTexts>> = {
   childcare: {
     question: { long: "子どもの通う場所は、どこにある？", short: "子どもの通う場所は？" },
-    knows: "{district}にある学校・保育施設と、主な学区です。",
+    // タブごとの文は CHILDCARE_TAB_TEXTS。これはタブが分からないときの文
+    knows: "{district}にある学校・保育施設と、通う学校（学区）です。",
     tip: { title: "通う学校は住所で決まります。", body: "入学・入園の前に、市の窓口で確かめましょう。" },
     checkTitle: "現地で確かめたいこと",
     checks: ["家から学校までの通学路", "保育園・幼稚園の空き状況", "放課後児童クラブの利用のしかた"],
@@ -102,6 +103,33 @@ export function detailTexts(card: KarteCard, options: { housing: Housing; transp
     return { ...TRANSPORT_TEXTS, question: { long: options.transportQuestion, short: options.transportQuestion } };
   }
   return OTHER_TEXTS[card];
+}
+
+// 子育て・学校の「この数字から分かること」はタブごとに変える（039。数字のない学区のタブもあるので、タブの中身に合わせる）。
+// タブの id は DetailPanels の detailTabs と同じ
+type TabTexts = Pick<DetailTexts, "knows" | "tip">;
+
+const CHILDCARE_TAB_TEXTS: Readonly<Record<string, TabTexts>> = {
+  districts: {
+    knows: "{district}に住んだとき、子どもが通う公立の小学校・中学校です。",
+    tip: { title: "通う学校は住所で決まります。", body: "家の候補が見つかったら、町名で学区を確かめましょう。" },
+  },
+  schools: {
+    knows: "{district}にある小学校・中学校・高校などです。",
+    tip: { title: "学区とは別の数です。", body: "地区の中にある学校を数えています。通う学校は学区のタブで見られます。" },
+  },
+  childcare: {
+    knows: "{district}にある保育園・幼稚園・こども園などです。",
+    tip: { title: "入れるかは空き状況で変わります。", body: "市の窓口で確かめましょう。" },
+  },
+  clubs: {
+    knows: "{district}にある放課後児童クラブです。",
+    tip: { title: "使える学年や時間は、クラブごとに違います。", body: "使いたいクラブに確かめましょう。" },
+  },
+};
+
+export function tabTexts(card: KarteCard, tabId: string, texts: DetailTexts): TabTexts {
+  return (card === "childcare" && CHILDCARE_TAB_TEXTS[tabId]) || { knows: texts.knows, tip: texts.tip };
 }
 
 export function withDistrict(text: string, districtName: string): string {

@@ -8,6 +8,15 @@ export function mapHref(conditions: Conditions, seasonSlug: string | null): stri
   return seasonalHref(MAP_PATH, conditions, seasonSlug);
 }
 
+// 地図を開いたときに見せるもの（039）。school_districts は小学校区の塗り分けと学校だけを出す（カルテの学区のタブから）。
+// 開いたあとに種類を切りかえても URL には書き戻さない（最初の見え方だけを決める）
+export const MAP_LAYER_PARAM = "layer";
+export const SCHOOL_DISTRICT_LAYER = "school_districts";
+
+export function schoolDistrictMapHref(conditions: Conditions, seasonSlug: string | null): string {
+  return `${mapHref(conditions, seasonSlug)}&${MAP_LAYER_PARAM}=${SCHOOL_DISTRICT_LAYER}`;
+}
+
 // 飯田市の公開型 GIS「いいだWebまっぷ」の案内ページ（2026-11-07 確認。021・032）。データは取り込まず、詳しく調べたい人へのリンクだけにする。
 // 地図そのもの（iida.geocloud.jp）ではなく、利用規約の案内がある市のページへつなぐ
 export const IIDA_WEB_MAP = {
