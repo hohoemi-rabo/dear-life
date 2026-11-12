@@ -162,6 +162,15 @@ export type BusErrand = {
   maxTripsPerDay: number | null;
 };
 
+// 町名ごとに通う公立の小学校・中学校（039。市の通学区域の規則の別表）。
+// 学校が2つのときは、isPartial が false なら「どちらかを選べる」、true なら「町の中の場所によって分かれる」
+export type TownSchoolZone = {
+  townName: string;
+  elementarySchools: readonly string[];
+  juniorHighSchools: readonly string[];
+  isPartial: boolean;
+};
+
 // 地区の診療所（クリニック）の数（037。国の医療機関の一覧を住所で振り分けた）
 export type ClinicCount = {
   asOf: string;
@@ -187,9 +196,12 @@ export type DistrictData = {
   name: string;
   areaDescription: string;
   market: Readonly<Record<MarketCategory, DataState<MarketStat>>>;
-  // 地区の主な学区の学校名（要件 7.2）
+  // 国の学区の範囲から決めた地区の主な学区の学校名（要件 7.2）。地図の説明に使う。
+  // 通う学校は schoolZones（市の規則）で出す（039）
   elementarySchoolDistricts: DataState<readonly string[]>;
   juniorHighSchoolDistricts: DataState<readonly string[]>;
+  // 町名ごとに通う学校（039）。並びは市の規則の別表の順
+  schoolZones: DataState<readonly TownSchoolZone[]>;
   schools: DataState<readonly Facility[]>;
   childcare: DataState<readonly Facility[]>;
   afterSchoolClubs: DataState<readonly Facility[]>;
@@ -375,6 +387,8 @@ type RawDistrict = {
     min_trips_per_day: number | null;
     max_trips_per_day: number | null;
   }>;
+  // 039 より前の版の RPC（圏外用に端末に残った古いデータ）にはない
+  school_zones?: RawSection<{ town_name: string; elementary_schools: string[]; junior_high_schools: string[]; is_partial: boolean }>;
   // 037 より前の版の RPC（圏外用に端末に残った古いデータ）にはない
   clinic_count?: RawSection<{ as_of: string; clinic_count: number }>;
   events: {
@@ -577,6 +591,15 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
     market,
     elementarySchoolDistricts: listState(raw.elementary_school_districts, findSource, (item) => item.school_name),
     juniorHighSchoolDistricts: listState(raw.junior_high_school_districts, findSource, (item) => item.school_name),
+    schoolZones:
+      raw.school_zones === undefined
+        ? { status: "unavailable" }
+        : listState(raw.school_zones, findSource, (item) => ({
+            townName: item.town_name,
+            elementarySchools: item.elementary_schools,
+            juniorHighSchools: item.junior_high_schools,
+            isPartial: item.is_partial,
+          })),
     schools: listState(raw.facilities.schools, findSource, toFacility),
     childcare: listState(raw.facilities.childcare, findSource, toFacility),
     afterSchoolClubs: listState(raw.facilities.after_school_clubs, findSource, toFacility),

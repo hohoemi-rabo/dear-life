@@ -81,6 +81,7 @@ function districtFixture(id: DistrictId): DistrictData {
     market: { land: UNAVAILABLE, house_built_within_20y: UNAVAILABLE, house_built_over_20y: UNAVAILABLE },
     elementarySchoolDistricts: UNAVAILABLE,
     juniorHighSchoolDistricts: UNAVAILABLE,
+    schoolZones: UNAVAILABLE,
     schools: UNAVAILABLE,
     childcare: UNAVAILABLE,
     afterSchoolClubs: UNAVAILABLE,

@@ -1312,6 +1312,7 @@ describe("画面が読むデータ screen_data（015）", () => {
       id: string;
       market: Section;
       elementary_school_districts: Section;
+      school_zones: Section;
       facilities: Record<string, Section>;
       train_departures: Section;
       train_counts: Section;
@@ -1406,6 +1407,26 @@ describe("画面が読むデータ screen_data（015）", () => {
     expect(kanae.bus_outing.items).toEqual([
       { day_type: "土曜", service_date: expect.any(String), valid_until: expect.any(String), destination_place_name: "飯田駅", district_stop_count: 25, reachable_stop_count: expect.any(Number) },
     ]);
+  });
+
+  it("町名ごとに通う学校は、公開すると4地区の町だけが別表の順に入る（039）", async () => {
+    expect(district(await screenData(), "kanae").school_zones).toEqual({ source_id: "iida_school_zone_rule", items: [] });
+    const data = await screenData(publish("iida_school_zone_rule"));
+    expect(district(data, "kamisato").school_zones.items).toEqual([
+      { town_name: "上郷黒田", elementary_schools: ["上郷小学校"], junior_high_schools: ["高陵中学校"], is_partial: false },
+      { town_name: "上郷飯沼", elementary_schools: ["上郷小学校"], junior_high_schools: ["高陵中学校"], is_partial: false },
+      { town_name: "上郷別府", elementary_schools: ["上郷小学校"], junior_high_schools: ["高陵中学校"], is_partial: false },
+    ]);
+    const chushin = district(data, "chushin").school_zones.items;
+    expect(chushin).toHaveLength(119);
+    expect(chushin.find((zone) => zone.town_name === "上飯田")).toEqual({
+      town_name: "上飯田",
+      elementary_schools: ["丸山小学校", "追手町小学校"],
+      junior_high_schools: ["飯田東中学校"],
+      is_partial: true,
+    });
+    // 4地区の外の町（羽場坂町）は入らない
+    expect(chushin.some((zone) => zone.town_name === "羽場坂町")).toBe(false);
   });
 
   it("駅の本数は特急を除いて数え、伊賀良は駅も時刻もない（該当なし）", async () => {

@@ -964,6 +964,60 @@ export type Database = {
           },
         ]
       }
+      school_zones: {
+        Row: {
+          city_district: string
+          created_at: string
+          district_id: string | null
+          elementary_schools: string[]
+          is_partial: boolean
+          junior_high_schools: string[]
+          sort_order: number
+          source_id: string
+          town_name: string
+          updated_at: string
+        }
+        Insert: {
+          city_district: string
+          created_at?: string
+          district_id?: string | null
+          elementary_schools: string[]
+          is_partial: boolean
+          junior_high_schools: string[]
+          sort_order: number
+          source_id: string
+          town_name: string
+          updated_at?: string
+        }
+        Update: {
+          city_district?: string
+          created_at?: string
+          district_id?: string | null
+          elementary_schools?: string[]
+          is_partial?: boolean
+          junior_high_schools?: string[]
+          sort_order?: number
+          source_id?: string
+          town_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_zones_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_zones_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_programs: {
         Row: {
           category: Database["public"]["Enums"]["support_category"]

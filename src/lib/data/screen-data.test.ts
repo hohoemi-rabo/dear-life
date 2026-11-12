@@ -289,6 +289,17 @@ describe("parseScreenData：おでかけの便（010・026）", () => {
     expect(parseScreenData(withBus({}), TODAY).districts.kanae.clinicCount).toEqual({ status: "unavailable" });
   });
 
+  it("町名ごとに通う学校を返す。出典が未公開か、039 より前の版の RPC ならデータ未取得（039）", () => {
+    const zone = { town_name: "吾妻町", elementary_schools: ["浜井場小学校", "丸山小学校"], junior_high_schools: ["飯田東中学校"], is_partial: false };
+    const withZones = (sources: ReturnType<typeof source>[]) => raw({ sources, kanae: { school_zones: section("iida_school_zone_rule", [zone]) } });
+    expect(parseScreenData(withZones([source("iida_school_zone_rule")]), TODAY).districts.kanae.schoolZones).toMatchObject({
+      status: "available",
+      value: [{ townName: "吾妻町", elementarySchools: ["浜井場小学校", "丸山小学校"], juniorHighSchools: ["飯田東中学校"], isPartial: false }],
+    });
+    expect(parseScreenData(withZones([]), TODAY).districts.kanae.schoolZones).toEqual({ status: "unavailable" });
+    expect(parseScreenData(withBus({}), TODAY).districts.kanae.schoolZones).toEqual({ status: "unavailable" });
+  });
+
   it("時刻表の有効期間を過ぎたらデータ未取得。最終日までは使う", () => {
     expect(parseScreenData(withBus({ valid_until: "2026-10-25" }), TODAY).districts.kanae.busOuting).toEqual({ status: "unavailable" });
     expect(parseScreenData(withBus({ valid_until: TODAY }), TODAY).districts.kanae.busOuting.status).toBe("available");
