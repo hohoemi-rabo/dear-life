@@ -1,4 +1,4 @@
-// カルテの交通「用事の場所」（037。2026-11-11 まさゆきさん）の中身の組み立て。
+// カルテの交通「行ける場所」（037 では「用事の場所」。2026-11-11 まさゆきさん。038 で表の形にした）の中身の組み立て。
 // 行き先はエリアごと：市役所はすべての地区、病院・学校・店は地区ごと（バスの本数は bus_errands）。
 // 診療所は数だけ、駅はその駅を出る電車の本数、高校は名前だけ（紹介程度）を出す
 import type { BusErrand, DataState, DistrictData } from "../data/screen-data.ts";
@@ -18,16 +18,36 @@ export const ERRAND_STATIONS: Readonly<Record<DistrictId, string | null>> = {
 // 店の名前と住所を、各店の公式ページで確かめた日（data/bus_errands.csv の公式ページ）
 export const STORES_CHECKED_ON = "2026-11-11";
 
-export type ErrandGroup = "office" | "school" | "store";
+// 表のまとまり（038。2026-11-12 まさゆきさん）：買い物 → 病院 → 市役所 → 学校 → 駅。はじめは上の3つだけを出し、
+// 「学校など、ほかの行き先を見る」で残りを同じ表の下に出す。病院には診療所の数、学校には近くの高校、駅には電車の本数の行が入る
+export const ERRAND_GROUPS = ["store", "hospital", "office", "school", "station"] as const;
+export type ErrandGroup = (typeof ERRAND_GROUPS)[number];
+export const ERRAND_GROUP_LABELS: Readonly<Record<ErrandGroup, string>> = {
+  store: "買い物",
+  hospital: "病院",
+  office: "市役所",
+  school: "学校",
+  station: "駅",
+};
+// はじめから出すまとまり
+export const FIRST_ERRAND_GROUPS: readonly ErrandGroup[] = ["store", "hospital", "office"];
 
 const GROUP_KINDS: Readonly<Record<ErrandGroup, readonly BusErrand["kind"][]>> = {
-  office: ["市役所", "病院"],
-  school: ["小学校", "中学校"],
   store: ["店"],
+  hospital: ["病院"],
+  office: ["市役所"],
+  school: ["小学校", "中学校"],
+  station: [],
 };
 
+// まとまりのバスの行き先（並びは bus_errands のまま）
 export function errandsOf(errands: readonly BusErrand[], group: ErrandGroup): BusErrand[] {
   return errands.filter((errand) => GROUP_KINDS[group].includes(errand.kind));
+}
+
+// 乗りかえなしで行ける行き先の数（見出しの大きい数字。そばにバス停がない店と、直通のない行き先は数えない）
+export function reachableErrandCount(errands: readonly BusErrand[]): number {
+  return errands.filter((errand) => errand.hasStop && errand.reachableStopCount > 0).length;
 }
 
 export type ErrandStation =

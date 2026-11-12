@@ -45,9 +45,9 @@
 
 ## Todo
 
-- [ ] 作る前に確かめること
-- [ ] プラン 1〜6
-- [ ] 本番に出す
+- [×] 作る前に確かめること
+- [×] プラン 1〜6（テスト・lint・型チェック・ビルド。Playwright で4地区 × スマホ・PC、閉じた／開いた。画像は ~/dear-life-screenshots/038/）
+- [×] 本番に出す（main に push。2026-11-12）
 - [ ] （まさゆきさん）見た目と実機の確認
 
 ## 次のセッションへの引き継ぎ（2026-11-12）
@@ -55,3 +55,14 @@
 - 作る前に決めることは全部済み。2026-11-12 にまさゆきさんが実装を許可した（新しいセッションで作る）
 - 始める前に読むもの：このチケット、見本2枚（`docs/design/karte-transport-places-pc.png`・`-open.png`）、037 の「決めたこと」「作ったもの」、`src/components/karte/DetailPanels.tsx` の `detailTabs`・`errandsContent`、`DetailCard.tsx`、`src/lib/karte/errands.ts`、`src/components/data/GofreelyPanel.tsx`
 - 見本は PC だけ。スマホはプランの縦積みで作り、Playwright の画像を見せて確かめてもらう
+
+## 作ったもの（2026-11-12）
+
+- 絵：`errand-icons.png` を4つ（`errand-store`・`errand-hospital`・`errand-office`・`errand-home-stop`）に切り分け、`errand-station` と一緒に小物（`PROP_SOURCES`）として書き出した
+- まとまり：`src/lib/karte/errands.ts` の `ERRAND_GROUPS`（買い物 → 病院 → 市役所 → 学校 → 駅）・`FIRST_ERRAND_GROUPS`・`reachableErrandCount`
+- 画面：`src/components/karte/ErrandsTable.tsx`（見出し `ErrandsHead`、表 `ErrandsTable`）。`DetailPanels` は交通だけタブをカードの上に出す。タブの印は 行ける場所＝バス、バス停＝ピン
+- 見出しの大きい数字は、乗りかえなしで行ける行き先の数（そばにバス停がない店と、直通のない行き先は数えない）。鼎は見本と同じ7か所
+- 開閉のボタンは見本どおり「学校など、ほかの行き先を見る」／「ほかの行き先を閉じる」
+- 車0台の注意書き（本数や時間帯によっては…）は、表の下の「乗るバス停によって便数が変わります。」の下に並べた（見本の見出しと表のあいだに箱を入れないため）
+- GoFreely の枠は `GofreelyHomePanel`（`src/components/data/GofreelyPanel.tsx`）。冬のおでかけ・下見プラン・くらしは今の `GofreelyPanel` のまま
+- 本数の書き方を「1日4〜14本」→「4〜14本／日」にした（`tripsPerDayRange`）。使わなくなった `errandReachText` は消した

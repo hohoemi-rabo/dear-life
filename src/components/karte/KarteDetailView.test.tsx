@@ -176,43 +176,54 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     });
   };
 
-  it("車0台の交通は、用事の場所のタブから開き、地区の行き先ごとに行けるバス停の数と1日の本数の幅を出す（バス停の名前は出さない。036・037）", async () => {
+  it("車0台の交通は、行ける場所のタブから開き、表の形で行き先ごとに1日の本数と行けるバス停の数を出す（バス停の名前は出さない。036〜038）", async () => {
     await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("車なしで、どう動く？");
-    expect(tabNames()).toEqual(["用事の場所", "冬のおでかけ", "バス停", "電車"]);
-    expect(screen.getByRole("tab", { name: /用事の場所/ })).toHaveAttribute("aria-selected", "true");
-    expect(figure()).toHaveTextContent("主な用事の場所へ、乗りかえなしで行けるバス（平日）");
-    // そばにバス停がない店は数えない（5か所のうち4か所をバスで数え、3か所に直通がある）
-    expect(figure()).toHaveTextContent("3か所");
-    expect(figure()).toHaveTextContent("バスで数えた用事の場所 4か所のうち");
+    expect(tabNames()).toEqual(["行ける場所", "冬のおでかけ", "バス停", "電車"]);
+    expect(screen.getByRole("tab", { name: /行ける場所/ })).toHaveAttribute("aria-selected", "true");
+    // タブはカードの上（038 見本）
     const main = card("交通");
-    const cityHall = within(main).getByText("飯田市役所").closest("li") as HTMLElement;
-    expect(cityHall).toHaveTextContent("鼎のバス停25か所のうち18か所から、乗りかえなしで行けます");
-    expect(cityHall).toHaveTextContent("1日4〜14本");
-    expect(within(main).getByText("健和会病院").closest("li")).toHaveTextContent("鼎のバス停からは、乗りかえなしで行けるバスはありません");
-    expect(within(main).getByText("鼎小学校").closest("li")).toHaveTextContent("1日4本");
-    // 種類ごとのまとまり
-    expect(within(main).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent)).toEqual([
-      "市役所・病院",
-      "診療所（クリニック）",
-      "駅",
-      "小学校・中学校",
-      "買い物",
-      "家からの行き方は gofreely で",
-    ]);
-    // 診療所は数だけ
-    expect(main).toHaveTextContent("鼎の中に8か所");
-    // 店は公式ページへのリンク。バス停がなければ数えない
+    expect(within(main).queryByRole("tablist")).toBeNull();
+    expect(figure()).toHaveTextContent("バスで行ける場所");
+    expect(figure()).toHaveTextContent("鼎から乗り換えなしで行ける施設");
+    // そばにバス停がない店と、直通のない行き先は数えない（5か所のうち3か所）
+    expect(figure()).toHaveTextContent("3か所");
+    expect(within(figure()).getByRole("link", { name: /家の近くから調べる/ })).toHaveAttribute("href", "https://gofreely.rabo-hohoemi.workers.dev/");
+    const row = (name: string) => within(main).getByText(name).closest("li") as HTMLElement;
+    expect(row("飯田市役所")).toHaveTextContent("4〜14本／日");
+    expect(row("飯田市役所")).toHaveTextContent("25か所中18か所");
+    expect(row("健和会病院")).toHaveTextContent("乗りかえなしで行けるバスはありません");
+    // はじめは 買い物 → 病院 → 市役所。学校・駅は「ほかの行き先を見る」で同じ表の下に出す
+    const groups = () => within(main).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
+    expect(groups()).toEqual(["買い物", "病院", "市役所", "住む場所の近くから、どう行く？"]);
+    expect(within(main).queryByText("鼎小学校")).toBeNull();
+    const more = within(main).getByRole("button", { name: "学校など、ほかの行き先を見る" });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+    await act(async () => {
+      fireEvent.click(more);
+    });
+    expect(groups()).toEqual(["買い物", "病院", "市役所", "学校", "駅", "住む場所の近くから、どう行く？"]);
+    expect(row("鼎小学校")).toHaveTextContent("4本／日");
+    expect(within(main).getByRole("button", { name: "ほかの行き先を閉じる" })).toHaveAttribute("aria-expanded", "true");
+    // 診療所は病院のまとまりに数だけ
+    expect(row("診療所（クリニック）")).toHaveTextContent("鼎の中に8か所");
+    expect(row("診療所（クリニック）")).toHaveTextContent("歯科は入っていません");
+    // 店は全部、公式ページへのリンク。バス停がなければ数えない
     expect(within(main).getByRole("link", { name: /西友飯田鼎店/ })).toHaveAttribute("href", "https://www.seiyu.co.jp/shop/kanae/");
     expect(within(main).getByRole("link", { name: /キラヤ 黒田店/ }).closest("li")).toHaveTextContent("そばにバス停がないため、バスでは数えていません");
-    expect(main).toHaveTextContent("2027年1月15日（金）の時刻表で数えました。本数は行きの便の数で、乗るバス停によって違います。");
-    expect(within(main).getByRole("link", { name: /gofreely で行き方を調べる/ })).toBeInTheDocument();
+    expect(main).toHaveTextContent("乗るバス停によって便数が変わります。");
+    expect(main).toHaveTextContent(NOTICES.carFree);
+    expect(main).toHaveTextContent("2027年1月15日（金）の時刻表で数えました。本数は行きの便の数です。");
+    expect(within(main).getByRole("link", { name: /GoFreelyで行き方を調べる/ })).toBeInTheDocument();
     expect(main).not.toHaveTextContent("市役所前");
     expect(within(basis()).getByText(/医療情報ネット/)).toBeInTheDocument();
   });
 
-  it("伊賀良の用事の場所は、駅がないことを伝える（037）", async () => {
+  it("伊賀良の行ける場所の駅は、駅がないことを伝える（037）", async () => {
     await open("transport", "d=igara&a=2&k=0&h=new&c=0");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "学校など、ほかの行き先を見る" }));
+    });
     expect(card("交通")).toHaveTextContent("地区内に駅はありません。");
   });
 
@@ -233,7 +244,7 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
 
   it("車1台以上は冬のおでかけのタブを出さず、バス停から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
     await open("transport", "d=kanae&k=1&c=1");
-    expect(tabNames()).toEqual(["バス停", "電車", "用事の場所"]);
+    expect(tabNames()).toEqual(["バス停", "電車", "行ける場所"]);
     expect(figure()).toHaveTextContent("地区のバス停2か所");
     expect(figure()).not.toHaveTextContent(NOTICES.carFree);
     await choose(/電車/);

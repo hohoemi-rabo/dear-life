@@ -674,6 +674,11 @@ export const PROPS = [
   "detail-land",
   "pin-snow-road",
   "pin-highway-bus",
+  "errand-store",
+  "errand-hospital",
+  "errand-office",
+  "errand-home-stop",
+  "errand-station",
 ] as const;
 export type PropId = (typeof PROPS)[number];
 
@@ -765,6 +770,13 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "pin-snow-road": { source: "pin-snow-road.png", alt: "青い雪の結晶" },
   // くらしの冬の「高速バス」のピンの丸の中の絵（2026-11-05 受け取り）
   "pin-highway-bus": { source: "pin-highway-bus.png", alt: "クリーム色に赤い帯の高速バス" },
+  // カルテの交通「行ける場所」の表のまとまりの絵と、GoFreely の枠の絵（038。2026-11-12 受け取り）。errand-icons.png は2段に4つ並ぶ。
+  // 表では約 96px、GoFreely の枠では約 160px に出す
+  "errand-store": { source: "errand-icons.png", index: 0, alt: "スーパーマーケット" },
+  "errand-hospital": { source: "errand-icons.png", index: 1, alt: "赤十字の印のある病院" },
+  "errand-office": { source: "errand-icons.png", index: 2, alt: "横長の庁舎" },
+  "errand-home-stop": { source: "errand-icons.png", index: 3, alt: "青い屋根の家と、そばのバス停" },
+  "errand-station": { source: "errand-station.png", alt: "赤い屋根の駅舎とホーム" },
 };
 
 // 書き出す横幅。プレビュー（車の表示はスマホで約150px、PC で約220px）と選択肢のカード（約110px）・地図のカード（約90px）・

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BusErrand } from "@/lib/data/screen-data";
 import { sourceFixture } from "@/test/screen-data-fixture";
-import { errandsOf, errandStation, highSchoolNames } from "./errands";
+import { errandsOf, errandStation, highSchoolNames, reachableErrandCount } from "./errands";
 
 const UNAVAILABLE = { status: "unavailable" } as const;
 const counts = {
@@ -54,22 +54,36 @@ describe("highSchoolNames・errandsOf（037）", () => {
     expect(highSchoolNames({ schools: UNAVAILABLE })).toBeNull();
   });
 
-  it("種類ごとのまとまりに分ける（並びはそのまま）", () => {
-    const errand = (place: string, kind: BusErrand["kind"]): BusErrand => ({
-      place,
-      kind,
-      hasStop: true,
-      officialUrl: null,
-      dayType: "平日",
-      serviceDate: "2027-01-15",
-      districtStopCount: 1,
-      reachableStopCount: 1,
-      minTripsPerDay: 1,
-      maxTripsPerDay: 1,
-    });
+  const errand = (place: string, kind: BusErrand["kind"], overrides: Partial<BusErrand> = {}): BusErrand => ({
+    place,
+    kind,
+    hasStop: true,
+    officialUrl: null,
+    dayType: "平日",
+    serviceDate: "2027-01-15",
+    districtStopCount: 1,
+    reachableStopCount: 1,
+    minTripsPerDay: 1,
+    maxTripsPerDay: 1,
+    ...overrides,
+  });
+
+  it("種類ごとのまとまりに分ける（並びはそのまま。駅はバスの行き先を持たない。038）", () => {
     const errands = [errand("市役所", "市役所"), errand("中学校", "中学校"), errand("病院", "病院"), errand("小学校", "小学校"), errand("店", "店")];
-    expect(errandsOf(errands, "office").map((e) => e.place)).toEqual(["市役所", "病院"]);
-    expect(errandsOf(errands, "school").map((e) => e.place)).toEqual(["中学校", "小学校"]);
     expect(errandsOf(errands, "store").map((e) => e.place)).toEqual(["店"]);
+    expect(errandsOf(errands, "hospital").map((e) => e.place)).toEqual(["病院"]);
+    expect(errandsOf(errands, "office").map((e) => e.place)).toEqual(["市役所"]);
+    expect(errandsOf(errands, "school").map((e) => e.place)).toEqual(["中学校", "小学校"]);
+    expect(errandsOf(errands, "station")).toEqual([]);
+  });
+
+  it("乗りかえなしで行ける行き先だけを数える（バス停がない店・直通のない行き先は数えない）", () => {
+    expect(
+      reachableErrandCount([
+        errand("市役所", "市役所"),
+        errand("病院", "病院", { reachableStopCount: 0, minTripsPerDay: null, maxTripsPerDay: null }),
+        errand("店", "店", { hasStop: false, reachableStopCount: 0 }),
+      ]),
+    ).toBe(1);
   });
 });

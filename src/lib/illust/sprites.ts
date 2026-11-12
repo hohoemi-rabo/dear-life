@@ -151,4 +151,9 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "detail-land": { width: 1198, height: 777 },
   "pin-snow-road": { width: 956, height: 1053 },
   "pin-highway-bus": { width: 1340, height: 624 },
+  "errand-store": { width: 536, height: 268 },
+  "errand-hospital": { width: 508, height: 303 },
+  "errand-office": { width: 581, height: 306 },
+  "errand-home-stop": { width: 549, height: 301 },
+  "errand-station": { width: 1234, height: 492 },
 };

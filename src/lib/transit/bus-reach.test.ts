@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BusOuting } from "../data/screen-data";
-import { busReachDateNote, busReachSentence, reachableStopsPhrase } from "./bus-reach";
+import { busReachDateNote, busReachSentence, reachableStopsPhrase, tripsPerDayRange } from "./bus-reach";
 
 const outing = (reachable: number, all: number): BusOuting => ({
   dayType: "土曜",
@@ -28,5 +28,12 @@ describe("バスで行けるバス停の数の一文（036）", () => {
 
   it("いつの時刻表で数えたかを添える", () => {
     expect(busReachDateNote(outing(1, 1))).toBe("2027年1月16日（土）の時刻表で数えました");
+  });
+});
+
+describe("行ける場所の1日の本数（038）", () => {
+  it("乗るバス停によって違えば幅で、同じなら1つの数で言う", () => {
+    expect(tripsPerDayRange(4, 14)).toBe("4〜14本／日");
+    expect(tripsPerDayRange(4, 4)).toBe("4本／日");
   });
 });
