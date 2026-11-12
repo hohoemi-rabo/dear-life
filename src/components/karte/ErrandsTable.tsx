@@ -180,12 +180,31 @@ function groupRows(group: ErrandGroup, district: DistrictData): ReactNode[] {
 }
 
 // 行：行き先の名前と、2つの欄（便・バス停）。wide を渡すと、2つの欄をまたいで1つの文を出す
-function Row({ name, trips, stops, wide, note }: { name: ReactNode; trips?: ReactNode; stops?: ReactNode; wide?: ReactNode; note?: ReactNode }) {
+// tripsSpan：バス停の欄を使わない行（駅）は、便の欄をバス停の欄まで広げる（上り・下りの内訳が紙で3行に折り返さないように。038）
+function Row({
+  name,
+  trips,
+  stops,
+  wide,
+  note,
+  tripsSpan = false,
+}: {
+  name: ReactNode;
+  trips?: ReactNode;
+  stops?: ReactNode;
+  wide?: ReactNode;
+  note?: ReactNode;
+  tripsSpan?: boolean;
+}) {
   return (
     <li className={`flex break-inside-avoid flex-col gap-0.5 py-2 md:grid md:min-h-14 md:items-center md:gap-x-4 md:py-1 ${ROW_COLUMNS}`}>
       <div className="font-bold md:font-normal">{name}</div>
       {wide !== undefined ? (
         <div className="text-sm md:col-span-2">{wide}</div>
+      ) : tripsSpan ? (
+        <Cell label="平日の行きの便" className="md:col-span-2">
+          {trips}
+        </Cell>
       ) : (
         <>
           <Cell label="平日の行きの便">{trips}</Cell>
@@ -198,10 +217,10 @@ function Row({ name, trips, stops, wide, note }: { name: ReactNode; trips?: Reac
 }
 
 // スマホでは欄の名前を値の前に出す（表の見出しの行は PC だけ）。中身がなければ何も出さない
-function Cell({ label, children }: { label: string; children: ReactNode }) {
+function Cell({ label, children, className = "" }: { label: string; children: ReactNode; className?: string }) {
   if (children === undefined || children === null) return <div className="hidden md:block" />;
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2">
+    <div className={`flex flex-wrap items-baseline gap-x-2 ${className}`}>
       <span className="text-xs text-ink-muted md:sr-only">{label}</span>
       {children}
     </div>
@@ -286,7 +305,7 @@ function StationRow({ district }: { district: DistrictData }) {
           </span>
         </span>
       }
-      stops={null}
+      tripsSpan
     />
   );
 }
