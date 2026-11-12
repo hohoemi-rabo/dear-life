@@ -28,6 +28,7 @@ import { AddToShitamiButton } from "./ShitamiMemo";
 import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows, type BasisRow } from "./DetailBasis";
+import { PropIcon } from "./DetailCard";
 import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
@@ -135,7 +136,8 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
     <>
       {chosen && (
         <p className="hidden items-center gap-2 self-start rounded-button bg-pixel-sky/60 px-4 py-2 font-bold md:flex">
-          <KarteCardIcon card={card} size="sm" />
+          {/* 子育て・学校は家族の印（039 見本） */}
+          {card === "childcare" ? <PropIcon prop="childcare-chip-family" className="size-6" /> : <KarteCardIcon card={card} size="sm" />}
           選択中：{chosen}
         </p>
       )}

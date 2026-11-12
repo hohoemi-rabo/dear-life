@@ -11,6 +11,8 @@ export type DetailTabItem = {
   icon: IconId;
   // ドット絵の印の代わりに出す生成AIの印（交通のタブ。2026-11-12 受け取り）
   illust?: TransportTabIconId;
+  // 1枚ずつの生成AIの印（子育て・学校のタブ。2026-11-12 受け取り）
+  prop?: PropId;
   // 「洪水 25」のように、ラベルの横に出す数
   count?: number;
 };
@@ -48,7 +50,9 @@ export function DetailTabs({
               selected ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
             ].join(" ")}
           >
-            {item.illust ? (
+            {item.prop ? (
+              <PropIcon prop={item.prop} className={`size-6 ${crowded ? "hidden sm:inline-block" : ""}`} />
+            ) : item.illust ? (
               // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
               <img
                 src={transportTabIconSrc(item.illust, 48)}
@@ -68,6 +72,14 @@ export function DetailTabs({
         );
       })}
     </div>
+  );
+}
+
+// 1枚ずつの生成AIの印（タブ・ボタン・札の左）。そばの文字で意味がわかるので読み上げない
+export function PropIcon({ prop, className }: { prop: PropId; className: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
+    <img src={propSrc(prop, 48)} srcSet={propSrcSet(prop)} sizes="56px" alt="" draggable={false} className={`shrink-0 select-none object-contain ${className}`} />
   );
 }
 

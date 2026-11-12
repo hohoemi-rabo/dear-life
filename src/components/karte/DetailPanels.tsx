@@ -55,13 +55,14 @@ export function detailTabs(
           id: "districts",
           label: "通う学校（学区）",
           icon: "icon-school",
+          prop: "childcare-tab-zone",
           // 通う学校は市の通学区域の規則の別表から出す（039）
           states: [district.schoolZones],
         },
         // 「地区の学校」：学区の学校の数と、地区にある学校（高校なども入る）の数を取り違えないように（039）
-        { id: "schools", label: "地区の学校", icon: "icon-school", states: [district.schools] },
-        { id: "childcare", label: "保育園など", icon: "icon-house", states: [district.childcare] },
-        { id: "clubs", label: "放課後クラブ", icon: "icon-family", states: [district.afterSchoolClubs] },
+        { id: "schools", label: "地区の学校", icon: "icon-school", prop: "childcare-tab-schools", states: [district.schools] },
+        { id: "childcare", label: "保育園など", icon: "icon-house", prop: "childcare-tab-nursery", states: [district.childcare] },
+        { id: "clubs", label: "放課後クラブ", icon: "icon-family", prop: "childcare-tab-clubs", states: [district.afterSchoolClubs] },
       ];
     case "transport": {
       const hasStation = district.trainStations.status !== "none";

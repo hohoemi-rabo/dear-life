@@ -651,6 +651,13 @@ export const PROPS = [
   "karte-title-book",
   "karte-check-memo",
   "shitami-title",
+  "childcare-tab-zone",
+  "childcare-tab-schools",
+  "childcare-tab-nursery",
+  "childcare-tab-clubs",
+  "childcare-zone-map",
+  "childcare-map-button",
+  "childcare-chip-family",
   "karte-next-step-bg-kamisato",
   "karte-next-step-bg-kanae",
   "karte-next-step-bg-igara",
@@ -745,6 +752,14 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "karte-check-memo": { source: "karte-check-memo.png", alt: "チェックの付いた、リングとじのメモ帳", widths: [96, 192] },
   // カルテの「わが家の下見プラン」の見出しの左（2026-11-12 受け取り、shitami-icons.png）。確認ポイントの見出しと同じく PC で 40px、スマホで 32px
   "shitami-title": { source: "shitami-icons.png", alt: "緑のチェックの付いたクリップボード", widths: [96, 192] },
+  // カルテの子育て・学校の詳細の印（2026-11-12 受け取り。039 見本）。タブ・ボタン・札の印は 20〜24px、カードの頭の地図は 48〜56px で出す
+  "childcare-tab-zone": { source: "childcare-tab-zone.png", alt: "旗と時計塔のある校舎", widths: [48, 96] },
+  "childcare-tab-schools": { source: "childcare-tab-schools.png", alt: "旗の立つオレンジ屋根の校舎", widths: [48, 96] },
+  "childcare-tab-nursery": { source: "childcare-tab-nursery.png", alt: "チューリップの飾りのあるオレンジ屋根の保育園", widths: [48, 96] },
+  "childcare-tab-clubs": { source: "childcare-tab-clubs.png", alt: "並んだ子ども2人", widths: [48, 96] },
+  "childcare-zone-map": { source: "childcare-zone-map.png", alt: "オレンジのピンの立った三つ折りの地図", widths: [96, 192] },
+  "childcare-map-button": { source: "childcare-map-button.png", alt: "ピンのある三つ折りの地図", widths: [48, 96] },
+  "childcare-chip-family": { source: "childcare-chip-family.png", alt: "大人2人と子ども1人", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
   "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
   "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },

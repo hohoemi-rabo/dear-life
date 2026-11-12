@@ -4,7 +4,6 @@ import { useSearchParams } from "next/navigation";
 import { useId, useState, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
-import { PixelImage } from "@/components/pixel/PixelImage";
 import { usePrintMode } from "@/components/print/PrintMode";
 import { ButtonLink } from "@/components/ui/Button";
 import { useConditions } from "@/lib/conditions/useConditions";
@@ -13,7 +12,7 @@ import type { SchoolZoneGroup, SchoolZoneKind, SchoolZoneSummary, TownSchoolChoi
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { facilityMapHref, schoolDistrictMapHref, type FacilityLayer } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
-import { NoticeBox } from "./DetailCard";
+import { NoticeBox, PropIcon } from "./DetailCard";
 
 // カルテの子育て・学校の「通う学校（学区）」のタブ（039。見本 karte-detail-childcare-uniform.png・karte-detail-childcare-split.png）。
 // 通う学校は市の通学区域の規則の別表（町名 → 学校）から出す。
@@ -46,7 +45,7 @@ export function SchoolZonePanel({ state, districtName }: { state: DataState<Scho
 function ZoneHead({ title, description }: { title: string; description?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <PixelImage asset="icon-map" scale={3} decorative className="shrink-0" />
+      <PropIcon prop="childcare-zone-map" className="size-12 md:size-14" />
       <div className="flex min-w-0 flex-col gap-0.5">
         <h2 className="text-lg font-extrabold md:text-xl">{title}</h2>
         {description && <p className="text-sm">{description}</p>}
@@ -309,7 +308,7 @@ function SchoolDistrictMapLink() {
   const searchParams = useSearchParams();
   return (
     <ButtonLink href={schoolDistrictMapHref(conditions, searchParams.get(SEASON_PARAM))} variant="secondary" className="print:hidden">
-      <PixelIcon icon="icon-map" size="sm" />
+      <PropIcon prop="childcare-map-button" className="size-5" />
       学区の範囲を地図で見る
       <span aria-hidden="true">→</span>
     </ButtonLink>
@@ -322,7 +321,7 @@ export function FacilityMapLink({ layer }: { layer: FacilityLayer }) {
   const searchParams = useSearchParams();
   return (
     <ButtonLink href={facilityMapHref(conditions, searchParams.get(SEASON_PARAM), layer)} variant="secondary" className="self-start print:hidden">
-      <PixelIcon icon="icon-map" size="sm" />
+      <PropIcon prop="childcare-map-button" className="size-5" />
       地図で場所を見る
       <span aria-hidden="true">→</span>
     </ButtonLink>
