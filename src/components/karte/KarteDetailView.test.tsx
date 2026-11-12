@@ -245,6 +245,8 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
   it("車1台以上は冬のおでかけのタブを出さず、バス停から開く。電車のタブは駅と本数（未公開ならデータ未取得）", async () => {
     await open("transport", "d=kanae&k=1&c=1");
     expect(tabNames()).toEqual(["バス停", "電車", "行ける場所"]);
+    // 「この数字から分かること」は出さない（2026-11-13 まさゆきさん）
+    expect(screen.queryByText("この数字から分かること")).toBeNull();
     expect(figure()).toHaveTextContent("地区のバス停2か所");
     expect(figure()).not.toHaveTextContent(NOTICES.carFree);
     await choose(/電車/);
@@ -576,6 +578,13 @@ describe("KarteDetailView：印刷（023）", () => {
     expect(paper.queryByRole("combobox")).toBeNull();
     expect((paper.getByText("すべての町名と学区").closest("details") as HTMLDetailsElement).open).toBe(true);
     expect(paper.getByRole("table", { name: "町ごとの通う小学校・中学校" })).toHaveTextContent("吾妻町");
+  });
+
+  it("交通は「この数字から分かること」を紙にも出さない（2026-11-13 まさゆきさん）", async () => {
+    await open("transport", "d=kanae&a=2&k=0&h=new&c=0");
+    await printFromSheet();
+    expect(printed().queryByText("この数字から分かること")).toBeNull();
+    expect(printed().getByRole("heading", { name: "現地で確かめたいこと" })).toBeInTheDocument();
   });
 
   it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {

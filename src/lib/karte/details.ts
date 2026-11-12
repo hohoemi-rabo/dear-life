@@ -101,10 +101,8 @@ const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, 
 };
 
 const TRANSPORT_TEXTS: Omit<DetailTexts, "question"> = {
-  knows: {
-    text: "{district}のバス停・駅と、1日の本数です。",
-    tip: { title: "時間帯もあわせて見ましょう。", body: "通勤・通学の時間に便があるかを確かめましょう。" },
-  },
+  // 「この数字から分かること」は出さない（2026-11-13 まさゆきさん。車の台数によらず。印刷も）
+  knows: null,
   checkTitle: "現地で確かめたいこと",
   checks: ["家からバス停・駅までの道", "朝と夕方の便の時間", "冬の道の様子"],
 };
