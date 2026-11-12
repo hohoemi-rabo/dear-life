@@ -3,7 +3,7 @@
 // 地区の端の町（中心市街地の八幡町・育良町）は、となりの地区にある学校に通う。学校の数には入れず、表の下に分けて出す
 // （2026-11-12 まさゆきさん：「9はだめでしょ。5でいいでしょ」）。
 // どれが端の町かは町名で決めず、「その町の学校が1つも地区の中にない」で決める（地区の中の学校は市の教育機関一覧）
-import type { Facility, TownSchoolZone } from "../data/screen-data.ts";
+import type { DataState, DistrictData, Facility, TownSchoolZone } from "../data/screen-data.ts";
 
 // single：どの町も1校／choice：2校から選べる（別表の「又は」）／partial：町の中の場所によって分かれる（別表の「の一部」）
 export type SchoolZoneKind = "single" | "choice" | "partial";
@@ -111,4 +111,20 @@ export function summarizeSchoolZones(zones: readonly TownSchoolZone[], schoolsIn
     groups,
     edgeGroups: group(zones.filter(isEdge)),
   };
+}
+
+// 地区の学区のまとめ。カルテの学区のタブ・地区くらべ・くらしの春の場面と学校のピンで同じものを使う
+export function districtSchoolZones(district: DistrictData): DataState<SchoolZoneSummary> {
+  const state = district.schoolZones;
+  if (state.status !== "available") return state;
+  const schools = district.schools.status === "available" ? district.schools.value : district.schools.status === "none" ? [] : null;
+  return { ...state, value: summarizeSchoolZones(state.value, schools) };
+}
+
+// 「{地区}に住むと、〜。」の「〜」。どの町も同じなら「小学校は上郷小学校、中学校は高陵中学校に通います」、
+// 分かれるなら「町によって、小学校は浜井場小学校・丸山小学校・追手町小学校、中学校は飯田東中学校・飯田西中学校に分かれます」
+export function schoolZonePhrase(summary: SchoolZoneSummary): string {
+  const elementary = summary.elementarySchools.join("・");
+  const juniorHigh = summary.juniorHighSchools.join("・");
+  return summary.uniform ? `小学校は${elementary}、中学校は${juniorHigh}に通います` : `町によって、小学校は${elementary}、中学校は${juniorHigh}に分かれます`;
 }

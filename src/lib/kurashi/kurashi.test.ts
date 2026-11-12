@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "@/lib/conditions/model";
 import { planScene } from "@/lib/conditions/scene";
 import type { DistrictEvent } from "@/lib/data/screen-data";
-import { screenDataFixture } from "@/test/screen-data-fixture";
+import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { karteHref } from "./links";
+import { pinSheet } from "./pin-sheets";
 import { ALL_EVENTS_KEY, EVENT_PINS, PIN_SPOTS, openPinSpec, scenePinFor, scenePins, thumbnailPosition } from "./pins";
 import { parseSeason } from "./season";
 import { seasonView } from "./view";
@@ -170,6 +171,20 @@ describe("くらしのピン（028）", () => {
     // 絵の 25% の点 × 幅3倍 = 枠の 0.75 倍の位置。真ん中（0.5）に来るよう (0.75 - 0.5) / (3 - 1) = 12.5%
     expect(x).toBeCloseTo(12.5);
     expect(thumbnailPosition({ x: 1, y: 99 }, 3, 16 / 9, 16 / 9)).toEqual({ x: 0, y: 100 });
+  });
+});
+
+describe("学校のピン（039）", () => {
+  it("子どもなしのときは、市の規則の通う学校を1文で出す", () => {
+    const conditions = { ...DEFAULT_CONDITIONS, district: "kamisato" as const, children: 0 };
+    const zones = availableFixture(
+      [{ townName: "上郷黒田", elementarySchools: ["上郷小学校"], juniorHighSchools: ["高陵中学校"], isPartial: false }],
+      sourceFixture("iida_school_zone_rule"),
+    );
+    const district = { ...screenDataFixture().districts.kamisato, schoolZones: zones };
+    const sheet = pinSheet({ pin: "school", season: "春", plan: planScene("春", conditions), conditions, district, scene: null, events: [], rent: { status: "unavailable" } });
+    expect(sheet.lines).toEqual([expect.objectContaining({ status: "shown", text: "上郷に住むと、小学校は上郷小学校、中学校は高陵中学校に通います。" })]);
+    expect(sheet.sources.map(({ source }) => source.id)).toContain("iida_school_zone_rule");
   });
 });
 

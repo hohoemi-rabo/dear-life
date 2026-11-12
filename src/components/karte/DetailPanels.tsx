@@ -19,6 +19,7 @@ import type {
 import { formatJaDate, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
+import { districtSchoolZones } from "@/lib/karte/school-zones";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { ERRAND_STATIONS } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
@@ -26,7 +27,7 @@ import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
-import { SCHOOL_ZONE_TITLE, SchoolZoneFigure, SchoolZoneList, schoolZoneSummary } from "./SchoolZones";
+import { SCHOOL_ZONE_TITLE, SchoolZoneFigure, SchoolZoneList } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -298,7 +299,7 @@ function childcareContent(tabId: string, district: DistrictData): PanelContent {
       };
     default: {
       // 学区：町名ごとに通う学校（039）。学校のタブの「地区にある学校」とは見出しで分ける
-      const summary = schoolZoneSummary(district);
+      const summary = districtSchoolZones(district);
       return {
         picture: "detail-school",
         title: SCHOOL_ZONE_TITLE,

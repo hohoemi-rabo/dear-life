@@ -3,6 +3,7 @@
 import type { ScenePlan } from "../conditions/scene.ts";
 import type { BusOuting, DataState, DistrictData, DistrictEvent, Facility, Outing, SourceInfo } from "../data/screen-data.ts";
 import { formatJaDate, formatServiceTime } from "../format.ts";
+import { districtSchoolZones, schoolZonePhrase } from "../karte/school-zones.ts";
 import { reachableStopsPhrase } from "../transit/bus-reach.ts";
 
 // 値が出せないときに、画面で何のデータの話かを伝える単位。同じ話題の知らせは場面の中で1つにまとめる
@@ -135,13 +136,16 @@ export const PLACEHOLDERS = {
   保育施設の数: { topic: "childcare", resolve: ({ district }) => countOf(district.childcare) },
   保育施設名: { topic: "childcare", resolve: ({ district }) => exampleOf(district.childcare, pickChildcareExample, (f) => f.name) },
   保育施設の住所: { topic: "childcare", resolve: ({ district }) => exampleOf(district.childcare, pickChildcareExample, (f) => f.address) },
+  // 「{地区名}に住むと、{通う学校}。」。市の通学区域の規則の別表から（039）
+  通う学校: { topic: "schoolDistricts", resolve: ({ district }) => fromState(districtSchoolZones(district), schoolZonePhrase) },
+  // 039 より前のひな形（「小学校は主に{小学校区}…」）の差し込み。圏外用に端末に残った古いデータで使う
   小学校区: {
     topic: "schoolDistricts",
-    resolve: ({ district }) => fromState(district.elementarySchoolDistricts, (names) => names.join("・")),
+    resolve: ({ district }) => fromState(districtSchoolZones(district), (summary) => summary.elementarySchools.join("・")),
   },
   中学校区: {
     topic: "schoolDistricts",
-    resolve: ({ district }) => fromState(district.juniorHighSchoolDistricts, (names) => names.join("・")),
+    resolve: ({ district }) => fromState(districtSchoolZones(district), (summary) => summary.juniorHighSchools.join("・")),
   },
 
   // 春・子どもなし

@@ -53,8 +53,8 @@ export function compareSources(data: ScreenData, topics: readonly CompareTopic[]
   }
   if (topics.includes("school")) {
     for (const district of districts) {
-      add(district.elementarySchoolDistricts);
-      add(district.juniorHighSchoolDistricts);
+      // 通う学校（市の通学区域の規則の別表。039）
+      add(district.schoolZones);
     }
   }
   for (const row of FACILITY_COUNT_ROWS) {

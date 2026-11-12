@@ -5,8 +5,8 @@ import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { useConditions } from "@/lib/conditions/useConditions";
-import type { DataState, DistrictData } from "@/lib/data/screen-data";
-import { summarizeSchoolZones, type SchoolZoneGroup, type SchoolZoneSummary } from "@/lib/karte/school-zones";
+import type { DataState } from "@/lib/data/screen-data";
+import type { SchoolZoneGroup, SchoolZoneSummary } from "@/lib/karte/school-zones";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { schoolDistrictMapHref } from "@/lib/map/links";
 import { BigCount } from "./DetailCard";
@@ -22,13 +22,6 @@ const KIND_NOTES: Readonly<Record<SchoolZoneGroup["kind"], string | null>> = {
   choice: "どちらかを選べます",
   partial: "場所によって分かれます。番地を市で確かめてください",
 };
-
-export function schoolZoneSummary(district: DistrictData): DataState<SchoolZoneSummary> {
-  const state = district.schoolZones;
-  if (state.status !== "available") return state;
-  const schools = district.schools.status === "available" ? district.schools.value : district.schools.status === "none" ? [] : null;
-  return { ...state, value: summarizeSchoolZones(state.value, schools) };
-}
 
 // 大きい数字：「2校　小学校1・中学校1」
 export function SchoolZoneFigure({ state }: { state: DataState<SchoolZoneSummary> }) {

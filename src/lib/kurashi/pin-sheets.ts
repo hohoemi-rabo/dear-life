@@ -6,6 +6,7 @@ import type { Conditions } from "../conditions/model.ts";
 import type { ScenePlan, Season } from "../conditions/scene.ts";
 import type { DataState, DistrictData, DistrictEvent, Facility, HousingTenure, MarketStat, RentReference, SourceInfo } from "../data/screen-data.ts";
 import { formatQuarterRange } from "../format.ts";
+import { districtSchoolZones, schoolZonePhrase } from "../karte/school-zones.ts";
 import { NOTICES } from "../notices.ts";
 import type { Scene, SceneLine } from "../scenes/render.ts";
 import { sceneNoticeMessage } from "../scenes/placeholders.ts";
@@ -108,9 +109,9 @@ function belongsToTransitPin(line: SceneLine, pin: "bus" | "train"): boolean {
   return (line.topic === "trainOuting" ? "train" : "bus") === pin;
 }
 
-// 子どもなしのときの学校のピン：場面の文（子育て・学校）は出ないので、主な学区だけを1文で出す
+// 子どもなしのときの学校のピン：場面の文（子育て・学校）は出ないので、通う学校（市の通学区域の規則。039）だけを1文で出す
 function schoolDistrictLine(district: DistrictData): SceneLine {
-  const state = district.elementarySchoolDistricts;
+  const state = districtSchoolZones(district);
   if (state.status !== "available") {
     return { status: state.status, position: 1, topic: "schoolDistricts", message: sceneNoticeMessage("schoolDistricts", state.status), karteCard: "childcare" };
   }
@@ -118,7 +119,7 @@ function schoolDistrictLine(district: DistrictData): SceneLine {
     status: "shown",
     position: 1,
     kind: "データ",
-    text: `小学校は主に${state.value.join("・")}の学区になります。`,
+    text: `${district.name}に住むと、${schoolZonePhrase(state.value)}。`,
     sources: [state.source],
     checkedOn: null,
     karteCard: "childcare",
@@ -134,11 +135,11 @@ export function pinSheet(input: Input): PinSheet {
       const count = countOf(district.schools, isElementarySchool);
       const scene = sceneParts(input);
       const lines = scene.lines.length > 0 ? scene.lines : [schoolDistrictLine(district)];
-      const lineSources = scene.lines.length > 0 ? scene.sources : sourcesOf(district.elementarySchoolDistricts).map((source) => ({ source }));
+      const lineSources = scene.lines.length > 0 ? scene.sources : sourcesOf(district.schoolZones).map((source) => ({ source }));
       return {
         ...base,
         ...countTitle(count, `${district.name}の小学校`, "校"),
-        intro: "主な学区や学校の場所を、カルテと地図で確かめられます。",
+        intro: "通う学校（学区）や学校の場所を、カルテと地図で確かめられます。",
         lines,
         notices: scene.lines.length > 0 ? scene.notices : [NOTICES.schoolDistrict],
         sources: uniqueSources([...sourcesOf(count).map((source) => ({ source })), ...lineSources]),

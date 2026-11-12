@@ -6,7 +6,8 @@ export const SOURCE_USES: ReadonlyArray<readonly [id: string, use: string]> = [
   ["reinfolib_xit001", "住まいの相場"],
   ["estat_housing_land_survey_rent", "借りるときの家賃の参考値（飯田市全体）"],
   ["estat_census_housing_tenure", "地区の借家に住む世帯の数"],
-  ["reinfolib_xkt004", "小学校区"],
+  ["iida_school_zone_rule", "通う小学校・中学校（町ごとの学区）"],
+  ["reinfolib_xkt004", "地図の小学校区の範囲"],
   ["reinfolib_xkt005", "中学校区"],
   ["iida_education", "学校"],
   ["iida_childcare", "保育園・幼稚園など、放課後児童クラブ"],
@@ -16,6 +17,7 @@ export const SOURCE_USES: ReadonlyArray<readonly [id: string, use: string]> = [
   ["sena_iida_line_stations", "駅"],
   ["railway_honsu", "電車の本数（平日）"],
   ["iida_jr_timetable", "電車の便と本数"],
+  ["mhlw_medical_clinics", "地区の診療所の数"],
   ["estat_census_small_area", "地区の人口と年齢構成"],
   ["rakuen_shinshu_iida_sheet", "冬の場面の雪と路面凍結の文"],
 ];

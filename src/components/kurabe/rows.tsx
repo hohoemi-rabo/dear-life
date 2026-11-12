@@ -8,6 +8,7 @@ import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { renterSharePercent } from "@/lib/housing/rent";
 import { EXAMPLE_LAND_AREA, landEstimates, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
+import { districtSchoolZones, type SchoolZoneSummary } from "@/lib/karte/school-zones";
 import { busiestStation, hasServiceTimes, trainTrips } from "@/lib/karte/train";
 import { eventLabel, FACILITY_COUNT_ROWS } from "@/lib/kurabe/compare";
 import { NOTICES } from "@/lib/notices";
@@ -146,20 +147,27 @@ const MARKET_ROWS: readonly CompareRow[] = [
   },
 ];
 
-function schoolNames(names: readonly string[], size: CellSize): ReactNode {
-  return <span className={`font-bold ${size === "large" ? "text-lg" : ""}`}>{names.join("・")}</span>;
+// 通う学校は市の通学区域の規則の別表から出す（039）。町によって分かれる地区（中心市街地）は、その一言を添える。
+// 地区の端の町（八幡町・育良町）の学校は、カルテと同じく入れない（くわしくはカルテの学区のタブ）
+function schoolNames(summary: SchoolZoneSummary, pick: (summary: SchoolZoneSummary) => readonly string[], size: CellSize): ReactNode {
+  return (
+    <>
+      <span className={`font-bold ${size === "large" ? "text-lg" : ""}`}>{pick(summary).join("・")}</span>
+      {!summary.uniform && <span className="block text-xs text-ink-muted">町によって分かれます</span>}
+    </>
+  );
 }
 
 const SCHOOL_DISTRICT_ROWS: readonly CompareRow[] = [
   {
     id: "elementary",
-    label: "主な小学校区",
-    cell: (district, size) => stateCell(district.elementarySchoolDistricts, (names) => schoolNames(names, size)),
+    label: "通う小学校（学区）",
+    cell: (district, size) => stateCell(districtSchoolZones(district), (summary) => schoolNames(summary, (s) => s.elementarySchools, size)),
   },
   {
     id: "junior-high",
-    label: "主な中学校区",
-    cell: (district, size) => stateCell(district.juniorHighSchoolDistricts, (names) => schoolNames(names, size)),
+    label: "通う中学校（学区）",
+    cell: (district, size) => stateCell(districtSchoolZones(district), (summary) => schoolNames(summary, (s) => s.juniorHighSchools, size)),
   },
 ];
 

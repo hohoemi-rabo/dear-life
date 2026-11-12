@@ -9,8 +9,7 @@ import { pickChildcareExample, pickPublicFacilityExample } from "./placeholders"
 import { renderScene, selectSceneEvents } from "./render";
 
 const CHILDCARE = sourceFixture("iida_childcare");
-const EDUCATION_DISTRICTS = sourceFixture("reinfolib_xkt004");
-const JUNIOR_DISTRICTS = sourceFixture("reinfolib_xkt005");
+const SCHOOL_ZONES = sourceFixture("iida_school_zone_rule");
 const EVACUATION = sourceFixture("iida_evacuation");
 const BUS = sourceFixture("gtfs_minamishinshu_bus");
 const STATIONS = sourceFixture("sena_iida_line_stations");
@@ -53,21 +52,32 @@ describe("renderScene", () => {
   it("春・子どもあり：保育施設の数と例、学区を差し込み、文の種類・出典・カルテのカードを付ける", () => {
     const data = dataWith({
       childcare: availableFixture([facility("ひよこ園", "その他"), facility("かなえ保育園", "認定こども園（保育所型）")], CHILDCARE),
-      elementarySchoolDistricts: availableFixture(["鼎小学校"], EDUCATION_DISTRICTS),
-      juniorHighSchoolDistricts: availableFixture(["鼎中学校"], JUNIOR_DISTRICTS),
+      schoolZones: availableFixture([{ townName: "鼎中平", elementarySchools: ["鼎小学校"], juniorHighSchools: ["鼎中学校"], isPartial: false }], SCHOOL_ZONES),
     });
     const scene = renderScene("春", conditions(), data);
     expect(texts(scene)).toEqual([
       "春、入園と入学の季節です。",
       "鼎には、保育園・幼稚園等が2か所あります。",
       "たとえばかなえ保育園（かなえ保育園の住所）です。",
-      "小学校は主に鼎小学校、中学校は主に鼎中学校の学区になります。",
+      "鼎に住むと、小学校は鼎小学校、中学校は鼎中学校に通います。",
       "家族で、新しい毎日の準備をします。",
     ]);
     expect(scene?.lines[0]).toMatchObject({ kind: "想定", sources: [], karteCard: null });
     expect(scene?.lines[1]).toMatchObject({ kind: "データ", sources: [CHILDCARE], karteCard: "childcare" });
-    expect(scene?.sources).toEqual([CHILDCARE, EDUCATION_DISTRICTS, JUNIOR_DISTRICTS]);
+    expect(scene?.sources).toEqual([CHILDCARE, SCHOOL_ZONES]);
     expect(scene?.notices).toEqual([NOTICES.schoolDistrict]);
+  });
+
+  it("春・子どもあり：町によって学校が分かれる地区は「町によって〜に分かれます」と書く。地区の端の町の学校は入れない（039）", () => {
+    const zone = (townName: string, elementary: string, juniorHigh: string) => ({ townName, elementarySchools: [elementary], juniorHighSchools: [juniorHigh], isPartial: false });
+    const data = dataWith({});
+    const chushin = {
+      ...data.districts.chushin,
+      schoolZones: availableFixture([zone("本町1丁目", "追手町小学校", "飯田東中学校"), zone("曙町", "丸山小学校", "飯田西中学校"), zone("八幡町", "松尾小学校", "緑ケ丘中学校")], SCHOOL_ZONES),
+      schools: availableFixture(["追手町小学校", "丸山小学校", "飯田東中学校", "飯田西中学校"].map((name) => facility(name, "小学校")), sourceFixture("iida_education")),
+    };
+    const scene = renderScene("春", conditions({ district: "chushin" }), { ...data, districts: { ...data.districts, chushin } });
+    expect(texts(scene)).toContain("中心市街地に住むと、町によって、小学校は追手町小学校・丸山小学校、中学校は飯田東中学校・飯田西中学校に分かれます。");
   });
 
   it("同じ条件・同じデータなら、何度作っても同じ文章になる", () => {
@@ -78,7 +88,7 @@ describe("renderScene", () => {
   it("データ未取得の文は知らせ1つにまとめ、該当なしとは書き分ける", () => {
     const data = dataWith({
       childcare: { status: "none", source: CHILDCARE },
-      elementarySchoolDistricts: { status: "unavailable" },
+      schoolZones: { status: "unavailable" },
     });
     expect(texts(renderScene("春", conditions(), data))).toEqual([
       "春、入園と入学の季節です。",

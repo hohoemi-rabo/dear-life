@@ -231,6 +231,20 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
     expect(cells(tableRow("電車の本数"))).toEqual(["データ未取得", "38本鼎駅・平日", "データ未取得", "データ未取得"]);
   });
 
+  it("学校・子育てのタブの学区は、市の規則の通う学校を出し、町によって分かれる地区にはその一言を添える（039）", async () => {
+    const ZONES = sourceFixture("iida_school_zone_rule", { name: "飯田市立小学校及び中学校の通学区域に関する規則 別表", publisher: "飯田市教育委員会" });
+    const zone = (townName: string, elementary: string, juniorHigh: string) => ({ townName, elementarySchools: [elementary], juniorHighSchools: [juniorHigh], isPartial: false });
+    screenData = screenDataFixture({
+      kanae: { ...KANAE, schoolZones: availableFixture([zone("鼎中平", "鼎小学校", "鼎中学校")], ZONES) },
+      chushin: { schoolZones: availableFixture([zone("本町1丁目", "追手町小学校", "飯田東中学校"), zone("曙町", "丸山小学校", "飯田西中学校")], ZONES) },
+    });
+    await open("t=school&d=kanae");
+    expect(cells(tableRow("通う小学校（学区）"))).toEqual(["データ未取得", "鼎小学校", "データ未取得", "追手町小学校・丸山小学校町によって分かれます"]);
+    expect(cells(tableRow("通う中学校（学区）"))).toEqual(["データ未取得", "鼎中学校", "データ未取得", "飯田東中学校・飯田西中学校町によって分かれます"]);
+    const details = screen.getByRole("tabpanel").querySelector("details") as HTMLDetailsElement;
+    expect(details).toHaveTextContent("飯田市教育委員会");
+  });
+
   it("出典は開く欄に、そのタブの項目の分だけを出す", async () => {
     await open("t=population&d=kanae");
     const panel = within(screen.getByRole("tabpanel"));
