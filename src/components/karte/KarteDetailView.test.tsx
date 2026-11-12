@@ -188,7 +188,6 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(figure()).toHaveTextContent("鼎から乗り換えなしで行ける施設");
     // そばにバス停がない店と、直通のない行き先は数えない（5か所のうち3か所）
     expect(figure()).toHaveTextContent("3か所");
-    expect(figure()).toHaveTextContent("下の表の行き先のうち、鼎のバス停から乗り換えなしのバスで行ける数です（診療所・駅・高校は数えていません）。");
     expect(within(figure()).getByRole("link", { name: /家の近くから調べる/ })).toHaveAttribute("href", "https://gofreely.rabo-hohoemi.workers.dev/");
     const row = (name: string) => within(main).getByText(name).closest("li") as HTMLElement;
     expect(row("飯田市役所")).toHaveTextContent("4〜14本／日");

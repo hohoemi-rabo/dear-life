@@ -58,12 +58,6 @@ export function ErrandsHead({ district }: { district: DistrictData }) {
               <DataStateMessage state={state} />
             )}
           </p>
-          {/* 大きい数字が何を数えたものかの一言（2026-11-12 まさゆきさん） */}
-          {state.status === "available" && (
-            <p className="text-xs text-ink-muted md:text-sm">
-              下の表の行き先のうち、{district.name}のバス停から乗り換えなしのバスで行ける数です（診療所・駅・高校は数えていません）。
-            </p>
-          )}
         </div>
       </div>
       <a
