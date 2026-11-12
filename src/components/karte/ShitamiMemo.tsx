@@ -116,7 +116,15 @@ export function ShitamiMemoSection({ conditions, links }: { conditions: Chosen; 
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 id="shitami-memo-title" className="flex items-center gap-2 text-xl font-extrabold md:text-2xl">
-          <PixelIcon icon="icon-checklist" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+          <img
+            src={propSrc("shitami-title", 96)}
+            srcSet={propSrcSet("shitami-title")}
+            sizes="(min-width: 768px) 40px, 32px"
+            alt=""
+            draggable={false}
+            className="size-8 shrink-0 select-none object-contain md:size-10"
+          />
           わが家の下見プラン
         </h2>
         <p className="flex items-center gap-1 rounded-full border border-line bg-kinari px-3 py-1 text-xs font-bold md:ml-auto">

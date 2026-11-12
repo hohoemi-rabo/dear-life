@@ -127,6 +127,7 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "karte-header-igara-tall": { width: 1522, height: 872 },
   "karte-title-book": { width: 818, height: 648 },
   "karte-check-memo": { width: 816, height: 987 },
+  "shitami-title": { width: 758, height: 1028 },
   "karte-next-step-bg-kamisato": { width: 1983, height: 331 },
   "karte-next-step-bg-kanae": { width: 1983, height: 336 },
   "karte-next-step-bg-igara": { width: 2172, height: 407 },

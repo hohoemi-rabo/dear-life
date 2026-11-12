@@ -650,6 +650,7 @@ export const PROPS = [
   "karte-header-igara-tall",
   "karte-title-book",
   "karte-check-memo",
+  "shitami-title",
   "karte-next-step-bg-kamisato",
   "karte-next-step-bg-kanae",
   "karte-next-step-bg-igara",
@@ -742,6 +743,8 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "karte-title-book": { source: "karte-title-book.png", alt: "しおりのはさまった、開いた本", widths: [96, 192] },
   // カルテの「まずはここから」の見出しの左のメモ帳（2026-11-07 受け取り）。PC で 40px、スマホで 32px に出す
   "karte-check-memo": { source: "karte-check-memo.png", alt: "チェックの付いた、リングとじのメモ帳", widths: [96, 192] },
+  // カルテの「わが家の下見プラン」の見出しの左（2026-11-12 受け取り、shitami-icons.png）。確認ポイントの見出しと同じく PC で 40px、スマホで 32px
+  "shitami-title": { source: "shitami-icons.png", alt: "緑のチェックの付いたクリップボード", widths: [96, 192] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
   "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
   "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },
