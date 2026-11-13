@@ -145,6 +145,10 @@
 
 ## 次のセッションへの引き継ぎ（2026-11-13）
 
-- 次に見直す詳細と、その見本（あれば `docs/design/` に置く）をまさゆきさんに聞いてから始める。順番はまだ決めていない
-- 039・038 で作った部品を使い回せる：タブをカードの上に出す（`OtherDetailCard` の `tabsAbove`）、カードの頭（`DetailCard` の `PanelTitle`）、1枚ずつの印（`PropIcon`）、「この数字から分かること」を出さない（`DetailTexts.knows` を null）
+- 次は**公共施設の実装**。作り方・データ・絵はこのチケットの「公共施設」にまとめた（見本 `docs/design/karte-detail-public.png`）。まさゆきさんが「セッション変えて実装します」と言ったので、新しいセッションで実装に入ってよいかを一言確かめてから始める
+- 絵の4枚（`assets/illust/common/public-tab-*.png`）はまだコミットしていない。`src/lib/illust/assets.ts` の `PROP_SOURCES` に足して `npm run illust` する（防災のタブの印 `disaster-tab-*` と同じ書き方、`widths: [48, 96]`）
+- 防災で作った部品を使い回せる：大きいタブ（`DetailTabs` の `large`）、Google マップの URL（`googleMapsSearchHref`。今は `src/lib/karte/evacuation.ts`。公共施設でも使うので `src/lib/map/links.ts` に移す）、下の注意書き（`DetailTexts.notice`）、閉じた「出典・更新日を見る」（`KarteDetailView` の `Basis` の `title`）、PC の地区の札（7つの詳細すべてに付け済み）、下のボタンを「カルテ一覧へ」だけにする（`KarteDetailView` の `MAP_IN_CARD`。公共施設は地図のボタンなし）
+- 公共施設のタブは見本では「絵・使い道・種類」の3つが入る2段のタブなので、`DetailTabs` のままでは足りない。見本どおりの形を作る
+- 「現地で確かめたいこと」の見出しは、公共施設だけ「下見で確かめたいこと」（`DetailTexts.checkTitle`）
+- 残りの詳細は 住まい・人口・支援制度。公共施設が済んだら、次に見直す詳細と見本をまさゆきさんに聞く
 - 040 が済んだら 025（公開前チェックと本番公開）
