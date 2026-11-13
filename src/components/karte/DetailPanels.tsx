@@ -13,11 +13,11 @@ import type {
   StationTrips,
   SupportProgram,
 } from "@/lib/data/screen-data";
-import { formatJaDate, formatServiceTime } from "@/lib/format";
+import { formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { districtSchoolZones } from "@/lib/karte/school-zones";
 import { DISASTER_TAB_HAZARDS, disasterTabHazards } from "@/lib/karte/evacuation";
-import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
+import { groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { ERRAND_STATIONS } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
 import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
@@ -27,6 +27,7 @@ import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
 import { DISASTER_TAB_ICONS, EvacuationFinder, EvacuationPrintList, HazardMapBand } from "./EvacuationFinder";
 import { ChildcareFacilityPanel } from "./ChildcareFacilities";
 import { PublicFacilityFinder, PublicFacilityPrintList } from "./PublicFacilityFinder";
+import { PopulationFigures } from "./PopulationFigures";
 import { SupportFinder, SupportPrintList } from "./SupportFinder";
 import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
 
@@ -268,7 +269,7 @@ function panelContent(
     case "transport":
       return transportContent(tabId, district, noCar);
     case "population":
-      return populationContent(district.population);
+      return populationContent(district);
   }
 }
 
@@ -517,50 +518,14 @@ function TrainOutingDetails({ outing }: { outing: Outing }) {
   );
 }
 
-function populationContent(state: DistrictData["population"]): PanelContent {
-  if (state.status !== "available") {
-    return { picture: "detail-population", title: "地区の人口", figure: <DataStateMessage state={state} /> };
-  }
-  const population = state.value;
-  const shares = ageShares(population);
+// 人口（040 見本）：絵と大きい数字の代わりに、カードの頭から年齢の割合までを PopulationFigures で出す
+function populationContent(district: DistrictData): PanelContent {
   return {
     picture: "detail-population",
-    title: `地区の人口（${formatJaDate(population.asOf)}時点）`,
-    figure: <BigCount count={population.total} unit="人" />,
-    list: shares.length > 0 && (
-      <ListSection title="年齢の割合">
-        <AgeBar shares={shares} />
-        <table className="w-full text-left text-sm">
-          <caption className="sr-only">年齢3区分の人数と割合</caption>
-          <tbody className="divide-y divide-line">
-            {shares.map((share, index) => (
-              <tr key={share.label}>
-                <th scope="row" className="py-1.5 font-normal">
-                  <span aria-hidden="true" className={`mr-2 inline-block size-3 rounded-sm align-middle ${AGE_COLORS[index]}`} />
-                  {share.label}
-                </th>
-                <td className="py-1.5 text-right font-bold tabular-nums">{share.count.toLocaleString("ja-JP")}人</td>
-                <td className="py-1.5 text-right tabular-nums">{share.percent}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </ListSection>
-    ),
+    title: null,
+    figure: null,
+    head: <PopulationFigures state={district.population} districtName={DISTRICT_NAMES[district.id]} />,
   };
-}
-
-// 年齢3区分の割合の帯。実データの側なので、基本色だけを使う（季節の色は使わない）
-const AGE_COLORS = ["bg-primary/40", "bg-primary/70", "bg-primary"] as const;
-
-function AgeBar({ shares }: { shares: ReturnType<typeof ageShares> }) {
-  return (
-    <div aria-hidden="true" className="flex h-6 w-full overflow-hidden rounded-button">
-      {shares.map((share, index) => (
-        <div key={share.label} className={AGE_COLORS[index]} style={{ width: `${share.percent}%` }} />
-      ))}
-    </div>
-  );
 }
 
 function ListSection({ title, children }: { title: string; children: ReactNode }) {

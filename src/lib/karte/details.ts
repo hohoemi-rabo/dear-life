@@ -50,7 +50,8 @@ const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, 
   population: {
     question: { long: "どんな人が暮らしている？", short: "どんな人が暮らしている？" },
     checkTitle: "現地で確かめたいこと",
-    checks: ["近所に子どもや同じ世代の家族がいるか", "地区の行事や自治会の活動", "買い物やお店の様子"],
+    // 見本の2つ（040。2026-11-13 まさゆきさん）
+    checks: ["地区の行事や自治会の活動", "公園や児童施設での、子ども連れの利用の様子"],
   },
   public_facilities: {
     question: { long: "身近な施設は、どこにある？", short: "身近な施設は？" },

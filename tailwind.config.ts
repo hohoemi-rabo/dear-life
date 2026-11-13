@@ -31,6 +31,8 @@ const config: Config = {
         blush: { DEFAULT: "#F2C9CF", soft: "#FDEFF1" },
         // トップの見出しの下の黄色い線（033 見本）。飾りなので、文字の色には使わない
         marker: "#F6D45C",
+        // カルテの人口の年齢の割合の帯（040 見本 karte-detail-population.png の3色。2026-11-13 まさゆきさん）
+        age: { young: "#EBBE74", adult: "#1F6E5E", senior: "#A7C9D9" },
         // 場面の文の種類（要件 6.4）
         "kind-data": { DEFAULT: "#1F6E5E", soft: "#E2F0EC" },
         "kind-local": { DEFAULT: "#8A5A12", soft: "#F6EBD7" },

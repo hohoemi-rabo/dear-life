@@ -76,3 +76,12 @@ export function ageShares(population: Population): AgeShare[] {
       : [{ label, count, percent: Math.round((count / population.total) * 1000) / 10 }],
   );
 }
+
+// 総数のうち、3区分のどれにも入らない人（国勢調査の年齢不詳。011）。割合は ageShares と同じく小数1桁。
+// 区分の人数が欠けている（秘匿など）ときは年齢不詳と区別できないので出さない。差がなければ null
+export function ageUnknown(population: Population): { count: number; percent: number } | null {
+  const { total, age0to14, age15to64, age65plus } = population;
+  if (age0to14 === null || age15to64 === null || age65plus === null || total === 0) return null;
+  const count = total - age0to14 - age15to64 - age65plus;
+  return count > 0 ? { count, percent: Math.round((count / total) * 1000) / 10 } : null;
+}

@@ -2,7 +2,7 @@ import { entryNumber } from "./details.ts";
 import { KARTE_DETAIL_SLUGS, karteCardFromSlug, karteDetailPath, splitKarteCards, transportQuestion } from "./entries.ts";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
-import { ageShares, facilityCountSentence, groupBySubkind } from "./facilities";
+import { ageShares, ageUnknown, facilityCountSentence, groupBySubkind } from "./facilities";
 import { landEstimates, marketCategoryOrder } from "./housing";
 import { kurashiHref } from "./links";
 
@@ -60,6 +60,17 @@ describe("ageShares", () => {
       { label: "14歳以下", count: 133, percent: 13.3 },
       { label: "65歳以上", count: 300, percent: 30 },
     ]);
+  });
+});
+
+describe("ageUnknown", () => {
+  it("総数と3区分の合計の差を年齢不詳として、人数と割合（小数1桁）を出す", () => {
+    expect(ageUnknown({ asOf: "2020-10-01", total: 13534, age0to14: 1769, age15to64: 7445, age65plus: 4116 })).toEqual({ count: 204, percent: 1.5 });
+  });
+
+  it("差がない・区分の人数が欠けているときは出さない", () => {
+    expect(ageUnknown({ asOf: "2020-10-01", total: 1000, age0to14: 100, age15to64: 600, age65plus: 300 })).toBeNull();
+    expect(ageUnknown({ asOf: "2020-10-01", total: 1000, age0to14: 100, age15to64: null, age65plus: 300 })).toBeNull();
   });
 });
 

@@ -424,11 +424,28 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(screen.getByRole("region", { name: "使い道から施設を探す" })).toHaveTextContent("データ未取得");
   });
 
-  it("人口はタブなしで、人数・対象時点と年齢の割合", async () => {
+  it("人口はタブなしで、人数・調査時点・年齢の割合の帯と札（040 見本）", async () => {
     await open("population", "d=kanae&k=1");
     expect(screen.queryAllByRole("tab")).toHaveLength(0);
-    expect(figure()).toHaveTextContent("地区の人口（2020年10月1日時点）12,000人");
+    expect(screen.getByRole("heading", { name: "鼎の人口" })).toBeInTheDocument();
+    expect(figure()).toHaveTextContent("12,000人");
+    expect(figure()).toHaveTextContent("2020年10月1日時点・国勢調査");
+    expect(screen.getByRole("heading", { name: "年齢の割合" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "年齢の割合：14歳以下 12.5%、15〜64歳 57.5%、65歳以上 30.0%" })).toBeInTheDocument();
     expect(card("人口")).toHaveTextContent("14歳以下1,500人12.5%");
+    // 3区分の合計が総数と同じなら、斜線の説明は出さない
+    expect(screen.queryByText(/斜線は/)).toBeNull();
+    expect(screen.getByText("公園や児童施設での、子ども連れの利用の様子")).toBeInTheDocument();
+    expect((screen.getByText("出典・調査時点を見る").closest("details") as HTMLDetailsElement).open).toBe(false);
+    expect(screen.getByRole("link", { name: /地図で周辺を確かめる/ })).toBeInTheDocument();
+  });
+
+  it("人口：総数と3区分の合計の差は、年齢不詳の斜線として説明する", async () => {
+    const kanae = screenData.districts.kanae;
+    const population = { asOf: "2020-10-01", total: 13534, age0to14: 1769, age15to64: 7445, age65plus: 4116 };
+    screenData = { ...screenData, districts: { ...screenData.districts, kanae: { ...kanae, population: availableFixture(population, sourceFixture("estat_census_small_area")) } } };
+    await open("population", "d=kanae&k=1");
+    expect(screen.getByText("斜線は、国勢調査で年齢が分からなかった人です（204人・1.5%）。")).toBeInTheDocument();
   });
 
   const ZONE_RULE = sourceFixture("iida_school_zone_rule", { name: "飯田市立小学校及び中学校の通学区域に関する規則 別表", publisher: "飯田市教育委員会" });

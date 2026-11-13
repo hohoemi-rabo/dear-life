@@ -15,7 +15,7 @@
 | 交通 | 済み | 038（行ける場所の表、タブの印。「この数字から分かること」なし） |
 | 住まい | まだ（「この数字から分かること」は消した） | — |
 | 防災 | 済み | 040（見本 `docs/design/karte-detail-disaster.png`） |
-| 人口 | 作り方を決めた（実装待ち） | 040（見本 `docs/design/karte-detail-population.png`） |
+| 人口 | 作った（まさゆきさんの確認待ち） | 040（見本 `docs/design/karte-detail-population.png`） |
 | 公共施設 | 済み | 040（見本 `docs/design/karte-detail-public.png`） |
 | 支援制度 | 済み | 040（見本 `docs/design/karte-detail-support.png`） |
 
@@ -243,15 +243,23 @@
 - スマホの帯は色だけにし、割合は下の3つの札（縦に並べる）に「14歳以下 1,769人 13.1%」のように出す。PC は見本どおり帯の中に割合
 - 帯の色は見本の3色（14歳以下＝薄い金色・15〜64歳＝緑・65歳以上＝水色）
 
+### 作ったもの（2026-11-13）
+
+- カードの中身は `src/components/karte/PopulationFigures.tsx`（`DetailPanels` の `populationContent` が `head` として出す。印刷も同じ部品）。人口の絵と「地区の人口（〇時点）」の見出しはなくした
+- 年齢不詳の人数と割合は `ageUnknown`（`src/lib/karte/facilities.ts`）。総数から3区分の合計を引いた数で、区分の人数が欠けている・差が0のときは斜線も説明も出さない
+- 帯の3色はテーマの `age.young`・`age.adult`・`age.senior`（`tailwind.config.ts`）。15〜64歳だけ白い字
+- 「現地で確かめたいこと」は見本の2つ（`details.ts`）、出典の欄は閉じた「出典・調査時点を見る」。下の2つのボタンは今のまま
+- 画面：`~/dear-life-screenshots/2026-11-13-040-population-after/`（PC 上郷・中心市街地、スマホ 375px、印刷）。横のはみ出しなし
+
 ### Todo（人口）
 
 - [×] 見本を `docs/design/karte-detail-population.png` に置く（元の名前 `dearlife-population-mockup.png` から変えた）
 - [×] （まさゆきさん）作り方を決める（2026-11-13）
-- [ ] （まさゆきさん）実装に入ってよいか
-- [ ] カードの頭・帯・札・斜線の説明を作る
-- [ ] 「現地で確かめたいこと」を見本の2つにし、「出典・調査時点を見る」の閉じた欄にする
-- [ ] 印刷を直す
-- [ ] PC・スマホ（375px）の画面を撮って見せる（直す前は `~/dear-life-screenshots/2026-11-13-040-population-before/`）
+- [×] （まさゆきさん）実装に入ってよいか（2026-11-13）
+- [×] カードの頭・帯・札・斜線の説明を作る
+- [×] 「現地で確かめたいこと」を見本の2つにし、「出典・調査時点を見る」の閉じた欄にする
+- [×] 印刷を直す
+- [×] PC・スマホ（375px）の画面を撮って見せる（直す前は `~/dear-life-screenshots/2026-11-13-040-population-before/`）
 - [ ] （まさゆきさん）画面を確かめる
 
 ## Todo
@@ -266,7 +274,7 @@
 
 ## 次のセッションへの引き継ぎ（2026-11-13）
 
-- 次は**人口の実装**。作り方はこのチケットの「人口」にまとめた（見本 `docs/design/karte-detail-population.png`）。実装に入ってよいかを一言確かめてから始める。そのあと残りは住まい
+- 人口は 2026-11-13 に作った（まさゆきさんの画面の確認待ち）。そのあと残りは住まい
 - 支援制度は 2026-11-13 に作って、まさゆきさんの確認を受けて完了した
 - 公共施設は 2026-11-13 に作って、まさゆきさんの確認を受けて完了した。以下は実装前の引き継ぎ（記録として残す）。作り方・データ・絵はこのチケットの「公共施設」にまとめた（見本 `docs/design/karte-detail-public.png`）。まさゆきさんが「セッション変えて実装します」と言ったので、新しいセッションで実装に入ってよいかを一言確かめてから始める
 - 絵の4枚（`assets/illust/common/public-tab-*.png`）はまだコミットしていない。`src/lib/illust/assets.ts` の `PROP_SOURCES` に足して `npm run illust` する（防災のタブの印 `disaster-tab-*` と同じ書き方、`widths: [48, 96]`）

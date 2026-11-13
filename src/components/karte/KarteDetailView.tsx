@@ -283,13 +283,15 @@ function DetailBody({
             : otherBasisRows(card, [otherTab], data.supportPrograms)
         }
         note={texts.basisNote}
-        // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」（040 見本）の閉じた欄
+        // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」、人口は「出典・調査時点を見る」（040 見本）の閉じた欄
         title={
           card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" || card === "public_facilities"
               ? "出典・更新日を見る"
               : card === "support"
                 ? "出典・確認日を見る"
-                : null
+                : card === "population"
+                  ? "出典・調査時点を見る"
+                  : null
         }
         icon={card === "childcare" ? "icon-book" : "icon-document"}
       />
