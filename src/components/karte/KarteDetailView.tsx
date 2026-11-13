@@ -35,8 +35,8 @@ import { SupportBeforeApply } from "./SupportFinder";
 type Chosen = Conditions & { district: DistrictId };
 
 // 下のボタンを「カルテ一覧へ」だけにする詳細（地図へはカードの中から行く。公共施設は地図に点がないので地図へのボタンを出さない。040）
-// 支援制度は市全体の制度で、地図に出す場所がない（040）
-const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "public_facilities", "support"]);
+// 支援制度は市全体の制度、人口は数だけで、地図に出す場所がない（040。人口は見本にボタンがあるが、2026-11-13 まさゆきさんがなくすと決めた）
+const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "population", "public_facilities", "support"]);
 
 // カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・
 // 現地で確かめたいこと・数字の根拠を、7項目とも同じ形で出す。条件は URL パラメータに持つ（F-02）。<Suspense> の中で使う
@@ -102,7 +102,7 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
 
       {LIST_BUTTON_ONLY.has(card) ? (
         // 子育て・学校・交通・防災は「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」から、その種類だけにチェックを入れて行く
-        // （039 見本。2026-11-12 まさゆきさん。交通・防災・公共施設・支援制度は 2026-11-13 まさゆきさん）
+        // （039 見本。2026-11-12 まさゆきさん。交通・防災・人口・公共施設・支援制度は 2026-11-13 まさゆきさん）
         <ButtonLink href={listHref} variant="secondary" className="md:self-start">
           <span aria-hidden="true">←</span>
           カルテ一覧へ

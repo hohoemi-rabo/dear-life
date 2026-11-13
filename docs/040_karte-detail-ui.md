@@ -248,7 +248,8 @@
 - カードの中身は `src/components/karte/PopulationFigures.tsx`（`DetailPanels` の `populationContent` が `head` として出す。印刷も同じ部品）。人口の絵と「地区の人口（〇時点）」の見出しはなくした
 - 年齢不詳の人数と割合は `ageUnknown`（`src/lib/karte/facilities.ts`）。総数から3区分の合計を引いた数で、区分の人数が欠けている・差が0のときは斜線も説明も出さない
 - 帯の3色はテーマの `age.young`・`age.adult`・`age.senior`（`tailwind.config.ts`）。15〜64歳だけ白い字
-- 「現地で確かめたいこと」は見本の2つ（`details.ts`）、出典の欄は閉じた「出典・調査時点を見る」。下の2つのボタンは今のまま
+- 「現地で確かめたいこと」は見本の2つ（`details.ts`）、出典の欄は閉じた「出典・調査時点を見る」
+- 下のボタンは「カルテ一覧へ」だけにした（見本には「地図で周辺を確かめる」があるが、人口には地図に出す場所がなく、印の付いていない地図が開くだけなので。ほかの5つの詳細と同じ。2026-11-13 まさゆきさん）
 - 画面：`~/dear-life-screenshots/2026-11-13-040-population-after/`（PC 上郷・中心市街地、スマホ 375px、印刷）。横のはみ出しなし
 
 ### Todo（人口）

@@ -437,7 +437,9 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(screen.queryByText(/斜線は/)).toBeNull();
     expect(screen.getByText("公園や児童施設での、子ども連れの利用の様子")).toBeInTheDocument();
     expect((screen.getByText("出典・調査時点を見る").closest("details") as HTMLDetailsElement).open).toBe(false);
-    expect(screen.getByRole("link", { name: /地図で周辺を確かめる/ })).toBeInTheDocument();
+    // 人口には地図に出す場所がないので、下のボタンは「カルテ一覧へ」だけ（2026-11-13 まさゆきさん）
+    expect(screen.queryByRole("link", { name: /地図で周辺を確かめる|地図で確かめる/ })).toBeNull();
+    expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toBeInTheDocument();
   });
 
   it("人口：総数と3区分の合計の差は、年齢不詳の斜線として説明する", async () => {
@@ -665,7 +667,7 @@ describe("KarteDetailView：移動", () => {
   });
 
   it("「カルテ一覧」と地図へのボタンは、条件と季節を持ったまま", async () => {
-    await open("population", "s=winter&d=kanae&a=2&k=1&h=new");
+    await open("housing", "s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: "カルテ一覧" })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: /地図で周辺を確かめる/ }).getAttribute("href")).toMatch(/^\/chizu\?s=winter&d=kanae/);
