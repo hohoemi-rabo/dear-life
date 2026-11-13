@@ -658,6 +658,9 @@ export const PROPS = [
   "childcare-zone-map",
   "childcare-map-button",
   "childcare-chip-family",
+  "karte-entry-zone",
+  "karte-entry-schools",
+  "karte-entry-nursery",
   "disaster-tab-flood",
   "disaster-tab-landslide",
   "disaster-tab-earthquake",
@@ -787,6 +790,10 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "support-before-apply": { source: "support-before-apply.png", alt: "ハートの付いた書類", widths: [96, 192] },
   "childcare-map-button": { source: "childcare-map-button.png", alt: "ピンのある三つ折りの地図", widths: [48, 96] },
   "childcare-chip-family": { source: "childcare-chip-family.png", alt: "大人2人と子ども1人", widths: [48, 96] },
+  // カルテ一覧の子育て・学校のカードの入口のタイル（学区・小中学校・保育施設。2026-11-13 受け取り）
+  "karte-entry-zone": { source: "karte-entry-zone.png", alt: "赤い屋根の小さな家", widths: [48, 96] },
+  "karte-entry-schools": { source: "karte-entry-schools.png", alt: "開いた教科書", widths: [48, 96] },
+  "karte-entry-nursery": { source: "karte-entry-nursery.png", alt: "黄色い屋根の幼稚園", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
   "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
   "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },

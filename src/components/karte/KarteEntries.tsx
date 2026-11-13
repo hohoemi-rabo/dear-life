@@ -403,10 +403,11 @@ function RentEntry({ district, rent, href }: { district: DistrictData; rent: Dat
 function ChildcareEntry({ district, href }: { district: DistrictData; href: string }) {
   const sourced = firstSourced([district.schools, district.childcare, district.elementarySchoolDistricts]);
   const tiles = [
-    { label: "学区", icon: "icon-house", tone: "bg-blush-soft" },
-    { label: "小中学校", icon: "icon-book", tone: "bg-pixel-sky/60" },
-    { label: "保育施設", icon: "icon-school", tone: "bg-warm-soft" },
-  ] as const;
+    // 印は生成AIの絵（2026-11-13 まさゆきさん：ドット絵の小さい印から差しかえ）
+    { label: "学区", prop: "karte-entry-zone", tone: "bg-blush-soft" },
+    { label: "小中学校", prop: "karte-entry-schools", tone: "bg-pixel-sky/60" },
+    { label: "保育施設", prop: "karte-entry-nursery", tone: "bg-warm-soft" },
+  ] as const satisfies readonly { label: string; prop: PropId; tone: string }[];
   return (
     <EntryFrame
       card="childcare"
@@ -436,7 +437,16 @@ function ChildcareEntry({ district, href }: { district: DistrictData; href: stri
               href={href}
               className={`flex min-h-tap flex-col items-center justify-center gap-1 rounded-button px-1 py-2 text-sm font-bold ${tile.tone} focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary`}
             >
-              <PixelIcon icon={tile.icon} size="sm" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+              <img
+                src={propSrc(tile.prop, 48)}
+                srcSet={propSrcSet(tile.prop)}
+                sizes="56px"
+                alt=""
+                draggable={false}
+                // 幼稚園の絵は横長なので、四角に収めず高さをそろえる
+                className="h-7 w-auto shrink-0 select-none"
+              />
               {tile.label}
             </Link>
           </li>
