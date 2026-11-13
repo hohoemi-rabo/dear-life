@@ -28,7 +28,7 @@ import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type Deta
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
 import { DISASTER_TAB_ICONS, EvacuationFinder, EvacuationPrintList, HazardMapBand } from "./EvacuationFinder";
 import { ChildcareFacilityPanel } from "./ChildcareFacilities";
-import { SchoolZonePanel } from "./SchoolZones";
+import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -203,9 +203,20 @@ export function OtherDetailCard({
         </div>
         {!tabsAbove && tabRow}
         {content.list}
+        {card === "transport" && <TransportMapLink tabId={tab.id} district={district} />}
       </section>
     </>
   );
+}
+
+// 交通のタブの「地図で場所を見る」（子育て・学校と同じ形。040）。バス停のタブはバス停だけ、電車のタブは駅だけ、
+// 行ける場所・冬のおでかけのタブは乗る場所のバス停と駅の両方にチェックを入れて地図を開く（2026-11-13 まさゆきさん）。
+// その地区に点がないタブ（伊賀良の電車など）には出さない
+function TransportMapLink({ tabId, district }: { tabId: string; district: DistrictData }) {
+  const hasPoints = (state: DataState<readonly Facility[]>) => state.status === "available" && state.value.length > 0;
+  if (tabId === "bus") return hasPoints(district.busStops) ? <FacilityMapLink layer="bus_stops" /> : null;
+  if (tabId === "train") return hasPoints(district.trainStations) ? <FacilityMapLink layer="train_stations" /> : null;
+  return hasPoints(district.busStops) || hasPoints(district.trainStations) ? <FacilityMapLink layer="transit" /> : null;
 }
 
 // 1つのタブの中身をタブの列なしで出す（印刷。023）

@@ -33,6 +33,8 @@ import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
 
+const MAP_IN_CARD: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster"]);
+
 // カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・この数字から分かること・
 // 現地で確かめたいこと・数字の根拠を、7項目とも同じ形で出す。条件は URL パラメータに持つ（F-02）。<Suspense> の中で使う
 export function KarteDetailView({ card }: { card: KarteCard }) {
@@ -95,8 +97,9 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
         <DetailBody card={card} conditions={conditions} texts={texts} districtName={districtName} />
       </ScreenDataBoundary>
 
-      {card === "childcare" ? (
-        // 子育て・学校は「カルテ一覧へ」だけ。地図へは、タブごとのカードの中のボタンから行く（039 見本。2026-11-12 まさゆきさん）
+      {MAP_IN_CARD.has(card) ? (
+        // 子育て・学校・交通・防災は「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」から、その種類だけにチェックを入れて行く
+        // （039 見本。2026-11-12 まさゆきさん。交通・防災は 2026-11-13 まさゆきさん）
         <ButtonLink href={listHref} variant="secondary" className="md:self-start">
           <span aria-hidden="true">←</span>
           カルテ一覧へ

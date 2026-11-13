@@ -161,6 +161,17 @@ describe("ChizuView（021・032）", () => {
     cleanup();
     await open("d=kanae&layer=after_school_clubs");
     expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["after_school_clubs"]);
+    // 防災は避難場所だけ、交通の行ける場所・冬のおでかけはバス停と駅（040）
+    cleanup();
+    await open("d=kanae&layer=evacuation_sites");
+    expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["evacuation_sites"]);
+    cleanup();
+    await open("d=kanae&layer=transit");
+    expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["bus_stops", "train_stations"]);
+    // 知らない値なら、ふだんの見え方
+    cleanup();
+    await open("d=kanae&layer=toString");
+    expect(canvas.props?.visibleKinds.has("schools")).toBe(true);
   });
 
   it("点をタップすると名称・住所・出典を出す。住所のない駅は「出典に記載なし」", async () => {

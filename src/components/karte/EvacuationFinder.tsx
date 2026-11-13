@@ -9,6 +9,7 @@ import { findEvacuationSites, googleMapsSearchHref } from "@/lib/karte/evacuatio
 import { HAZARD_LABELS } from "@/lib/karte/facilities";
 import { IIDA_HAZARD_MAP } from "@/lib/map/links";
 import { DetailTabs, PropIcon, SearchMark, type DetailTabItem } from "./DetailCard";
+import { FacilityMapLink } from "./SchoolZones";
 
 // カルテの防災（040。見本 docs/design/karte-detail-disaster.png）：
 // ハザードマップの帯 → 「災害の種類から避難先を探す」の箱（タブ・絞り込み・3件ずつの一覧・Google マップへのリンク）
@@ -85,6 +86,8 @@ export function EvacuationFinder({
         <>
           <DetailTabs label="災害の種類" tabs={tabs} selectedId={selectedId} panelId={panelId} onSelect={onSelect} large />
           <SiteSearch id={panelId} sites={state.value} hazard={selectedId as EvacuationHazard} />
+          {/* 避難場所だけにチェックを入れて地図を開く（子育て・学校と同じ形。2026-11-13 まさゆきさん） */}
+          {state.value.length > 0 && <FacilityMapLink layer="evacuation_sites" />}
         </>
       ) : (
         <DataStateMessage state={state} />

@@ -3,6 +3,7 @@
 import type { Conditions } from "../conditions/model.ts";
 import { seasonalHref } from "../kurashi/links.ts";
 import { MAP_PATH } from "../site.ts";
+import type { MapPointKind } from "./map-data.ts";
 
 export function mapHref(conditions: Conditions, seasonSlug: string | null): string {
   return seasonalHref(MAP_PATH, conditions, seasonSlug);
@@ -18,16 +19,26 @@ export function schoolDistrictMapHref(conditions: Conditions, seasonSlug: string
   return `${mapHref(conditions, seasonSlug)}&${MAP_LAYER_PARAM}=${SCHOOL_DISTRICT_LAYER}`;
 }
 
-// カルテの子育て・学校の「地図で場所を見る」（039）。その種類の施設だけを出して開く
-export const FACILITY_LAYERS = ["schools", "childcare", "after_school_clubs"] as const;
-export type FacilityLayer = (typeof FACILITY_LAYERS)[number];
+// カルテの「地図で場所を見る」で、最初にチェックを入れる種類（子育て・学校は 039、防災・交通は 040）。
+// transit は交通の「行ける場所」「冬のおでかけ」のタブから：乗る場所のバス停と駅の両方（2026-11-13 まさゆきさん）
+const FACILITY_LAYER_KINDS = {
+  schools: ["schools"],
+  childcare: ["childcare"],
+  after_school_clubs: ["after_school_clubs"],
+  bus_stops: ["bus_stops"],
+  train_stations: ["train_stations"],
+  evacuation_sites: ["evacuation_sites"],
+  transit: ["bus_stops", "train_stations"],
+} as const satisfies Record<string, readonly MapPointKind[]>;
+export type FacilityLayer = keyof typeof FACILITY_LAYER_KINDS;
 
 export function facilityMapHref(conditions: Conditions, seasonSlug: string | null, layer: FacilityLayer): string {
   return `${mapHref(conditions, seasonSlug)}&${MAP_LAYER_PARAM}=${layer}`;
 }
 
-export function isFacilityLayer(value: string | null): value is FacilityLayer {
-  return (FACILITY_LAYERS as readonly (string | null)[]).includes(value);
+// URL の layer から、最初に出す種類。知らない値なら null（ふだんの見え方で開く）
+export function facilityLayerKinds(value: string | null): readonly MapPointKind[] | null {
+  return value !== null && Object.hasOwn(FACILITY_LAYER_KINDS, value) ? FACILITY_LAYER_KINDS[value as FacilityLayer] : null;
 }
 
 // 飯田市の公開型 GIS「いいだWebまっぷ」の案内ページ（2026-11-07 確認。021・032）。データは取り込まず、詳しく調べたい人へのリンクだけにする。

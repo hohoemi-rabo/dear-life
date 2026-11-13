@@ -545,8 +545,26 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
 });
 
 describe("KarteDetailView：移動", () => {
-  it("「カルテ一覧」と地図へのボタンは、条件と季節を持ったまま", async () => {
+  it("防災・交通は下の地図のボタンの代わりに、カードの中から種類だけにチェックを入れて地図を開く（040。2026-11-13 まさゆきさん）", async () => {
+    const mapLink = () => screen.getByRole("link", { name: /地図で場所を見る/ }).getAttribute("href");
     await open("disaster", "s=winter&d=kanae&a=2&k=1&h=new");
+    expect(screen.queryByRole("link", { name: /地図で周辺を確かめる/ })).toBeNull();
+    expect(mapLink()).toMatch(/^\/chizu\?s=winter&d=kanae.*&layer=evacuation_sites$/);
+    cleanupRender();
+    await open("transport", "d=kanae&a=2&k=1&h=new&c=0");
+    expect(screen.queryByRole("link", { name: /地図で周辺を確かめる/ })).toBeNull();
+    // 車0台は行ける場所のタブから開く：バス停と駅の両方
+    expect(mapLink()).toMatch(/&layer=transit$/);
+    for (const [tab, layer] of [[/バス停/, "bus_stops"], [/電車/, "train_stations"], [/冬のおでかけ/, "transit"]] as const) {
+      await act(async () => {
+        fireEvent.click(screen.getByRole("tab", { name: tab }));
+      });
+      expect(mapLink()).toMatch(new RegExp(`&layer=${layer}$`));
+    }
+  });
+
+  it("「カルテ一覧」と地図へのボタンは、条件と季節を持ったまま", async () => {
+    await open("population", "s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: "カルテ一覧" })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toHaveAttribute("href", "/karte?s=winter&d=kanae&a=2&k=1&h=new");
     expect(screen.getByRole("link", { name: /地図で周辺を確かめる/ }).getAttribute("href")).toMatch(/^\/chizu\?s=winter&d=kanae/);
