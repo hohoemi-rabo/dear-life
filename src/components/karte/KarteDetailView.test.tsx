@@ -1,7 +1,7 @@
 import { act, cleanup as cleanupRender, fireEvent, render, screen, within } from "@testing-library/react";
 import type { KarteCard } from "@/lib/conditions/labels";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ScreenData } from "@/lib/data/screen-data";
+import type { EvacuationSite, ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
 import { KANAE, karteScreenData } from "@/test/karte-fixture";
 import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
@@ -42,6 +42,7 @@ vi.mock("next/navigation", async () => {
 });
 
 let screenData: ScreenData;
+const EVACUATION = sourceFixture("iida_evacuation", { name: "指定緊急避難場所一覧", publisher: "飯田市", checkedOn: "2026-10-26", fetchedOn: null });
 vi.mock("@/lib/data/load-screen-data", () => ({
   loadScreenData: () => Promise.resolve(screenData),
 }));
@@ -296,17 +297,76 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(basis()).toHaveTextContent("地域・交通データ研究所（西澤明）「全国鉄道運行本数データ」");
   });
 
-  it("防災は災害の種類のタブで避難場所を絞る。大規模な火事は使える場所がなければタブにしない", async () => {
+  it("防災は見本の形：地区の札・ハザードマップの帯・災害の種類のタブ（最初は洪水）・3件ずつの一覧と Google マップ・確かめたいこと・注意書き（040）", async () => {
+    const site = (name: string, hazards: EvacuationSite["hazards"]) => ({ name, subkind: "指定緊急避難場所", address: `長野県飯田市鼎${name}`, hazards });
+    const kanae = screenData.districts.kanae;
+    screenData = {
+      ...screenData,
+      districts: {
+        ...screenData.districts,
+        kanae: {
+          ...kanae,
+          evacuationSites: availableFixture(
+            [
+              site("鼎小学校", ["flood", "landslide"]),
+              site("鼎中学校", ["flood", "large_fire"]),
+              site("鼎公民館", ["flood"]),
+              site("切石体育館", ["flood", "earthquake"]),
+            ],
+            EVACUATION,
+          ),
+        },
+      },
+    };
     await open("disaster", "d=kanae&k=1");
-    expect(tabNames()).toEqual(["すべて1", "洪水1", "土砂災害1", "地震0"]);
-    expect(figure()).toHaveTextContent("地区の指定緊急避難場所1か所");
-    expect(card("防災")).toHaveTextContent("使える災害：洪水・土砂災害");
+    expect(screen.getByText("地区：")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /飯田市のハザードマップを開く/ })).toHaveAttribute("href", "https://www.city.iida.lg.jp/soshiki/35/hazardmap.html");
+    // 大規模な火事は使える場所のある地区（鼎）だけ4つ目のタブ。「すべて」はない
+    expect(tabNames()).toEqual(["洪水", "土砂災害", "地震", "大規模な火事"]);
+    expect(screen.getByRole("tab", { name: "洪水" })).toHaveAttribute("aria-selected", "true");
+    const list = () => within(screen.getByRole("list", { name: /指定緊急避難場所/ })).getAllByRole("listitem");
+    expect(figure()).toHaveTextContent("洪水に対応する指定緊急避難場所4か所");
+    expect(list().map((item) => item.textContent)).toEqual([
+      expect.stringContaining("鼎小学校"),
+      expect.stringContaining("鼎中学校"),
+      expect.stringContaining("鼎公民館"),
+    ]);
+    expect(within(list()[0]).getByRole("link", { name: /地図で見る/ }).getAttribute("href")).toBe(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("鼎小学校 長野県飯田市鼎鼎小学校")}`,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /洪水の避難場所をすべて見る/ }));
+    });
+    expect(list()).toHaveLength(4);
+    expect(screen.getByRole("button", { name: /閉じる/ })).toHaveAttribute("aria-expanded", "true");
+    // 絞り込みはタブを変えても残る
+    await act(async () => {
+      fireEvent.change(screen.getByRole("searchbox", { name: "施設名・町名で絞り込む" }), { target: { value: "体育館" } });
+    });
+    expect(figure()).toHaveTextContent("洪水に対応する指定緊急避難場所1か所");
     await choose(/地震/);
-    expect(figure()).toHaveTextContent("地震のときに使える指定緊急避難場所0か所");
-    expect(card("防災")).not.toHaveTextContent("鼎小学校");
-    const table = within(basis());
+    expect(screen.getByRole("searchbox")).toHaveValue("体育館");
+    expect(list().map((item) => item.textContent)).toEqual([expect.stringContaining("切石体育館")]);
+    await choose(/土砂災害/);
+    expect(figure()).toHaveTextContent("見つかりませんでした");
+    // 「この数字から分かること」は出さず、見本の確かめたいことと注意書き
+    expect(screen.queryByText("この数字から分かること")).toBeNull();
+    expect(screen.getByText("候補の家から避難場所まで歩いてみる")).toBeInTheDocument();
+    expect(screen.getByText("災害時は、飯田市の最新の避難情報を確認してください。")).toBeInTheDocument();
+    const sources = screen.getByText("出典・更新日を見る").closest("details") as HTMLDetailsElement;
+    expect(sources.open).toBe(false);
+    const table = within(sources);
     expect(table.getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「指定緊急避難場所一覧」");
     expect(table.getByRole("row", { name: /確認日/ })).toHaveTextContent("2026年10月26日");
+  });
+
+  it("防災：大規模な火事の場所がなければ3つのタブ。避難場所の出典が未公開なら「データ未取得」", async () => {
+    await open("disaster", "d=kanae&k=1");
+    expect(tabNames()).toEqual(["洪水", "土砂災害", "地震"]);
+    cleanupRender();
+    await open("disaster", "d=igara&k=1");
+    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+    expect(screen.getByRole("region", { name: "災害の種類から避難先を探す" })).toHaveTextContent("データ未取得");
   });
 
   it("人口はタブなしで、人数・対象時点と年齢の割合", async () => {
@@ -445,7 +505,8 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
   });
 
   it("出典が未公開なら「データ未取得」、駅のない地区は「地区内に駅はありません。」", async () => {
-    for (const item of ["childcare", "transport", "disaster", "population", "public_facilities", "support"] as const) {
+    // 防災はタブの代わりに箱の中に出す（上の防災のテスト）
+    for (const item of ["childcare", "transport", "population", "public_facilities", "support"] as const) {
       await open(item, "d=igara&k=1");
       expect(figure()).toHaveTextContent("データ未取得");
       if (item === "transport") {
@@ -588,9 +649,27 @@ describe("KarteDetailView：印刷（023）", () => {
   });
 
   it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {
-    await open("disaster", "d=kanae&a=2&k=0&h=new");
+    // 画面では13か所以上で閉じる
+    const facilities = Array.from({ length: 13 }, (_, index) => ({ name: `公民館${index}`, subkind: "公民館", address: null }));
+    const kanae = screenData.districts.kanae;
+    screenData = {
+      ...screenData,
+      districts: { ...screenData.districts, kanae: { ...kanae, publicFacilities: availableFixture(facilities, sourceFixture("iida_public_facilities")) } },
+    };
+    await open("public_facilities", "d=kanae&a=2&k=0&h=new");
     await printFromSheet();
     const list = document.querySelector("[data-print-document] details") as HTMLDetailsElement | null;
     expect(list?.open).toBe(true);
+  });
+
+  it("防災は地区の避難場所を全部1つの一覧にして使える災害を書き、ハザードマップの URL・注意書きを出す（040）", async () => {
+    await open("disaster", "d=kanae&a=2&k=0&h=new");
+    await printFromSheet();
+    const paper = printed();
+    expect(paper.getByText("地区の指定緊急避難場所（1か所）")).toBeInTheDocument();
+    expect(paper.getByText("使える災害：洪水・土砂災害")).toBeInTheDocument();
+    expect(paper.getByText(/https:\/\/www\.city\.iida\.lg\.jp\/soshiki\/35\/hazardmap\.html/)).toBeInTheDocument();
+    expect(paper.getByText("災害時は、飯田市の最新の避難情報を確認してください。")).toBeInTheDocument();
+    expect(paper.queryByText("この数字から分かること")).toBeNull();
   });
 });

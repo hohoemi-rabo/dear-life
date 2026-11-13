@@ -12,7 +12,7 @@ import type { SchoolZoneGroup, SchoolZoneKind, SchoolZoneSummary, TownSchoolChoi
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { facilityMapHref, schoolDistrictMapHref, type FacilityLayer } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
-import { NoticeBox, PanelTitle, PropIcon } from "./DetailCard";
+import { NoticeBox, PanelTitle, PropIcon, SearchMark } from "./DetailCard";
 
 // カルテの子育て・学校の「通う学校（学区）」のタブ（039。見本 karte-detail-childcare-uniform.png・karte-detail-childcare-split.png）。
 // 通う学校は市の通学区域の規則の別表（町名 → 学校）から出す。
@@ -132,22 +132,6 @@ function TownPicker({ towns }: { towns: readonly TownSchoolChoice[] }) {
         )}
       </div>
     </>
-  );
-}
-
-function SearchMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <circle cx="8.5" cy="8.5" r="5.5" />
-      <path d="m13 13 4.5 4.5" strokeLinecap="round" />
-    </svg>
   );
 }
 

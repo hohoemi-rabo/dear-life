@@ -658,6 +658,10 @@ export const PROPS = [
   "childcare-zone-map",
   "childcare-map-button",
   "childcare-chip-family",
+  "disaster-tab-flood",
+  "disaster-tab-landslide",
+  "disaster-tab-earthquake",
+  "disaster-tab-large-fire",
   "karte-next-step-bg-kamisato",
   "karte-next-step-bg-kanae",
   "karte-next-step-bg-igara",
@@ -758,6 +762,11 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "childcare-tab-nursery": { source: "childcare-tab-nursery.png", alt: "チューリップの飾りのあるオレンジ屋根の保育園", widths: [48, 96] },
   "childcare-tab-clubs": { source: "childcare-tab-clubs.png", alt: "並んだ子ども2人", widths: [48, 96] },
   "childcare-zone-map": { source: "childcare-zone-map.png", alt: "オレンジのピンの立った三つ折りの地図", widths: [96, 192] },
+  // 防災の災害の種類のタブの印（040。2026-11-13 受け取り）
+  "disaster-tab-flood": { source: "disaster-tab-flood.png", alt: "3段の波", widths: [48, 96] },
+  "disaster-tab-landslide": { source: "disaster-tab-landslide.png", alt: "崩れる斜面と落ちる石", widths: [48, 96] },
+  "disaster-tab-earthquake": { source: "disaster-tab-earthquake.png", alt: "揺れている建物", widths: [48, 96] },
+  "disaster-tab-large-fire": { source: "disaster-tab-large-fire.png", alt: "建物の後ろの大きな炎", widths: [48, 96] },
   "childcare-map-button": { source: "childcare-map-button.png", alt: "ピンのある三つ折りの地図", widths: [48, 96] },
   "childcare-chip-family": { source: "childcare-chip-family.png", alt: "大人2人と子ども1人", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない

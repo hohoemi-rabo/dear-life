@@ -28,7 +28,7 @@ import { AddToShitamiButton } from "./ShitamiMemo";
 import { CARD_PICTURES } from "./KarteEntries";
 import { NoDistrict } from "./KarteView";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows, type BasisRow } from "./DetailBasis";
-import { PropIcon } from "./DetailCard";
+import { NoticeBox, PropIcon } from "./DetailCard";
 import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
@@ -134,13 +134,21 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
           : null;
   return (
     <>
-      {chosen && (
-        <p className="hidden items-center gap-2 self-start rounded-button bg-pixel-sky/60 px-4 py-2 font-bold md:flex">
-          {/* 子育て・学校は家族の印（039 見本） */}
-          {card === "childcare" ? <PropIcon prop="childcare-chip-family" className="size-6" /> : <KarteCardIcon card={card} size="sm" />}
-          選択中：{chosen}
+      {/* PC は見出しの下に地区の札（040 見本 karte-detail-disaster.png。7つの詳細すべて）。スマホは下の条件の帯に地区が出ている */}
+      <div className="hidden flex-wrap items-center gap-2 md:flex">
+        <p className="flex items-center gap-1.5 rounded-full border border-gold/50 bg-warm-soft px-4 py-1.5 font-bold">
+          <PixelIcon icon="icon-pin" size="sm" />
+          <span className="sr-only">地区：</span>
+          {DISTRICT_NAMES[conditions.district]}
         </p>
-      )}
+        {chosen && (
+          <p className="flex items-center gap-2 rounded-button bg-pixel-sky/60 px-4 py-2 font-bold">
+            {/* 子育て・学校は家族の印（039 見本） */}
+            {card === "childcare" ? <PropIcon prop="childcare-chip-family" className="size-6" /> : <KarteCardIcon card={card} size="sm" />}
+            選択中：{chosen}
+          </p>
+        )}
+      </div>
       <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-button bg-pixel-sky/60 px-3 py-1.5 text-xs md:hidden">
         <PixelIcon icon="icon-pin" size="sm" />
         {DISTRICT_NAMES[conditions.district]}
@@ -270,6 +278,8 @@ function DetailBody({
         </Box>
       </div>
 
+      {texts.notice && <NoticeBox title={texts.notice} className="items-center md:px-4 md:[&_p]:text-base" />}
+
       <Basis
         rows={
           card === "housing"
@@ -279,8 +289,9 @@ function DetailBody({
             : otherBasisRows(card, [otherTab])
         }
         note={texts.basisNote}
-        // 子育て・学校は「〇〇の出典を見る」の閉じた欄（〇〇は今のタブの名前。039 見本）
-        title={card === "childcare" ? `${otherTab.label}の出典を見る` : null}
+        // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」（040 見本）の閉じた欄
+        title={card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" ? "出典・更新日を見る" : null}
+        icon={card === "childcare" ? "icon-book" : "icon-document"}
       />
     </div>
   );
@@ -316,7 +327,17 @@ function Box({ title, icon, tone, children }: { title: string; icon: "icon-bulb"
 }
 
 // 「数字の根拠を見る」（見本）：出典・集計対象・対象期間・取得日。PC は最初から開き、スマホは閉じておく
-function Basis({ rows, note, title }: { rows: BasisRow[][]; note?: string; title: string | null }) {
+function Basis({
+  rows,
+  note,
+  title,
+  icon,
+}: {
+  rows: BasisRow[][];
+  note?: string;
+  title: string | null;
+  icon: "icon-document" | "icon-book";
+}) {
   const wide = useWideScreen();
   const [open, setOpen] = useState<boolean | null>(null);
   return (
@@ -326,7 +347,7 @@ function Basis({ rows, note, title }: { rows: BasisRow[][]; note?: string; title
       className="group rounded-card border border-line bg-surface shadow-card"
     >
       <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 px-4 py-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
-        <PixelIcon icon={title === null ? "icon-document" : "icon-book"} size="sm" />
+        <PixelIcon icon={icon} size="sm" />
         <h2 className="flex-1">
           {title ?? (
             <>

@@ -13,6 +13,8 @@ export type DetailTexts = {
   // 「現地で確かめたいこと」の見出しと項目
   checkTitle: string;
   checks: readonly string[];
+  // 「現地で確かめたいこと」の下に出す、黄色の注意書きの帯（防災。040 見本）
+  notice?: string;
   // 「数字の根拠を見る」の下の一言
   basisNote?: string;
 };
@@ -64,12 +66,11 @@ const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, 
   },
   disaster: {
     question: { long: "もしものとき、どこへ逃げる？", short: "もしものとき、どこへ？" },
-    knows: {
-      text: "{district}の指定緊急避難場所と、使える災害の種類です。",
-      tip: { title: "災害の種類で行き先が変わります。", body: "洪水・土砂災害・地震など、種類ごとに確かめましょう。" },
-    },
+    // 「この数字から分かること」は出さない。確かめたいことと注意書きは見本の文（040。2026-11-13 まさゆきさん）
+    knows: null,
     checkTitle: "現地で確かめたいこと",
-    checks: ["家から避難場所までの道", "ハザードマップでの家の場所", "家族で集まる場所"],
+    checks: ["候補の家から避難場所まで歩いてみる", "家族の集合場所を話し合う"],
+    notice: "災害時は、飯田市の最新の避難情報を確認してください。",
   },
   population: {
     question: { long: "どんな人が暮らしている？", short: "どんな人が暮らしている？" },
@@ -120,12 +121,8 @@ export function withDistrict(text: string, districtName: string): string {
 }
 
 // 詳細のいちばん上のカードの注意書き（住まいの「現在の売り出し価格ではなく…」の箱）。
-// 子育て・学校、交通（車0台）、支援制度は NOTICES の決まった文を使う
+// 子育て・学校、交通（車0台）、支援制度は NOTICES の決まった文を使う。防災は下の帯（DetailTexts.notice）
 export const DETAIL_NOTICES = {
-  disaster: {
-    title: "避難するときは、市の最新の情報に従ってください。",
-    body: "ここに出すのは、市の「指定緊急避難場所一覧」の内容です。",
-  },
   public_facilities: { title: "開いている日と時間は、施設のページで確かめてください。" },
 } as const;
 

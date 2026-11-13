@@ -9,8 +9,6 @@ import { DISTRICT_NAMES, type KarteCard } from "@/lib/conditions/labels";
 import type {
   DataState,
   DistrictData,
-  EvacuationHazard,
-  EvacuationSite,
   Facility,
   Outing,
   StationTrips,
@@ -20,6 +18,7 @@ import { formatJaDate, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
 import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { districtSchoolZones } from "@/lib/karte/school-zones";
+import { DISASTER_TAB_HAZARDS, disasterTabHazards } from "@/lib/karte/evacuation";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
 import { ERRAND_STATIONS } from "@/lib/karte/errands";
 import { busiestStation, hasServiceTimes, trainTrips, type StationTripsRow } from "@/lib/karte/train";
@@ -27,6 +26,7 @@ import { busReachDateNote, busReachSentence } from "@/lib/transit/bus-reach";
 import { NOTICES } from "@/lib/notices";
 import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type DetailTabItem } from "./DetailCard";
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
+import { DISASTER_TAB_ICONS, EvacuationFinder, EvacuationPrintList, HazardMapBand } from "./EvacuationFinder";
 import { ChildcareFacilityPanel } from "./ChildcareFacilities";
 import { SchoolZonePanel } from "./SchoolZones";
 
@@ -39,7 +39,6 @@ export type DetailTab = DetailTabItem & {
   states: readonly DataState<unknown>[];
 };
 
-const HAZARDS: readonly EvacuationHazard[] = ["flood", "landslide", "earthquake", "large_fire"];
 const SUPPORT_CATEGORIES: readonly SupportProgram["category"][] = ["移住", "住まい", "子育て", "その他"];
 
 // 項目ごとのタブ。タブを持たない人口・公共施設は1つだけ（タブの列は出さない）。
@@ -98,22 +97,16 @@ export function detailTabs(
       return [errands, outing, bus, train];
     }
     case "disaster": {
+      // 災害の種類のタブ（040 見本）。「すべて」はなく、最初は洪水。件数はタブではなく一覧の見出しの右に出す
       const state = district.evacuationSites;
-      const all: DetailTab = { id: "all", label: "すべて", icon: "icon-disaster", states: [state] };
-      if (state.status !== "available") return [all];
-      const sites = state.value;
-      // 大規模な火事は、使える場所のある地区だけタブにする（ない地区で「0」のタブを並べない）
-      const hazards = HAZARDS.filter((hazard) => hazard !== "large_fire" || sites.some((site) => site.hazards.includes(hazard)));
-      return [
-        { ...all, count: sites.length },
-        ...hazards.map((hazard) => ({
-          id: hazard,
-          label: HAZARD_LABELS[hazard],
-          icon: "icon-disaster" as const,
-          count: sites.filter((site) => site.hazards.includes(hazard)).length,
-          states: [state],
-        })),
-      ];
+      const hazards = state.status === "available" ? disasterTabHazards(state.value) : DISASTER_TAB_HAZARDS.slice(0, 1);
+      return hazards.map((hazard) => ({
+        id: hazard,
+        label: HAZARD_LABELS[hazard],
+        icon: "icon-disaster" as const,
+        prop: DISASTER_TAB_ICONS[hazard],
+        states: [state],
+      }));
     }
     case "population":
       return [{ id: "all", label: "人口", icon: "icon-population", states: [district.population] }];
@@ -138,7 +131,8 @@ export function detailTabs(
 }
 
 // 今のタブ。データが変わってタブがなくなったら最初のタブに戻す
-// 印刷（023）で並べるタブ。防災・支援制度は「すべて」に全部入っているので、種類ごとのタブは同じものの繰り返しになるため出さない
+// 印刷（023）で並べるタブ。支援制度は「すべて」に全部入っているので、種類ごとのタブは同じものの繰り返しになるため出さない。
+// 防災は1つ目のタブの場所で、地区の避難場所を全部1つの一覧にして出す（040）
 export function printTabs(card: OtherCard, tabs: readonly DetailTab[]): readonly DetailTab[] {
   return card === "disaster" || card === "support" ? tabs.slice(0, 1) : tabs;
 }
@@ -185,6 +179,15 @@ export function OtherDetailCard({
   noCar: boolean;
 }) {
   const panelId = useId();
+  if (card === "disaster") {
+    // 防災はハザードマップの帯と「災害の種類から避難先を探す」の箱（040 見本）
+    return (
+      <>
+        <HazardMapBand />
+        <EvacuationFinder state={district.evacuationSites} tabs={tabs} selectedId={tab.id} onSelect={onTabChange} />
+      </>
+    );
+  }
   const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
   const tabRow = tabs.length > 1 && (
     <DetailTabs label={`${CARD_LABELS[card]}の見る範囲`} tabs={tabs} selectedId={tab.id} panelId={panelId} onSelect={onTabChange} />
@@ -219,6 +222,14 @@ export function OtherTabPanel({
   supportPrograms: readonly SupportProgram[];
   noCar: boolean;
 }) {
+  if (card === "disaster") {
+    return (
+      <>
+        <HazardMapBand />
+        <EvacuationPrintList state={district.evacuationSites} />
+      </>
+    );
+  }
   const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
   return (
     <>
@@ -242,7 +253,8 @@ function PanelHead({ content }: { content: PanelContent }) {
 }
 
 function panelContent(
-  card: OtherCard,
+  // 防災は panelContent を通さず、EvacuationFinder で出す（040）
+  card: Exclude<OtherCard, "disaster">,
   tabId: string,
   { district, supportPrograms, noCar }: { district: DistrictData; supportPrograms: readonly SupportProgram[]; noCar: boolean },
 ): PanelContent {
@@ -251,8 +263,6 @@ function panelContent(
       return childcareContent(tabId, district);
     case "transport":
       return transportContent(tabId, district, noCar);
-    case "disaster":
-      return disasterContent(tabId, district.evacuationSites);
     case "population":
       return populationContent(district.population);
     case "public_facilities":
@@ -507,29 +517,6 @@ function TrainOutingDetails({ outing }: { outing: Outing }) {
   );
 }
 
-function disasterContent(tabId: string, state: DataState<readonly EvacuationSite[]>): PanelContent {
-  const hazard = HAZARDS.find((item) => item === tabId);
-  const sites = state.status === "available" ? state.value.filter((site) => !hazard || site.hazards.includes(hazard)) : [];
-  return {
-    picture: "detail-shelter",
-    title: hazard ? `${HAZARD_LABELS[hazard]}のときに使える指定緊急避難場所` : "地区の指定緊急避難場所",
-    figure: state.status === "available" ? <BigCount count={sites.length} unit="か所" /> : <DataStateMessage state={state} />,
-    notice: DETAIL_NOTICES.disaster,
-    list:
-      state.status === "available" ? (
-        <FacilityItems
-          facilities={sites}
-          label="避難場所"
-          extra={(site) =>
-            site.hazards.length > 0 && (
-              <span className="mt-0.5 block text-xs text-ink-muted">使える災害：{site.hazards.map((item) => HAZARD_LABELS[item]).join("・")}</span>
-            )
-          }
-        />
-      ) : undefined,
-  };
-}
-
 function populationContent(state: DistrictData["population"]): PanelContent {
   if (state.status !== "available") {
     return { picture: "detail-population", title: "地区の人口", figure: <DataStateMessage state={state} /> };
@@ -649,15 +636,7 @@ function FacilityListing({ state, label }: { state: DataState<readonly Facility[
 // 施設の一覧（種類ごと）。詳細のページなので、少なければ開いておき、多ければ閉じておく
 const OPEN_LIST_LIMIT = 12;
 
-function FacilityItems<T extends Facility>({
-  facilities,
-  label,
-  extra,
-}: {
-  facilities: readonly T[];
-  label: string;
-  extra?: (facility: T) => ReactNode;
-}) {
+function FacilityItems({ facilities, label }: { facilities: readonly Facility[]; label: string }) {
   // 紙では開いて出す（閉じた一覧は印刷されない。023）
   const printing = usePrintMode();
   if (facilities.length === 0) return null;
@@ -685,7 +664,6 @@ function FacilityItems<T extends Facility>({
                 <li key={`${facility.name}-${index}`} className="py-1.5 text-sm">
                   <span className="font-bold">{facility.name}</span>
                   {facility.address && <span className="ml-2 text-xs text-ink-muted">{facility.address}</span>}
-                  {extra?.(facility)}
                 </li>
               ))}
             </ul>

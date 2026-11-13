@@ -15,6 +15,7 @@ import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
+import { NoticeBox } from "./DetailCard";
 import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
 import { HousingTabFootnote, HousingTabPanel, housingTabs } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
@@ -202,6 +203,7 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
         </PrintBlock>
       )}
       <PrintCheckList title={texts.checkTitle} items={texts.checks} />
+      {texts.notice && <NoticeBox title={texts.notice} className="break-inside-avoid" />}
       <PrintBlock className="flex flex-col gap-2">
         <h3 className="flex items-center gap-2 font-bold">
           <PixelIcon icon="icon-document" size="sm" />

@@ -99,9 +99,11 @@ describe("カルテの図鑑の形（028）", () => {
 
   it("図鑑の番号は一覧の並びで決まり、文の {district} は地区名になる", () => {
     expect(entryNumber(["childcare", "housing"], "housing")).toBe("02");
-    expect(withDistrict(detailTexts("disaster", { housing: "new", transportQuestion: "" }).knows?.text ?? "", "鼎")).toBe(
-      "鼎の指定緊急避難場所と、使える災害の種類です。",
+    expect(withDistrict(detailTexts("population", { housing: "new", transportQuestion: "" }).knows?.text ?? "", "鼎")).toBe(
+      "鼎の人口と、年齢の割合です。",
     );
+    // 防災も出さない（040。2026-11-13 まさゆきさん）
+    expect(detailTexts("disaster", { housing: "new", transportQuestion: "" }).knows).toBeNull();
     // 子育て・学校は「この数字から分かること」を出さない（2026-11-12 まさゆきさん）
     expect(detailTexts("childcare", { housing: "new", transportQuestion: "" }).knows).toBeNull();
   });

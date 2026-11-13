@@ -24,14 +24,18 @@ export function DetailTabs({
   selectedId,
   panelId,
   onSelect,
+  large = false,
 }: {
   label: string;
   tabs: readonly DetailTabItem[];
   selectedId: string;
   panelId: string;
   onSelect: (id: string) => void;
+  // 大きいタブ（防災の災害の種類。040 見本）。PC は高く・印と文字を大きくし、スマホで4つ並ぶときは印を名前の上に置く（印を消さない）
+  large?: boolean;
 }) {
   const crowded = tabs.length >= 4;
+  const hideIcon = crowded && !large ? "hidden sm:inline-block" : "";
   return (
     <div role="tablist" aria-label={label} className="grid gap-2" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
       {tabs.map((item) => {
@@ -46,12 +50,13 @@ export function DetailTabs({
             onClick={() => onSelect(item.id)}
             className={[
               "relative flex min-h-tap items-center justify-center gap-1 whitespace-nowrap rounded-button border px-0.5 text-[11px] font-bold sm:gap-1.5 sm:text-sm",
+              large ? `md:min-h-14 md:gap-2 md:text-lg ${crowded ? "flex-col py-1 sm:flex-row sm:py-0" : ""}` : "",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
               selected ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
             ].join(" ")}
           >
             {item.prop ? (
-              <PropIcon prop={item.prop} className={`size-6 ${crowded ? "hidden sm:inline-block" : ""}`} />
+              <PropIcon prop={item.prop} className={`size-6 ${large ? "md:size-9" : ""} ${hideIcon}`} />
             ) : item.illust ? (
               // eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す
               <img
@@ -60,10 +65,10 @@ export function DetailTabs({
                 sizes="24px"
                 alt=""
                 draggable={false}
-                className={`size-6 shrink-0 select-none object-contain ${crowded ? "hidden sm:inline-block" : ""}`}
+                className={`size-6 shrink-0 select-none object-contain ${hideIcon}`}
               />
             ) : (
-              <PixelIcon icon={item.icon} size="sm" className={crowded ? "hidden sm:inline-block" : ""} />
+              <PixelIcon icon={item.icon} size="sm" className={hideIcon} />
             )}
             <TabLabel label={item.label} />
             {item.count !== undefined && <span className="tabular-nums">{item.count.toLocaleString("ja-JP")}</span>}
@@ -163,5 +168,22 @@ export function BigCount({ count, unit, after }: { count: number; unit: string; 
       </span>
       {after}
     </p>
+  );
+}
+
+// 検索・選択の欄の左の虫眼鏡（学区の町名・防災の絞り込み）。欄を relative にして置く
+export function SearchMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <circle cx="8.5" cy="8.5" r="5.5" />
+      <path d="m13 13 4.5 4.5" strokeLinecap="round" />
+    </svg>
   );
 }

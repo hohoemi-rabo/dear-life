@@ -36,3 +36,10 @@ export const IIDA_WEB_MAP = {
   name: "いいだWebまっぷ（飯田市）",
   url: "https://www.city.iida.lg.jp/soshiki/168/iidawebmap.html",
 } as const;
+
+// 飯田市の「防災ハザードマップで危険箇所を確認しましょう」のページ（2026-03-19 更新。いいだWebまっぷのハザードマップと
+// 地区別の PDF の案内がある）。カルテの防災の帯から開く（040）。データは取り込まず、リンクだけにする
+export const IIDA_HAZARD_MAP = {
+  name: "飯田市のハザードマップ",
+  url: "https://www.city.iida.lg.jp/soshiki/35/hazardmap.html",
+} as const;
