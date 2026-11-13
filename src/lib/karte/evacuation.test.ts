@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EvacuationSite } from "../data/screen-data.ts";
-import { disasterTabHazards, findEvacuationSites, googleMapsSearchHref } from "./evacuation.ts";
+import { googleMapsSearchHref } from "../map/links.ts";
+import { disasterTabHazards, findEvacuationSites } from "./evacuation.ts";
 
 const site = (name: string, address: string | null, hazards: EvacuationSite["hazards"]): EvacuationSite => ({
   name,

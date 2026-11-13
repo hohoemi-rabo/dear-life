@@ -54,3 +54,12 @@ export const IIDA_HAZARD_MAP = {
   name: "飯田市のハザードマップ",
   url: "https://www.city.iida.lg.jp/soshiki/35/hazardmap.html",
 } as const;
+
+// Google マップで施設を探す URL（別のタブで開く。カルテの防災・公共施設の「地図で見る」。040）。送るのは市が公開している施設の名前と住所だけで、
+// 選んだ地区や家族などの条件は送らない（F-02）。住所がなければ市の名前を添えて、ほかの町の同じ名前の施設に行かないようにする
+const FALLBACK_AREA = "長野県飯田市";
+
+export function googleMapsSearchHref(site: { name: string; address: string | null }): string {
+  const query = `${site.name} ${site.address ?? FALLBACK_AREA}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}

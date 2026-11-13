@@ -14,7 +14,7 @@ import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, KARTE_CARD_LABELS, familyLa
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { houseSrc, propSrc, propSrcSet } from "@/lib/illust/assets";
-import { detailTexts, entryNumber, housingKnows, withDistrict, type DetailTexts } from "@/lib/karte/details";
+import { detailTexts, entryNumber, type DetailTexts } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
 import { karteBackHref, shitamiMemoHref } from "@/lib/karte/links";
 import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
@@ -33,9 +33,10 @@ import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 
 type Chosen = Conditions & { district: DistrictId };
 
-const MAP_IN_CARD: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster"]);
+// 下のボタンを「カルテ一覧へ」だけにする詳細（地図へはカードの中から行く。公共施設は地図に点がないので地図へのボタンを出さない。040）
+const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "public_facilities"]);
 
-// カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・この数字から分かること・
+// カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・
 // 現地で確かめたいこと・数字の根拠を、7項目とも同じ形で出す。条件は URL パラメータに持つ（F-02）。<Suspense> の中で使う
 export function KarteDetailView({ card }: { card: KarteCard }) {
   const { conditions } = useConditions();
@@ -97,9 +98,9 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
         <DetailBody card={card} conditions={conditions} texts={texts} districtName={districtName} />
       </ScreenDataBoundary>
 
-      {MAP_IN_CARD.has(card) ? (
+      {LIST_BUTTON_ONLY.has(card) ? (
         // 子育て・学校・交通・防災は「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」から、その種類だけにチェックを入れて行く
-        // （039 見本。2026-11-12 まさゆきさん。交通・防災は 2026-11-13 まさゆきさん）
+        // （039 見本。2026-11-12 まさゆきさん。交通・防災・公共施設は 2026-11-13 まさゆきさん）
         <ButtonLink href={listHref} variant="secondary" className="md:self-start">
           <span aria-hidden="true">←</span>
           カルテ一覧へ
@@ -214,8 +215,6 @@ function DetailBody({
   const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
   const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
-  const knows =
-    texts.knows && card === "housing" && housingTab.category ? { ...texts.knows, text: housingKnows(housingTab.category) } : texts.knows;
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
 
@@ -235,51 +234,36 @@ function DetailBody({
         />
       )}
 
-      {/* 子育て・学校は「この数字から分かること」を出さず、「現地で確かめたいこと」を幅いっぱいにする（2026-11-12 まさゆきさん） */}
-      <div className={`grid gap-4 ${knows ? "md:grid-cols-2" : ""}`}>
-        {knows && (
-          <Box title="この数字から分かること" icon="icon-bulb" tone="bg-pixel-sky/60">
-            <p className="font-bold">{withDistrict(knows.text, districtName)}</p>
-            <div className="flex gap-2 rounded-button bg-warm-soft p-3">
-              <PixelIcon icon="icon-sprout" />
-              <p className="flex flex-col text-sm">
-                <span className="font-bold text-kind-local">{knows.tip.title}</span>
-                <span>{knows.tip.body}</span>
-              </p>
-            </div>
-          </Box>
-        )}
-        <Box title={texts.checkTitle} icon="icon-checklist" tone="bg-warm-soft">
-          <div className="flex items-start gap-3">
-            {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
-                押せても残らないチェックの箱と、下見プランのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
-            <ul className="flex flex-1 list-disc flex-col gap-2 pl-5">
-              {texts.checks.map((check) => (
-                <li key={check}>{check}</li>
-              ))}
-            </ul>
-            {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
-            <img
-              src={propSrc("karte-check", 240)}
-              srcSet={propSrcSet("karte-check")}
-              sizes="128px"
-              alt=""
-              loading="lazy"
-              draggable={false}
-              className="hidden h-auto w-32 shrink-0 select-none sm:block"
-            />
+      <Box title={texts.checkTitle}>
+        <div className="flex items-start gap-3">
+          {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
+              押せても残らないチェックの箱と、下見プランのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
+          <ul className="flex flex-1 list-disc flex-col gap-2 pl-5">
+            {texts.checks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
+          </ul>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+          <img
+            src={propSrc("karte-check", 240)}
+            srcSet={propSrcSet("karte-check")}
+            sizes="128px"
+            alt=""
+            loading="lazy"
+            draggable={false}
+            className="hidden h-auto w-32 shrink-0 select-none sm:block"
+          />
+        </div>
+        {shitamiItem && (
+          <div className="flex flex-col gap-2 border-t border-line pt-3">
+            <p className="text-sm">
+              <span className="font-bold">下見プラン：</span>
+              {SHITAMI_ITEMS[shitamiItem].title}
+            </p>
+            <AddToShitamiButton district={conditions.district} item={shitamiItem} memoHref={memoHref} />
           </div>
-          {shitamiItem && (
-            <div className="flex flex-col gap-2 border-t border-line pt-3">
-              <p className="text-sm">
-                <span className="font-bold">下見プラン：</span>
-                {SHITAMI_ITEMS[shitamiItem].title}
-              </p>
-              <AddToShitamiButton district={conditions.district} item={shitamiItem} memoHref={memoHref} />
-            </div>
-          )}
-        </Box>
-      </div>
+        )}
+      </Box>
 
       {texts.notice && <NoticeBox title={texts.notice} className="items-center md:px-4 md:[&_p]:text-base" />}
 
@@ -293,15 +277,17 @@ function DetailBody({
         }
         note={texts.basisNote}
         // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」（040 見本）の閉じた欄
-        title={card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" ? "出典・更新日を見る" : null}
+        title={
+          card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" || card === "public_facilities" ? "出典・更新日を見る" : null
+        }
         icon={card === "childcare" ? "icon-book" : "icon-document"}
       />
     </div>
   );
 }
 
-// 「この数字から分かること」「現地で確かめたいこと」の箱。スマホは開閉でき（最初は開いている）、PC はいつも開いている（見本）
-function Box({ title, icon, tone, children }: { title: string; icon: "icon-bulb" | "icon-checklist"; tone: string; children: ReactNode }) {
+// 「現地で確かめたいこと」の箱。スマホは開閉でき（最初は開いている）、PC はいつも開いている（見本）
+function Box({ title, children }: { title: string; children: ReactNode }) {
   const wide = useWideScreen();
   const [open, setOpen] = useState(true);
   return (
@@ -313,12 +299,12 @@ function Box({ title, icon, tone, children }: { title: string; icon: "icon-bulb"
       className="group rounded-card border border-line bg-surface shadow-card"
     >
       <summary
-        className={`flex min-h-tap cursor-pointer list-none items-center gap-2 rounded-t-card px-4 py-2 font-bold lg:cursor-default [&::-webkit-details-marker]:hidden ${tone}`}
+        className={`flex min-h-tap cursor-pointer list-none items-center gap-2 rounded-t-card px-4 py-2 font-bold lg:cursor-default [&::-webkit-details-marker]:hidden bg-warm-soft`}
         onClick={(event) => {
           if (wide) event.preventDefault();
         }}
       >
-        <PixelIcon icon={icon} size="sm" />
+        <PixelIcon icon="icon-checklist" size="sm" />
         <h2 className="flex-1">{title}</h2>
         <span aria-hidden="true" className="text-ink-muted transition-transform group-open:rotate-180 lg:hidden">
           ⌄

@@ -34,7 +34,6 @@ export const PIXEL_ASSETS = {
   "icon-support": { width: 16, height: 16, alt: "手で包んだハート" },
   "icon-info": { width: 16, height: 16, alt: "丸の中の i の印" },
   "icon-document": { width: 16, height: 16, alt: "文字の並んだ書類" },
-  "icon-bulb": { width: 16, height: 16, alt: "光る電球" },
   "icon-checklist": { width: 16, height: 16, alt: "チェックの付いた表" },
   "icon-print": { width: 16, height: 16, alt: "紙の出てくるプリンター" },
   // ロゴと飾り（027）

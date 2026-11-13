@@ -662,6 +662,10 @@ export const PROPS = [
   "disaster-tab-landslide",
   "disaster-tab-earthquake",
   "disaster-tab-large-fire",
+  "public-tab-park",
+  "public-tab-library",
+  "public-tab-sports",
+  "public-tab-community",
   "karte-next-step-bg-kamisato",
   "karte-next-step-bg-kanae",
   "karte-next-step-bg-igara",
@@ -767,6 +771,11 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "disaster-tab-landslide": { source: "disaster-tab-landslide.png", alt: "崩れる斜面と落ちる石", widths: [48, 96] },
   "disaster-tab-earthquake": { source: "disaster-tab-earthquake.png", alt: "揺れている建物", widths: [48, 96] },
   "disaster-tab-large-fire": { source: "disaster-tab-large-fire.png", alt: "建物の後ろの大きな炎", widths: [48, 96] },
+  // 公共施設の使い道のタブの印（040。2026-11-13 受け取り）。病院・市役所は交通の行ける場所の印（errand-hospital・errand-office）を使う
+  "public-tab-park": { source: "public-tab-park.png", alt: "赤い屋根の遊具とすべり台", widths: [48, 96] },
+  "public-tab-library": { source: "public-tab-library.png", alt: "積み重ねた3冊の本", widths: [48, 96] },
+  "public-tab-sports": { source: "public-tab-sports.png", alt: "サッカーボール", widths: [48, 96] },
+  "public-tab-community": { source: "public-tab-community.png", alt: "瓦屋根と緑の扉の公民館", widths: [48, 96] },
   "childcare-map-button": { source: "childcare-map-button.png", alt: "ピンのある三つ折りの地図", widths: [48, 96] },
   "childcare-chip-family": { source: "childcare-chip-family.png", alt: "大人2人と子ども1人", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない

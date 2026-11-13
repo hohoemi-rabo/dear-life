@@ -43,6 +43,20 @@ vi.mock("next/navigation", async () => {
 
 let screenData: ScreenData;
 const EVACUATION = sourceFixture("iida_evacuation", { name: "指定緊急避難場所一覧", publisher: "飯田市", checkedOn: "2026-10-26", fetchedOn: null });
+const PUBLIC_FACILITIES = [
+  { name: "城東2号公園", subkind: "公園", address: "長野県飯田市鼎1" },
+  { name: "鼎図書館", subkind: "図書館", address: null },
+  { name: "鼎公民館", subkind: "公民館", address: null },
+  { name: "野底山森林公園", subkind: "公園", address: null },
+  { name: "市立病院", subkind: "病院・診療所", address: null },
+];
+function withPublicFacilities(facilities: typeof PUBLIC_FACILITIES): ScreenData {
+  const kanae = screenData.districts.kanae;
+  return {
+    ...screenData,
+    districts: { ...screenData.districts, kanae: { ...kanae, publicFacilities: availableFixture(facilities, sourceFixture("iida_public_facilities")) } },
+  };
+}
 vi.mock("@/lib/data/load-screen-data", () => ({
   loadScreenData: () => Promise.resolve(screenData),
 }));
@@ -72,7 +86,8 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(prices()).toHaveTextContent("3,350万円");
     expect(prices()).toHaveTextContent("過去の取引 12件参考になる件数");
     expect(prices()).toHaveTextContent(NOTICES.market);
-    expect(screen.getByText("鼎で過去に取引された住宅の参考値です。")).toBeInTheDocument();
+    // 「この数字から分かること」は7つの詳細すべてで出さない（2026-11-13 まさゆきさん）
+    expect(screen.queryByText("この数字から分かること")).toBeNull();
     const table = within(basis());
     expect(table.getByRole("row", { name: /集計対象/ })).toHaveTextContent("鼎・築20年以内の中古戸建て");
     expect(table.getByRole("row", { name: /対象期間/ })).toHaveTextContent("2021年第1四半期〜2026年第1四半期");
@@ -99,7 +114,6 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(prices()).toHaveTextContent("約7.93万円／坪");
     expect(prices()).toHaveTextContent("約480万円");
     expect(prices().textContent).not.toContain("㎡");
-    expect(screen.getByText("鼎で過去に取引された土地の参考値です。")).toBeInTheDocument();
     expect(within(basis()).getByRole("row", { name: /集計対象/ })).toHaveTextContent("鼎・土地（宅地）");
 
     await act(async () => {
@@ -369,6 +383,47 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     expect(screen.getByRole("region", { name: "災害の種類から避難先を探す" })).toHaveTextContent("データ未取得");
   });
 
+  it("公共施設は見本の形：使い道のタブ（施設のない使い道は出さない）・帯の見出し・名前と Google マップ・すべて見る・注意書き・下見で確かめたいこと（040）", async () => {
+    screenData = withPublicFacilities(PUBLIC_FACILITIES);
+    await open("public_facilities", "d=kanae&k=1");
+    expect(screen.getByRole("heading", { name: "使い道から施設を探す" })).toBeInTheDocument();
+    // 運動施設・市役所の施設がないので「体を動かす」「手続きをする」は出さない
+    expect(tabNames()).toEqual(["子どもと遊ぶ公園", "本を借りる図書館", "地域の活動・文化公民館・文化施設", "受診する病院・診療所"]);
+    expect(screen.getByRole("tab", { name: /子どもと遊ぶ/ })).toHaveAttribute("aria-selected", "true");
+    expect(figure()).toHaveTextContent("鼎の公園2か所");
+    const rows = () => within(screen.getByRole("list", { name: /^鼎の/ })).getAllByRole("listitem");
+    expect(rows().map((row) => row.textContent)).toEqual([expect.stringContaining("城東2号公園"), expect.stringContaining("野底山森林公園")]);
+    expect(within(rows()[0]).getByRole("link", { name: /地図で見る/ }).getAttribute("href")).toBe(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("城東2号公園 長野県飯田市鼎1")}`,
+    );
+    // 「受診する」には、市の施設だけで民間の診療所は入っていないと書く
+    expect(screen.queryByText("市の施設だけです。民間の診療所は入っていません。")).toBeNull();
+    await choose(/受診する/);
+    expect(figure()).toHaveTextContent("鼎の病院・診療所1か所");
+    expect(screen.getByText("市の施設だけです。民間の診療所は入っていません。")).toBeInTheDocument();
+    // すべて見るは地区の全部を種類ごとに
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "掲載施設をすべて見る（5か所）" }));
+    });
+    expect(screen.getByRole("heading", { name: "公園（2か所）" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "公民館（1か所）" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /閉じる/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("開館日・利用時間は、各施設の案内で確認してください。")).toBeInTheDocument();
+    // 「この数字から分かること」・大きい数字・地図へのボタンは出さず、見本の確かめたいことと「出典・更新日を見る」
+    expect(screen.queryByText("この数字から分かること")).toBeNull();
+    expect(screen.getByRole("heading", { name: "下見で確かめたいこと" })).toBeInTheDocument();
+    expect(screen.getByText("候補の家から、よく使いそうな施設まで歩いてみる")).toBeInTheDocument();
+    expect(screen.queryByText("地図で周辺を確かめる")).toBeNull();
+    expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toBeInTheDocument();
+    expect((screen.getByText("出典・更新日を見る").closest("details") as HTMLDetailsElement).open).toBe(false);
+  });
+
+  it("公共施設の出典が未公開なら、箱の中に「データ未取得」", async () => {
+    await open("public_facilities", "d=igara&k=1");
+    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+    expect(screen.getByRole("region", { name: "使い道から施設を探す" })).toHaveTextContent("データ未取得");
+  });
+
   it("人口はタブなしで、人数・対象時点と年齢の割合", async () => {
     await open("population", "d=kanae&k=1");
     expect(screen.queryAllByRole("tab")).toHaveLength(0);
@@ -505,8 +560,8 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
   });
 
   it("出典が未公開なら「データ未取得」、駅のない地区は「地区内に駅はありません。」", async () => {
-    // 防災はタブの代わりに箱の中に出す（上の防災のテスト）
-    for (const item of ["childcare", "transport", "population", "public_facilities", "support"] as const) {
+    // 防災・公共施設はタブの代わりに箱の中に出す（防災・公共施設のテスト）
+    for (const item of ["childcare", "transport", "population", "support"] as const) {
       await open(item, "d=igara&k=1");
       expect(figure()).toHaveTextContent("データ未取得");
       if (item === "transport") {
@@ -600,14 +655,14 @@ describe("KarteDetailView：印刷（023）", () => {
     expect(boxes.filter((box) => box.checked).map((box) => box.labels?.[0].textContent)).toEqual(["住まい"]);
   });
 
-  it("住まいはすべてのタブ・分かること・空の箱の「現地で確かめたいこと」・数字の根拠・印刷日を出す", async () => {
+  it("住まいはすべてのタブ・空の箱の「現地で確かめたいこと」・数字の根拠・印刷日を出す（「この数字から分かること」は出さない）", async () => {
     await open("housing", "d=kanae&a=2&k=1&h=new");
     await printFromSheet();
     expect(window.print).toHaveBeenCalledTimes(1);
     const paper = printed();
     expect(paper.getByRole("heading", { level: 2, name: "家を買うとしたら、いくらくらい？" })).toBeInTheDocument();
     for (const tab of ["選んだ家", "ほかの築年数", "土地"]) expect(paper.getByRole("heading", { level: 3, name: tab })).toBeInTheDocument();
-    expect(paper.getByText("鼎で過去に取引された住宅の参考値です。")).toBeInTheDocument();
+    expect(paper.queryByText("この数字から分かること")).toBeNull();
     // 紙ではペンでチェックするので、押せるチェックではなく空の箱にする
     expect(paper.getByRole("heading", { name: "現地・物件で確かめたいこと" })).toBeInTheDocument();
     expect(paper.queryAllByRole("checkbox")).toHaveLength(0);
@@ -667,17 +722,33 @@ describe("KarteDetailView：印刷（023）", () => {
   });
 
   it("施設の一覧は、画面で閉じている長さでも紙では開いて出す", async () => {
-    // 画面では13か所以上で閉じる
-    const facilities = Array.from({ length: 13 }, (_, index) => ({ name: `公民館${index}`, subkind: "公民館", address: null }));
+    // 画面では13か所以上で閉じる（交通のバス停）
+    const stops = Array.from({ length: 13 }, (_, index) => ({ name: `バス停${index}`, subkind: null, address: null }));
     const kanae = screenData.districts.kanae;
     screenData = {
       ...screenData,
-      districts: { ...screenData.districts, kanae: { ...kanae, publicFacilities: availableFixture(facilities, sourceFixture("iida_public_facilities")) } },
+      districts: { ...screenData.districts, kanae: { ...kanae, busStops: availableFixture(stops, sourceFixture("gtfs_bus")) } },
     };
+    await open("transport", "d=kanae&a=2&k=0&h=new&c=1");
+    await printFromSheet();
+    const list = printed().getByText("バス停の一覧（13か所）").closest("details") as HTMLDetailsElement;
+    expect(list.open).toBe(true);
+  });
+
+  it("公共施設は種類ごとに全部の施設を出し、市の施設だけの注意と開館日の注意書きを付ける（040）", async () => {
+    screenData = withPublicFacilities(PUBLIC_FACILITIES);
     await open("public_facilities", "d=kanae&a=2&k=0&h=new");
     await printFromSheet();
-    const list = document.querySelector("[data-print-document] details") as HTMLDetailsElement | null;
-    expect(list?.open).toBe(true);
+    const paper = printed();
+    expect(paper.getByText("鼎の公共施設（5か所）")).toBeInTheDocument();
+    for (const group of ["公園（2か所）", "図書館（1か所）", "公民館（1か所）", "病院・診療所（1か所）"]) {
+      expect(paper.getByText(group)).toBeInTheDocument();
+    }
+    expect(paper.getByText("市の施設だけです。民間の診療所は入っていません。")).toBeInTheDocument();
+    expect(paper.getByText("開館日・利用時間は、各施設の案内で確認してください。")).toBeInTheDocument();
+    expect(paper.getByRole("heading", { name: "下見で確かめたいこと" })).toBeInTheDocument();
+    expect(paper.queryByText("この数字から分かること")).toBeNull();
+    expect(paper.queryByRole("link", { name: /地図で見る/ })).toBeNull();
   });
 
   it("防災は地区の避難場所を全部1つの一覧にして使える災害を書き、ハザードマップの URL・注意書きを出す（040）", async () => {

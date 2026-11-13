@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { PixelIcon, type IconId } from "@/components/pixel/PixelIcon";
 import { propSrc, propSrcSet, transportTabIconSrc, transportTabIconSrcSet, type PropId, type TransportTabIconId } from "@/lib/illust/assets";
+import { googleMapsSearchHref } from "@/lib/map/links";
 
 // カルテの詳細のいちばん上のカード（028 見本 karte-detail-housing.png）の部品。住まいもほかの6つも同じ形にする：
 // 絵・見出し・大きい数字 → 注意書き → タブ → タブの中の一覧
@@ -185,5 +186,21 @@ export function SearchMark() {
       <circle cx="8.5" cy="8.5" r="5.5" />
       <path d="m13 13 4.5 4.5" strokeLinecap="round" />
     </svg>
+  );
+}
+
+// 1か所ずつの「地図で見る ↗」（防災の避難場所・公共施設。040 見本）。施設の名前と住所で Google マップを別のタブで開く。紙では押せないので出さない
+export function GoogleMapsLink({ place }: { place: { name: string; address: string | null } }) {
+  return (
+    <a
+      href={googleMapsSearchHref(place)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex min-h-tap shrink-0 items-center gap-1 rounded-button border-2 border-primary bg-surface px-3 text-sm font-bold text-primary hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary print:hidden"
+    >
+      地図で見る
+      <span className="sr-only">（{place.name}を Google マップで、新しいタブで開きます）</span>
+      <span aria-hidden="true">↗</span>
+    </a>
   );
 }

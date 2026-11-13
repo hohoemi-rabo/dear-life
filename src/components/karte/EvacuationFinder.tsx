@@ -5,10 +5,10 @@ import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { buttonClassName } from "@/components/ui/Button";
 import type { DataState, EvacuationHazard, EvacuationSite } from "@/lib/data/screen-data";
 import type { PropId } from "@/lib/illust/assets";
-import { findEvacuationSites, googleMapsSearchHref } from "@/lib/karte/evacuation";
+import { findEvacuationSites } from "@/lib/karte/evacuation";
 import { HAZARD_LABELS } from "@/lib/karte/facilities";
 import { IIDA_HAZARD_MAP } from "@/lib/map/links";
-import { DetailTabs, PropIcon, SearchMark, type DetailTabItem } from "./DetailCard";
+import { DetailTabs, GoogleMapsLink, PropIcon, SearchMark, type DetailTabItem } from "./DetailCard";
 import { FacilityMapLink } from "./SchoolZones";
 
 // カルテの防災（040。見本 docs/design/karte-detail-disaster.png）：
@@ -133,7 +133,7 @@ function SiteSearch({ id, sites, hazard }: { id: string; sites: readonly Evacuat
           {shown.map((site, index) => (
             <li key={`${site.name}-${index}`} className="flex items-center justify-between gap-3 py-2 md:px-2">
               <span className="min-w-0 text-base font-bold md:text-lg">{site.name}</span>
-              <SiteMapLink site={site} />
+              <GoogleMapsLink place={site} />
             </li>
           ))}
         </ul>
@@ -152,21 +152,6 @@ function SiteSearch({ id, sites, hazard }: { id: string; sites: readonly Evacuat
         </button>
       )}
     </div>
-  );
-}
-
-function SiteMapLink({ site }: { site: EvacuationSite }) {
-  return (
-    <a
-      href={googleMapsSearchHref(site)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex min-h-tap shrink-0 items-center gap-1 rounded-button border-2 border-primary bg-surface px-3 text-sm font-bold text-primary hover:bg-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-    >
-      地図で見る
-      <span className="sr-only">（{site.name}を Google マップで、新しいタブで開きます）</span>
-      <span aria-hidden="true">↗</span>
-    </a>
   );
 }
 

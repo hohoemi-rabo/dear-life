@@ -502,26 +502,6 @@ const DOCUMENT = [
   "................",
 ];
 
-// 電球（カルテの詳細「この数字から分かること」。028）
-const BULB = [
-  ".......o........",
-  "..o....o....o...",
-  "...o.......o....",
-  "......kkkk......",
-  ".....kyyyyk.....",
-  "o...kyywyyyk...o",
-  "....kywyyyyk....",
-  "....kyyyyyyk....",
-  "....kyyyyyyk....",
-  ".....kyyyyk.....",
-  "......kyyk......",
-  "......kaak......",
-  "......kwwk......",
-  "......kaak......",
-  ".......kk.......",
-  "................",
-];
-
 // チェック表（カルテの詳細「現地で確かめたいこと」。028）
 const CHECKLIST = [
   "......kkkk......",
@@ -606,7 +586,6 @@ export const support = (): Canvas => parseSprite(SUPPORT);
 export const info = (): Canvas => parseSprite(INFO);
 export const documentIcon = (): Canvas => parseSprite(DOCUMENT);
 export const printer = (): Canvas => parseSprite(PRINTER);
-export const bulb = (): Canvas => parseSprite(BULB);
 export const checklist = (): Canvas => parseSprite(CHECKLIST);
 export const logo = (): Canvas => parseSprite(LOGO);
 export const grass = (): Canvas => parseSprite(GRASS);

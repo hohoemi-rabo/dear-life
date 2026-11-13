@@ -9,7 +9,7 @@ import { karteLayout } from "@/lib/conditions/karte-order";
 import { DISTRICT_NAMES, KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { checkMemoItems } from "@/lib/karte/check-memo";
-import { detailTexts, entryNumber, housingKnows, withDistrict } from "@/lib/karte/details";
+import { detailTexts, entryNumber } from "@/lib/karte/details";
 import { transportQuestion } from "@/lib/karte/entries";
 import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
@@ -141,7 +141,7 @@ function ShitamiPrint({ conditions }: { conditions: Chosen }) {
   );
 }
 
-// 1項目：番号と問い → タブの中身をすべて → この数字から分かること → 現地で確かめたいこと（空の箱） → 数字の根拠
+// 1項目：番号と問い → タブの中身をすべて → 現地で確かめたいこと（空の箱） → 数字の根拠
 function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
   const data = useScreenData();
   const district = data.districts[conditions.district];
@@ -150,12 +150,9 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
   const texts = detailTexts(card, { housing: conditions.housing, transportQuestion: transportQuestion(conditions.car) });
 
   let panels;
-  let knows = texts.knows;
   let basis;
   if (card === "housing") {
     const tabs = housingTabs(conditions.housing);
-    // 「この数字から分かること」は選んだ家のタブの分（画面で最初に開くタブと同じ）
-    if (tabs[0].category !== null && knows) knows = { ...knows, text: housingKnows(tabs[0].category) };
     panels = tabs.map((tab) => (
       <PrintBlock key={tab.id} className="flex flex-col gap-3">
         <h3 className="font-bold">{tab.label}</h3>
@@ -188,20 +185,6 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
         <h2 className="text-xl font-extrabold">{texts.question.long}</h2>
       </div>
       {panels}
-      {/* 子育て・学校は「この数字から分かること」を出さない（2026-11-12 まさゆきさん） */}
-      {knows && (
-        <PrintBlock className="flex flex-col gap-2">
-          <h3 className="flex items-center gap-2 font-bold">
-            <PixelIcon icon="icon-bulb" size="sm" />
-            この数字から分かること
-          </h3>
-          <p className="font-bold">{withDistrict(knows.text, districtName)}</p>
-          <p className="text-sm">
-            <span className="font-bold">{knows.tip.title}</span>
-            {knows.tip.body}
-          </p>
-        </PrintBlock>
-      )}
       <PrintCheckList title={texts.checkTitle} items={texts.checks} />
       {texts.notice && <NoticeBox title={texts.notice} className="break-inside-avoid" />}
       <PrintBlock className="flex flex-col gap-2">

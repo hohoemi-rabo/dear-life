@@ -16,7 +16,6 @@ import type {
 } from "@/lib/data/screen-data";
 import { formatJaDate, formatServiceTime } from "@/lib/format";
 import type { PropId } from "@/lib/illust/assets";
-import { DETAIL_NOTICES } from "@/lib/karte/details";
 import { districtSchoolZones } from "@/lib/karte/school-zones";
 import { DISASTER_TAB_HAZARDS, disasterTabHazards } from "@/lib/karte/evacuation";
 import { ageShares, groupBySubkind, HAZARD_LABELS } from "@/lib/karte/facilities";
@@ -28,6 +27,7 @@ import { BigCount, DetailFigure, DetailPicture, DetailTabs, NoticeBox, type Deta
 import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
 import { DISASTER_TAB_ICONS, EvacuationFinder, EvacuationPrintList, HazardMapBand } from "./EvacuationFinder";
 import { ChildcareFacilityPanel } from "./ChildcareFacilities";
+import { PublicFacilityFinder, PublicFacilityPrintList } from "./PublicFacilityFinder";
 import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
@@ -188,6 +188,10 @@ export function OtherDetailCard({
       </>
     );
   }
+  if (card === "public_facilities") {
+    // 公共施設は「使い道から施設を探す」の箱（040 見本）。使い道のタブは箱の中で持つ
+    return <PublicFacilityFinder state={district.publicFacilities} districtName={DISTRICT_NAMES[district.id]} />;
+  }
   const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
   const tabRow = tabs.length > 1 && (
     <DetailTabs label={`${CARD_LABELS[card]}の見る範囲`} tabs={tabs} selectedId={tab.id} panelId={panelId} onSelect={onTabChange} />
@@ -241,6 +245,7 @@ export function OtherTabPanel({
       </>
     );
   }
+  if (card === "public_facilities") return <PublicFacilityPrintList state={district.publicFacilities} districtName={DISTRICT_NAMES[district.id]} />;
   const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
   return (
     <>
@@ -264,8 +269,8 @@ function PanelHead({ content }: { content: PanelContent }) {
 }
 
 function panelContent(
-  // 防災は panelContent を通さず、EvacuationFinder で出す（040）
-  card: Exclude<OtherCard, "disaster">,
+  // 防災・公共施設は panelContent を通さず、EvacuationFinder・PublicFacilityFinder で出す（040）
+  card: Exclude<OtherCard, "disaster" | "public_facilities">,
   tabId: string,
   { district, supportPrograms, noCar }: { district: DistrictData; supportPrograms: readonly SupportProgram[]; noCar: boolean },
 ): PanelContent {
@@ -276,8 +281,6 @@ function panelContent(
       return transportContent(tabId, district, noCar);
     case "population":
       return populationContent(district.population);
-    case "public_facilities":
-      return publicContent(district.publicFacilities);
     case "support":
       return supportContent(tabId, supportPrograms);
   }
@@ -572,29 +575,6 @@ function AgeBar({ shares }: { shares: ReturnType<typeof ageShares> }) {
       ))}
     </div>
   );
-}
-
-function publicContent(state: DataState<readonly Facility[]>): PanelContent {
-  return {
-    picture: "detail-public",
-    title: "地区の公共施設",
-    figure: countOrMessage(state, "か所"),
-    notice: DETAIL_NOTICES.public_facilities,
-    list:
-      state.status === "available" ? (
-        <>
-          <ul aria-label="種類ごとの数" className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-            {groupBySubkind(state.value).map((group) => (
-              <li key={group.subkind} className="flex items-center justify-between gap-2 rounded-button bg-kinari px-3 py-2 text-sm">
-                <span>{group.subkind}</span>
-                <span className="font-bold tabular-nums">{group.items.length}</span>
-              </li>
-            ))}
-          </ul>
-          <FacilityItems facilities={state.value} label="公共施設" />
-        </>
-      ) : undefined,
-  };
 }
 
 function supportContent(tabId: string, programs: readonly SupportProgram[]): PanelContent {

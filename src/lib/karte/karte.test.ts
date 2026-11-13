@@ -1,4 +1,4 @@
-import { detailTexts, entryNumber, withDistrict } from "./details.ts";
+import { entryNumber } from "./details.ts";
 import { KARTE_DETAIL_SLUGS, karteCardFromSlug, karteDetailPath, splitKarteCards, transportQuestion } from "./entries.ts";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
@@ -97,14 +97,7 @@ describe("カルテの図鑑の形（028）", () => {
     expect(transportQuestion(2)).toBe("車2台以上で、どう動く？");
   });
 
-  it("図鑑の番号は一覧の並びで決まり、文の {district} は地区名になる", () => {
+  it("図鑑の番号は一覧の並びで決まる", () => {
     expect(entryNumber(["childcare", "housing"], "housing")).toBe("02");
-    expect(withDistrict(detailTexts("population", { housing: "new", transportQuestion: "" }).knows?.text ?? "", "鼎")).toBe(
-      "鼎の人口と、年齢の割合です。",
-    );
-    // 防災も出さない（040。2026-11-13 まさゆきさん）
-    expect(detailTexts("disaster", { housing: "new", transportQuestion: "" }).knows).toBeNull();
-    // 子育て・学校は「この数字から分かること」を出さない（2026-11-12 まさゆきさん）
-    expect(detailTexts("childcare", { housing: "new", transportQuestion: "" }).knows).toBeNull();
   });
 });
