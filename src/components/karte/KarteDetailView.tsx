@@ -21,7 +21,7 @@ import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { HousingPriceCard, useHousingTab } from "./HousingCard";
+import { HousingCards, HousingSearchCard } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KartePrintButton } from "./KartePrint";
 import { AddToShitamiButton } from "./ShitamiMemo";
@@ -33,10 +33,6 @@ import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
 import { SupportBeforeApply } from "./SupportFinder";
 
 type Chosen = Conditions & { district: DistrictId };
-
-// 下のボタンを「カルテ一覧へ」だけにする詳細（地図へはカードの中から行く。公共施設は地図に点がないので地図へのボタンを出さない。040）
-// 支援制度は市全体の制度、人口は数だけで、地図に出す場所がない（040。人口は見本にボタンがあるが、2026-11-13 まさゆきさんがなくすと決めた）
-const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "population", "public_facilities", "support"]);
 
 // カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・
 // 現地で確かめたいこと・数字の根拠を、7項目とも同じ形で出す。条件は URL パラメータに持つ（F-02）。<Suspense> の中で使う
@@ -56,7 +52,6 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
   });
   const districtName = DISTRICT_NAMES[conditions.district];
   const listHref = karteBackHref(conditions, searchParams);
-  const map = mapHref(conditions, searchParams.get(SEASON_PARAM));
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
@@ -100,35 +95,19 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
         <DetailBody card={card} conditions={conditions} texts={texts} districtName={districtName} />
       </ScreenDataBoundary>
 
-      {LIST_BUTTON_ONLY.has(card) ? (
-        // 子育て・学校・交通・防災は「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」から、その種類だけにチェックを入れて行く
-        // （039 見本。2026-11-12 まさゆきさん。交通・防災・人口・公共施設・支援制度は 2026-11-13 まさゆきさん）
-        <ButtonLink href={listHref} variant="secondary" className="md:self-start">
-          <span aria-hidden="true">←</span>
-          カルテ一覧へ
-        </ButtonLink>
-      ) : (
-      <div className="flex flex-col gap-2 md:flex-row-reverse md:gap-4">
-        <ButtonLink href={map} className="md:flex-1">
-          <PixelIcon icon="icon-map" size="sm" />
-          <span className="md:hidden">地図で確かめる</span>
-          <span className="hidden md:inline">地図で周辺を確かめる</span>
-          <span aria-hidden="true">→</span>
-        </ButtonLink>
-        <ButtonLink href={listHref} variant="secondary" className="md:flex-1">
-          <span aria-hidden="true">←</span>
-          <span className="md:hidden">戻る</span>
-          <span className="hidden md:inline">カルテ一覧へ</span>
-        </ButtonLink>
-      </div>
-      )}
+      {/* 下のボタンは7つの詳細とも「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」「地図で周辺を確かめる」から行く
+          （039 見本。2026-11-12・2026-11-13 まさゆきさん。公共施設・人口・支援制度は地図に出す場所がないのでボタンを出さない） */}
+      <ButtonLink href={listHref} variant="secondary" className="md:self-start">
+        <span aria-hidden="true">←</span>
+        カルテ一覧へ
+      </ButtonLink>
 
       <ScreenTabBar current="karte" linkCurrent conditions={conditions} seasonSlug={searchParams.get(SEASON_PARAM)} />
     </div>
   );
 }
 
-// 選んだ条件（見本：PC は「選択中：買う・新しめ」、スマホは地区・家族・車の帯）
+// 選んだ条件（見本：PC は「選択中：車1台」、住まいだけ「選んだ条件：買う・新しめ」（040 見本）、スマホは地区・家族・車の帯）
 function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
   const chosen =
     card === "housing"
@@ -152,7 +131,7 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
           <p className="flex items-center gap-2 rounded-button bg-pixel-sky/60 px-4 py-2 font-bold">
             {/* 子育て・学校は家族の印（039 見本） */}
             {card === "childcare" ? <PropIcon prop="childcare-chip-family" className="size-6" /> : <KarteCardIcon card={card} size="sm" />}
-            選択中：{chosen}
+            {card === "housing" ? "選んだ条件" : "選択中"}：{chosen}
           </p>
         )}
       </div>
@@ -215,32 +194,14 @@ function DetailBody({
   const searchParams = useSearchParams();
   const district = data.districts[conditions.district];
   const noCar = hasNoCar(conditions);
-  const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
   const tabs = card === "housing" ? [] : detailTabs(card, { district, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
+  const map = mapHref(conditions, searchParams.get(SEASON_PARAM));
 
-  return (
-    <div className="flex flex-col gap-4">
-      {card === "housing" ? (
-        <HousingPriceCard district={district} rent={data.rent} housing={conditions.housing} tab={housingTab} onTabChange={setHousingTab} />
-      ) : (
-        <OtherDetailCard
-          card={card}
-          tabs={tabs}
-          tab={otherTab}
-          onTabChange={setOtherTab}
-          district={district}
-          supportPrograms={data.supportPrograms}
-          noCar={noCar}
-        />
-      )}
-
-      {texts.checkNote ? (
-        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
-      ) : (
-      <Box title={texts.checkTitle}>
+  const checks = (
+      <Box title={texts.checkTitle} inset={card === "housing"}>
         <div className="flex items-start gap-3">
           {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
               押せても残らないチェックの箱と、下見プランのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
@@ -270,6 +231,31 @@ function DetailBody({
           </div>
         )}
       </Box>
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {card === "housing" ? (
+        <HousingCards district={district} rent={data.rent} housing={conditions.housing} />
+      ) : (
+        <OtherDetailCard
+          card={card}
+          tabs={tabs}
+          tab={otherTab}
+          onTabChange={setOtherTab}
+          district={district}
+          supportPrograms={data.supportPrograms}
+          noCar={noCar}
+        />
+      )}
+
+      {card === "housing" ? (
+        // 住まいは「物件を探す・下見する」のカードの中に「下見で確かめたいこと」を出す（040 見本）
+        <HousingSearchCard mapHref={map}>{checks}</HousingSearchCard>
+      ) : texts.checkNote ? (
+        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
+      ) : (
+        checks
       )}
 
       {texts.notice && <NoticeBox title={texts.notice} className="items-center md:px-4 md:[&_p]:text-base" />}
@@ -277,15 +263,20 @@ function DetailBody({
       <Basis
         rows={
           card === "housing"
-            ? housingTab.category === null
-              ? rentBasisRows(data.rent, district.housingTenure, districtName)
-              : housingBasisRows(district, districtName, housingTab.category)
+            ? [
+                ...(conditions.housing === "rent" ? rentBasisRows(data.rent, district.housingTenure, districtName) : []),
+                ...housingBasisRows(district, districtName),
+              ]
             : otherBasisRows(card, [otherTab], data.supportPrograms)
         }
         note={texts.basisNote}
         // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」、人口は「出典・調査時点を見る」（040 見本）の閉じた欄
         title={
-          card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" || card === "public_facilities"
+          card === "childcare"
+            ? `${otherTab.label}の出典を見る`
+            : card === "housing"
+              ? "出典・集計条件を見る"
+              : card === "disaster" || card === "public_facilities"
               ? "出典・更新日を見る"
               : card === "support"
                 ? "出典・確認日を見る"
@@ -300,7 +291,8 @@ function DetailBody({
 }
 
 // 「現地で確かめたいこと」の箱。スマホは開閉でき（最初は開いている）、PC はいつも開いている（見本）
-function Box({ title, children }: { title: string; children: ReactNode }) {
+// inset は別のカードの中に置くとき（住まいの「物件を探す・下見する」。040 見本）。影を付けず、枠を薄くする
+function Box({ title, inset = false, children }: { title: string; inset?: boolean; children: ReactNode }) {
   const wide = useWideScreen();
   const [open, setOpen] = useState(true);
   return (
@@ -309,7 +301,7 @@ function Box({ title, children }: { title: string; children: ReactNode }) {
       onToggle={(event) => {
         if (!wide) setOpen(event.currentTarget.open);
       }}
-      className="group rounded-card border border-line bg-surface shadow-card"
+      className={`group rounded-card border border-line bg-surface ${inset ? "" : "shadow-card"}`}
     >
       <summary
         className={`flex min-h-tap cursor-pointer list-none items-center gap-2 rounded-t-card px-4 py-2 font-bold lg:cursor-default [&::-webkit-details-marker]:hidden bg-warm-soft`}

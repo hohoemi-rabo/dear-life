@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { DataStateLabel } from "@/components/data/DataStateMessage";
-import { CountBadge } from "@/components/ui/CountBadge";
+import { TradeCount } from "@/components/ui/TradeCount";
 import { SEASONS } from "@/lib/conditions/scene";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import type { DataState, DistrictData, MarketStat } from "@/lib/data/screen-data";
 import { SQUARE_METER, formatManYen } from "@/lib/format";
 import { renterSharePercent } from "@/lib/housing/rent";
-import { EXAMPLE_LAND_AREA, landEstimates, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
+import { EXAMPLE_LAND_AREA, landEstimateForExampleArea, MARKET_CATEGORY_LABELS } from "@/lib/karte/housing";
 import { ageShares } from "@/lib/karte/facilities";
 import { districtSchoolZones, type SchoolZoneSummary } from "@/lib/karte/school-zones";
 import { busiestStation, hasServiceTimes, trainTrips } from "@/lib/karte/train";
@@ -56,7 +56,7 @@ function Price({ yen, size, perUnit }: { yen: number; size: CellSize; perUnit?: 
   );
 }
 
-// 土地は㎡単価の真ん中の値と幅（下位25%〜上位25%）。伊賀良のように幅が広い地区でも幅は省略しない（要件 5.1）。
+// 土地は㎡単価の中央値と幅（下位25%〜上位25%）。伊賀良のように幅が広い地区でも幅は省略しない（要件 5.1）。
 // タブの表も押さずに読めるように幅をそのまま出す（2026-11-05 まさゆきさん決定）
 function LandCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
   const range = stat.p25 !== null && stat.p75 !== null && (
@@ -70,7 +70,7 @@ function LandCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
     <span className="flex flex-col gap-1">
       <Price yen={stat.median} size={size} perUnit />
       {!big && range}
-      <CountBadge count={stat.sampleCount} outlined={big} prefix={size === "pair" ? "取引" : ""} tight={size === "pair"} />
+      <TradeCount count={stat.sampleCount} size={size === "pair" ? "sm" : "md"} />
       {big && range}
       {big && (
         // ㎡単価だけでは土地全体の値段が分かりにくいので、広さをそろえた目安を添える（2026-11-05 まさゆきさん）
@@ -79,7 +79,7 @@ function LandCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
             {EXAMPLE_LAND_AREA}
             {SQUARE_METER}（約60坪）なら{" "}
           </span>
-          <span className="whitespace-nowrap font-bold tabular-nums">約{formatManYen(landEstimates(stat.median).forExampleArea)}</span>
+          <span className="whitespace-nowrap font-bold tabular-nums">約{formatManYen(landEstimateForExampleArea(stat.median))}</span>
         </span>
       )}
     </span>
@@ -90,7 +90,7 @@ function HouseCell({ stat, size }: { stat: MarketStat; size: CellSize }) {
   return (
     <span className="flex flex-col gap-1">
       <Price yen={stat.median} size={size} />
-      <CountBadge count={stat.sampleCount} outlined={size !== "compact"} prefix={size === "pair" ? "取引" : ""} tight={size === "pair"} />
+      <TradeCount count={stat.sampleCount} size={size === "pair" ? "sm" : "md"} />
     </span>
   );
 }
@@ -127,21 +127,21 @@ const MARKET_ROWS: readonly CompareRow[] = [
   {
     id: "land",
     label: MARKET_CATEGORY_LABELS.land,
-    note: `1${SQUARE_METER}あたりの真ん中の値。`,
+    note: `1${SQUARE_METER}あたりの中央値。`,
     unit: `1${SQUARE_METER}あたり`,
     cell: (district, size) => stateCell(district.market.land, (stat) => <LandCell stat={stat} size={size} />),
   },
   {
     id: "house-within-20y",
     label: MARKET_CATEGORY_LABELS.house_built_within_20y,
-    note: "総額の真ん中の値。",
+    note: "総額の中央値。",
     unit: "総額",
     cell: (district, size) => stateCell(district.market.house_built_within_20y, (stat) => <HouseCell stat={stat} size={size} />),
   },
   {
     id: "house-over-20y",
     label: MARKET_CATEGORY_LABELS.house_built_over_20y,
-    note: "総額の真ん中の値。",
+    note: "総額の中央値。",
     unit: "総額",
     cell: (district, size) => stateCell(district.market.house_built_over_20y, (stat) => <HouseCell stat={stat} size={size} />),
   },
@@ -283,7 +283,7 @@ export const COMPARE_TOPIC_CONTENTS: readonly CompareTopicContent[] = [
     icon: "home",
     title: "住まいの相場",
     lead: "過去の取引からみた参考値",
-    leadMobile: "過去の取引の真ん中の値",
+    leadMobile: "過去の取引の中央値",
     rows: [...MARKET_ROWS, RENTER_ROW],
     notices: [NOTICES.market, NOTICES.marketFewCount],
     sourcesTitle: "出典・対象期間・集計方法",

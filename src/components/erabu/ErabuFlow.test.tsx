@@ -275,8 +275,10 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     await tap(/住まいの参考相場を確認/);
     const sheet = screen.getByRole("dialog", { name: "上郷の中古戸建て（築20年以内）" });
     expect(within(sheet).getByText("3,900万円")).toBeInTheDocument();
-    // 買う・新しめは件数が12件でも「件数少なめ・参考程度」を付ける
-    expect(within(sheet).getByText("件数少なめ・参考程度")).toBeInTheDocument();
+    // 件数はどの値も「取引〇件・参考値」（件数で変わる札は出さない。040）
+    expect(sheet).toHaveTextContent("取引の中央値");
+    expect(sheet).toHaveTextContent(/取引\d+件・参考値/);
+    expect(sheet).not.toHaveTextContent(/件数少なめ|件数じゅうぶん/);
     expect(within(sheet).getByText(/過去の取引の参考値です/)).toBeInTheDocument();
     // 出典はシートに出さない（カルテとデータについてで見る。2026-10-29 まさゆきさん）
     expect(within(sheet).queryByText(/^出典：/)).not.toBeInTheDocument();
@@ -299,7 +301,7 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     await tap(/住まいの参考相場を確認/);
     const sheet = screen.getByRole("dialog", { name: "上郷の中古戸建て（築21年以上）" });
     expect(within(sheet).getByText("860万円")).toBeInTheDocument();
-    expect(within(sheet).getByText("件数じゅうぶん")).toBeInTheDocument();
+    expect(sheet).toHaveTextContent(/取引\d+件・参考値/);
   });
 
   it("家：借りるときは、シートで飯田市の家賃の平均と地区の借家の世帯数を、市全体の値だという断り書きと一緒に出す（034）", async () => {

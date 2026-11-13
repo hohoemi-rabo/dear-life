@@ -10,7 +10,7 @@ import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { usePrintMode } from "@/components/print/PrintMode";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { buttonClassName } from "@/components/ui/Button";
-import { CountLabel } from "@/components/ui/CountBadge";
+import { TradeCount } from "@/components/ui/TradeCount";
 import { SourceNote } from "@/components/ui/SourceNote";
 import { KARTE_CARD_LABELS, karteCardAnchor, type KarteCard } from "@/lib/conditions/labels";
 import { hasNoCar, type Conditions } from "@/lib/conditions/model";
@@ -281,7 +281,7 @@ function EntrySources({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-// 住まい（買う）：選んだ家にいちばん近い相場の真ん中の値・件数・件数ラベル・注意書き・出典（要件 5章）
+// 住まい（買う）：選んだ家にいちばん近い相場の中央値・「取引〇件・参考値」・注意書き・出典（要件 5章）
 function HousingEntry({ district, conditions, href }: { district: DistrictData; conditions: Chosen; href: string }) {
   const category = marketCategoryOrder(conditions.housing)[0];
   const state = district.market[category];
@@ -330,11 +330,7 @@ function HousingEntry({ district, conditions, href }: { district: DistrictData; 
             {isLand && <span className="font-sans text-base font-bold">／{SQUARE_METER}</span>}
           </span>
           <span aria-hidden="true" className="h-9 w-px bg-line" />
-          <span className="flex flex-col leading-tight">
-            <span className="text-xs text-ink-muted">過去の取引</span>
-            <span className="text-lg font-bold tabular-nums">{state.value.sampleCount.toLocaleString("ja-JP")}件</span>
-          </span>
-          <CountLabel count={state.value.sampleCount} />
+          <TradeCount count={state.value.sampleCount} className="font-bold md:text-base" />
         </p>
       ) : (
         <DataStateMessage state={state} />

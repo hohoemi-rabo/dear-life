@@ -52,7 +52,7 @@ function MarketCheck({ reply }: { reply: MarketReply }) {
         {/* 出典・対象期間・確認日はここでは出さない（2026-10-29 まさゆきさん。えらぶは先へ進むのが主なので）。
             同じ相場はカルテの住まいのカードと「データについて」で、出典・対象期間・確認日と一緒に見られる */}
         {reply.kind === "house" ? (
-          <MarketSheetBody state={reply.house} alwaysFew={reply.alwaysFew} />
+          <MarketSheetBody state={reply.house} />
         ) : (
           <RentSheetBody rent={reply.rent} tenure={reply.tenure} districtName={reply.districtName} />
         )}

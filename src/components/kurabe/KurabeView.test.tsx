@@ -102,13 +102,13 @@ describe("KurabeView：4地区を同じ項目で並べる（F-05）", () => {
     expect(screen.getByText("地区の並びは固定です。優劣・おすすめ順ではありません。")).toBeInTheDocument();
   });
 
-  it("相場は真ん中の値・幅・件数ラベル。件数が少ない値には「件数少なめ・参考程度」。該当なしとデータ未取得を分ける", async () => {
+  it("相場は中央値・幅・「取引〇件・参考値」（件数で変わる札は出さない。040）。該当なしとデータ未取得を分ける", async () => {
     await open("t=all&d=kanae");
-    expect(cells(tableRow("土地（宅地）"))).toEqual(["データ未取得", "2.4万円／m²幅 1.7万円〜3万円96件件数じゅうぶん", "データ未取得", "データ未取得"]);
-    expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
+    expect(cells(tableRow("土地（宅地）"))).toEqual(["データ未取得", "2.4万円／m²幅 1.7万円〜3万円取引96件・参考値", "データ未取得", "データ未取得"]);
+    expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円取引8件・参考値");
     expect(cells(tableRow("中古戸建て（築21年以上）"))[1]).toBe("該当なし");
     expect(screen.getAllByText(NOTICES.market).length).toBeGreaterThan(0);
-    expect(document.body).not.toHaveTextContent("中央値");
+    expect(document.body).not.toHaveTextContent(/真ん中の値|件数じゅうぶん|件数少なめ|参考になる件数/);
   });
 
   it("スマホの全項目の一覧は、項目ごとに4地区を縦に並べる", async () => {
@@ -147,23 +147,23 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
   const tab = (name: string) => screen.getByRole("tab", { name });
   const rowLabels = () => within(screen.getByRole("table")).getAllByRole("rowheader").map((row) => row.textContent);
 
-  it("最初は住まいのタブ。真ん中の値・件数・ラベル・幅を押さずに読める", async () => {
+  it("最初は住まいのタブ。中央値・件数・幅を押さずに読める", async () => {
     await open("d=kanae");
     expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
     expect(rowLabels()).toEqual([
-      "土地（宅地）1m²あたりの真ん中の値。",
-      "中古戸建て（築20年以内）総額の真ん中の値。",
-      "中古戸建て（築21年以上）総額の真ん中の値。",
+      "土地（宅地）1m²あたりの中央値。",
+      "中古戸建て（築20年以内）総額の中央値。",
+      "中古戸建て（築21年以上）総額の中央値。",
       "民営の借家に住む世帯住宅に住む世帯のうち、民営の借家に住む世帯の数と割合。",
     ]);
-    expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²96件件数じゅうぶん幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
-    expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円8件件数少なめ・参考程度");
+    expect(cells(tableRow("土地（宅地）"))[1]).toBe("2.4万円/ m²取引96件・参考値幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
+    expect(cells(tableRow("中古戸建て（築20年以内）"))[1]).toBe("3,350万円取引8件・参考値");
     // 借家に住む世帯（034）。家賃は飯田市全体の値なので、地区くらべには出さない
     expect(cells(tableRow("民営の借家に住む世帯"))).toEqual(["データ未取得", "1,511世帯住宅に住む世帯の 約29%", "データ未取得", "データ未取得"]);
     expect(screen.getByRole("tabpanel")).not.toHaveTextContent("家賃");
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.market);
     expect(screen.getByRole("tabpanel")).toHaveTextContent(NOTICES.marketFewCount);
-    expect(document.body).not.toHaveTextContent("中央値");
+    expect(document.body).not.toHaveTextContent(/真ん中の値|件数じゅうぶん|件数少なめ|参考になる件数/);
   });
 
   it("スマホは選んだ地区を左に固定し、右の地区と読みくらべる。最初の相手は並びで最初の別の地区", async () => {
@@ -178,7 +178,7 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
     expect(screen.getByLabelText(/比べる地区/)).toHaveValue("kamisato");
     const land = mobileRow("土地（宅地）");
     expect(within(land).getAllByRole("term").map((term) => term.textContent)).toEqual(["鼎", "上郷"]);
-    expect(within(land).getAllByRole("definition")[0]).toHaveTextContent("2.4万円/ m²取引96件件数じゅうぶん幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
+    expect(within(land).getAllByRole("definition")[0]).toHaveTextContent("2.4万円/ m²取引96件・参考値幅 1.7万円〜3万円200m²（約60坪）なら 約480万円");
   });
 
   it("比べる地区の選択肢に選んだ地区は出さない。変えると URL の v に残り、タブを変えても続く", async () => {

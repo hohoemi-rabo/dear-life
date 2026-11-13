@@ -65,7 +65,7 @@ export function PinSheetContent({
         </ul>
       )}
 
-      {sheet.market && <MarketSheetBody state={sheet.market.state} alwaysFew={sheet.market.alwaysFew} />}
+      {sheet.market && <MarketSheetBody state={sheet.market.state} />}
 
       {sheet.rent && <RentSheetBody {...sheet.rent} />}
 

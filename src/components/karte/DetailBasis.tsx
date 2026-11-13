@@ -1,6 +1,6 @@
 import type { KarteCard } from "@/lib/conditions/labels";
 import type { DataState, DistrictData, HousingTenure, MarketCategory, RentReference, SourceInfo, SupportProgram } from "@/lib/data/screen-data";
-import { formatJaDate, formatQuarterRange } from "@/lib/format";
+import { SQUARE_METER, formatJaDate, formatQuarterRange } from "@/lib/format";
 import { MARKET_CATEGORY_PHRASES } from "@/lib/karte/entries";
 import { supportCheckedRange } from "@/lib/karte/support";
 import type { DetailTab } from "./DetailPanels";
@@ -45,23 +45,36 @@ function sourceRows(source: SourceInfo, period?: string): BasisRow[] {
   ];
 }
 
-// 住まいの出典の表。今見ているタブの集計対象と期間を出す
-export function housingBasisRows(district: DistrictData, districtName: string, category: MarketCategory): BasisRow[][] {
-  const state = district.market[category];
-  if (state.status === "unavailable") return [];
-  const period = state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : undefined;
-  const [source, , ...dates] = sourceRows(state.source, period);
+// 住まいの出典の表（「出典・集計条件を見る」。040）。画面に出している築20年以内・築21年以上・土地の3つをまとめて出す。
+// 3つは同じ出典なので出典は1回だけにし、対象期間が違うときだけ種類ごとに分ける
+const MARKET_CATEGORIES: readonly MarketCategory[] = ["house_built_within_20y", "house_built_over_20y", "land"];
+
+export function housingBasisRows(district: DistrictData, districtName: string): BasisRow[][] {
+  const states = MARKET_CATEGORIES.flatMap((category) => {
+    const state = district.market[category];
+    return state.status === "unavailable" ? [] : [{ category, state }];
+  });
+  if (states.length === 0) return [];
+  const periods = states.map(({ state }) =>
+    state.status === "available" ? formatQuarterRange(state.value.periodFrom, state.value.periodTo) : (state.source.periodLabel ?? "記載なし"),
+  );
+  const samePeriod = periods.every((period) => period === periods[0]);
+  const [source, , ...dates] = sourceRows(states[0].state.source);
   return [
     [
       source,
-      ["集計対象", `${districtName}・${MARKET_CATEGORY_PHRASES[category]}`],
-      ["対象期間", period ?? state.source.periodLabel ?? "記載なし"],
+      ["集計対象", `${districtName}・${states.map(({ category }) => MARKET_CATEGORY_PHRASES[category]).join("、")}`],
+      ...(samePeriod
+        ? [["対象期間", periods[0]] as const]
+        : states.map(({ category }, index) => [`対象期間（${MARKET_CATEGORY_PHRASES[category]}）`, periods[index]] as const)),
+      ["集計のしかた", `取引価格の中央値（土地は1${SQUARE_METER}あたり）`],
+      ["除いた取引", "調停・競売等、関係者間取引、隣地の購入"],
       ...dates,
     ],
   ];
 }
 
-// 借りるの「選んだ家」の出典の表：家賃（飯田市全体）と、借家の世帯数（地区）（034）
+// 借りるの家賃のカードの出典の表：家賃（飯田市全体）と、借家の世帯数（地区）（034）
 export function rentBasisRows(rent: DataState<RentReference>, tenure: DataState<HousingTenure>, districtName: string): BasisRow[][] {
   const groups: BasisRow[][] = [];
   if (rent.status !== "unavailable") {

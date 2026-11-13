@@ -5,10 +5,9 @@ import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { countLabel } from "@/lib/count-label";
 import { SQUARE_METER } from "@/lib/format";
 import { ILLUSTRATION_NOTE, PERSONAL_SERVICE_NOTE, REINFOLIB_API_CREDIT } from "@/lib/credits";
-import { EXAMPLE_LAND_AREA, SQUARE_METERS_PER_TSUBO } from "@/lib/karte/housing";
+import { EXAMPLE_LAND_AREA } from "@/lib/karte/housing";
 import { NOTICES } from "@/lib/notices";
 import { CONTACT_PATH, TARGET_DISTRICTS_LABEL } from "@/lib/site";
 
@@ -29,13 +28,6 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 // 利用上の注意（要件 8章「表示の注意書き」）。各画面に出しているものを、ここにもまとめて出す
 const USAGE_NOTICES = [NOTICES.market, NOTICES.mapPosition, NOTICES.schoolDistrict, NOTICES.support, NOTICES.events, NOTICES.carFree];
-
-// 件数ラベルの区切り（要件 5章-6）。判定は countLabel だけにあるので、そこから文言を引く
-const COUNT_LABEL_RULES = [
-  ["30件以上", countLabel(30).text],
-  ["11〜29件", countLabel(11).text],
-  ["10件以下", countLabel(10).text],
-] as const;
 
 // データについて（022・F-08・7.3）。出典・対象時点・確認日・集計方法・クレジットをまとめる。
 // 出典の一覧と件数はデータベースから読み、ほかの説明は読み込みを待たずに出す
@@ -78,25 +70,15 @@ export default function AboutDataPage() {
           <li>取引の町名を、町名と地区の対応表に当てはめて地区に振り分けます。</li>
           <li>「調停・競売等」「関係者間取引」「隣地の購入」の取引は、ふつうの売り買いと値段の決まり方が違うため除いています。</li>
           <li>
-            土地は種類が「宅地(土地)」の取引で、1{SQUARE_METER}あたりの値段の真ん中の値と、下位25%〜上位25%の幅を出します。1{SQUARE_METER}あたりの値段がない取引は、総額を面積で割って補います。坪単価（1坪＝
-            {SQUARE_METERS_PER_TSUBO}
-            {SQUARE_METER}）と、{EXAMPLE_LAND_AREA}
-            {SQUARE_METER}（約60坪）のときの目安も添えます。
+            土地は種類が「宅地(土地)」の取引で、1{SQUARE_METER}あたりの値段の中央値を出します。1{SQUARE_METER}あたりの値段がない取引は、総額を面積で割って補います。
+            {EXAMPLE_LAND_AREA}
+            {SQUARE_METER}のときの目安も添えます。地区くらべでは、下位25%〜上位25%の幅も出します。
           </li>
           <li>
-            中古戸建ては種類が「宅地(土地と建物)」で、用途に住宅を含む（または空欄の）取引です。築年数（取引の年−建てた年）で「築20年以内」「築21年以上」に分け、総額の真ん中の値を出します。建てた年がわからない取引はどちらにも入れません。
+            中古戸建ては種類が「宅地(土地と建物)」で、用途に住宅を含む（または空欄の）取引です。築年数（取引の年−建てた年）で「築20年以内」「築21年以上」に分け、総額の中央値を出します。建てた年がわからない取引はどちらにも入れません。
           </li>
-          <li>「真ん中の値」は、値段を安い順に並べたときにちょうど真ん中に来る値（中央値）です。極端に高い・安い取引に引っぱられにくい値です。</li>
-          <li>
-            すべての値に件数を付けています。
-            <ul className="mt-1 list-disc pl-5">
-              {COUNT_LABEL_RULES.map(([range, label]) => (
-                <li key={range}>
-                  {range}：「{label}」
-                </li>
-              ))}
-            </ul>
-          </li>
+          <li>「中央値」は、値段を安い順に並べたときにちょうど真ん中に来る値です。極端に高い・安い取引に引っぱられにくい値です。</li>
+          <li>すべての値に、もとにした取引の件数を「取引〇件・参考値」の形で付けています。</li>
         </ol>
       </Section>
 

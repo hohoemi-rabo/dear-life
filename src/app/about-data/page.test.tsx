@@ -90,7 +90,9 @@ describe("データについて（022・F-08・7.3）", () => {
     expect(market).toHaveTextContent("この期間の飯田市の取引 1,313件のうち、4地区の取引は 792件です。そこから次の 7件を除いて計算しています。");
     const rows = within(within(market).getByRole("table")).getAllByRole("row").map((row) => row.textContent);
     expect(rows).toEqual(["調停・競売等6件", "関係者間取引1件", "隣地の購入0件"]);
-    expect(market).toHaveTextContent("30件以上：「件数じゅうぶん」");
+    expect(market).toHaveTextContent("「取引〇件・参考値」");
+    expect(market).toHaveTextContent("「中央値」は、値段を安い順に並べたときにちょうど真ん中に来る値です。");
+    expect(market).not.toHaveTextContent(/件数じゅうぶん|真ん中の値/);
   });
 
   it("相場の出典が未公開なら、件数はデータ未取得と出す", async () => {

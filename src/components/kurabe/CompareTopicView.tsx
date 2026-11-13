@@ -238,7 +238,7 @@ export function TopicSourceList({ content, data }: { content: CompareTopicConten
       {content.id === "housing" && (
         <div className="flex flex-col gap-1 text-sm">
           <h3 className="font-bold">集計方法</h3>
-          <p>対象期間の取引を町名で地区に振り分け、真ん中の値を出しています。「調停・競売等」「関係者間取引」「隣地の購入」の取引は除いています。土地の幅は、下位25%〜上位25%の範囲です。</p>
+          <p>対象期間の取引を町名で地区に振り分け、中央値を出しています。「調停・競売等」「関係者間取引」「隣地の購入」の取引は除いています。土地の幅は、下位25%〜上位25%の範囲です。</p>
           <Link
             href={`${ABOUT_DATA_PATH}#about-market`}
             className="inline-flex min-h-tap items-center self-start font-bold text-primary underline underline-offset-4 hover:no-underline print:hidden"

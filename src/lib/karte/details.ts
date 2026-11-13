@@ -17,20 +17,23 @@ export type DetailTexts = {
   basisNote?: string;
 };
 
+// 住まいの「下見で確かめたいこと」（040 見本の2つ。借りるも同じ。2026-11-13 まさゆきさん）
+const HOUSING_CHECKS = ["建物の傷みや修繕の必要性", "候補の家から学校やお店までの道"] as const;
+
 function housingTexts(housing: Housing): DetailTexts {
   if (housing === "rent") {
-    // 借りる：家賃は飯田市全体の平均、借家の世帯数は地区の値（034）。売買の相場はとなりのタブで参考に見る
+    // 借りる：家賃は飯田市全体の平均、借家の世帯数は地区の値（034）。売買の取引価格は下に参考として並べる
     return {
       question: { long: "家を借りるとしたら、いくらくらい？", short: "家を借りるとしたら？" },
-      checkTitle: "現地・物件で確かめたいこと",
-      checks: ["家賃のほかにかかる費用（共益費・駐車場など）", "建物の状態や広さ", "通学や買い物の動線"],
-      basisNote: "家賃と売買の相場は、調べ方も対象の時点も異なるため、単純に比較できません。",
+      checkTitle: "下見で確かめたいこと",
+      checks: HOUSING_CHECKS,
+      basisNote: "家賃と売買の取引価格は、調べ方も対象の時点も異なるため、単純に比較できません。",
     };
   }
   return {
     question: { long: "家を買うとしたら、いくらくらい？", short: "家を買うとしたら？" },
-    checkTitle: "現地・物件で確かめたいこと",
-    checks: ["建物の状態や修繕の必要性", "土地・建物の広さ", "通学や買い物の動線"],
+    checkTitle: "下見で確かめたいこと",
+    checks: HOUSING_CHECKS,
     basisNote: "期間と築年数の条件が異なる情報とは、単純に比較できません。",
   };
 }

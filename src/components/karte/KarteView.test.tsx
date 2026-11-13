@@ -191,17 +191,17 @@ describe("KarteView：わが家の設定の車", () => {
 });
 
 describe("KarteView：住まいのカード（5章）", () => {
-  it("選んだ家に近い相場を、真ん中の値・件数・件数ラベル・注意書き・出典つきで出す", async () => {
+  it("選んだ家に近い相場を、中央値・「取引〇件・参考値」・注意書き・出典つきで出す", async () => {
     await open("d=kanae&k=0&h=new");
     const housing = card("housing");
     expect(housing).toHaveTextContent("家を買うとしたら？");
     expect(housing).toHaveTextContent("築20年以内の中古戸建て");
     expect(housing).toHaveTextContent("3,350万円");
-    expect(housing).toHaveTextContent("過去の取引12件参考になる件数");
+    expect(housing).toHaveTextContent("取引12件・参考値");
     expect(housing).toHaveTextContent(NOTICES.market);
     expect(housing).toHaveTextContent("国土交通省 不動産情報ライブラリ「不動産価格（取引価格・成約価格）情報」");
     expect(housing).toHaveTextContent("2021年第1四半期〜2026年第1四半期");
-    expect(housing).not.toHaveTextContent("中央値");
+    expect(housing).not.toHaveTextContent(/真ん中の値|参考になる件数/);
   });
 
   it("古めは築21年以上を出す。該当がなければ「該当なし」", async () => {

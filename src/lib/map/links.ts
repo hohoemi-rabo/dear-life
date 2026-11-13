@@ -55,6 +55,12 @@ export const IIDA_HAZARD_MAP = {
   url: "https://www.city.iida.lg.jp/soshiki/35/hazardmap.html",
 } as const;
 
+// 飯田市の空き家バンクのページ（カルテの住まいの「物件情報を探す ↗」。040。2026-11-13 まさゆきさん）。データは取り込まず、リンクだけにする
+export const IIDA_AKIYA_BANK = {
+  name: "飯田市の空き家バンク",
+  url: "https://www.city.iida.lg.jp/site/yuiturn/akiya.html",
+} as const;
+
 // Google マップで施設を探す URL（別のタブで開く。カルテの防災・公共施設の「地図で見る」。040）。送るのは市が公開している施設の名前と住所だけで、
 // 選んだ地区や家族などの条件は送らない（F-02）。住所がなければ市の名前を添えて、ほかの町の同じ名前の施設に行かないようにする
 const FALLBACK_AREA = "長野県飯田市";

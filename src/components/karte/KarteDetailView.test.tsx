@@ -68,8 +68,10 @@ async function open(card: KarteCard, query: string) {
   });
 }
 
-const prices = () => screen.getByRole("tabpanel");
 const basis = () => screen.getByText("数字の根拠を見る").closest("details") as HTMLDetailsElement;
+const section = (name: string) => screen.getByRole("region", { name });
+const houseCard = () => section("中古戸建ての取引価格を見比べる");
+const houseOption = (name: string) => within(houseCard()).getByRole("heading", { level: 3, name }).parentElement as HTMLElement;
 
 beforeEach(() => {
   screenData = karteScreenData();
@@ -77,22 +79,59 @@ beforeEach(() => {
 });
 
 describe("KarteDetailView：住まい（5章）", () => {
-  it("番号・問い・選んだ家の相場（真ん中の値・件数・件数ラベル・注意書き）と、数字の根拠を出す", async () => {
+  it("番号・問い・選んだ条件の札、築年数の2枚（選んだほうに「選んだ条件」）・注意書き・土地のカードと、閉じた出典・集計条件を出す（040）", async () => {
     await open("housing", "d=kanae&a=2&k=1&h=new");
     // 子どもありは子育て・学校が1番目なので、住まいは2番目
     expect(screen.getByText("02")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("家を買うとしたら、いくらくらい？");
-    expect(prices()).toHaveTextContent("中古戸建て（築20年以内）の真ん中の値");
-    expect(prices()).toHaveTextContent("3,350万円");
-    expect(prices()).toHaveTextContent("過去の取引 12件参考になる件数");
-    expect(prices()).toHaveTextContent(NOTICES.market);
+    expect(screen.getByText(/選んだ条件：買う・新しめ/)).toBeInTheDocument();
+    const houses = houseCard();
+    expect(houses).toHaveTextContent("鼎・過去の取引価格の中央値");
+    expect(houseOption("築20年以内")).toHaveTextContent("選んだ条件築20年以内3,350万円取引12件・参考値");
+    // 鼎の築21年以上は件数0
+    expect(houseOption("築21年以上")).toHaveTextContent("築21年以上該当なし");
+    expect(houseOption("築21年以上")).not.toHaveTextContent("選んだ条件");
+    expect(houses).toHaveTextContent(NOTICES.marketHousingDetail);
+    // 土地は中央値と200m²の目安だけ。幅と坪単価は出さない（2026-11-13 まさゆきさん）
+    const land = section("土地（宅地）の取引価格");
+    expect(land).toHaveTextContent("中央値2.4万円/ m²取引96件・参考値");
+    expect(land).toHaveTextContent("200m²なら約480万円（土地のみ）");
+    expect(land).not.toHaveTextContent(/坪|幅|1\.7万円/);
+    // タブはなくした
+    expect(screen.queryByRole("tab")).toBeNull();
     // 「この数字から分かること」は7つの詳細すべてで出さない（2026-11-13 まさゆきさん）
     expect(screen.queryByText("この数字から分かること")).toBeNull();
-    const table = within(basis());
-    expect(table.getByRole("row", { name: /集計対象/ })).toHaveTextContent("鼎・築20年以内の中古戸建て");
+    const details = screen.getByText("出典・集計条件を見る").closest("details") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    const table = within(details);
+    expect(table.getByRole("row", { name: /集計対象/ })).toHaveTextContent("鼎・築20年以内の中古戸建て、築21年以上の中古戸建て、土地（宅地）");
     expect(table.getByRole("row", { name: /対象期間/ })).toHaveTextContent("2021年第1四半期〜2026年第1四半期");
+    expect(table.getByRole("row", { name: /除いた取引/ })).toHaveTextContent("調停・競売等、関係者間取引、隣地の購入");
     expect(table.getByRole("row", { name: /取得日/ })).toHaveTextContent("2026年10月26日");
-    expect(document.body).not.toHaveTextContent("中央値");
+    expect(document.body).not.toHaveTextContent(/真ん中の値|件数じゅうぶん|参考になる件数|件数少なめ/);
+  });
+
+  it("古めは右の築21年以上に「選んだ条件」を付け、並びは変えない", async () => {
+    await open("housing", "d=kanae&k=0&h=old");
+    expect(screen.getByText(/選んだ条件：買う・古め/)).toBeInTheDocument();
+    const names = within(houseCard()).getAllByRole("heading", { level: 3 }).map((heading) => heading.textContent);
+    expect(names).toEqual(["築20年以内", "築21年以上"]);
+    expect(houseOption("築21年以上")).toHaveTextContent("選んだ条件");
+    expect(houseOption("築20年以内")).not.toHaveTextContent("選んだ条件");
+  });
+
+  it("「物件を探す・下見する」：空き家バンクを別のタブで開くボタン、地図へのボタン、下見で確かめたいこと。下のボタンは「カルテ一覧へ」だけ", async () => {
+    await open("housing", "s=winter&d=kanae&k=0&h=new");
+    const search = section("物件を探す・下見する");
+    const akiya = within(search).getByRole("link", { name: /物件情報を探す/ });
+    expect(akiya).toHaveAttribute("href", "https://www.city.iida.lg.jp/site/yuiturn/akiya.html");
+    expect(akiya).toHaveAttribute("target", "_blank");
+    expect(within(search).getByRole("link", { name: /地図で周辺を確かめる/ })).toHaveAttribute("href", "/chizu?s=winter&d=kanae&a=2&k=0&h=new");
+    expect(within(search).getByText("下見で確かめたいこと")).toBeInTheDocument();
+    expect(within(search).getByText("建物の傷みや修繕の必要性")).toBeInTheDocument();
+    expect(within(search).getByText("候補の家から学校やお店までの道")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /地図で/ })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: /カルテ一覧へ/ })).toBeInTheDocument();
   });
 
   it("下の画面の切り替えの「カルテ」は、今の画面を示したまま一覧へ戻る", async () => {
@@ -102,48 +141,30 @@ describe("KarteDetailView：住まい（5章）", () => {
     expect(karte).toHaveAttribute("aria-current", "true");
   });
 
-  it("土地のタブは真ん中の値・幅・坪単価・200m²の目安。ほかの築年数で件数0なら「該当なし」", async () => {
-    await open("housing", "d=kanae&k=0&h=new");
-    await act(async () => {
-      fireEvent.click(screen.getByRole("tab", { name: /土地/ }));
-    });
-    expect(screen.getByRole("tab", { name: /土地/ })).toHaveAttribute("aria-selected", "true");
-    expect(prices()).toHaveTextContent("2.4万円／m²");
-    expect(prices()).toHaveTextContent("96件件数じゅうぶん");
-    expect(prices()).toHaveTextContent("1.7万円〜3万円／m²");
-    expect(prices()).toHaveTextContent("約7.93万円／坪");
-    expect(prices()).toHaveTextContent("約480万円");
-    expect(prices().textContent).not.toContain("㎡");
-    expect(within(basis()).getByRole("row", { name: /集計対象/ })).toHaveTextContent("鼎・土地（宅地）");
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("tab", { name: /ほかの築年数/ }));
-    });
-    expect(prices()).toHaveTextContent("中古戸建て（築21年以上）の真ん中の値");
-    expect(prices()).toHaveTextContent("該当なし");
-  });
-
-  it("借りるは「選んだ家」に飯田市の家賃の平均と地区の借家の世帯数を出し、売買の相場はほかのタブで見せる（034）", async () => {
+  it("借りるは、いちばん上に家賃のカード（選んだ条件）を出し、中古戸建てと土地は参考として下に並べる（034・040）", async () => {
     await open("housing", "d=kanae&k=0&h=rent");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("家を借りるとしたら、いくらくらい？");
-    expect(prices()).toHaveTextContent("飯田市の民営借家の家賃の平均（1か月）");
-    expect(prices()).toHaveTextContent("約5.0万円");
-    expect(prices()).toHaveTextContent("一戸建約5.2万円");
-    expect(prices()).toHaveTextContent("鼎で民営の借家に住む世帯1,511世帯（住宅に住む5,292世帯の約29%）");
-    expect(prices()).toHaveTextContent("飯田市全体の平均で、地区ごとの値ではありません。");
-    // 数字の根拠：家賃（飯田市）と、借家の世帯数（地区）の出典を分けて出す
+    const rent = section("家賃の参考値");
+    expect(rent).toHaveTextContent("選んだ条件");
+    expect(rent).toHaveTextContent("飯田市の民営借家の家賃の平均（1か月）");
+    expect(rent).toHaveTextContent("約5.0万円");
+    expect(rent).toHaveTextContent("一戸建約5.2万円");
+    expect(rent).toHaveTextContent("鼎で民営の借家に住む世帯1,511世帯（住宅に住む5,292世帯の約29%）");
+    expect(rent).toHaveTextContent("飯田市全体の平均で、地区ごとの値ではありません。");
+    // 中古戸建てはどちらも選んだ条件ではない
+    expect(houseCard()).not.toHaveTextContent("選んだ条件");
+    expect(houseOption("築20年以内")).toHaveTextContent("3,350万円");
+    const order = screen.getAllByRole("region").map((region) => region.getAttribute("aria-labelledby") && region.querySelector("h2")?.textContent);
+    expect(order.slice(0, 3)).toEqual(["家賃の参考値", "中古戸建ての取引価格を見比べる", "土地（宅地）の取引価格"]);
+    // 出典：家賃（飯田市）と、借家の世帯数（地区）と、取引価格
     expect(screen.getByText("飯田市・民営借家（専用住宅）・家賃0円を除く")).toBeInTheDocument();
     expect(screen.getByText("鼎・住宅に住む一般世帯")).toBeInTheDocument();
-    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["選んだ家", "築20年以内", "築21年以上", "土地"]);
-    await act(async () => {
-      fireEvent.click(screen.getByRole("tab", { name: /築20年以内/ }));
-    });
-    expect(prices()).toHaveTextContent("3,350万円");
+    expect(screen.getByText(/鼎・築20年以内の中古戸建て/)).toBeInTheDocument();
   });
 
   it("確かめたいことは箇条書きにし、チェックの箱は出さない（036）", async () => {
     await open("housing", "d=kanae&k=0&h=new");
-    expect(screen.getByText("土地・建物の広さ")).toBeInTheDocument();
+    expect(screen.getByText("建物の傷みや修繕の必要性")).toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).toBeNull();
     // 新しめの家には下見メモの項目がない
     expect(screen.queryByRole("button", { name: /下見プランに入れる/ })).toBeNull();
@@ -703,23 +724,20 @@ describe("KarteDetailView：印刷（023）", () => {
     expect(boxes.filter((box) => box.checked).map((box) => box.labels?.[0].textContent)).toEqual(["住まい"]);
   });
 
-  it("住まいはすべてのタブ・空の箱の「現地で確かめたいこと」・数字の根拠・印刷日を出す（「この数字から分かること」は出さない）", async () => {
+  it("住まいは画面と同じカード・空き家バンクの URL・空の箱の「下見で確かめたいこと」・数字の根拠・印刷日を出す（「この数字から分かること」は出さない）", async () => {
     await open("housing", "d=kanae&a=2&k=1&h=new");
     await printFromSheet();
     expect(window.print).toHaveBeenCalledTimes(1);
     const paper = printed();
     expect(paper.getByRole("heading", { level: 2, name: "家を買うとしたら、いくらくらい？" })).toBeInTheDocument();
-    for (const tab of ["選んだ家", "ほかの築年数", "土地"]) expect(paper.getByRole("heading", { level: 3, name: tab })).toBeInTheDocument();
+    for (const title of ["中古戸建ての取引価格を見比べる", "土地（宅地）の取引価格"]) expect(paper.getByRole("heading", { level: 2, name: title })).toBeInTheDocument();
+    expect(paper.getAllByText(/https:\/\/www\.city\.iida\.lg\.jp\/site\/yuiturn\/akiya\.html/).length).toBeGreaterThan(0);
     expect(paper.queryByText("この数字から分かること")).toBeNull();
     // 紙ではペンでチェックするので、押せるチェックではなく空の箱にする
-    expect(paper.getByRole("heading", { name: "現地・物件で確かめたいこと" })).toBeInTheDocument();
+    expect(paper.getByRole("heading", { name: "下見で確かめたいこと" })).toBeInTheDocument();
     expect(paper.queryAllByRole("checkbox")).toHaveLength(0);
-    expect(paper.getByText("建物の状態や修繕の必要性")).toBeInTheDocument();
-    expect(paper.getAllByRole("row", { name: /集計対象/ }).map((row) => row.textContent)).toEqual([
-      "集計対象鼎・築20年以内の中古戸建て",
-      "集計対象鼎・築21年以上の中古戸建て",
-      "集計対象鼎・土地（宅地）",
-    ]);
+    expect(paper.getByText("建物の傷みや修繕の必要性")).toBeInTheDocument();
+    expect(paper.getAllByRole("row", { name: /集計対象/ }).map((row) => row.textContent)).toEqual(["集計対象鼎・築20年以内の中古戸建て、築21年以上の中古戸建て、土地（宅地）"]);
     expect(paper.getByText(/^印刷日：\d{4}年\d{1,2}月\d{1,2}日$/)).toBeInTheDocument();
     expect(paper.getByText(/地区：鼎/)).toBeInTheDocument();
   });

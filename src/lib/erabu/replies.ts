@@ -14,8 +14,8 @@ export type ErabuReply =
       childcare: DataState<number>;
       elementarySchools: DataState<number>;
     }
-  // 家：買う・新しめ／古め：中古戸建ての真ん中の値と件数。新しめは件数によらず「件数少なめ・参考程度」を付ける
-  | { kind: "house"; districtName: string; housing: "new" | "old"; house: DataState<MarketStat>; alwaysFew: boolean }
+  // 家：買う・新しめ／古め：中古戸建ての中央値と「取引〇件・参考値」
+  | { kind: "house"; districtName: string; housing: "new" | "old"; house: DataState<MarketStat> }
   // 家：借りる：飯田市全体の家賃の平均と、地区の借家に住む世帯の数（034）
   | { kind: "rent"; districtName: string; rent: DataState<RentReference>; tenure: DataState<HousingTenure> };
 
@@ -48,8 +48,8 @@ export function erabuReply(question: QuestionId, conditions: Conditions, data: S
     case "housing":
       if (conditions.housing === "rent") return { kind: "rent", districtName, rent: data.rent, tenure: district.housingTenure };
       return conditions.housing === "new"
-        ? { kind: "house", districtName, housing: "new", house: district.market.house_built_within_20y, alwaysFew: true }
-        : { kind: "house", districtName, housing: "old", house: district.market.house_built_over_20y, alwaysFew: false };
+        ? { kind: "house", districtName, housing: "new", house: district.market.house_built_within_20y }
+        : { kind: "house", districtName, housing: "old", house: district.market.house_built_over_20y };
     case "car":
     case "priorities":
       return null;

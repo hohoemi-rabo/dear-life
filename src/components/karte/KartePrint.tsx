@@ -15,10 +15,11 @@ import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
+import { IIDA_AKIYA_BANK } from "@/lib/map/links";
 import { NoticeBox } from "./DetailCard";
 import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
 import { SupportBeforeApply } from "./SupportFinder";
-import { HousingTabFootnote, HousingTabPanel, housingTabs } from "./HousingCard";
+import { HousingCards } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KarteEntries } from "./KarteEntries";
 import { BusReach } from "./ShitamiMemo";
@@ -153,17 +154,19 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
   let panels;
   let basis;
   if (card === "housing") {
-    const tabs = housingTabs(conditions.housing);
-    panels = tabs.map((tab) => (
-      <PrintBlock key={tab.id} className="flex flex-col gap-3">
-        <h3 className="font-bold">{tab.label}</h3>
-        <HousingTabPanel district={district} rent={data.rent} housing={conditions.housing} tab={tab} />
-        <HousingTabFootnote tab={tab} />
-      </PrintBlock>
-    ));
-    basis = tabs.flatMap((tab) =>
-      tab.category === null ? rentBasisRows(data.rent, district.housingTenure, districtName) : housingBasisRows(district, districtName, tab.category),
+    // 画面と同じカードを並べる（040）。「物件情報を探す」のボタンは紙では押せないので、行き先を文字で出す
+    panels = (
+      <>
+        <HousingCards district={district} rent={data.rent} housing={conditions.housing} />
+        <p className="break-inside-avoid text-sm">
+          物件情報：{IIDA_AKIYA_BANK.name}　{IIDA_AKIYA_BANK.url}
+        </p>
+      </>
     );
+    basis = [
+      ...(conditions.housing === "rent" ? rentBasisRows(data.rent, district.housingTenure, districtName) : []),
+      ...housingBasisRows(district, districtName),
+    ];
   } else {
     const noCar = hasNoCar(conditions);
     const tabs = printTabs(card, detailTabs(card, { district, noCar }));

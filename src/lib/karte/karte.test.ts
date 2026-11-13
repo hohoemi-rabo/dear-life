@@ -3,14 +3,20 @@ import { KARTE_DETAIL_SLUGS, karteCardFromSlug, karteDetailPath, splitKarteCards
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONDITIONS } from "../conditions/model";
 import { ageShares, ageUnknown, facilityCountSentence, groupBySubkind } from "./facilities";
-import { landEstimates, marketCategoryOrder } from "./housing";
+import { chosenHouseCategory, landEstimateForExampleArea, marketCategoryOrder } from "./housing";
 import { kurashiHref } from "./links";
 
-describe("landEstimates", () => {
-  it("坪単価と200㎡の目安を出す（上郷 2.8万円/㎡ → 坪9.26万円・200㎡で560万円）", () => {
-    const { perTsubo, forExampleArea } = landEstimates(28000);
-    expect(perTsubo).toBeCloseTo(92562.4);
-    expect(forExampleArea).toBe(5600000);
+describe("landEstimateForExampleArea", () => {
+  it("200㎡の目安を出す（上郷 2.85万円/㎡ → 200㎡で570万円）", () => {
+    expect(landEstimateForExampleArea(28500)).toBe(5700000);
+  });
+});
+
+describe("chosenHouseCategory", () => {
+  it("新しめは築20年以内、古めは築21年以上、借りるはどちらでもない", () => {
+    expect(chosenHouseCategory("new")).toBe("house_built_within_20y");
+    expect(chosenHouseCategory("old")).toBe("house_built_over_20y");
+    expect(chosenHouseCategory("rent")).toBeNull();
   });
 });
 

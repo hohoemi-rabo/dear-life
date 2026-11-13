@@ -43,7 +43,7 @@ export type PinSheet = {
   // 「確かめる」ボタンで移るカルテのカード。行事はカルテにカードがないので null
   karteCard: KarteCard | null;
   action: string | null;
-  market: { state: DataState<MarketStat>; alwaysFew: boolean } | null;
+  market: { state: DataState<MarketStat> } | null;
   // 借りるときの家賃の参考値と、地区の借家の世帯数（034）
   rent: { rent: DataState<RentReference>; tenure: DataState<HousingTenure>; districtName: string } | null;
   events: readonly DistrictEvent[] | null;
@@ -316,8 +316,7 @@ export function pinSheet(input: Input): PinSheet {
             : [],
         karteCard: "housing",
         action: "住まいの相場を確かめる",
-        // 新しめ（築20年以内）は件数によらず「件数少なめ・参考程度」を付ける（えらぶ 03 と同じ）
-        market: { state, alwaysFew: housing === "new" },
+        market: { state },
       };
     }
   }

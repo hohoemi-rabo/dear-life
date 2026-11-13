@@ -56,12 +56,11 @@ describe("erabuReply（要件 4章「えらぶ画面での返事」）", () => {
     expect(erabuReply("family", kamisato({ children: 0 }), data)).toBeNull();
   });
 
-  it("家：買う・新しめ：築20年以内の値で、件数によらず件数少なめのラベルを付ける", () => {
+  it("家：買う・新しめ：築20年以内の値", () => {
     expect(erabuReply("housing", kamisato({ housing: "new" }), data)).toMatchObject({
       kind: "house",
       housing: "new",
       house: marketFixture(39_000_000, 9),
-      alwaysFew: true,
     });
   });
 
@@ -70,7 +69,6 @@ describe("erabuReply（要件 4章「えらぶ画面での返事」）", () => {
       kind: "house",
       housing: "old",
       house: marketFixture(8_600_000, 39),
-      alwaysFew: false,
     });
   });
 
