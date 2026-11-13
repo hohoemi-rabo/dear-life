@@ -17,7 +17,7 @@
 | 防災 | 済み | 040（見本 `docs/design/karte-detail-disaster.png`） |
 | 人口 | まだ（「この数字から分かること」は消した） | — |
 | 公共施設 | 済み | 040（見本 `docs/design/karte-detail-public.png`） |
-| 支援制度 | 作った（まさゆきさんの確認待ち） | 040（見本 `docs/design/karte-detail-support.png`） |
+| 支援制度 | 済み | 040（見本 `docs/design/karte-detail-support.png`） |
 
 ## 決めたこと
 
@@ -207,7 +207,7 @@
 - [×] タブ・見出し・1行ずつの一覧・すべて見る・「申し込む前に確かめたいこと」を作る
 - [×] 印刷を直す
 - [×] PC・スマホ（375px）の画面を撮って見せる
-- [ ] （まさゆきさん）画面を確かめる
+- [×] （まさゆきさん）画面を確かめる（2026-11-13 OK）
 
 ## Todo
 
@@ -217,11 +217,11 @@
 - [×] 防災
 - [ ] 人口
 - [×] 公共施設
-- [ ] 支援制度
+- [×] 支援制度
 
 ## 次のセッションへの引き継ぎ（2026-11-13）
 
-- 支援制度は 2026-11-13 に作った。まさゆきさんの画面の確認待ち。そのあと残りは 住まい・人口
+- 支援制度は 2026-11-13 に作って、まさゆきさんの確認を受けて完了した。残りは 住まい・人口。次に見直す詳細と見本をまさゆきさんに聞く
 - 公共施設は 2026-11-13 に作って、まさゆきさんの確認を受けて完了した。以下は実装前の引き継ぎ（記録として残す）。作り方・データ・絵はこのチケットの「公共施設」にまとめた（見本 `docs/design/karte-detail-public.png`）。まさゆきさんが「セッション変えて実装します」と言ったので、新しいセッションで実装に入ってよいかを一言確かめてから始める
 - 絵の4枚（`assets/illust/common/public-tab-*.png`）はまだコミットしていない。`src/lib/illust/assets.ts` の `PROP_SOURCES` に足して `npm run illust` する（防災のタブの印 `disaster-tab-*` と同じ書き方、`widths: [48, 96]`）
 - 防災で作った部品を使い回せる：大きいタブ（`DetailTabs` の `large`）、Google マップの URL（`googleMapsSearchHref`。今は `src/lib/karte/evacuation.ts`。公共施設でも使うので `src/lib/map/links.ts` に移す）、下の注意書き（`DetailTexts.notice`）、閉じた「出典・更新日を見る」（`KarteDetailView` の `Basis` の `title`）、PC の地区の札（7つの詳細すべてに付け済み）、下のボタンを「カルテ一覧へ」だけにする（`KarteDetailView` の `MAP_IN_CARD`。公共施設は地図のボタンなし）
