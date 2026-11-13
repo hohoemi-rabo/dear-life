@@ -3,7 +3,6 @@
 import { useId, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { RenterHouseholds, RentValue } from "@/components/data/RentFigures";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ButtonLink, buttonClassName } from "@/components/ui/Button";
 import { TradeCount } from "@/components/ui/TradeCount";
 import type { Housing } from "@/lib/conditions/labels";
@@ -22,6 +21,7 @@ import {
 import { IIDA_AKIYA_BANK } from "@/lib/map/links";
 import { NOTICES } from "@/lib/notices";
 import { NoticeBox } from "./DetailCard";
+import { KarteCardIcon } from "./KarteCardIcon";
 
 // カルテの住まいの詳細（040。見本 docs/design/karte-detail-housing.png）：
 // 借りるなら家賃のカード → 「中古戸建ての取引価格を見比べる」（築20年以内・築21年以上の2枚。選んだほうを緑の枠と「選んだ条件」で強調）→ 土地のカード。
@@ -85,7 +85,8 @@ function HouseCompareCard({ district, housing }: { district: DistrictData; housi
       <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-4">
         {/* スマホ（375px）でも1行に収める */}
         <h2 id={titleId} className="flex items-center gap-2 text-base font-extrabold min-[400px]:text-lg md:text-2xl">
-          <PixelIcon icon="icon-house" />
+          {/* カルテ一覧・選んだ条件の札と同じ家の絵（ドット絵の印は粗く見えるため。2026-11-13 まさゆきさん） */}
+          <KarteCardIcon card="housing" size="lg" />
           中古戸建ての取引価格を見比べる
         </h2>
         <span aria-hidden="true" className="hidden h-7 w-px bg-line md:block" />

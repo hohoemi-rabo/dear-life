@@ -1,8 +1,9 @@
 import type { KarteCard } from "@/lib/conditions/labels";
 import { KARTE_ICON_WIDTHS, karteIconSrc, karteIconSrcSet } from "@/lib/illust/assets";
 
-// md は 32px（カードの見出し）。sm は 24px（タブなど）。絵が細かいので、これより小さくすると潰れて見分けにくい
+// lg は 40px（詳細のカードの大きい見出し。040）、md は 32px（カードの見出し）。sm は 24px（タブなど）。絵が細かいので、これより小さくすると潰れて見分けにくい
 const SIZES = {
+  lg: { px: "40px", className: "size-10" },
   sm: { px: "24px", className: "size-6" },
   md: { px: "32px", className: "size-8" },
 } as const;
