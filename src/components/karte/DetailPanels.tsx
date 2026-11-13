@@ -4,7 +4,6 @@ import { useId, useState, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { usePrintMode } from "@/components/print/PrintMode";
 import { GofreelyPanel } from "@/components/data/GofreelyPanel";
-import { SourceNote } from "@/components/ui/SourceNote";
 import { DISTRICT_NAMES, type KarteCard } from "@/lib/conditions/labels";
 import type {
   DataState,
@@ -28,6 +27,7 @@ import { ErrandsHead, ErrandsTable } from "./ErrandsTable";
 import { DISASTER_TAB_ICONS, EvacuationFinder, EvacuationPrintList, HazardMapBand } from "./EvacuationFinder";
 import { ChildcareFacilityPanel } from "./ChildcareFacilities";
 import { PublicFacilityFinder, PublicFacilityPrintList } from "./PublicFacilityFinder";
+import { SupportFinder, SupportPrintList } from "./SupportFinder";
 import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
@@ -39,13 +39,11 @@ export type DetailTab = DetailTabItem & {
   states: readonly DataState<unknown>[];
 };
 
-const SUPPORT_CATEGORIES: readonly SupportProgram["category"][] = ["移住", "住まい", "子育て", "その他"];
-
-// 項目ごとのタブ。タブを持たない人口・公共施設は1つだけ（タブの列は出さない）。
+// 項目ごとのタブ。タブを持たない人口・公共施設・支援制度は1つだけ（タブの列は出さない）。
 // 交通は、車0台なら冬のおでかけを最初に開く
 export function detailTabs(
   card: OtherCard,
-  { district, supportPrograms, noCar }: { district: DistrictData; supportPrograms: readonly SupportProgram[]; noCar: boolean },
+  { district, noCar }: { district: DistrictData; noCar: boolean },
 ): DetailTab[] {
   switch (card) {
     case "childcare":
@@ -112,31 +110,18 @@ export function detailTabs(
       return [{ id: "all", label: "人口", icon: "icon-population", states: [district.population] }];
     case "public_facilities":
       return [{ id: "all", label: "公共施設", icon: "icon-public", states: [district.publicFacilities] }];
-    case "support": {
-      const all: DetailTab = { id: "all", label: "すべて", icon: "icon-support", states: [] };
-      if (supportPrograms.length === 0) return [all];
-      const categories = SUPPORT_CATEGORIES.filter((category) => supportPrograms.some((program) => program.category === category));
-      return [
-        { ...all, count: supportPrograms.length },
-        ...categories.map((category) => ({
-          id: category,
-          label: category,
-          icon: "icon-support" as const,
-          count: supportPrograms.filter((program) => program.category === category).length,
-          states: [],
-        })),
-      ];
-    }
+    case "support":
+      // 目的のタブは「目的から支援制度を探す」の箱の中で持つ（040 見本）
+      return [{ id: "all", label: "支援制度", icon: "icon-support", states: [] }];
   }
 }
 
-// 今のタブ。データが変わってタブがなくなったら最初のタブに戻す
-// 印刷（023）で並べるタブ。支援制度は「すべて」に全部入っているので、種類ごとのタブは同じものの繰り返しになるため出さない。
-// 防災は1つ目のタブの場所で、地区の避難場所を全部1つの一覧にして出す（040）
+// 印刷（023）で並べるタブ。防災は1つ目のタブの場所で、地区の避難場所を全部1つの一覧にして出す（040）
 export function printTabs(card: OtherCard, tabs: readonly DetailTab[]): readonly DetailTab[] {
-  return card === "disaster" || card === "support" ? tabs.slice(0, 1) : tabs;
+  return card === "disaster" ? tabs.slice(0, 1) : tabs;
 }
 
+// 今のタブ。データが変わってタブがなくなったら最初のタブに戻す
 export function useDetailTab(tabs: readonly DetailTab[]): [DetailTab, (id: string) => void] {
   const [id, setId] = useState<string | null>(null);
   return [tabs.find((tab) => tab.id === id) ?? tabs[0], setId];
@@ -192,7 +177,9 @@ export function OtherDetailCard({
     // 公共施設は「使い道から施設を探す」の箱（040 見本）。使い道のタブは箱の中で持つ
     return <PublicFacilityFinder state={district.publicFacilities} districtName={DISTRICT_NAMES[district.id]} />;
   }
-  const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
+  // 支援制度は「目的から支援制度を探す」の箱（040 見本）
+  if (card === "support") return <SupportFinder programs={supportPrograms} />;
+  const content = panelContent(card, tab.id, { district, noCar });
   const tabRow = tabs.length > 1 && (
     <DetailTabs label={`${CARD_LABELS[card]}の見る範囲`} tabs={tabs} selectedId={tab.id} panelId={panelId} onSelect={onTabChange} />
   );
@@ -246,7 +233,8 @@ export function OtherTabPanel({
     );
   }
   if (card === "public_facilities") return <PublicFacilityPrintList state={district.publicFacilities} districtName={DISTRICT_NAMES[district.id]} />;
-  const content = panelContent(card, tab.id, { district, supportPrograms, noCar });
+  if (card === "support") return <SupportPrintList programs={supportPrograms} />;
+  const content = panelContent(card, tab.id, { district, noCar });
   return (
     <>
       <PanelHead content={content} />
@@ -269,10 +257,10 @@ function PanelHead({ content }: { content: PanelContent }) {
 }
 
 function panelContent(
-  // 防災・公共施設は panelContent を通さず、EvacuationFinder・PublicFacilityFinder で出す（040）
-  card: Exclude<OtherCard, "disaster" | "public_facilities">,
+  // 防災・公共施設・支援制度は panelContent を通さず、EvacuationFinder・PublicFacilityFinder・SupportFinder で出す（040）
+  card: Exclude<OtherCard, "disaster" | "public_facilities" | "support">,
   tabId: string,
-  { district, supportPrograms, noCar }: { district: DistrictData; supportPrograms: readonly SupportProgram[]; noCar: boolean },
+  { district, noCar }: { district: DistrictData; noCar: boolean },
 ): PanelContent {
   switch (card) {
     case "childcare":
@@ -281,8 +269,6 @@ function panelContent(
       return transportContent(tabId, district, noCar);
     case "population":
       return populationContent(district.population);
-    case "support":
-      return supportContent(tabId, supportPrograms);
   }
 }
 
@@ -575,40 +561,6 @@ function AgeBar({ shares }: { shares: ReturnType<typeof ageShares> }) {
       ))}
     </div>
   );
-}
-
-function supportContent(tabId: string, programs: readonly SupportProgram[]): PanelContent {
-  const category = SUPPORT_CATEGORIES.find((item) => item === tabId);
-  const shown = programs.filter((program) => !category || program.category === category);
-  return {
-    picture: "detail-support",
-    title: category ? `${category}の支援制度（飯田市全体）` : "飯田市の支援制度（市全体）",
-    figure: programs.length === 0 ? <DataStateMessage state={{ status: "unavailable" }} /> : <BigCount count={shown.length} unit="件" />,
-    notice: { title: NOTICES.support },
-    list: shown.length > 0 && (
-      <ul className="flex flex-col divide-y divide-line print:block">
-        {shown.map((program) => (
-          <li key={program.name} className="flex break-inside-avoid flex-col items-start gap-1 py-3">
-            <span className="rounded-full bg-kinari-deep px-2 py-0.5 text-xs font-bold">{program.category}</span>
-            <a
-              href={program.officialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-tap items-center gap-1 font-bold text-primary underline underline-offset-4 hover:no-underline"
-            >
-              {program.name}
-              <span className="sr-only">（飯田市の公式ページが新しいタブで開きます）</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <p className="text-sm">{program.summary}</p>
-            {/* 紙ではリンクを押せないので、公式ページの URL を書いておく（023） */}
-            <span className="hidden break-all text-xs print:block">{program.officialUrl}</span>
-            <SourceNote source="飯田市公式サイト（制度のページ）" period="確認日の時点の内容" date={program.checkedOn} />
-          </li>
-        ))}
-      </ul>
-    ),
-  };
 }
 
 function ListSection({ title, children }: { title: string; children: ReactNode }) {

@@ -9,6 +9,8 @@ export type DetailTexts = {
   // 「現地で確かめたいこと」の見出しと項目。「この数字から分かること」の箱は7つの詳細すべてで出さない（2026-11-13 まさゆきさん）
   checkTitle: string;
   checks: readonly string[];
+  // 箇条書きの代わりに出す1つの文（支援制度の「申し込む前に確かめたいこと」。040 見本）
+  checkNote?: string;
   // 「現地で確かめたいこと」の下に出す、黄色の注意書きの帯（防災。040 見本）
   notice?: string;
   // 「数字の根拠を見る」の下の一言
@@ -58,8 +60,10 @@ const OTHER_TEXTS: Readonly<Record<Exclude<KarteCard, "housing" | "transport">, 
   },
   support: {
     question: { long: "使える支援制度は、どんなもの？", short: "使える支援制度は？" },
-    checkTitle: "窓口で確かめたいこと",
-    checks: ["申し込みの時期と期限", "対象になる条件", "相談できる窓口"],
+    // 今までの注意書きと「窓口で確かめたいこと」の3つを、見本の箱1つにまとめた（見本の「申請のタイミング」を分かりやすくした。2026-11-13 まさゆきさん）
+    checkTitle: "申し込む前に確かめたいこと",
+    checks: [],
+    checkNote: "対象になる条件・受付の期間・申し込む時期を、公式ページや窓口で確かめてください。",
   },
 };
 

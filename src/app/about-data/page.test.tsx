@@ -66,8 +66,8 @@ beforeEach(() => {
       },
     },
     supportPrograms: [
-      { name: "A", summary: "a", category: "住まい", officialUrl: "https://example.jp/a", checkedOn: "2026-10-26" },
-      { name: "B", summary: "b", category: "住まい", officialUrl: "https://example.jp/b", checkedOn: "2026-10-20" },
+      { name: "A", title: null, tag: null, summary: "a", category: "住まい", officialUrl: "https://example.jp/a", checkedOn: "2026-10-26" },
+      { name: "B", title: null, tag: null, summary: "b", category: "住まい", officialUrl: "https://example.jp/b", checkedOn: "2026-10-20" },
     ],
   } as ScreenData;
 });

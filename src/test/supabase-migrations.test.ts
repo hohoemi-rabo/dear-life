@@ -1323,7 +1323,7 @@ describe("画面が読むデータ screen_data（015）", () => {
       events: { season: string; name: string }[];
     }[];
     rent: Section;
-    support_programs: { name: string }[];
+    support_programs: { name: string; title: string | null; tag: string | null }[];
     scene_templates: { title: string; sentences: { body: string }[] }[];
   };
   const publish = (...ids: string[]) =>
@@ -1514,6 +1514,28 @@ describe("画面が読むデータ screen_data（015）", () => {
     ]);
     const programs = await run<{ n: number }>("postgres", "select count(*)::int as n from support_programs where is_published");
     expect(data.support_programs).toHaveLength(programs[0].n);
+  });
+
+  it("支援制度は題と札を持ち、sort_order の順に並ぶ。題・札のない制度は null（040）", async () => {
+    const data = await screenData(
+      `insert into support_programs (name, title, tag, summary, category, official_url, checked_on, sort_order, is_published) values
+         ('あとの制度', null, null, 'x', '子育て', 'https://example.com/b', '2026-11-13', 20, true),
+         ('さきの制度', 'やさしい題', '相談', 'x', '移住', 'https://example.com/a', '2026-11-13', 10, true)`,
+    );
+    const names = data.support_programs.map((program) => program.name);
+    expect(names.indexOf("さきの制度")).toBeLessThan(names.indexOf("あとの制度"));
+    expect(data.support_programs.find((program) => program.name === "さきの制度")).toMatchObject({ title: "やさしい題", tag: "相談" });
+    expect(data.support_programs.find((program) => program.name === "あとの制度")).toMatchObject({ title: null, tag: null });
+  });
+
+  it("支援制度の札は6文字まで、題・札は空白だけにできない（040）", async () => {
+    const insert = (title: string, tag: string) =>
+      run(
+        "postgres",
+        `insert into support_programs (name, title, tag, summary, category, official_url, checked_on) values ('x', '${title}', '${tag}', 'x', '移住', 'https://example.com', '2026-11-13')`,
+      );
+    await expect(insert("題", "七文字の長い札")).rejects.toThrow(/check/);
+    await expect(insert(" ", "相談")).rejects.toThrow(/check/);
   });
 
   it("応答は画面の読み込み（parseScreenData）でそのまま読め、公開した出典のデータが地区ごとに入る", async () => {

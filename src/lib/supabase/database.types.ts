@@ -1029,6 +1029,8 @@ export type Database = {
           official_url: string
           sort_order: number
           summary: string
+          tag: string | null
+          title: string | null
           updated_at: string
         }
         Insert: {
@@ -1041,6 +1043,8 @@ export type Database = {
           official_url: string
           sort_order?: number
           summary: string
+          tag?: string | null
+          title?: string | null
           updated_at?: string
         }
         Update: {
@@ -1053,6 +1057,8 @@ export type Database = {
           official_url?: string
           sort_order?: number
           summary?: string
+          tag?: string | null
+          title?: string | null
           updated_at?: string
         }
         Relationships: []

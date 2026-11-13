@@ -666,6 +666,10 @@ export const PROPS = [
   "public-tab-library",
   "public-tab-sports",
   "public-tab-community",
+  "support-tab-move",
+  "support-tab-housing",
+  "support-tab-childcare",
+  "support-before-apply",
   "karte-next-step-bg-kamisato",
   "karte-next-step-bg-kanae",
   "karte-next-step-bg-igara",
@@ -776,6 +780,11 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "public-tab-library": { source: "public-tab-library.png", alt: "積み重ねた3冊の本", widths: [48, 96] },
   "public-tab-sports": { source: "public-tab-sports.png", alt: "サッカーボール", widths: [48, 96] },
   "public-tab-community": { source: "public-tab-community.png", alt: "瓦屋根と緑の扉の公民館", widths: [48, 96] },
+  // 支援制度の目的のタブの印と、「申し込む前に確かめたいこと」の書類の絵（040。2026-11-13 受け取り）
+  "support-tab-move": { source: "support-tab-move.png", alt: "荷台の付いた小さなトラック", widths: [48, 96] },
+  "support-tab-housing": { source: "support-tab-housing.png", alt: "赤い屋根の家", widths: [48, 96] },
+  "support-tab-childcare": { source: "support-tab-childcare.png", alt: "哺乳びん", widths: [48, 96] },
+  "support-before-apply": { source: "support-before-apply.png", alt: "ハートの付いた書類", widths: [96, 192] },
   "childcare-map-button": { source: "childcare-map-button.png", alt: "ピンのある三つ折りの地図", widths: [48, 96] },
   "childcare-chip-family": { source: "childcare-chip-family.png", alt: "大人2人と子ども1人", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない

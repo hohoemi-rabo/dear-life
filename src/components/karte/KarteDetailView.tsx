@@ -30,11 +30,13 @@ import { NoDistrict } from "./KarteView";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows, type BasisRow } from "./DetailBasis";
 import { NoticeBox, PropIcon } from "./DetailCard";
 import { OtherDetailCard, detailTabs, useDetailTab } from "./DetailPanels";
+import { SupportBeforeApply } from "./SupportFinder";
 
 type Chosen = Conditions & { district: DistrictId };
 
 // 下のボタンを「カルテ一覧へ」だけにする詳細（地図へはカードの中から行く。公共施設は地図に点がないので地図へのボタンを出さない。040）
-const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "public_facilities"]);
+// 支援制度は市全体の制度で、地図に出す場所がない（040）
+const LIST_BUTTON_ONLY: ReadonlySet<KarteCard> = new Set(["childcare", "transport", "disaster", "public_facilities", "support"]);
 
 // カルテの詳細のページ（図鑑の1ページ。028 見本 karte-detail-housing.png）。番号・問い・数字・
 // 現地で確かめたいこと・数字の根拠を、7項目とも同じ形で出す。条件は URL パラメータに持つ（F-02）。<Suspense> の中で使う
@@ -100,7 +102,7 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
 
       {LIST_BUTTON_ONLY.has(card) ? (
         // 子育て・学校・交通・防災は「カルテ一覧へ」だけ。地図へは、カードの中の「地図で場所を見る」から、その種類だけにチェックを入れて行く
-        // （039 見本。2026-11-12 まさゆきさん。交通・防災・公共施設は 2026-11-13 まさゆきさん）
+        // （039 見本。2026-11-12 まさゆきさん。交通・防災・公共施設・支援制度は 2026-11-13 まさゆきさん）
         <ButtonLink href={listHref} variant="secondary" className="md:self-start">
           <span aria-hidden="true">←</span>
           カルテ一覧へ
@@ -142,8 +144,9 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
       <div className="hidden flex-wrap items-center gap-2 md:flex">
         <p className="flex items-center gap-1.5 rounded-full border border-gold/50 bg-warm-soft px-4 py-1.5 font-bold">
           <PixelIcon icon="icon-pin" size="sm" />
-          <span className="sr-only">地区：</span>
-          {DISTRICT_NAMES[conditions.district]}
+          {/* 支援制度は市全体の制度なので、地区だけの制度と受け取られないように「飯田市全体」（040 見本） */}
+          <span className="sr-only">{card === "support" ? "対象：" : "地区："}</span>
+          {card === "support" ? "飯田市全体" : DISTRICT_NAMES[conditions.district]}
         </p>
         {chosen && (
           <p className="flex items-center gap-2 rounded-button bg-pixel-sky/60 px-4 py-2 font-bold">
@@ -213,7 +216,7 @@ function DetailBody({
   const district = data.districts[conditions.district];
   const noCar = hasNoCar(conditions);
   const [housingTab, setHousingTab] = useHousingTab(conditions.housing);
-  const tabs = card === "housing" ? [] : detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar });
+  const tabs = card === "housing" ? [] : detailTabs(card, { district, noCar });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
@@ -234,6 +237,9 @@ function DetailBody({
         />
       )}
 
+      {texts.checkNote ? (
+        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
+      ) : (
       <Box title={texts.checkTitle}>
         <div className="flex items-start gap-3">
           {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
@@ -264,6 +270,7 @@ function DetailBody({
           </div>
         )}
       </Box>
+      )}
 
       {texts.notice && <NoticeBox title={texts.notice} className="items-center md:px-4 md:[&_p]:text-base" />}
 
@@ -273,12 +280,16 @@ function DetailBody({
             ? housingTab.category === null
               ? rentBasisRows(data.rent, district.housingTenure, districtName)
               : housingBasisRows(district, districtName, housingTab.category)
-            : otherBasisRows(card, [otherTab])
+            : otherBasisRows(card, [otherTab], data.supportPrograms)
         }
         note={texts.basisNote}
         // 子育て・学校は「〇〇の出典を見る」（〇〇は今のタブの名前。039 見本）、防災は「出典・更新日を見る」（040 見本）の閉じた欄
         title={
-          card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" || card === "public_facilities" ? "出典・更新日を見る" : null
+          card === "childcare" ? `${otherTab.label}の出典を見る` : card === "disaster" || card === "public_facilities"
+              ? "出典・更新日を見る"
+              : card === "support"
+                ? "出典・確認日を見る"
+                : null
         }
         icon={card === "childcare" ? "icon-book" : "icon-document"}
       />

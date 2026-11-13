@@ -17,6 +17,7 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
 import { NoticeBox } from "./DetailCard";
 import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
+import { SupportBeforeApply } from "./SupportFinder";
 import { HousingTabFootnote, HousingTabPanel, housingTabs } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
 import { KarteEntries } from "./KarteEntries";
@@ -165,14 +166,14 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
     );
   } else {
     const noCar = hasNoCar(conditions);
-    const tabs = printTabs(card, detailTabs(card, { district, supportPrograms: data.supportPrograms, noCar }));
+    const tabs = printTabs(card, detailTabs(card, { district, noCar }));
     panels = tabs.map((tab) => (
       <PrintBlock key={tab.id} breakable className="space-y-3">
         {tabs.length > 1 && <h3 className="break-after-avoid font-bold">{tab.label}</h3>}
         <OtherTabPanel card={card} tab={tab} district={district} supportPrograms={data.supportPrograms} noCar={noCar} />
       </PrintBlock>
     ));
-    basis = otherBasisRows(card, tabs);
+    basis = otherBasisRows(card, tabs, data.supportPrograms);
   }
 
   return (
@@ -185,7 +186,11 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
         <h2 className="text-xl font-extrabold">{texts.question.long}</h2>
       </div>
       {panels}
-      <PrintCheckList title={texts.checkTitle} items={texts.checks} />
+      {texts.checkNote ? (
+        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
+      ) : (
+        <PrintCheckList title={texts.checkTitle} items={texts.checks} />
+      )}
       {texts.notice && <NoticeBox title={texts.notice} className="break-inside-avoid" />}
       <PrintBlock className="flex flex-col gap-2">
         <h3 className="flex items-center gap-2 font-bold">

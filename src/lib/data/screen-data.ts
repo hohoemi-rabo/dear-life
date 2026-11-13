@@ -228,7 +228,11 @@ export type DistrictData = {
 };
 
 export type SupportProgram = {
+  // 正式な名前
   name: string;
+  // 誰が見ても分かる1行の題と、題の上の札（040）。入れていない制度は null（画面は正式な名前を太字にして札なしで出す）
+  title: string | null;
+  tag: string | null;
   summary: string;
   category: Enums["support_category"];
   officialUrl: string;
@@ -421,7 +425,7 @@ export type RawScreenData = {
     adjacent_land_count: number;
   }>;
   rent: RawSection<{ building_type: "all" | "detached" | "apartment_wooden" | "apartment_non_wooden"; average_rent: number; as_of: string }>;
-  support_programs: { name: string; summary: string; category: SupportProgram["category"]; official_url: string; checked_on: string }[];
+  support_programs: { name: string; title: string | null; tag: string | null; summary: string; category: SupportProgram["category"]; official_url: string; checked_on: string }[];
   scene_templates: SceneTemplate[];
 };
 
@@ -720,6 +724,9 @@ export function parseScreenData(raw: unknown, today: string): ScreenData {
     rent: toRent(raw.rent, findSource),
     supportPrograms: raw.support_programs.map((program) => ({
       name: program.name,
+      // 前の版の RPC（title・tag がない）が返したときと、空の文字は null にそろえる
+      title: program.title?.trim() || null,
+      tag: program.tag?.trim() || null,
       summary: program.summary,
       category: program.category,
       officialUrl: program.official_url,

@@ -1,7 +1,8 @@
 import type { KarteCard } from "@/lib/conditions/labels";
-import type { DataState, DistrictData, HousingTenure, MarketCategory, RentReference, SourceInfo } from "@/lib/data/screen-data";
+import type { DataState, DistrictData, HousingTenure, MarketCategory, RentReference, SourceInfo, SupportProgram } from "@/lib/data/screen-data";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { MARKET_CATEGORY_PHRASES } from "@/lib/karte/entries";
+import { supportCheckedRange } from "@/lib/karte/support";
 import type { DetailTab } from "./DetailPanels";
 
 // カルテの詳細の「数字の根拠」（出典・集計対象・対象期間・確認日）。画面の詳細と印刷（023）で使う
@@ -75,15 +76,29 @@ export function rentBasisRows(rent: DataState<RentReference>, tenure: DataState<
 }
 
 // 住まい以外の出典の表。見ているタブ（印刷では並べたタブすべて）で使っているデータの出典を、同じ出典は1回だけ出す。
-// 支援制度は制度ごとのページが出典で、確認日は一覧の制度ごとに出している
-export function otherBasisRows(card: Exclude<KarteCard, "housing">, tabs: readonly DetailTab[]): BasisRow[][] {
-  if (card === "support")
+// 支援制度は制度ごとのページが出典で、確認日は制度ごとに持っている（違えば古い日〜新しい日。040）
+export function otherBasisRows(
+  card: Exclude<KarteCard, "housing">,
+  tabs: readonly DetailTab[],
+  supportPrograms: readonly SupportProgram[],
+): BasisRow[][] {
+  if (card === "support") {
+    const range = supportCheckedRange(supportPrograms);
     return [
       [
         ["出典", "飯田市公式サイト（制度ごとのページ）"],
-        ["確認日", "制度ごとに記載"],
+        ["対象", "飯田市全体の制度（4地区とも同じ）"],
+        [
+          "確認日",
+          range === null
+            ? "—"
+            : range.oldest === range.newest
+              ? formatJaDate(range.oldest)
+              : `${formatJaDate(range.oldest)}〜${formatJaDate(range.newest)}（制度ごとに異なる）`,
+        ],
       ],
     ];
+  }
   const seen = new Set<string>();
   const groups: BasisRow[][] = [];
   for (const state of tabs.flatMap((tab) => tab.states)) {

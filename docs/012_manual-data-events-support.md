@@ -85,12 +85,14 @@ Supabase のダッシュボード（https://supabase.com/dashboard/project/ywugk
 
 | 列 | 入れるもの |
 | --- | --- |
-| `name` | 制度名（公式ページの名前に合わせる） |
-| `summary` | 1〜2文の概要。「対象になります」などの判定や、「お得」などの評価は書かない |
+| `name` | 制度名（公式ページの名前に合わせる）。画面では題の下に小さく出す |
+| `title` | 画面の1行の題（040）。誰が見ても分かる言葉で、役所の言葉は使わない。条件のあるお金は「〜を調べる」「〜を知る」と書き、言い切らない（例：「子どもの病院代の補助を知る」）。空なら制度名を太字で出す |
+| `tag` | 題の上の札（040）。6文字まで。「相談」「体験」「家探し」「妊娠」「出産後」「預ける」など、お金の制度は「お金」にそろえる。空なら札を出さない |
+| `summary` | 1〜2文の概要（カルテの印刷に出す）。「対象になります」などの判定や、「お得」などの評価は書かない |
 | `category` | 移住・子育て・住まい・その他 |
 | `official_url` | 公式ページの URL（`https://` から） |
 | `checked_on` | 公式サイトで最後に確かめた日 |
-| `sort_order` | 画面での並び順。小さいほど先 |
+| `sort_order` | 画面での並び順。小さいほど先（カルテでは種類のタブの中でこの順に並ぶ。今は 1〜13。子育ては相談が最初） |
 | `is_published` | 確かめが済んだら true |
 
 ### 直す・確認日を更新する（月に1回の支援制度、年1回の行事）
@@ -107,6 +109,8 @@ Supabase のダッシュボード（https://supabase.com/dashboard/project/ywugk
 | --- | --- |
 | `district_events_chushin_area_required` | 中心市街地なのに `chushin_area` が空、またはほかの地区なのに `chushin_area` が入っている |
 | `support_programs_official_url_check` | URL が `http://` か `https://` で始まっていない |
+| `support_programs_tag_check` | 札が7文字以上か、空白だけ |
+| `support_programs_title_check` | 題が空白だけ（入れないときは NULL のままにする） |
 | `violates foreign key constraint` | `district_id` が4つの id のどれでもない（つづりの間違い） |
 | `null value in column ... violates not-null constraint` | 必ず入れる列が空。`chushin_area`・`participation_note` 以外は空にできない |
 

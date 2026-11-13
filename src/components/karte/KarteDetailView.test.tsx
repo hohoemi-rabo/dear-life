@@ -560,8 +560,8 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
   });
 
   it("出典が未公開なら「データ未取得」、駅のない地区は「地区内に駅はありません。」", async () => {
-    // 防災・公共施設はタブの代わりに箱の中に出す（防災・公共施設のテスト）
-    for (const item of ["childcare", "transport", "population", "support"] as const) {
+    // 防災・公共施設・支援制度はタブの代わりに箱の中に出す（それぞれのテスト）
+    for (const item of ["childcare", "transport", "population"] as const) {
       await open(item, "d=igara&k=1");
       expect(figure()).toHaveTextContent("データ未取得");
       if (item === "transport") {
@@ -572,30 +572,59 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     }
   });
 
-  it("支援制度は種類のタブで絞り、制度名・概要・公式リンク・確認日と、公式で確認する注意書きを出す", async () => {
+  it("支援制度：目的のタブで絞り、札・題・正式な名前・公式ページへのボタンを出す（040 見本）", async () => {
+    const program = (name: string, category: "移住" | "住まい" | "子育て", title: string | null, tag: string | null, url: string, checkedOn = "2026-10-26") => ({
+      name,
+      title,
+      tag,
+      summary: `${name}の概要`,
+      category,
+      officialUrl: url,
+      checkedOn,
+    });
     screenData = {
       ...screenData,
       supportPrograms: [
-        {
-          name: "移住支援金",
-          summary: "東京圏から移住した人への支援金",
-          category: "移住",
-          officialUrl: "https://www.city.iida.lg.jp/x",
-          checkedOn: "2026-10-26",
-        },
-        { name: "子育て応援", summary: "子育ての支援", category: "子育て", officialUrl: "https://www.city.iida.lg.jp/y", checkedOn: "2026-10-26" },
+        program("移住相談（結いターン移住定住推進課）", "移住", "移住のことを、市の窓口に相談する", "相談", "https://www.city.iida.lg.jp/a"),
+        program("移住支援金", "移住", "都市部から移住して働く人への支援金を調べる", "お金", "https://www.city.iida.lg.jp/b", "2026-11-02"),
+        // 題を入れていない制度は、正式な名前を太字にして札なしで出す
+        program("新しい子育ての制度", "子育て", null, null, "https://www.city.iida.lg.jp/c"),
       ],
     };
     await open("support", "d=kanae&k=1");
-    expect(tabNames()).toEqual(["すべて2", "移住1", "子育て1"]);
-    const support = card("支援制度");
-    expect(within(support).getByRole("link", { name: /移住支援金/ })).toHaveAttribute("href", "https://www.city.iida.lg.jp/x");
-    expect(figure()).toHaveTextContent(NOTICES.support);
-    expect(support).toHaveTextContent("2026年10月26日");
-    expect(support).not.toHaveTextContent("対象になります");
+    // 地区ではなく「飯田市全体」の札
+    expect(screen.getByText("飯田市全体")).toBeInTheDocument();
+    expect(tabNames()).toEqual(["移住相談・体験・お金", "子育て妊娠・出産・子育て"]);
+    const panel = figure();
+    expect(panel).toHaveTextContent("移住の支援掲載2件");
+    expect(panel).toHaveTextContent("相談移住のことを、市の窓口に相談する移住相談（結いターン移住定住推進課）");
+    const links = within(panel).getAllByRole("link", { name: /公式ページを見る/ });
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["https://www.city.iida.lg.jp/a", "https://www.city.iida.lg.jp/b"]);
+    expect(links[0]).toHaveAttribute("target", "_blank");
+    expect(panel).not.toHaveTextContent("対象になります");
+
     await choose(/子育て/);
-    expect(figure()).toHaveTextContent("子育ての支援制度（飯田市全体）1件");
-    expect(within(support).queryByRole("link", { name: /移住支援金/ })).toBeNull();
+    expect(figure()).toHaveTextContent("子育ての支援掲載1件新しい子育ての制度公式ページを見る");
+
+    // すべて見る：目的ごとに全部
+    fireEvent.click(screen.getByRole("button", { name: "掲載制度をすべて見る（3件）" }));
+    expect(screen.getByRole("list", { name: "移住の支援" })).toBeInTheDocument();
+    expect(screen.getAllByRole("list", { name: "子育ての支援" })).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "閉じる" }));
+    expect(screen.queryByRole("list", { name: "移住の支援" })).toBeNull();
+
+    // 注意書きと確かめたいことは「申し込む前に確かめたいこと」の箱1つ。この数字から分かること・地図のボタンはない
+    expect(screen.getByRole("heading", { name: "申し込む前に確かめたいこと" })).toBeInTheDocument();
+    expect(screen.queryByText(NOTICES.support)).toBeNull();
+    expect(screen.queryByRole("link", { name: /地図で周辺を確かめる/ })).toBeNull();
+    // 確認日は出典の欄に、古い日〜新しい日で出す
+    expect(screen.getByText("出典・確認日を見る")).toBeInTheDocument();
+    expect(document.body).toHaveTextContent("2026年10月26日〜2026年11月2日（制度ごとに異なる）");
+  });
+
+  it("支援制度が1件もなければ「データ未取得」", async () => {
+    await open("support", "d=kanae&k=1");
+    expect(card("目的から支援制度を探す")).toHaveTextContent("データ未取得");
   });
 });
 
