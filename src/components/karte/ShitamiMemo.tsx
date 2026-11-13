@@ -5,6 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
+import { DistrictPinIcon } from "@/components/illust/DistrictPinIcon";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { DISTRICT_NAMES } from "@/lib/conditions/labels";
@@ -128,7 +129,7 @@ export function ShitamiMemoSection({ conditions, links }: { conditions: Chosen; 
           わが家の下見プラン
         </h2>
         <p className="flex items-center gap-1 rounded-full border border-line bg-kinari px-3 py-1 text-xs font-bold md:ml-auto">
-          <PixelIcon icon="icon-pin" size="sm" />
+          <DistrictPinIcon className="size-4" />
           {DISTRICT_NAMES[conditions.district]}
         </p>
       </div>

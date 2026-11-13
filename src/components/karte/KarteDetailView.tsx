@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { useWideScreen } from "@/components/kurashi/useWideScreen";
 import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
+import { DistrictPinIcon } from "@/components/illust/DistrictPinIcon";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
@@ -122,7 +123,7 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
       {/* PC は見出しの下に地区の札（040 見本 karte-detail-disaster.png。7つの詳細すべて）。スマホは下の条件の帯に地区が出ている */}
       <div className="hidden flex-wrap items-center gap-2 md:flex">
         <p className="flex items-center gap-1.5 rounded-full border border-gold/50 bg-warm-soft px-4 py-1.5 font-bold">
-          <PixelIcon icon="icon-pin" size="sm" />
+          <DistrictPinIcon />
           {/* 支援制度は市全体の制度なので、地区だけの制度と受け取られないように「飯田市全体」（040 見本） */}
           <span className="sr-only">{card === "support" ? "対象：" : "地区："}</span>
           {card === "support" ? "飯田市全体" : DISTRICT_NAMES[conditions.district]}
@@ -136,7 +137,7 @@ function ChosenChips({ card, conditions }: { card: KarteCard; conditions: Chosen
         )}
       </div>
       <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-button bg-pixel-sky/60 px-3 py-1.5 text-xs md:hidden">
-        <PixelIcon icon="icon-pin" size="sm" />
+        <DistrictPinIcon className="size-4" />
         {DISTRICT_NAMES[conditions.district]}
         <span aria-hidden="true" className="text-ink-muted">
           |
@@ -202,7 +203,8 @@ function DetailBody({
 
   const checks = (
       <Box title={texts.checkTitle} inset={card === "housing"}>
-        <div className="flex items-start gap-3">
+        {/* 絵は箇条書き2〜3行と同じくらいの高さにし、箇条書きを絵の真ん中にそろえる（下に空きが出ないように。2026-11-13） */}
+        <div className="flex items-center gap-3">
           {/* 確かめたいことは箇条書きにし、現地で使うものは下見プランに入れる（036。2026-11-10 まさゆきさん：
               押せても残らないチェックの箱と、下見プランのどちらに印を付けるか迷うため。印刷の空欄の箱は残す） */}
           <ul className="flex flex-1 list-disc flex-col gap-2 pl-5">
@@ -214,11 +216,11 @@ function DetailBody({
           <img
             src={propSrc("karte-check", 240)}
             srcSet={propSrcSet("karte-check")}
-            sizes="128px"
+            sizes="96px"
             alt=""
             loading="lazy"
             draggable={false}
-            className="hidden h-auto w-32 shrink-0 select-none sm:block"
+            className="hidden h-auto w-24 shrink-0 select-none sm:block"
           />
         </div>
         {shitamiItem && (
@@ -320,7 +322,7 @@ function Box({ title, inset = false, children }: { title: string; inset?: boolea
   );
 }
 
-// 「数字の根拠を見る」（見本）：出典・集計対象・対象期間・取得日。PC は最初から開き、スマホは閉じておく
+// 出典・対象期間・取得日の欄。7つの詳細とも最初は閉じておく（2026-11-13 まさゆきさん。交通だけ PC で開いていたのをそろえた）
 function Basis({
   rows,
   note,
@@ -332,14 +334,8 @@ function Basis({
   title: string | null;
   icon: "icon-document" | "icon-book";
 }) {
-  const wide = useWideScreen();
-  const [open, setOpen] = useState<boolean | null>(null);
   return (
-    <details
-      open={open ?? (title === null && wide)}
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="group rounded-card border border-line bg-surface shadow-card"
-    >
+    <details className="group rounded-card border border-line bg-surface shadow-card">
       <summary className="flex min-h-tap cursor-pointer list-none items-center gap-2 px-4 py-2 font-bold text-primary [&::-webkit-details-marker]:hidden">
         <PixelIcon icon={icon} size="sm" />
         <h2 className="flex-1">
