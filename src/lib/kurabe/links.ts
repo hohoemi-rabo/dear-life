@@ -5,16 +5,26 @@ import { seasonalHref } from "../kurashi/links.ts";
 import { DISTRICTS } from "../conditions/labels.ts";
 import { KURABE_PATH } from "../site.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
-import { COMPARE_TOPICS, type CompareTopic } from "./compare.ts";
+import { DEFAULT_COMPARE_CITY } from "./city.ts";
+import { COMPARE_TABS, type CompareTab } from "./compare.ts";
 
-// 今見ているタブは URL の t に持つ（くらしの季節 s と同じ。共有・再読み込みで同じタブが開く）。all はすべての項目の一覧。
-// 知らない値・値なしは最初のタブ
+// 今見ているタブは URL の t に持つ（くらしの季節 s と同じ。共有・再読み込みで同じタブが開く）。all はすべての項目の一覧、
+// city は「いまの街と」（041）。知らない値・値なしは最初のタブ
 export const COMPARE_VIEW_PARAM = "t";
-export type CompareView = CompareTopic | "all";
+export type CompareView = CompareTab | "all";
 
 export function parseCompareView(value: string | null): CompareView {
   if (value === "all") return "all";
-  return COMPARE_TOPICS.find((topic) => topic === value) ?? COMPARE_TOPICS[0];
+  return COMPARE_TABS.find((tab) => tab === value) ?? COMPARE_TABS[0];
+}
+
+// 「いまの街と」で比べる都市は URL の m に持つ（041）。地区の比較相手 v とは別にし、タブを行き来しても選んだ都市が残るようにする
+// （2026-11-14 まさゆきさん）。知らない値・値なしは東京23区（ほかの都市がなければ最初の都市）
+export const COMPARE_CITY_PARAM = "m";
+
+export function parseCompareCity(value: string | null, cityIds: readonly string[]): string | null {
+  if (value !== null && cityIds.includes(value)) return value;
+  return cityIds.includes(DEFAULT_COMPARE_CITY) ? DEFAULT_COMPARE_CITY : (cityIds[0] ?? null);
 }
 
 // スマホの比較相手は URL の v に持つ。all は4地区の一覧。

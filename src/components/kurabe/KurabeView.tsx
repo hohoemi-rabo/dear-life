@@ -16,8 +16,19 @@ import { conditionsHref } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import { karteBackHref } from "@/lib/karte/links";
 import type { ScreenData } from "@/lib/data/screen-data";
-import { compareSources, COMPARE_TOPICS, eventSources, type CompareTopic } from "@/lib/kurabe/compare";
-import { COMPARE_TARGET_PARAM, compareViewHref, COMPARE_VIEW_PARAM, parseCompareTarget, parseCompareView, type CompareTarget, type CompareView } from "@/lib/kurabe/links";
+import { compareCityOptions } from "@/lib/kurabe/city";
+import { compareSources, COMPARE_TOPICS, eventSources, type CompareTab } from "@/lib/kurabe/compare";
+import {
+  COMPARE_CITY_PARAM,
+  COMPARE_TARGET_PARAM,
+  compareViewHref,
+  COMPARE_VIEW_PARAM,
+  parseCompareCity,
+  parseCompareTarget,
+  parseCompareView,
+  type CompareTarget,
+  type CompareView,
+} from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH, KURABE_PATH } from "@/lib/site";
@@ -38,13 +49,20 @@ export function KurabeView() {
   const view = parseCompareView(searchParams.get(COMPARE_VIEW_PARAM));
   const hrefFor = (next: CompareView) => compareViewHref(searchParams, next);
   // タブを変えても履歴は増やさず、位置もそのまま（くらしの季節と同じ）
-  const selectTopic = (topic: CompareTopic) => router.replace(hrefFor(topic), { scroll: false });
+  const selectTopic = (topic: CompareTab) => router.replace(hrefFor(topic), { scroll: false });
   const target = parseCompareTarget(searchParams.get(COMPARE_TARGET_PARAM), conditions.district);
   // null は比較相手の指定を外す（既定の相手に戻す）
   const selectTarget = (next: CompareTarget | null) => {
     const params = new URLSearchParams(searchParams);
     if (next === null) params.delete(COMPARE_TARGET_PARAM);
     else params.set(COMPARE_TARGET_PARAM, next);
+    router.replace(`${KURABE_PATH}?${params.toString()}`, { scroll: false });
+  };
+  // いまの街と（041）で比べる都市
+  const cityParam = searchParams.get(COMPARE_CITY_PARAM);
+  const selectCity = (cityId: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set(COMPARE_CITY_PARAM, cityId);
     router.replace(`${KURABE_PATH}?${params.toString()}`, { scroll: false });
   };
   const viewSwitch = (className: string) =>
@@ -75,13 +93,23 @@ export function KurabeView() {
         </div>
         <p className="lg:hidden">選んだ地区と、気になる地区を比較。</p>
         <p className="hidden gap-x-4 lg:flex lg:items-baseline">
-          <span className="font-bold">同じ項目を横に並べて、暮らしの違いを確かめよう。</span>
+          <span className="font-bold">4地区の暮らしや、いまの街との違いを確かめよう。</span>
           <span className="text-sm text-ink-muted">地区の並びは固定です。優劣・おすすめ順ではありません。</span>
         </p>
       </div>
 
       <ScreenDataBoundary fallback={<ScreenSkeleton label="地区くらべを読み込んでいます" />}>
-        <Comparison selected={conditions.district} view={view} hrefFor={hrefFor} onSelect={selectTopic} target={target} onTargetChange={selectTarget} />
+        <Comparison
+          selected={conditions.district}
+          view={view}
+          hrefFor={hrefFor}
+          onSelect={selectTopic}
+          target={target}
+          onTargetChange={selectTarget}
+          cityParam={cityParam}
+          onCityChange={selectCity}
+          conditions={conditions}
+        />
       </ScreenDataBoundary>
 
       {/* スマホの切りかえは「4地区を一覧」。全項目の一覧を URL で開いたときだけ、タブへ戻る道を残す */}
@@ -108,15 +136,25 @@ function Comparison({
   onSelect,
   target,
   onTargetChange,
+  cityParam,
+  onCityChange,
+  conditions,
 }: {
   selected: DistrictId | null;
   view: CompareView;
   hrefFor: (view: CompareView) => string;
-  onSelect: (topic: CompareTopic) => void;
+  onSelect: (topic: CompareTab) => void;
   target: CompareTarget;
   onTargetChange: (target: CompareTarget | null) => void;
+  cityParam: string | null;
+  onCityChange: (cityId: string) => void;
+  conditions: Conditions;
 }) {
   const data = useScreenData();
+  const cityId = parseCompareCity(
+    cityParam,
+    compareCityOptions(data).map((city) => city.id),
+  );
   const districts = data.districtOrder.map((id) => data.districts[id]);
   return (
     <>
@@ -127,7 +165,19 @@ function Comparison({
           <Sources data={data} />
         </>
       ) : (
-        <CompareTopicView data={data} topic={view} selected={selected} hrefFor={hrefFor} onSelect={onSelect} target={target} onTargetChange={onTargetChange} />
+        <CompareTopicView
+          data={data}
+          topic={view}
+          selected={selected}
+          hrefFor={hrefFor}
+          onSelect={onSelect}
+          target={target}
+          onTargetChange={onTargetChange}
+          cityId={cityId}
+          onCityChange={onCityChange}
+          conditions={conditions}
+          erabuHref={conditionsHref(ERABU_PATH, conditions)}
+        />
       )}
     </>
   );

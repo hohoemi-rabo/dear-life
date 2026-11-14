@@ -332,6 +332,6 @@ export const COMPARE_TOPIC_CONTENTS: readonly CompareTopicContent[] = [
     rows: EVENT_ROWS,
     notices: [EVENTS_CREDIT],
     sourcesTitle: "出典・確認日",
-    nextText: "住まいの相場も同じ4地区で比べられます。",
+    nextText: "次は、いまの街と飯田も比べられます。",
   },
 ];

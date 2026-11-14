@@ -106,6 +106,13 @@ const config: Config = {
           "0%, 100%": { boxShadow: "0 0 0 0 rgb(31 110 94 / 0)" },
           "40%": { boxShadow: "0 0 0 4px rgb(31 110 94 / 0.45)" },
         },
+        // 地区くらべ「いまの街と」（041）：家族が左（いまの街）から右（飯田）へ歩いていく。端では消えて、また左から出る
+        "walk-to-iida": {
+          "0%": { opacity: "0", transform: "translateX(-60%)" },
+          "12%": { opacity: "1" },
+          "88%": { opacity: "1" },
+          "100%": { opacity: "0", transform: "translateX(60%)" },
+        },
         // くらしのピン（028）：押せると分かるよう、ゆっくり少しだけ上下にゆれる
         "pin-bob": {
           "0%, 100%": { transform: "translateY(0)" },
@@ -122,6 +129,7 @@ const config: Config = {
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
+        "walk-to-iida": "walk-to-iida 7s linear infinite",
         "district-notice": "district-notice 1500ms ease-out both",
         "card-glow": "card-glow 900ms ease-out both",
       },

@@ -18,7 +18,7 @@ export type SceneTemplateDraft = SceneCondition & {
 const FACILITY_WORDS = /保育園|保育所|幼稚園|こども園|学校|公民館|図書館|病院|診療所|駅|バス停|センター|公園|体育館|集会|会館|運動場/;
 // どの文にも入れないもの：距離の書き方（家からの距離は持たない。6.3）と、地区・行事・便の評価（6.5）
 const DISTANCE_WORDS = /近い|近く|遠い|遠く|歩いて|徒歩|[0-9０-９]+分で/;
-const EVALUATION_WORDS = /便利|不便|暮らしやすい|住みやすい|おすすめ|お勧め|人気|快適|充実|豊富|安心|安全|義務|負担|大変|多い|少ない|にぎやか|静か/;
+export const EVALUATION_WORDS = /便利|不便|暮らしやすい|住みやすい|おすすめ|お勧め|人気|快適|充実|豊富|安心|安全|義務|負担|大変|多い|少ない|にぎやか|静か/;
 
 const SENTENCE_COUNT = { min: 3, max: 5 } as const;
 

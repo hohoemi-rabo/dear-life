@@ -8,6 +8,10 @@ import { trainTrips } from "../karte/train.ts";
 export const COMPARE_TOPICS = ["housing", "school", "transport", "population", "events"] as const;
 export type CompareTopic = (typeof COMPARE_TOPICS)[number];
 
+// タブの並び。4地区の項目のあとに「いまの街と」（041。移住元の都市と飯田をくらべる。4地区の一覧には入れない）
+export const COMPARE_TABS = [...COMPARE_TOPICS, "city"] as const;
+export type CompareTab = (typeof COMPARE_TABS)[number];
+
 // 施設の数の行。表の項目名はカルテのカードの小見出しにそろえる。topic はどのタブに出すか
 export const FACILITY_COUNT_ROWS: readonly {
   id: string;

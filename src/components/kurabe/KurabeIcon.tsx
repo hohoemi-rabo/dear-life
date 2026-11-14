@@ -8,6 +8,9 @@ const PATHS = {
   list: "M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01",
   info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 11v5.5M12 7.5h.01",
   chevron: "m6 9 6 6 6-6",
+  // いまの街と（041 見本 kurabe-city-pc.png）
+  building: "M5 21V5.5A1.5 1.5 0 0 1 6.5 4h11A1.5 1.5 0 0 1 19 5.5V21M3 21h18M9 8h.01M15 8h.01M9 12h.01M15 12h.01M10 21v-4.5h4V21",
+  arrow: "M4 12h15M13 6l6 6-6 6",
 } as const;
 
 export type KurabeIconName = keyof typeof PATHS;

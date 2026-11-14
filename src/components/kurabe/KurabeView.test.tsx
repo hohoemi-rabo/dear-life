@@ -2,7 +2,16 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DistrictData, ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
-import { availableFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture, tenureFixture } from "@/test/screen-data-fixture";
+import {
+  availableFixture,
+  compareCityFixture,
+  compareMetricFixture,
+  MARKET_SOURCE,
+  marketFixture,
+  screenDataFixture,
+  sourceFixture,
+  tenureFixture,
+} from "@/test/screen-data-fixture";
 import { KurabeView } from "./KurabeView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -275,6 +284,9 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
     expect(screen.getByRole("link", { name: /学校・子育てを比べる/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=school");
     url.set("/kurabe?d=kanae&t=events");
     await act(async () => {});
+    expect(screen.getByRole("link", { name: /いまの街とくらべる/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=city");
+    url.set("/kurabe?d=kanae&t=city");
+    await act(async () => {});
     expect(screen.getByRole("link", { name: /住まいを比べる/ })).toHaveAttribute("href", "/kurabe?d=kanae&t=housing");
   });
 
@@ -290,6 +302,74 @@ describe("KurabeView：項目をタブで切りかえる（028 見本）", () =>
   it("知らない t は最初のタブで開く", async () => {
     await open("t=unknown&d=kanae");
     expect(tab("住まい")).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("KurabeView：いまの街と（041）", () => {
+  const JMA = sourceFixture("jma_climate_normals", { name: "過去の気象データ検索 平年値（1991〜2020年）", publisher: "気象庁" });
+  const pcRow = (label: string) => {
+    const header = screen.getAllByRole("rowheader", { name: label }).find((cell) => cell.closest("table")?.querySelector("caption")?.textContent?.startsWith("いまの街と飯田"));
+    return header?.closest("tr") as HTMLTableRowElement;
+  };
+
+  beforeEach(() => {
+    screenData = {
+      ...screenDataFixture({ kanae: KANAE }),
+      compareCities: [
+        compareCityFixture("tokyo", {
+          metrics: { precip_annual: compareMetricFixture(1598.2, "mm", JMA) },
+          market: { land: marketFixture(520000, 3500), house_built_within_20y: { status: "none", source: MARKET_SOURCE } },
+        }),
+        compareCityFixture("yokohama"),
+        compareCityFixture("iida", { metrics: { precip_annual: compareMetricFixture(1612.5, "mm", JMA, { checkedOn: "2026-11-15" }) } }),
+      ],
+    };
+  });
+
+  it("6枚目のタブで開き、左にいまの街（初期は東京23区）、右に飯田市を並べる。矢印のほかに差や評価は出さない", async () => {
+    await open("t=city&d=kanae");
+    expect(screen.getByRole("tab", { name: "いまの街と" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("heading", { name: "いまの街と、くらべる" })).toBeInTheDocument();
+    expect(cells(pcRow("1年の降水量"))).toEqual(["1,598.2mm1991〜2020年", "", "1,612.5mm1991〜2020年"]);
+    expect(cells(pcRow("最深積雪"))).toEqual(["データ未取得", "", "データ未取得"]);
+    expect(within(screen.getByRole("tabpanel")).queryByText(/多い|少ない|安全|安心|おすすめ|便利/)).toBeNull();
+    expect(screen.getByText(NOTICES.compareNotJudgement)).toBeInTheDocument();
+    // スマホの「4地区を一覧」は出さない
+    expect(screen.queryByRole("button", { name: "4地区を一覧" })).toBeNull();
+  });
+
+  it("住まいの行だけ、飯田側は選んだ地区の相場（取引〇件・参考値）。都市の相場は取り終えるまでデータ未取得", async () => {
+    await open("t=city&d=kanae");
+    expect(cells(pcRow("土地（宅地）の m² 単価"))).toEqual(["52万円/ m²取引3,500件・参考値", "", "2.4万円/ m²取引96件・参考値"]);
+    expect(cells(pcRow("中古戸建て（築20年以内）"))).toEqual(["該当なし", "", "3,350万円取引8件・参考値"]);
+    expect(within(screen.getByRole("table", { name: "いまの街と飯田：住まい" })).getByRole("columnheader", { name: "鼎（地区）" })).toBeInTheDocument();
+  });
+
+  it("地区を選んでいなければ、住まいの飯田側は「地区を選ぶと出ます」とえらぶへの案内", async () => {
+    await open("t=city");
+    expect(within(pcRow("土地（宅地）の m² 単価")).getByText("地区を選ぶと出ます")).toBeInTheDocument();
+    expect(within(pcRow("土地（宅地）の m² 単価")).getByRole("link", { name: "地区をえらぶ" })).toHaveAttribute("href", expect.stringMatching(/^\/erabu/));
+  });
+
+  it("都市は m に持ち、地区の比較相手 v とは別。知らない値は東京23区", async () => {
+    await open("t=city&d=kanae&v=igara&m=yokohama");
+    const [select] = screen.getAllByRole("combobox", { name: "いまの街" });
+    expect(select).toHaveValue("yokohama");
+    fireEvent.change(select, { target: { value: "tokyo" } });
+    await act(async () => {});
+    expect(url.query).toBe("t=city&d=kanae&v=igara&m=tokyo");
+    url.set("/kurabe?t=city&d=kanae&m=sapporo");
+    await act(async () => {});
+    expect(screen.getAllByRole("combobox", { name: "いまの街" })[0]).toHaveValue("tokyo");
+    // 飯田市は選べない
+    expect(within(select).queryByRole("option", { name: "飯田市" })).toBeNull();
+  });
+
+  it("出典は表に出した値のものだけを、手で入れた値は確認日つきで出す", async () => {
+    await open("t=city&d=kanae");
+    const sources = screen.getByText(/出典・対象期間・確認日/).closest("details") as HTMLElement;
+    expect(within(sources).getByText(/気象庁「過去の気象データ検索 平年値（1991〜2020年）」/)).toBeInTheDocument();
+    expect(within(sources).getByText(/2026-11-15|2026年11月15日/)).toBeInTheDocument();
   });
 });
 

@@ -5,36 +5,55 @@ import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { ButtonLink } from "@/components/ui/Button";
 import { SourceNote } from "@/components/ui/SourceNote";
 import type { DistrictData, ScreenData } from "@/lib/data/screen-data";
-import { compareSources, COMPARE_TOPICS, eventSources, sourcesSummary, type CompareTopic } from "@/lib/kurabe/compare";
+import type { Conditions } from "@/lib/conditions/model";
+import { compareSources, COMPARE_TABS, eventSources, sourcesSummary, type CompareTab } from "@/lib/kurabe/compare";
 import type { CompareTarget, CompareView } from "@/lib/kurabe/links";
 import { ABOUT_DATA_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
+import { CityCompareView } from "./CityCompareView";
 import { RowLabel, RowStack, SelectedMark } from "./CompareLayouts";
 import { CompareModeSwitch, DistrictPicker, RowPair } from "./ComparePair";
-import { KurabeIcon } from "./KurabeIcon";
+import { KurabeIcon, type KurabeIconName } from "./KurabeIcon";
 import { COMPARE_TOPIC_CONTENTS, type CompareTopicContent } from "./rows";
 
 type Props = {
   data: ScreenData;
-  topic: CompareTopic;
+  topic: CompareTab;
   selected: DistrictId | null;
   hrefFor: (view: CompareView) => string;
-  onSelect: (topic: CompareTopic) => void;
+  onSelect: (topic: CompareTab) => void;
   target: CompareTarget;
   onTargetChange: (target: CompareTarget | null) => void;
+  // いまの街と（041）
+  cityId: string | null;
+  onCityChange: (cityId: string) => void;
+  conditions: Pick<Conditions, "adults" | "children" | "parent">;
+  erabuHref: string;
 };
 
 const PANEL_ID = "kurabe-topic-panel";
-const tabId = (topic: CompareTopic) => `kurabe-tab-${topic}`;
+const tabId = (topic: CompareTab) => `kurabe-tab-${topic}`;
+
+type TabItem = { id: CompareTab; tabLabel: string; tabLabelRest?: string; icon: KurabeIconName; nextText: string };
+
+// タブの並び。4地区の5つのあとに「いまの街と」（041 見本 kurabe-city-pc.png）。下の帯の「次のタブ」もこの順に回る
+const TAB_ITEMS: readonly TabItem[] = COMPARE_TABS.map(
+  (id): TabItem =>
+    id === "city"
+      ? { id, tabLabel: "いまの街と", icon: "building", nextText: "住まいの相場も同じ4地区で比べられます。" }
+      : (COMPARE_TOPIC_CONTENTS.find((content) => content.id === id) as CompareTopicContent),
+);
+
+function nextButtonLabel(item: TabItem): string {
+  return item.id === "city" ? "いまの街とくらべる" : `${item.tabLabel}${item.tabLabelRest ?? ""}を比べる`;
+}
 
 // 比べたい項目をタブで切りかえる（PC の見本 docs/design/kurabe-pc.png）。長い一覧を読み続けなくてよいように、一度に1つだけ出す。
 // スマホ（docs/design/kurabe-mobile.png）はタブを横に流し、選んだ地区と比べる地区の2つを左右に並べる。「4地区を一覧」では項目ごとに4地区を縦に並べる（029）
-export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, target, onTargetChange }: Props) {
+export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, target, onTargetChange, cityId, onCityChange, conditions, erabuHref }: Props) {
   const districts = data.districtOrder.map((id) => data.districts[id]);
-  const content = COMPARE_TOPIC_CONTENTS.find((item) => item.id === topic) ?? COMPARE_TOPIC_CONTENTS[0];
-  const next = COMPARE_TOPIC_CONTENTS[(COMPARE_TOPICS.indexOf(topic) + 1) % COMPARE_TOPICS.length];
-  const selectedDistrict = selected === null ? null : data.districts[selected];
-  const targetDistrict = target === "all" ? null : data.districts[target];
+  const activeTab = TAB_ITEMS.find((item) => item.id === topic) ?? TAB_ITEMS[0];
+  const next = TAB_ITEMS[(TAB_ITEMS.indexOf(activeTab) + 1) % TAB_ITEMS.length];
   const tablist = useRef<HTMLDivElement>(null);
   // スマホで今のタブが横に隠れないように、見える位置まで流す（帯のボタンや URL で後ろのタブを開いたとき）
   useEffect(() => {
@@ -45,15 +64,15 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
   return (
     <div className="flex flex-col gap-3">
       <p className="hidden lg:block">比べたい項目を選んでください。</p>
-      {selected !== null && <CompareModeSwitch target={target} onChange={onTargetChange} />}
+      {selected !== null && topic !== "city" && <CompareModeSwitch target={target} onChange={onTargetChange} />}
       <div className="relative -mx-4 lg:mx-0">
       <div
         ref={tablist}
         role="tablist"
         aria-label="比べたい項目"
-        className="flex gap-2 overflow-x-auto pb-1 pl-4 pr-14 [scrollbar-width:none] lg:grid lg:grid-cols-5 lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0"
+        className="flex gap-2 overflow-x-auto pb-1 pl-4 pr-14 [scrollbar-width:none] lg:grid lg:grid-cols-6 lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0"
       >
-        {COMPARE_TOPIC_CONTENTS.map((item) => {
+        {TAB_ITEMS.map((item) => {
           const current = item.id === topic;
           return (
             <button
@@ -89,6 +108,51 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
       </button>
       </div>
 
+      {topic === "city" ? (
+        <CityCompareView
+          data={data}
+          district={selected === null ? null : data.districts[selected]}
+          cityId={cityId}
+          onCityChange={onCityChange}
+          conditions={conditions}
+          erabuHref={erabuHref}
+          panelId={PANEL_ID}
+          tabId={tabId("city")}
+        />
+      ) : (
+        <TopicPanel content={activeTab as CompareTopicContent} data={data} districts={districts} selected={selected} target={target} onTargetChange={onTargetChange} />
+      )}
+
+      <div className="flex flex-col items-stretch lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:px-6 lg:py-2 lg:shadow-card">
+        <p className="hidden lg:block">{activeTab.nextText}</p>
+        <ButtonLink href={hrefFor(next.id)} variant="secondary" className="lg:rounded-full">
+          {nextButtonLabel(next)}
+          <span aria-hidden="true">→</span>
+        </ButtonLink>
+      </div>
+    </div>
+  );
+}
+
+// 4地区の項目のタブの中身
+function TopicPanel({
+  content,
+  data,
+  districts,
+  selected,
+  target,
+  onTargetChange,
+}: {
+  content: CompareTopicContent;
+  data: ScreenData;
+  districts: readonly DistrictData[];
+  selected: DistrictId | null;
+  target: CompareTarget;
+  onTargetChange: (target: CompareTarget | null) => void;
+}) {
+  const selectedDistrict = selected === null ? null : data.districts[selected];
+  const targetDistrict = target === "all" ? null : data.districts[target];
+  return (
       <section
         id={PANEL_ID}
         role="tabpanel"
@@ -135,16 +199,6 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
         )}
         <TopicSources content={content} data={data} />
       </section>
-
-      <div className="flex flex-col items-stretch lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:px-6 lg:py-2 lg:shadow-card">
-        <p className="hidden lg:block">{content.nextText}</p>
-        <ButtonLink href={hrefFor(next.id)} variant="secondary" className="lg:rounded-full">
-          {next.tabLabel}
-          {next.tabLabelRest}を比べる
-          <span aria-hidden="true">→</span>
-        </ButtonLink>
-      </div>
-    </div>
   );
 }
 
