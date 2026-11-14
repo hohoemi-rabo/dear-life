@@ -39,7 +39,19 @@ type Props = {
   tabId: string;
 };
 
-const GROUP_SUBTITLES: Partial<Record<CityCompareGroup["id"], string>> = { weather: "気象庁 平年値（1991〜2020年）" };
+export const GROUP_SUBTITLES: Partial<Record<CityCompareGroup["id"], string>> = { weather: "気象庁 平年値（1991〜2020年）" };
+
+// 表の下の注意書き（画面と印刷で同じ）。水害は対象期間を後ろに足す
+export function cityNotices(groups: readonly CityCompareGroup[]): string[] {
+  const flood = floodPeriod(groups);
+  return [
+    NOTICES.compareWeather,
+    flood ? `${NOTICES.compareFlood}対象期間：${flood}。` : NOTICES.compareFlood,
+    NOTICES.compareHousing,
+    NOTICES.market,
+    NOTICES.compareNotJudgement,
+  ];
+}
 
 export function CityCompareView({ data, district, cityId, onCityChange, conditions, erabuHref, panelId, tabId }: Props) {
   const options = compareCityOptions(data);
@@ -47,14 +59,7 @@ export function CityCompareView({ data, district, cityId, onCityChange, conditio
   const groups = cityCompareGroups(city, findIida(data), district);
   const cityName = city?.name ?? "いまの街";
   const districtLabel = district ? `${district.name}（地区）` : null;
-  const flood = floodPeriod(groups);
-  const notices = [
-    NOTICES.compareWeather,
-    flood ? `${NOTICES.compareFlood}対象期間：${flood}。` : NOTICES.compareFlood,
-    NOTICES.compareHousing,
-    NOTICES.market,
-    NOTICES.compareNotJudgement,
-  ];
+  const notices = cityNotices(groups);
   const picker = (className: string, id: string) =>
     options.length > 0 && (
       <span className={`relative inline-block w-full max-w-[11rem] ${className}`}>
@@ -241,12 +246,13 @@ function MobileRow({ label, city, iida, cityName, iidaName }: { label: string; c
 }
 
 type CellSize = "large" | "pair";
+export type { CellSize as CityCellSize };
 
-function cityCell(row: CityMetricRow | CityMarketRow, size: CellSize): ReactNode {
+export function cityCell(row: CityMetricRow | CityMarketRow, size: CellSize): ReactNode {
   return row.kind === "metric" ? <MetricCell state={row.city} size={size} /> : <MarketCell state={row.city} land={row.key === "land"} size={size} />;
 }
 
-function iidaCell(row: CityMetricRow | CityMarketRow, size: CellSize, erabuHref: string): ReactNode {
+export function iidaCell(row: CityMetricRow | CityMarketRow, size: CellSize, erabuHref: string): ReactNode {
   if (row.kind === "metric") return <MetricCell state={row.iida} size={size} />;
   if (row.district === null) {
     return (

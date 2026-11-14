@@ -400,12 +400,12 @@ describe("KurabeView：印刷（023）", () => {
     window.print = vi.fn();
   });
 
-  it("窓は5項目すべてにチェックを入れて開き、外した項目は紙に出さない。紙はどの項目も4地区を並べる", async () => {
-    await open("d=kanae&a=2&k=1&h=new");
+  it("窓は5項目と「いまの街と」すべてにチェックを入れて開き、外した項目は紙に出さない。紙は4地区の項目を4地区で、いまの街とは選んだ都市と飯田で並べる", async () => {
+    await open("d=kanae&a=2&k=1&h=new&m=yokohama");
     fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
     const sheet = within(screen.getByRole("dialog"));
     const boxes = sheet.getAllByRole("checkbox") as HTMLInputElement[];
-    expect(boxes.map((box) => box.labels?.[0].textContent)).toEqual(["住まい", "学校・子育て", "交通・防災・施設", "人口", "季節の行事"]);
+    expect(boxes.map((box) => box.labels?.[0].textContent)).toEqual(["住まい", "学校・子育て", "交通・防災・施設", "人口", "季節の行事", "いまの街と"]);
     expect(boxes.every((box) => box.checked)).toBe(true);
     fireEvent.click(sheet.getByRole("checkbox", { name: "季節の行事" }));
     await act(async () => {
@@ -414,10 +414,12 @@ describe("KurabeView：印刷（023）", () => {
     expect(window.print).toHaveBeenCalledTimes(1);
     const paper = within(document.querySelector("[data-print-document]") as HTMLElement);
     const tables = paper.getAllByRole("table");
-    expect(tables).toHaveLength(4);
-    for (const table of tables) {
+    expect(tables).toHaveLength(5);
+    for (const table of tables.slice(0, 4)) {
       expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["項目", "上郷", "鼎選んだ地区", "伊賀良", "中心市街地"]);
     }
+    expect(within(tables[4]).getByRole("columnheader", { name: "いまの街：横浜市" })).toBeInTheDocument();
+    expect(within(tables[4]).getByRole("columnheader", { name: "鼎（地区）" })).toBeInTheDocument();
     expect(paper.queryByRole("heading", { name: "季節の行事" })).toBeNull();
     expect(paper.getByText(/地区：鼎/)).toBeInTheDocument();
   });

@@ -88,7 +88,7 @@ export function KurabeView() {
           <div className="flex shrink-0 items-center gap-2">
             {viewSwitch("hidden shrink-0 border lg:inline-flex")}
             {/* 見出しの右上の「印刷する」（023） */}
-            <KurabePrintButton conditions={conditions} />
+            <KurabePrintButton conditions={conditions} cityParam={cityParam} />
           </div>
         </div>
         <p className="lg:hidden">選んだ地区と、気になる地区を比較。</p>
