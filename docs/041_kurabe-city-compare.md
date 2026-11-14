@@ -54,20 +54,21 @@
 - [×] テスト・lint・typecheck・本番ビルドを通す（92ファイル・1013件）
 - [×] `docs/SPEC.md` を更新し、まさゆきさんの手作業のチェックリストを出す
 - [×] 「作ったときに決めたこと」の確認待ちの4つを決める（まさゆきさん。2026-11-14 に4つとも OK）
-- [ ] main に push して画面を公開し、そのあとマイグレーション5つを本番に当て、定期取得 Worker を公開する（下の「まさゆきさんの手作業」の順）
+- [×] main に push して画面を公開し、そのあとマイグレーション5つを本番に当てる（2026-11-14。当てたあと4地区の相場12行が前と同じこと、`screen_data()` の都市以外の部分が前と同じ中身であることを確かめた）
+- [ ] 定期取得 Worker を公開する（`! npm run ingest:deploy`。まさゆきさん）
 - [ ] 気象・水害・人口の値を CSV に入れる（まさゆきさん）
 - [ ] 本番で見て確かめる（まさゆきさん）
 
 ## 作ったもの（2026-11-14）
 
-- テーブル：`compare_cities`・`compare_city_stats`・`compare_city_codes`（`20261114100000_compare_cities.sql`）、`compare_city_transactions`・`compare_city_fetches`・`compare_city_market_stats` とビュー `market_samples`（`20261114140000_compare_city_market.sql`）
+- テーブル：`compare_cities`・`compare_city_stats`・`compare_city_codes`（`20261114143547_compare_cities.sql`）、`compare_city_transactions`・`compare_city_fetches`・`compare_city_market_stats` とビュー `market_samples`（`20261114143751_compare_city_market.sql`）
   - 相場の計算に入れる取引の決まり（除外・地区なしを外す・土地の㎡単価の補い方・中古戸建ての用途と築年数）は、地区と都市で同じビュー `market_samples` を読む。`refresh_market_stats` もこのビューを読むように書きかえた（4地区の12行の結果は前と同じ。既存のテストで確認）
   - 都市の相場は、全部のコード×年を取り終えた都市だけ行を作る（一部の区だけの値を出さない）
 - CSV：`data/compare/cities.csv`（7都市）・`city_codes.csv`（83コード。総務省「全国地方公共団体コード」令和6年1月1日版から）・`stats.csv`（49行、値は空。先頭に値の取り方）。`npm run compare:sql` が `*_compare_data.sql` を書く。指標の正は `src/lib/compare-city/metrics.ts`
 - Worker：`workers/ingest/src/jobs/city-transactions.ts`（job `city_transactions`。`transactions` のあとに動く）
   - XIT001 は市のコード（14100）に「検索結果がありません」を返した（2026-11-14）。区のコード（鶴見区 14101）は1四半期で362件（そのうち土地・戸建て156件）
   - 1回の実行で XIT001 は150回まで。初回は 83コード×6年＝498回なので4日。取り終えるまで `ingest_runs.progress` に `{ period_to, fetched, remaining }`
-- RPC：`screen_data()` に `compare_cities`（`20261114150000_screen_data_compare_cities.sql`）。画面は `src/lib/data/screen-data.ts` の `compareCities`
+- RPC：`screen_data()` に `compare_cities`（`20261114143853_screen_data_compare_cities.sql`）。画面は `src/lib/data/screen-data.ts` の `compareCities`
 - 画面：`src/components/kurabe/CityCompareView.tsx`、中身の組み立ては `src/lib/kurabe/city.ts`、都市は URL の `m`（`src/lib/kurabe/links.ts`）。防災カルテは `src/components/karte/RainWindCard.tsx`。夏の場面の差し込み `{飯田の大雨の日数}`（`src/lib/scenes/placeholders.ts`）
 - 画面の写真：`~/dear-life-screenshots/2026-11-14-041-city/`（PC 地区あり・PC 地区なし・スマホ。値は空の状態）
 
