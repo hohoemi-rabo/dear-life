@@ -1,0 +1,67 @@
+# 地区くらべ「いまの街と」（041）の値。まさゆきさんが「値」「対象期間」「確認日」（と必要なら「備考」）を手で入れ、npm run compare:sql で取り込む
+# 値が空の行は画面で「データ未取得」になる。値を入れたら、対象期間と確認日（2026-11-14 の形）も必ず入れる。数字にカンマは付けない
+# 都市名・指標名・単位は目印（compare:sql が正しいかを確かめる）。出典は指標ごとに決まっているので書かなくてよい
+#
+# ■ 雨・風・雪（precip_annual・rain30_days・wind10_days・snow_depth_max）
+#   気象庁「過去の気象データ検索」https://www.data.jma.go.jp/stats/etrn/index.php → 都道府県 → 地点（気象官署：cities.csv の「気象官署」）
+#   → 「平年値（年・月ごとの値）」を表示し、「年」の行の値を入れる。対象期間は「1991〜2020年」
+#   1年の降水量＝降水量の合計（mm）、日降水量30mm以上の日数（日）、日最大風速10m/s以上の日数（日）、最深積雪（cm）
+#
+# ■ 水害の被害（flood_damage_10y）
+#   e-Stat「水害統計調査」https://www.e-stat.go.jp/stat-search/files?toukei=00600590 → 年ごと → 表-25「水害原因別市区町村別一般資産等被害額」
+#   その市の「合計」（千円）を直近10年分足し、10 で割って万円にする。対象期間は「2014〜2023年」のように書く
+#   東京23区：表に「特別区部」の行があればその値、なければ23区の合計。どちらにしたかを備考に書く。政令市は市の行（区の合計でもよい。どちらかを備考に）
+#
+# ■ 人口（pop_density・under15_ratio）
+#   e-Stat「令和2年国勢調査 人口等基本集計」https://www.e-stat.go.jp/stat-search/files?toukei=00200521&tstat=000001136464
+#   人口密度（人/km²）と、15歳未満の人口÷総数×100（%。年齢不詳を除くかどうかを備考に）。対象期間は「2020年10月1日現在」
+city_id,都市名,metric_key,指標名,値,単位,対象期間,確認日,備考
+tokyo,東京23区,precip_annual,1年の降水量,,mm,,,
+tokyo,東京23区,rain30_days,日降水量30mm以上の日数,,日/年,,,
+tokyo,東京23区,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+tokyo,東京23区,snow_depth_max,最深積雪,,cm,,,
+tokyo,東京23区,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+tokyo,東京23区,pop_density,人口密度,,人/km²,,,
+tokyo,東京23区,under15_ratio,15歳未満の割合,,%,,,
+yokohama,横浜市,precip_annual,1年の降水量,,mm,,,
+yokohama,横浜市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+yokohama,横浜市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+yokohama,横浜市,snow_depth_max,最深積雪,,cm,,,
+yokohama,横浜市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+yokohama,横浜市,pop_density,人口密度,,人/km²,,,
+yokohama,横浜市,under15_ratio,15歳未満の割合,,%,,,
+nagoya,名古屋市,precip_annual,1年の降水量,,mm,,,
+nagoya,名古屋市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+nagoya,名古屋市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+nagoya,名古屋市,snow_depth_max,最深積雪,,cm,,,
+nagoya,名古屋市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+nagoya,名古屋市,pop_density,人口密度,,人/km²,,,
+nagoya,名古屋市,under15_ratio,15歳未満の割合,,%,,,
+osaka,大阪市,precip_annual,1年の降水量,,mm,,,
+osaka,大阪市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+osaka,大阪市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+osaka,大阪市,snow_depth_max,最深積雪,,cm,,,
+osaka,大阪市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+osaka,大阪市,pop_density,人口密度,,人/km²,,,
+osaka,大阪市,under15_ratio,15歳未満の割合,,%,,,
+nagano,長野市,precip_annual,1年の降水量,,mm,,,
+nagano,長野市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+nagano,長野市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+nagano,長野市,snow_depth_max,最深積雪,,cm,,,
+nagano,長野市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+nagano,長野市,pop_density,人口密度,,人/km²,,,
+nagano,長野市,under15_ratio,15歳未満の割合,,%,,,
+matsumoto,松本市,precip_annual,1年の降水量,,mm,,,
+matsumoto,松本市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+matsumoto,松本市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+matsumoto,松本市,snow_depth_max,最深積雪,,cm,,,
+matsumoto,松本市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+matsumoto,松本市,pop_density,人口密度,,人/km²,,,
+matsumoto,松本市,under15_ratio,15歳未満の割合,,%,,,
+iida,飯田市,precip_annual,1年の降水量,,mm,,,
+iida,飯田市,rain30_days,日降水量30mm以上の日数,,日/年,,,
+iida,飯田市,wind10_days,日最大風速10m/s以上の日数,,日/年,,,
+iida,飯田市,snow_depth_max,最深積雪,,cm,,,
+iida,飯田市,flood_damage_10y,住まいや店の水害被害額,,万円,,,
+iida,飯田市,pop_density,人口密度,,人/km²,,,
+iida,飯田市,under15_ratio,15歳未満の割合,,%,,,

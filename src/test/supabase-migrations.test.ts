@@ -524,6 +524,15 @@ describe("いまの街と（041）", () => {
     await expect(run("postgres", insertCities, "insert into compare_city_codes (city_id, reinfolib_code) values ('test_open', '1410')")).rejects.toThrow(/check constraint/);
   });
 
+  it("CSV の7都市・83の区市のコード・49行の値（まだ空）が入っている", async () => {
+    const [counts] = await run<{ cities: number; codes: number; stats: number; filled: number }>(
+      "postgres",
+      `select (select count(*)::int from compare_cities) as cities, (select count(*)::int from compare_city_codes) as codes,
+         (select count(*)::int from compare_city_stats) as stats, (select count(value)::int from compare_city_stats) as filled`,
+    );
+    expect(counts).toEqual({ cities: 7, codes: 83, stats: 49, filled: 0 });
+  });
+
   it("anon・authenticated は都市の行も値も書きかえられない", async () => {
     await expect(run("anon", insertCities)).rejects.toThrow(/permission denied/);
     await expect(run("authenticated", "select * from compare_cities")).rejects.toThrow(/permission denied/);
