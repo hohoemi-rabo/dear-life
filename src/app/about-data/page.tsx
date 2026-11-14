@@ -80,6 +80,9 @@ export default function AboutDataPage() {
           <li>「中央値」は、値段を安い順に並べたときにちょうど真ん中に来る値です。極端に高い・安い取引に引っぱられにくい値です。</li>
           <li>すべての値に、もとにした取引の件数を「取引〇件・参考値」の形で付けています。</li>
         </ol>
+        <p>
+          地区くらべの「いまの街と」で並べる都市（東京23区・横浜市・名古屋市・大阪市・長野市・松本市）の相場も、同じ不動産情報ライブラリの取引から、飯田の地区と同じ対象期間・同じ除外・同じ分け方で中央値を出しています。東京23区と政令市は、すべての区の取引を合わせた値です。すべての区の取引を取り込み終えるまでは「データ未取得」と出します。
+        </p>
       </Section>
 
       <Section id="about-sources" title="出典">
@@ -92,6 +95,14 @@ export default function AboutDataPage() {
 
       <Section id="about-manual" title="手でまとめた情報">
         <ManualDataList />
+        <section aria-labelledby="about-compare-cities" className="flex flex-col gap-2">
+          <h3 id="about-compare-cities" className="font-bold">
+            いまの街とくらべる値（気象・水害・人口）
+          </h3>
+          <p>
+            地区くらべの「いまの街と」と防災カルテに出す気象の平年値（気象庁）、水害の被害額（国土交通省 水害統計調査）、人口密度と15歳未満の割合（令和2年国勢調査）は、それぞれの統計の表から運営者が手で書き写しています。値ごとに対象期間と確認日を付け、まだ書き写していない値は「データ未取得」と出します。
+          </p>
+        </section>
         <section aria-labelledby="about-scenes" className="flex flex-col gap-2">
           <h3 id="about-scenes" className="font-bold">
             くらしの場面の文章
