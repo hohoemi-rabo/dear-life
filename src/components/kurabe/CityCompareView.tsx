@@ -84,38 +84,43 @@ export function CityCompareView({ data, district, cityId, onCityChange, conditio
       id={panelId}
       role="tabpanel"
       aria-labelledby={tabId}
-      className="flex flex-col gap-3 lg:gap-4 lg:rounded-card lg:border lg:border-line lg:bg-surface lg:p-4 lg:shadow-card"
+      className="flex flex-col gap-3 rounded-card border border-line bg-surface p-2 shadow-card lg:gap-4 lg:p-4"
     >
       <div className="flex items-center gap-2 px-1 lg:gap-3 lg:px-2">
-        <KurabeIcon name="building" className="size-7 text-primary lg:size-9" />
-        <h2 className="text-xl font-extrabold lg:text-3xl">いまの街と、くらべる</h2>
+        <KurabeIcon name="building" className="size-6 text-primary min-[400px]:size-7 lg:size-9" />
+        <h2 className="flex-1 text-lg font-extrabold min-[400px]:text-xl lg:text-3xl">いまの街と、くらべる</h2>
+        {/* スマホは見出しの右に小さく（s1.png の並び）。PC は下の帯 */}
+        <span aria-hidden="true" className="flex items-end gap-1 lg:hidden">
+          <FamilyRow conditions={conditions} fatherHeight={32} pose="walk" lazy />
+          <KurabeIcon name="arrow" className="mb-1 size-6 text-primary" />
+        </span>
       </div>
-      <WalkingStrip conditions={conditions} />
+      <div className="hidden lg:block">
+        <WalkingStrip conditions={conditions} />
+      </div>
 
-      {/* スマホ：上に残る「いまの街｜飯田」の札（地区の「2地区で比較」と同じ形） */}
-      <div className="sticky top-0 z-10 grid grid-cols-2 overflow-hidden rounded-card border border-line bg-surface shadow-card lg:hidden">
-        <div className="flex flex-col items-center gap-1 px-2 py-2">
-          <label htmlFor="kurabe-city-mobile" className="text-xs font-bold text-ink-muted">
+      {/* スマホ：上に残る「いまの街 → 飯田市」の札（2026-11-15 まさゆきさん s1.png の並び） */}
+      <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-center rounded-card bg-kinari-deep px-2 py-2 shadow-card lg:hidden">
+        <div className="flex flex-col items-center gap-1">
+          <label htmlFor="kurabe-city-mobile" className="text-lg font-extrabold">
             いまの街
           </label>
           {picker("", "kurabe-city-mobile")}
         </div>
-        <div className="flex flex-col items-center justify-center gap-0.5 border-l border-line px-2 py-2">
-          <span className="text-xs font-bold text-ink-muted">飯田</span>
-          <span className="text-xl font-extrabold">飯田市</span>
-        </div>
+        <KurabeIcon name="arrow" className="mx-auto size-6 text-primary" />
+        <span className="text-center text-xl font-extrabold">飯田市</span>
       </div>
       <div className="flex flex-col gap-3 lg:hidden">
         {groups.map((group) => (
-          <section key={group.id} aria-labelledby={`city-group-${group.id}-mobile`} className="flex flex-col gap-1 rounded-card border border-line bg-surface p-1">
-            <h3 id={`city-group-${group.id}-mobile`} className="flex flex-wrap items-baseline gap-x-3 rounded-md bg-primary-soft px-2 py-1.5 text-lg font-extrabold text-primary">
+          <section key={group.id} aria-labelledby={`city-group-${group.id}-mobile`} className="flex flex-col overflow-hidden rounded-card border border-line bg-surface">
+            <h3 id={`city-group-${group.id}-mobile`} className="flex flex-wrap items-baseline gap-x-3 bg-primary-soft px-3 py-1.5 text-lg font-extrabold text-primary">
               {group.title}
               {GROUP_SUBTITLES[group.id] && <span className="text-xs font-normal text-ink-muted">{GROUP_SUBTITLES[group.id]}</span>}
             </h3>
             {group.id === "housing" && (
-              <p className="grid grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)] px-1.5 text-center text-sm font-bold">
+              <p className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-center bg-kinari-deep px-2 py-1.5 text-center font-extrabold">
                 <span>{cityName}</span>
-                <span aria-hidden="true" />
+                <KurabeIcon name="arrow" className="mx-auto size-5 text-primary" />
                 <span>{districtLabel ?? "飯田の地区"}</span>
               </p>
             )}
@@ -228,15 +233,15 @@ function WalkingStrip({ conditions }: { conditions: Pick<Conditions, "adults" | 
 
 function MobileRow({ label, city, iida, cityName, iidaName }: { label: string; city: ReactNode; iida: ReactNode; cityName: string; iidaName: string }) {
   return (
-    <section aria-label={label} className="flex flex-col pt-1">
-      <h4 className="rounded-md bg-kinari-deep px-2 py-1 font-bold">{label}</h4>
-      <dl className="grid grid-cols-[minmax(0,1fr)_1.5rem_minmax(0,1fr)] items-center">
-        <div className="min-w-0 px-1.5 py-2 text-center">
+    <section aria-label={label} className="flex flex-col border-t border-line px-2 pt-1.5 first-of-type:border-t-0">
+      <h4 className="font-bold">{label}</h4>
+      <dl className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-center">
+        <div className="min-w-0 px-1.5 py-1.5 text-center">
           <dt className="sr-only">{cityName}</dt>
           <dd>{city}</dd>
         </div>
-        <KurabeIcon name="arrow" className="size-5 text-primary" />
-        <div className="min-w-0 px-1.5 py-2 text-center">
+        <KurabeIcon name="arrow" className="mx-auto size-5 text-primary" />
+        <div className="min-w-0 px-1.5 py-1.5 text-center">
           <dt className="sr-only">{iidaName}</dt>
           <dd>{iida}</dd>
         </div>

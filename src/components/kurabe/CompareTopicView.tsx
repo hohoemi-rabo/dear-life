@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { ButtonLink } from "@/components/ui/Button";
@@ -54,24 +53,12 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
   const districts = data.districtOrder.map((id) => data.districts[id]);
   const activeTab = TAB_ITEMS.find((item) => item.id === topic) ?? TAB_ITEMS[0];
   const next = TAB_ITEMS[(TAB_ITEMS.indexOf(activeTab) + 1) % TAB_ITEMS.length];
-  const tablist = useRef<HTMLDivElement>(null);
-  // スマホで今のタブが横に隠れないように、見える位置まで流す（帯のボタンや URL で後ろのタブを開いたとき）
-  useEffect(() => {
-    const list = tablist.current;
-    const current = list?.querySelector<HTMLElement>('[aria-selected="true"]');
-    if (list && current) list.scrollLeft = current.offsetLeft - list.offsetLeft - 16;
-  }, [topic]);
   return (
     <div className="flex flex-col gap-3">
       <p className="hidden lg:block">比べたい項目を選んでください。</p>
       {selected !== null && topic !== "city" && <CompareModeSwitch target={target} onChange={onTargetChange} />}
-      <div className="relative -mx-4 lg:mx-0">
-      <div
-        ref={tablist}
-        role="tablist"
-        aria-label="比べたい項目"
-        className="flex gap-2 overflow-x-auto pb-1 pl-4 pr-14 [scrollbar-width:none] lg:grid lg:grid-cols-6 lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0"
-      >
+      {/* スマホも横に流さず 3列×2段で全部のタブを見せる（2026-11-15 まさゆきさん s1.png）。PC は1段6列 */}
+      <div role="tablist" aria-label="比べたい項目" className="grid grid-cols-3 gap-1.5 lg:grid-cols-6 lg:gap-1">
         {TAB_ITEMS.map((item) => {
           const current = item.id === topic;
           return (
@@ -84,12 +71,12 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
               aria-controls={PANEL_ID}
               onClick={() => onSelect(item.id)}
               className={[
-                "flex min-h-tap shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-button border px-3 font-bold lg:min-h-[3.25rem] lg:px-1",
+                "flex min-h-tap min-w-0 items-center justify-center gap-0.5 whitespace-nowrap rounded-button border px-0.5 text-[13px] font-bold min-[400px]:gap-1 min-[400px]:text-sm lg:min-h-[3.25rem] lg:gap-2 lg:text-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                 current ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
               ].join(" ")}
             >
-              <KurabeIcon name={item.icon} />
+              <KurabeIcon name={item.icon} className="size-4 min-[400px]:size-5 lg:size-6" />
               <span>
                 {item.tabLabel}
                 {item.tabLabelRest && <span className="hidden lg:inline">{item.tabLabelRest}</span>}
@@ -97,15 +84,6 @@ export function CompareTopicView({ data, topic, selected, hrefFor, onSelect, tar
             </button>
           );
         })}
-      </div>
-      <button
-        type="button"
-        onClick={() => tablist.current?.scrollBy({ left: 160, behavior: "smooth" })}
-        aria-label="ほかの項目を見る"
-        className="absolute right-2 top-0 flex min-h-tap min-w-tap items-center justify-center rounded-full border border-line bg-surface text-xl font-bold text-ink shadow-card lg:hidden"
-      >
-        <span aria-hidden="true">›</span>
-      </button>
       </div>
 
       {topic === "city" ? (
