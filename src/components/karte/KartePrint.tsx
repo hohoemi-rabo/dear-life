@@ -1,5 +1,6 @@
 "use client";
 
+import { findIida } from "@/lib/kurabe/city";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
@@ -169,11 +170,12 @@ function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }
     ];
   } else {
     const noCar = hasNoCar(conditions);
-    const tabs = printTabs(card, detailTabs(card, { district, noCar }));
+    const iida = findIida(data);
+    const tabs = printTabs(card, detailTabs(card, { district, noCar, iida }));
     panels = tabs.map((tab) => (
       <PrintBlock key={tab.id} breakable className="space-y-3">
         {tabs.length > 1 && <h3 className="break-after-avoid font-bold">{tab.label}</h3>}
-        <OtherTabPanel card={card} tab={tab} district={district} supportPrograms={data.supportPrograms} noCar={noCar} />
+        <OtherTabPanel card={card} tab={tab} district={district} supportPrograms={data.supportPrograms} noCar={noCar} iida={iida} />
       </PrintBlock>
     ));
     basis = otherBasisRows(card, tabs, data.supportPrograms);

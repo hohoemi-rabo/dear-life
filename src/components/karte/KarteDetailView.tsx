@@ -19,6 +19,8 @@ import { detailTexts, entryNumber, type DetailTexts } from "@/lib/karte/details"
 import { transportQuestion } from "@/lib/karte/entries";
 import { karteBackHref, shitamiMemoHref } from "@/lib/karte/links";
 import { SHITAMI_ITEMS, shitamiItemForCard } from "@/lib/karte/shitami-memo";
+import { findIida } from "@/lib/kurabe/city";
+import { kurabeHref } from "@/lib/kurabe/links";
 import { SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -195,7 +197,8 @@ function DetailBody({
   const searchParams = useSearchParams();
   const district = data.districts[conditions.district];
   const noCar = hasNoCar(conditions);
-  const tabs = card === "housing" ? [] : detailTabs(card, { district, noCar });
+  const iida = findIida(data);
+  const tabs = card === "housing" ? [] : detailTabs(card, { district, noCar, iida });
   const [otherTab, setOtherTab] = useDetailTab(tabs);
   const shitamiItem = shitamiItemForCard(card, conditions);
   const memoHref = shitamiMemoHref(conditions, searchParams.get(SEASON_PARAM));
@@ -248,6 +251,8 @@ function DetailBody({
           district={district}
           supportPrograms={data.supportPrograms}
           noCar={noCar}
+          iida={iida}
+          compareCityHref={cityCompareHref(kurabeHref(conditions, searchParams.get(SEASON_PARAM)))}
         />
       )}
 
@@ -355,4 +360,9 @@ function Basis({
       </div>
     </details>
   );
+}
+
+// 防災の「いまの街とくらべる →」（041）。条件と季節を持ったまま地区くらべの「いまの街と」を開く
+function cityCompareHref(kurabe: string): string {
+  return `${kurabe}${kurabe.includes("?") ? "&" : "?"}t=city`;
 }

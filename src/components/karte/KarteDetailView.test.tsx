@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EvacuationSite, ScreenData } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
 import { KANAE, karteScreenData } from "@/test/karte-fixture";
-import { availableFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, compareCityFixture, compareMetricFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { KarteDetailView } from "./KarteDetailView";
 
 // URL を持つだけの小さなルーター。replace で URL を書きかえ、useSearchParams を読み直させる
@@ -393,6 +393,23 @@ describe("KarteDetailView：住まい以外（住まいと同じ形：大きい�
     const table = within(sources);
     expect(table.getByRole("row", { name: /出典/ })).toHaveTextContent("飯田市「指定緊急避難場所一覧」");
     expect(table.getByRole("row", { name: /確認日/ })).toHaveTextContent("2026年10月26日");
+  });
+
+  it("防災：最初に「雨と風は、どれくらい？」で飯田市の値を出し、値のないものは「データ未取得」。いまの街とくらべるへ条件を持って移る（041）", async () => {
+    const JMA = sourceFixture("jma_climate_normals", { name: "過去の気象データ検索 平年値（1991〜2020年）", publisher: "気象庁", checkedOn: "2026-11-14", fetchedOn: null });
+    screenData = {
+      ...screenData,
+      compareCities: [compareCityFixture("tokyo"), compareCityFixture("iida", { metrics: { rain30_days: compareMetricFixture(12.3, "日/年", JMA) } })],
+    };
+    await open("disaster", "s=summer&d=kanae&k=1");
+    const card = section("雨と風は、どれくらい？");
+    expect(within(card).getByText("日降水量30mm以上の日数").closest("div")).toHaveTextContent("12.3日/年1991〜2020年");
+    expect(within(card).getByText("最深積雪").closest("div")).toHaveTextContent("データ未取得");
+    expect(within(card).getByRole("link", { name: /いまの街とくらべる/ })).toHaveAttribute("href", expect.stringMatching(/^\/kurabe\?.*d=kanae.*&t=city$/));
+    // 避難場所より前に出す
+    expect(card.compareDocumentPosition(screen.getByRole("region", { name: "災害の種類から避難先を探す" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const sources = within(screen.getByText("出典・更新日を見る").closest("details") as HTMLDetailsElement);
+    expect(sources.getAllByRole("row", { name: /出典/ })[0]).toHaveTextContent("気象庁「過去の気象データ検索 平年値（1991〜2020年）」");
   });
 
   it("防災：大規模な火事の場所がなければ3つのタブ。避難場所の出典が未公開なら「データ未取得」", async () => {

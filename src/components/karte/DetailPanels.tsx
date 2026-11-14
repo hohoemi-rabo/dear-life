@@ -6,6 +6,7 @@ import { usePrintMode } from "@/components/print/PrintMode";
 import { GofreelyPanel } from "@/components/data/GofreelyPanel";
 import { DISTRICT_NAMES, type KarteCard } from "@/lib/conditions/labels";
 import type {
+  CompareCity,
   DataState,
   DistrictData,
   Facility,
@@ -30,6 +31,7 @@ import { PublicFacilityFinder, PublicFacilityPrintList } from "./PublicFacilityF
 import { PopulationFigures } from "./PopulationFigures";
 import { SupportFinder, SupportPrintList } from "./SupportFinder";
 import { FacilityMapLink, SchoolZonePanel } from "./SchoolZones";
+import { RainWindCard, rainWindStates } from "./RainWindCard";
 
 // 住まい以外の6つの詳細のカード（028。住まいの見本 karte-detail-housing.png と同じ形）。
 // 上に絵と大きい数字、注意書き、タブ。タブの下に、そのタブの一覧を出す。出典・対象・確認日は下の「数字の根拠」にまとめる
@@ -44,7 +46,7 @@ export type DetailTab = DetailTabItem & {
 // 交通は、車0台なら冬のおでかけを最初に開く
 export function detailTabs(
   card: OtherCard,
-  { district, noCar }: { district: DistrictData; noCar: boolean },
+  { district, noCar, iida = null }: { district: DistrictData; noCar: boolean; iida?: CompareCity | null },
 ): DetailTab[] {
   switch (card) {
     case "childcare":
@@ -104,7 +106,8 @@ export function detailTabs(
         label: HAZARD_LABELS[hazard],
         icon: "icon-disaster" as const,
         prop: DISASTER_TAB_ICONS[hazard],
-        states: [state],
+        // 「雨と風は、どれくらい？」（041）の出典も「数字の根拠」に出す
+        states: [...rainWindStates(iida), state],
       }));
     }
     case "population":
@@ -155,6 +158,8 @@ export function OtherDetailCard({
   district,
   supportPrograms,
   noCar,
+  iida = null,
+  compareCityHref,
 }: {
   card: OtherCard;
   tabs: readonly DetailTab[];
@@ -163,12 +168,16 @@ export function OtherDetailCard({
   district: DistrictData;
   supportPrograms: readonly SupportProgram[];
   noCar: boolean;
+  // 防災の「雨と風は、どれくらい？」（041）
+  iida?: CompareCity | null;
+  compareCityHref?: string;
 }) {
   const panelId = useId();
   if (card === "disaster") {
-    // 防災はハザードマップの帯と「災害の種類から避難先を探す」の箱（040 見本）
+    // 防災は「雨と風は、どれくらい？」（041）→ ハザードマップの帯と「災害の種類から避難先を探す」の箱（040 見本）
     return (
       <>
+        <RainWindCard iida={iida} compareHref={compareCityHref} />
         <HazardMapBand />
         <EvacuationFinder state={district.evacuationSites} tabs={tabs} selectedId={tab.id} onSelect={onTabChange} />
       </>
@@ -218,16 +227,19 @@ export function OtherTabPanel({
   district,
   supportPrograms,
   noCar,
+  iida = null,
 }: {
   card: OtherCard;
   tab: DetailTab;
   district: DistrictData;
   supportPrograms: readonly SupportProgram[];
   noCar: boolean;
+  iida?: CompareCity | null;
 }) {
   if (card === "disaster") {
     return (
       <>
+        <RainWindCard iida={iida} />
         <HazardMapBand />
         <EvacuationPrintList state={district.evacuationSites} />
       </>
