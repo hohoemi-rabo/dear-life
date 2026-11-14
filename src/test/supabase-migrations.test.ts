@@ -1754,6 +1754,44 @@ describe("画面が読むデータ screen_data（015）", () => {
   });
 });
 
+describe("screen_data のいまの街と（041）", () => {
+  const screenData = async (...setup: string[]) =>
+    (await run<{ data: Record<string, unknown> }>("anon", ...setup, "select public.screen_data() as data"))[0].data;
+  const fillTokyoRain = `update compare_city_stats set value = 1598.2, period_label = '1991〜2020年', checked_on = '2026-11-14'
+    where city_id = 'tokyo' and metric_key = 'precip_annual'`;
+  const naganoMarket = `insert into compare_city_market_stats (city_id, category, period_from, period_to, sample_count, median_value, p25_value, p75_value, source_id)
+    values ('nagano', 'land', '2021Q2', '2026Q2', 40, 52000, 30000, 70000, 'reinfolib_xit001')`;
+
+  it("公開した7都市を並び順に、入れた値と都市の相場だけを渡す", async () => {
+    const data = await screenData(fillTokyoRain, naganoMarket);
+    const cities = data.compare_cities as { id: string; stats: unknown[]; market: { items: unknown[] } }[];
+    expect(cities.map((city) => city.id)).toEqual(["tokyo", "yokohama", "nagoya", "osaka", "nagano", "matsumoto", "iida"]);
+    expect(cities[0].stats).toEqual([
+      { metric_key: "precip_annual", value: 1598.2, unit: "mm", period_label: "1991〜2020年", source_id: "jma_climate_normals", checked_on: "2026-11-14", note: null },
+    ]);
+    expect(cities[1].stats).toEqual([]);
+    expect(cities[4].market.items).toEqual([expect.objectContaining({ category: "land", sample_count: 40, median_value: 52000 })]);
+  });
+
+  it("画面の読み込みで、値のない指標と取り終えていない都市の相場は「データ未取得」になる。非公開の都市は来ない", async () => {
+    const data = parseScreenData(
+      await screenData(fillTokyoRain, naganoMarket, "update compare_cities set is_published = false where id = 'osaka'"),
+      "2026-11-14",
+    );
+    expect(data.compareCities.map((city) => city.id)).toEqual(["tokyo", "yokohama", "nagoya", "nagano", "matsumoto", "iida"]);
+    const tokyo = data.compareCities[0];
+    expect(tokyo.metrics.precip_annual).toMatchObject({ status: "available", value: { value: 1598.2, unit: "mm", periodLabel: "1991〜2020年" }, source: { id: "jma_climate_normals" } });
+    expect(tokyo.metrics.rain30_days).toEqual({ status: "unavailable" });
+    expect(tokyo.market.land).toEqual({ status: "unavailable" });
+    expect(data.compareCities[3].market.land).toMatchObject({ status: "available", value: { median: 52000, sampleCount: 40 } });
+  });
+
+  it("出典を公開するまで、その出典の値は渡さない", async () => {
+    const data = parseScreenData(await screenData(fillTokyoRain, "update data_sources set is_published = false where id = 'jma_climate_normals'"), "2026-11-14");
+    expect(data.compareCities[0].metrics.precip_annual).toEqual({ status: "unavailable" });
+  });
+});
+
 describe("地図が読むデータ map_data（021）", () => {
   type Section = { source_id: string; items: Record<string, unknown>[] };
   type MapData = {

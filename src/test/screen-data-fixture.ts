@@ -1,6 +1,18 @@
 // 画面のテストで使う ScreenData（読み込んだあとの形）。既定では出典のあるデータがすべて「データ未取得」で、
 // 確かめたい欄だけを上書きして使う
-import type { BusOuting, DataState, DistrictData, HousingTenure, MarketStat, RentReference, ScreenData, SourceInfo } from "@/lib/data/screen-data";
+import { COMPARE_METRIC_KEYS, type CompareMetricKey } from "@/lib/compare-city/metrics";
+import type {
+  BusOuting,
+  CompareCity,
+  CompareMetricValue,
+  DataState,
+  DistrictData,
+  HousingTenure,
+  MarketStat,
+  RentReference,
+  ScreenData,
+  SourceInfo,
+} from "@/lib/data/screen-data";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 export function sourceFixture(id: string, extra: Partial<SourceInfo> = {}): SourceInfo {
@@ -113,9 +125,40 @@ export function screenDataFixture(overrides: Partial<Record<DistrictId, Partial<
     >,
     marketSummary: UNAVAILABLE,
     rent: UNAVAILABLE,
+    compareCities: COMPARE_CITY_FIXTURE_IDS.map((id) => compareCityFixture(id)),
     supportPrograms: [],
     sceneTemplates: [],
   };
+}
+
+// いまの街と（041）。既定では値も相場もすべて「データ未取得」（cities.csv の並び）
+const COMPARE_CITY_NAMES: Record<string, [string, string]> = {
+  tokyo: ["東京23区", "東京"],
+  yokohama: ["横浜市", "横浜"],
+  nagoya: ["名古屋市", "名古屋"],
+  osaka: ["大阪市", "大阪"],
+  nagano: ["長野市", "長野"],
+  matsumoto: ["松本市", "松本"],
+  iida: ["飯田市", "飯田"],
+};
+export const COMPARE_CITY_FIXTURE_IDS = Object.keys(COMPARE_CITY_NAMES);
+
+export function compareCityFixture(
+  id: string,
+  extra: { metrics?: Partial<Record<CompareMetricKey, DataState<CompareMetricValue>>>; market?: Partial<CompareCity["market"]> } = {},
+): CompareCity {
+  const [name, jmaStation] = COMPARE_CITY_NAMES[id] ?? [id, id];
+  return {
+    id,
+    name,
+    jmaStation,
+    metrics: { ...(Object.fromEntries(COMPARE_METRIC_KEYS.map((key) => [key, UNAVAILABLE])) as Record<CompareMetricKey, DataState<CompareMetricValue>>), ...extra.metrics },
+    market: { land: UNAVAILABLE, house_built_within_20y: UNAVAILABLE, house_built_over_20y: UNAVAILABLE, ...extra.market },
+  };
+}
+
+export function compareMetricFixture(value: number, unit: string, source: SourceInfo, extra: Partial<CompareMetricValue> = {}): DataState<CompareMetricValue> {
+  return { status: "available", value: { value, unit, periodLabel: "1991〜2020年", checkedOn: "2026-11-14", note: null, ...extra }, source };
 }
 
 // 冬・車0台のバスのおでかけ（036 からはバス停の名前と時刻を持たず、行けるバス停の数だけ）

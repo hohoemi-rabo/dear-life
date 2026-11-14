@@ -1,5 +1,6 @@
 // 画面が読むデータの型と、screen_data()（015）の応答を画面で使う形に直す処理。
 // 出典のあるデータは、すべて DataState にして「データ未取得」と「該当なし」を型で区別する（F-09・要件 7.2）
+import { COMPARE_METRIC_KEYS, type CompareMetricKey } from "../compare-city/metrics.ts";
 import type { Database } from "../supabase/database.types.ts";
 import type { DistrictId } from "../town-district/resolve.ts";
 
@@ -264,6 +265,26 @@ export type SceneTemplate = {
   sentences: readonly SceneSentence[];
 };
 
+// ---- いまの街と（041） ----
+
+// 都市×指標の値。まさゆきさんが手で入れた値で、行ごとに対象期間と確認日を持つ
+export type CompareMetricValue = {
+  value: number;
+  unit: string;
+  periodLabel: string;
+  checkedOn: string;
+  note: string | null;
+};
+
+// 比べる都市（id が iida の行は飯田市）。値のない指標・取り終えていない都市の相場は「データ未取得」
+export type CompareCity = {
+  id: string;
+  name: string;
+  jmaStation: string;
+  metrics: Readonly<Record<CompareMetricKey, DataState<CompareMetricValue>>>;
+  market: Readonly<Record<MarketCategory, DataState<MarketStat>>>;
+};
+
 export type ScreenData = {
   // データベースが応答を作った日時。オフライン表示の「データは◯月◯日時点」に使う（024）
   generatedAt: string;
@@ -275,6 +296,8 @@ export type ScreenData = {
   marketSummary: DataState<MarketSummary>;
   // 飯田市全体の家賃の参考値（034）
   rent: DataState<RentReference>;
+  // いまの街と（041）。cities.csv の並び順
+  compareCities: readonly CompareCity[];
   supportPrograms: readonly SupportProgram[];
   sceneTemplates: readonly SceneTemplate[];
 };
@@ -410,6 +433,22 @@ type RawDistrict = {
   }[];
 };
 
+export type RawCompareCity = {
+  id: string;
+  name: string;
+  jma_station: string;
+  stats: {
+    metric_key: string;
+    value: number | null;
+    unit: string;
+    period_label: string | null;
+    source_id: string | null;
+    checked_on: string | null;
+    note: string | null;
+  }[];
+  market: RawSection<RawMarketStat>;
+};
+
 export type RawScreenData = {
   generated_at: string;
   sources: RawSource[];
@@ -425,6 +464,8 @@ export type RawScreenData = {
     adjacent_land_count: number;
   }>;
   rent: RawSection<{ building_type: "all" | "detached" | "apartment_wooden" | "apartment_non_wooden"; average_rent: number; as_of: string }>;
+  // 041 より前の版の RPC にはない
+  compare_cities?: RawCompareCity[];
   support_programs: { name: string; title: string | null; tag: string | null; summary: string; category: SupportProgram["category"]; official_url: string; checked_on: string }[];
   scene_templates: SceneTemplate[];
 };
@@ -527,11 +568,12 @@ function toOuting(item: RawOuting): Outing | null {
   };
 }
 
-function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): DistrictData {
-  const marketSource = findSource(raw.market.source_id);
-  const market = Object.fromEntries(
+// 相場の3種類。行がなければ「データ未取得」、件数0なら「該当なし」。地区と都市（041）で同じ読み方
+function toMarket(section: RawSection<RawMarketStat>, findSource: SourceLookup): Record<MarketCategory, DataState<MarketStat>> {
+  const marketSource = findSource(section.source_id);
+  return Object.fromEntries(
     MARKET_CATEGORIES.map((category): [MarketCategory, DataState<MarketStat>] => {
-      const stat = raw.market.items.find((item) => item.category === category);
+      const stat = section.items.find((item) => item.category === category);
       if (!marketSource || !stat) return [category, { status: "unavailable" }];
       // 件数0なら値を持たない（market_stats_value_iff_samples）
       if (stat.sample_count === 0 || stat.median_value === null) return [category, { status: "none", source: marketSource }];
@@ -552,6 +594,30 @@ function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): 
       ];
     }),
   ) as Record<MarketCategory, DataState<MarketStat>>;
+}
+
+// 値・対象期間・確認日のそろった行だけを値にする。出典が公開されていない・行がないものは「データ未取得」
+function toCompareCity(raw: RawCompareCity, findSource: SourceLookup): CompareCity {
+  const metrics = Object.fromEntries(
+    COMPARE_METRIC_KEYS.map((key): [CompareMetricKey, DataState<CompareMetricValue>] => {
+      const stat = raw.stats.find((item) => item.metric_key === key);
+      const source = stat?.source_id ? findSource(stat.source_id) : undefined;
+      if (!stat || !source || stat.value === null || !stat.period_label || !stat.checked_on) return [key, { status: "unavailable" }];
+      return [
+        key,
+        {
+          status: "available",
+          source,
+          value: { value: Number(stat.value), unit: stat.unit, periodLabel: stat.period_label, checkedOn: stat.checked_on, note: stat.note },
+        },
+      ];
+    }),
+  ) as Record<CompareMetricKey, DataState<CompareMetricValue>>;
+  return { id: raw.id, name: raw.name, jmaStation: raw.jma_station, metrics, market: toMarket(raw.market, findSource) };
+}
+
+function toDistrict(raw: RawDistrict, findSource: SourceLookup, today: string): DistrictData {
+  const market = toMarket(raw.market, findSource);
 
   const busSource = findSource(raw.bus_outing.source_id);
   const [busItem] = raw.bus_outing.items;
@@ -722,6 +788,7 @@ export function parseScreenData(raw: unknown, today: string): ScreenData {
       adjacentLandCount: item.adjacent_land_count,
     })),
     rent: toRent(raw.rent, findSource),
+    compareCities: (raw.compare_cities ?? []).map((city) => toCompareCity(city, findSource)),
     supportPrograms: raw.support_programs.map((program) => ({
       name: program.name,
       // 前の版の RPC（title・tag がない）が返したときと、空の文字は null にそろえる
