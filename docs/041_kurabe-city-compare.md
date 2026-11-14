@@ -39,19 +39,58 @@
 
 ## Todo
 
-- [ ] 仕様書の 0章のものを読み、「理解した現状」と「変更の一覧」を書いて、まさゆきさんの OK をもらう
-- [ ] テーブル・RLS・PGlite のテスト・`data_sources` の2行（仕様書 6.1）
-- [ ] CSV のひな形と `npm run compare:sql`（仕様書 6.2）
-- [ ] 不動産情報ライブラリ（XIT001）が政令市の市コードを受け付けるか1回だけ試して報告する
-- [ ] Worker で6都市の取引を取り込み、`refresh_market_stats` を都市にも回す（仕様書 6.3。初回は数日に分ける）
-- [ ] RPC `screen_data()` に都市を足し、増えた大きさを報告する（仕様書 6.4）
-- [ ] 地区くらべのタブ「いまの街と」（PC は見本どおり。仕様書 7.1）
-- [ ] スマホの2列の形を作って見せる（まさゆきさん確認）
-- [ ] 防災カルテの「雨と風は、どれくらい？」のカード（仕様書 7.2）
-- [ ] くらしの夏のピンの1文（仕様書 7.3）
-- [ ] データについて（仕様書 7.4）
-- [ ] 印刷（仕様書 7.5）
-- [ ] テスト・lint・typecheck を通す
-- [ ] `docs/SPEC.md` を更新し、まさゆきさんの手作業のチェックリストを出す
+- [×] 仕様書の 0章のものを読み、「理解した現状」と「変更の一覧」を書いて、まさゆきさんの OK をもらう（2026-11-14）
+- [×] テーブル・RLS・PGlite のテスト・`data_sources` の行（仕様書 6.1。出典は3行にした。下の「作ったときに決めたこと」）
+- [×] CSV のひな形と `npm run compare:sql`（仕様書 6.2）
+- [×] 不動産情報ライブラリ（XIT001）が政令市の市コードを受け付けるか1回だけ試して報告する（受け付けない。区のコードで取る）
+- [×] Worker で6都市の取引を取り込み、都市の相場を集計する（仕様書 6.3。初回は約4日に分ける）
+- [×] RPC `screen_data()` に都市を足し、増えた大きさを報告する（仕様書 6.4。値が全部入って約12.8KB、gzip で約1KB 前後）
+- [×] 地区くらべのタブ「いまの街と」（PC は見本どおり。仕様書 7.1）
+- [ ] スマホの2列の形を見て決める（まさゆきさん。写真は `~/dear-life-screenshots/2026-11-14-041-city/mobile-igara.png`）
+- [×] 防災カルテの「雨と風は、どれくらい？」のカード（仕様書 7.2）
+- [×] くらしの夏のピンの1文（仕様書 7.3。`scenes:sql` で書き出し済み）
+- [×] データについて（仕様書 7.4）
+- [×] 印刷（仕様書 7.5）
+- [×] テスト・lint・typecheck・本番ビルドを通す（92ファイル・1013件）
+- [×] `docs/SPEC.md` を更新し、まさゆきさんの手作業のチェックリストを出す
+- [ ] 「作ったときに決めたこと」の確認待ちの4つを決める（まさゆきさん）
+- [ ] main に push して画面を公開し、そのあとマイグレーション5つを本番に当て、定期取得 Worker を公開する（下の「まさゆきさんの手作業」の順）
 - [ ] 気象・水害・人口の値を CSV に入れる（まさゆきさん）
 - [ ] 本番で見て確かめる（まさゆきさん）
+
+## 作ったもの（2026-11-14）
+
+- テーブル：`compare_cities`・`compare_city_stats`・`compare_city_codes`（`20261114100000_compare_cities.sql`）、`compare_city_transactions`・`compare_city_fetches`・`compare_city_market_stats` とビュー `market_samples`（`20261114140000_compare_city_market.sql`）
+  - 相場の計算に入れる取引の決まり（除外・地区なしを外す・土地の㎡単価の補い方・中古戸建ての用途と築年数）は、地区と都市で同じビュー `market_samples` を読む。`refresh_market_stats` もこのビューを読むように書きかえた（4地区の12行の結果は前と同じ。既存のテストで確認）
+  - 都市の相場は、全部のコード×年を取り終えた都市だけ行を作る（一部の区だけの値を出さない）
+- CSV：`data/compare/cities.csv`（7都市）・`city_codes.csv`（83コード。総務省「全国地方公共団体コード」令和6年1月1日版から）・`stats.csv`（49行、値は空。先頭に値の取り方）。`npm run compare:sql` が `*_compare_data.sql` を書く。指標の正は `src/lib/compare-city/metrics.ts`
+- Worker：`workers/ingest/src/jobs/city-transactions.ts`（job `city_transactions`。`transactions` のあとに動く）
+  - XIT001 は市のコード（14100）に「検索結果がありません」を返した（2026-11-14）。区のコード（鶴見区 14101）は1四半期で362件（そのうち土地・戸建て156件）
+  - 1回の実行で XIT001 は150回まで。初回は 83コード×6年＝498回なので4日。取り終えるまで `ingest_runs.progress` に `{ period_to, fetched, remaining }`
+- RPC：`screen_data()` に `compare_cities`（`20261114150000_screen_data_compare_cities.sql`）。画面は `src/lib/data/screen-data.ts` の `compareCities`
+- 画面：`src/components/kurabe/CityCompareView.tsx`、中身の組み立ては `src/lib/kurabe/city.ts`、都市は URL の `m`（`src/lib/kurabe/links.ts`）。防災カルテは `src/components/karte/RainWindCard.tsx`。夏の場面の差し込み `{飯田の大雨の日数}`（`src/lib/scenes/placeholders.ts`）
+- 画面の写真：`~/dear-life-screenshots/2026-11-14-041-city/`（PC 地区あり・PC 地区なし・スマホ。値は空の状態）
+
+## 作ったときに決めたこと（確認待ち。2026-11-14）
+
+1. **気象庁のライセンス**：仕様書は「政府標準利用規約」だが、気象庁のページ（https://www.jma.go.jp/jma/kishou/info/coment.html）は「公共データ利用規約（第1.0版）」。そちらで書いた。クレジットは記載例どおり「出典：気象庁ホームページ（URL）…」
+2. **国勢調査の出典を新しい行にした**：既存の `estat_census_small_area` は「小地域集計（町丁・字等の値を地区に合計）」で、市の人口密度とは集計がちがう。クレジットが事実とずれるので `estat_census_basic`（令和2年国勢調査 人口等基本集計）を足した
+3. **値の数字は値段のフォントにしない**：仕様書は「Mochiy Pop One の大きい数字」だが、027 の決まり（Mochiy は家・土地の値段だけ）に合わせ、気象・人口の数字はふつうの太字。相場の行だけ Mochiy
+4. **CSV に出典の欄を作らなかった**：出典は指標ごとに決まっているので `metrics.ts` で付ける（入れ間違いを防ぐため）。値の下には対象期間を小さく出し、出典と確認日は「出典・対象期間・確認日を見る」の欄にまとめた
+
+## まさゆきさんの手作業（順番）
+
+1. 上の「確認待ち」4つと、スマホの形（写真）を見て決める
+2. main に push する（Workers Builds が画面を公開する）。新しい画面は都市のデータがなくても動く（いまの街との表は全部「データ未取得」）
+3. 画面の公開が終わったら、Claude がマイグレーション5つを本番に当てる（`compare_cities` → `compare_data` → `scene_templates_data` → `compare_city_market` → `screen_data_compare_cities`）。**画面より先に当てない**（古い画面は夏の場面の新しい差し込み `{飯田の大雨の日数}` を知らない）
+4. `! npm run ingest:deploy` で定期取得 Worker を公開する。Secret・環境変数は増えない
+5. 次の日から4日間、毎朝確かめる：Supabase の `ingest_runs` の `city_transactions` が `succeeded` で、`progress.remaining` が減っていくこと（4日目に null）。Discord に失敗の通知が来ていないこと。取り終えた都市から地区くらべの住まいの行に相場が出る
+6. `data/compare/stats.csv` に値を入れる（下の手順）→ Claude に「compare:sql して当てて」と頼む
+
+## 値を CSV に入れる手順（stats.csv）
+
+`data/compare/stats.csv` の先頭の説明にも同じことを書いた。値を入れた行は「対象期間」と「確認日」（2026-11-14 の形）も必ず入れる。数字にカンマは付けない。
+
+- **雨・風・雪**（4行×7都市）：気象庁「過去の気象データ検索」https://www.data.jma.go.jp/stats/etrn/index.php → 都道府県 → 地点（`cities.csv` の気象官署：東京・横浜・名古屋・大阪・長野・松本・飯田）→「平年値（年・月ごとの値）」の「年」の値。降水量の合計（mm）・日降水量30mm以上の日数・日最大風速10m/s以上の日数・最深積雪（cm）。対象期間は「1991〜2020年」
+- **水害の被害**（1行×7都市）：e-Stat「水害統計調査」https://www.e-stat.go.jp/stat-search/files?toukei=00600590 → 年ごと → 表-25「水害原因別市区町村別一般資産等被害額」の、その市の合計（千円）を直近10年分足して 10 で割る（万円）。対象期間は「2014〜2023年」のように。東京23区は「特別区部」の行があればそれ、なければ23区の合計。政令市も市の行か区の合計か。どちらにしたかを「備考」に書く
+- **人口**（2行×7都市）：e-Stat「令和2年国勢調査 人口等基本集計」https://www.e-stat.go.jp/stat-search/files?toukei=00200521&tstat=000001136464 の人口密度（人/km²）と、15歳未満の人口÷総数×100（%）。年齢不詳を除いたかを「備考」に。対象期間は「2020年10月1日現在」
