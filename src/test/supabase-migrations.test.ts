@@ -83,8 +83,10 @@ const PUBLIC_TABLES = [
   "rent_averages",
   "clinic_counts",
   "school_zones",
+  "compare_cities",
+  "compare_city_stats",
 ];
-const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds"];
+const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds", "compare_city_codes"];
 
 describe("権限（要件 9.4）", () => {
   it("すべてのテーブルで RLS が有効になっている", async () => {
@@ -449,6 +451,7 @@ describe("出典の公開（022）", () => {
       "select id, is_published from data_sources where id not in ('published_src', 'draft_src') order by id",
     );
     expect(rows.filter((row) => row.is_published).map((row) => row.id)).toEqual([
+      "estat_census_basic",
       "estat_census_housing_tenure",
       "estat_census_small_area",
       "estat_housing_land_survey_rent",
@@ -459,7 +462,9 @@ describe("出典の公開（022）", () => {
       "iida_jr_timetable",
       "iida_public_facilities",
       "iida_school_zone_rule",
+      "jma_climate_normals",
       "mhlw_medical_clinics",
+      "mlit_flood_statistics",
       "railway_honsu",
       "rakuen_shinshu_iida_sheet",
       "reinfolib_xit001",
@@ -472,6 +477,56 @@ describe("出典の公開（022）", () => {
 
   it("公開した出典には、どれもクレジットが入っている", async () => {
     expect(await run("postgres", "select id from data_sources where is_published and coalesce(credit_text, '') = '' and id <> 'published_src'")).toEqual([]);
+  });
+});
+
+describe("いまの街と（041）", () => {
+  const insertCities = `insert into compare_cities (id, name, census_code, jma_station, sort_order, is_published) values
+    ('test_open', '公開の街', '99100', '公開', 901, true), ('test_draft', '下書きの街', '99200', '下書き', 902, false)`;
+  const insertStats = `insert into compare_city_stats (city_id, metric_key, value, unit, period_label, source_id, checked_on) values
+    ('test_open', 'precip_annual', 1600, 'mm', '1991〜2020年', 'published_src', '2026-11-14'),
+    ('test_open', 'rain30_days', null, '日/年', null, null, null),
+    ('test_open', 'pop_density', 100, '人/km²', '2020年10月1日現在', 'draft_src', '2026-11-14'),
+    ('test_draft', 'precip_annual', 1500, 'mm', '1991〜2020年', 'published_src', '2026-11-14')`;
+
+  it("anon には公開した都市と、その都市の公開済みの出典の行（と値の空の行）だけが見える", async () => {
+    const onlyTestSource = "update data_sources set is_published = (id = 'published_src')";
+    const cities = await run<{ id: string }>("anon", insertCities, "select id from compare_cities where id like 'test_%'");
+    expect(cities.map((r) => r.id)).toEqual(["test_open"]);
+    const stats = await run<{ city_id: string; metric_key: string }>(
+      "anon",
+      onlyTestSource,
+      insertCities,
+      insertStats,
+      "select city_id, metric_key from compare_city_stats where city_id like 'test_%' order by metric_key",
+    );
+    expect(stats).toEqual([
+      { city_id: "test_open", metric_key: "precip_annual" },
+      { city_id: "test_open", metric_key: "rain30_days" },
+    ]);
+  });
+
+  it("値を入れた行は、対象期間・出典・確認日がないと入れられない。値が空の行はなくてよい", async () => {
+    await expect(
+      run("postgres", insertCities, "insert into compare_city_stats (city_id, metric_key, value, unit, source_id, checked_on) values ('test_open', 'precip_annual', 1, 'mm', 'published_src', '2026-11-14')"),
+    ).rejects.toThrow(/compare_city_stats_value_has_source/);
+    await expect(
+      run("postgres", insertCities, "insert into compare_city_stats (city_id, metric_key, value, unit, period_label, checked_on) values ('test_open', 'precip_annual', 1, 'mm', 'x', '2026-11-14')"),
+    ).rejects.toThrow(/compare_city_stats_value_has_source/);
+    expect(await run("postgres", insertCities, "insert into compare_city_stats (city_id, metric_key, unit) values ('test_open', 'precip_annual', 'mm') returning 1")).toHaveLength(1);
+  });
+
+  it("指標は決めた7つだけ。割合は100を超えられない。取引の市区町村コードは5桁", async () => {
+    await expect(run("postgres", insertCities, "insert into compare_city_stats (city_id, metric_key, unit) values ('test_open', 'typhoon_count', '回')")).rejects.toThrow(/check constraint/);
+    await expect(
+      run("postgres", insertCities, "insert into compare_city_stats (city_id, metric_key, value, unit, period_label, source_id, checked_on) values ('test_open', 'under15_ratio', 101, '%', 'x', 'published_src', '2026-11-14')"),
+    ).rejects.toThrow(/check constraint/);
+    await expect(run("postgres", insertCities, "insert into compare_city_codes (city_id, reinfolib_code) values ('test_open', '1410')")).rejects.toThrow(/check constraint/);
+  });
+
+  it("anon・authenticated は都市の行も値も書きかえられない", async () => {
+    await expect(run("anon", insertCities)).rejects.toThrow(/permission denied/);
+    await expect(run("authenticated", "select * from compare_cities")).rejects.toThrow(/permission denied/);
   });
 });
 
