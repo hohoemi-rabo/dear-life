@@ -85,8 +85,19 @@ const PUBLIC_TABLES = [
   "school_zones",
   "compare_cities",
   "compare_city_stats",
+  "compare_city_market_stats",
 ];
-const PRIVATE_TABLES = ["ingest_runs", "unmapped_towns", "real_estate_transactions", "gtfs_feeds", "compare_city_codes"];
+const PRIVATE_TABLES = [
+  "ingest_runs",
+  "unmapped_towns",
+  "real_estate_transactions",
+  "gtfs_feeds",
+  "compare_city_codes",
+  "compare_city_transactions",
+  "compare_city_fetches",
+];
+// 集計の関数が読むビュー。service_role が select だけできる
+const PRIVATE_VIEWS = ["market_samples"];
 
 describe("権限（要件 9.4）", () => {
   it("すべてのテーブルで RLS が有効になっている", async () => {
@@ -113,7 +124,9 @@ describe("権限（要件 9.4）", () => {
       "postgres",
       `select table_name, string_agg(privilege_type, ',' order by privilege_type) as privs
        from information_schema.role_table_grants
-       where grantee = 'service_role' and table_schema = 'public' group by table_name`,
+       where grantee = 'service_role' and table_schema = 'public'
+         and table_name not in (select table_name from information_schema.views where table_schema = 'public')
+       group by table_name`,
     );
     expect(rows).toHaveLength(PUBLIC_TABLES.length + PRIVATE_TABLES.length);
     expect(new Set(rows.map((r) => r.privs))).toEqual(new Set(["DELETE,INSERT,SELECT,UPDATE"]));
@@ -128,7 +141,18 @@ describe("権限（要件 9.4）", () => {
     expect(rows).toEqual([]);
   });
 
-  it.each(PRIVATE_TABLES)("anon は非公開の %s を読めない", async (table) => {
+  it("ビューは集計に使う market_samples だけで、service_role が select だけできる", async () => {
+    const views = await run<{ table_name: string }>("postgres", "select table_name from information_schema.views where table_schema = 'public' order by table_name");
+    expect(views.map((v) => v.table_name)).toEqual(PRIVATE_VIEWS);
+    const grants = await run<{ grantee: string; privilege_type: string }>(
+      "postgres",
+      `select grantee, privilege_type from information_schema.role_table_grants
+       where table_schema = 'public' and table_name = 'market_samples' and grantee in ('anon', 'authenticated', 'service_role')`,
+    );
+    expect(grants).toEqual([{ grantee: "service_role", privilege_type: "SELECT" }]);
+  });
+
+  it.each([...PRIVATE_TABLES, ...PRIVATE_VIEWS])("anon は非公開の %s を読めない", async (table) => {
     await expect(run("anon", `select * from ${table}`)).rejects.toThrow(/permission denied/);
   });
 
@@ -536,6 +560,108 @@ describe("いまの街と（041）", () => {
   it("anon・authenticated は都市の行も値も書きかえられない", async () => {
     await expect(run("anon", insertCities)).rejects.toThrow(/permission denied/);
     await expect(run("authenticated", "select * from compare_cities")).rejects.toThrow(/permission denied/);
+  });
+});
+
+describe("都市の相場（041）", () => {
+  type CityTrade = { code?: string; year?: number; quarter?: number; type?: string; price?: number; unitPrice?: number | null; builtIn?: number | null; use?: string | null; excluded?: boolean };
+  const row = (t: CityTrade) => ({
+    trade_year: t.year ?? 2025,
+    trade_quarter: t.quarter ?? 1,
+    property_type: t.type ?? "宅地(土地)",
+    trade_price: t.price ?? 5000000,
+    unit_price_per_sqm: t.unitPrice === undefined ? null : t.unitPrice,
+    area_sqm: 200,
+    building_year: t.builtIn ?? null,
+    use: t.use ?? null,
+    is_excluded: t.excluded ?? false,
+  });
+  const replace = (code: string, years: number[], trades: CityTrade[], known = "2026Q1") =>
+    `select public.replace_compare_city_transactions('${code}', array[${years.join(",")}]::smallint[], '${known}', '${JSON.stringify(trades.map(row))}'::jsonb) as inserted`;
+  const ALL_YEARS = [2021, 2022, 2023, 2024, 2025, 2026];
+  // 長野市（コード1つ）を、期間の全部の年について取り終えた状態にする
+  const fetchNagano = (trades: CityTrade[]) => replace("20201", ALL_YEARS, trades);
+  const refresh = "select public.refresh_compare_city_market_stats('2021Q1', '2026Q1') as written";
+  const cityStats = (city: string) =>
+    `select category::text, sample_count, median_value::text, p25_value::text, p75_value::text from compare_city_market_stats where city_id = '${city}' order by compare_city_market_stats.category`;
+
+  it("地区と同じ決まりで中央値を出す（除外・用途・築年数・㎡単価の補い方）", async () => {
+    const rows = await run(
+      "service_role",
+      fetchNagano([
+        { unitPrice: 10000 },
+        { unitPrice: 20000 },
+        { unitPrice: null, price: 6000000 }, // 総額÷面積＝30000
+        { unitPrice: 99999, excluded: true },
+        { type: "宅地(土地と建物)", price: 20000000, builtIn: 2010 },
+        { type: "宅地(土地と建物)", price: 8000000, builtIn: 1990, use: "住宅" },
+        { type: "宅地(土地と建物)", price: 1, builtIn: 1990, use: "事務所" },
+        { type: "宅地(土地と建物)", price: 1, builtIn: null },
+      ]),
+      refresh,
+      cityStats("nagano"),
+    );
+    expect(rows).toEqual([
+      { category: "land", sample_count: 3, median_value: "20000", p25_value: "15000", p75_value: "25000" },
+      { category: "house_built_within_20y", sample_count: 1, median_value: "20000000", p25_value: null, p75_value: null },
+      { category: "house_built_over_20y", sample_count: 1, median_value: "8000000", p25_value: null, p75_value: null },
+    ]);
+  });
+
+  it("全部のコード×年を取り終えた都市だけ行を作り、取り終えていない都市は「データ未取得」（行なし）", async () => {
+    const rows = await run<{ city_id: string }>(
+      "service_role",
+      fetchNagano([{ unitPrice: 10000 }]),
+      replace("20202", [2021, 2022, 2023, 2024, 2025], [{ unitPrice: 10000 }]), // 松本市は2026年がまだ
+      replace("13101", ALL_YEARS, [{ unitPrice: 10000 }]), // 東京23区は1区だけ
+      refresh,
+      "select distinct city_id from compare_city_market_stats order by city_id",
+    );
+    expect(rows.map((r) => r.city_id)).toEqual(["nagano"]);
+  });
+
+  it("取り直すと、渡した年の取引だけを入れ直し、取った記録を残す。期間より前の年は集計のときに消す", async () => {
+    const rows = await run<{ trade_year: number; n: number; known_latest: string | null }>(
+      "service_role",
+      replace("20201", [2020, 2025, 2026], [{ year: 2020 }, { year: 2025 }, { year: 2026 }]),
+      replace("20201", [2026], [{ year: 2026, quarter: 2 }, { year: 2026, quarter: 2 }], "2026Q2"),
+      refresh,
+      `select t.trade_year, count(*)::int as n, max(f.known_latest) as known_latest
+       from compare_city_transactions t left join compare_city_fetches f on f.reinfolib_code = t.reinfolib_code and f.trade_year = t.trade_year
+       group by t.trade_year order by t.trade_year`,
+    );
+    expect(rows).toEqual([
+      { trade_year: 2025, n: 1, known_latest: "2026Q1" },
+      { trade_year: 2026, n: 2, known_latest: "2026Q2" },
+    ]);
+  });
+
+  it("一覧にないコード・渡した年以外の行は入れられない", async () => {
+    await expect(run("service_role", replace("99999", [2025], []))).rejects.toThrow(/compare_city_codes にない/);
+    await expect(run("service_role", replace("20201", [2024], [{ year: 2025 }]))).rejects.toThrow(/以外の取引/);
+  });
+
+  it("地区の相場は都市の取引に左右されない", async () => {
+    const rows = await run<{ n: number }>(
+      "service_role",
+      fetchNagano([{ unitPrice: 10000 }]),
+      "select public.refresh_market_stats('2021Q1', '2026Q1')",
+      "select sum(sample_count)::int as n from market_stats",
+    );
+    expect(rows).toEqual([{ n: 0 }]);
+  });
+
+  it("anon には公開した都市の相場だけが見え、取り込み・集計の関数は呼べない", async () => {
+    const visible = await run<{ city_id: string }>(
+      "anon",
+      fetchNagano([{ unitPrice: 10000 }]),
+      refresh,
+      "update compare_cities set is_published = false where id = 'nagano'",
+      "select city_id from compare_city_market_stats",
+    );
+    expect(visible).toEqual([]);
+    await expect(run("anon", refresh)).rejects.toThrow(/permission denied/);
+    await expect(run("anon", replace("20201", [2025], []))).rejects.toThrow(/permission denied/);
   });
 });
 

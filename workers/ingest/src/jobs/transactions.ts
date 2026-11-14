@@ -64,13 +64,13 @@ function blankToNull(value: string | undefined): string | null {
 }
 
 // 「2000㎡以上」のような数でない値は null にする（aggregate_iida.py の to_numeric(errors="coerce") と同じ）
-function parseNumber(value: string | undefined): number | null {
+export function parseNumber(value: string | undefined): number | null {
   const trimmed = value?.trim() ?? "";
   return /^\d+(\.\d+)?$/.test(trimmed) ? Number(trimmed) : null;
 }
 
 // 「1994年」→ 1994。「戦前」や空は不明（null）
-function parseBuildingYear(value: string | undefined): number | null {
+export function parseBuildingYear(value: string | undefined): number | null {
   const match = /^(\d{4})年$/.exec(value?.trim() ?? "");
   return match ? Number(match[1]) : null;
 }
@@ -113,15 +113,15 @@ function isXit001Response(body: unknown): body is Xit001Response {
   return typeof body === "object" && body !== null && Array.isArray((body as { data?: unknown }).data);
 }
 
-// XIT001 を呼ぶ。quarter を省くとその年の公開済みの四半期をまとめて返す。
+// XIT001 を呼ぶ。quarter を省くとその年の公開済みの四半期をまとめて返す。city を省くと飯田市。
 // 価格情報区分は指定しない（取引価格と成約価格の両方。5.1 の基準の CSV と同じ）。該当がないと 404 が返るので空にする
-export async function fetchXit001(context: JobContext, params: { year: number; quarter?: number }): Promise<Xit001Row[]> {
+export async function fetchXit001(context: JobContext, params: { year: number; quarter?: number; city?: string }): Promise<Xit001Row[]> {
   const apiKey = context.env.REINFOLIB_API_KEY;
   if (!apiKey) throw new Error("REINFOLIB_API_KEY が登録されていないので、取引価格を取得できない");
   const url = new URL(XIT001_URL);
   url.searchParams.set("year", String(params.year));
   if (params.quarter !== undefined) url.searchParams.set("quarter", String(params.quarter));
-  url.searchParams.set("city", IIDA_CITY_CODE);
+  url.searchParams.set("city", params.city ?? IIDA_CITY_CODE);
 
   let response: Response;
   try {
@@ -132,7 +132,7 @@ export async function fetchXit001(context: JobContext, params: { year: number; q
   }
   const body: unknown = await response.json();
   if (!isXit001Response(body)) {
-    throw new Error(`XIT001 の応答の形が想定と違う（${params.year}年${params.quarter ? `第${params.quarter}四半期` : ""}）`);
+    throw new Error(`XIT001 の応答の形が想定と違う（${params.city ?? IIDA_CITY_CODE}・${params.year}年${params.quarter ? `第${params.quarter}四半期` : ""}）`);
   }
   return body.data;
 }
