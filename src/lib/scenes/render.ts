@@ -143,7 +143,8 @@ export function renderScene(season: Season, conditions: Conditions, data: Screen
   const plan = planScene(season, conditions);
   const district = data.districts[conditions.district];
   const events = selectSceneEvents(district, plan);
-  const context: PlaceholderContext = { district, plan, events };
+  const iida = data.compareCities.find((city) => city.id === "iida") ?? null;
+  const context: PlaceholderContext = { district, plan, events, iida };
 
   const lines: SceneLine[] = [];
   for (const sentence of selectSceneSentences(template.sentences, conditions)) {

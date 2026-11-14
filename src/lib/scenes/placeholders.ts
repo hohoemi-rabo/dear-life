@@ -1,7 +1,7 @@
 // 場面の文の差し込み部分（{地区名} {保育施設の数} など。要件 6.3）。どの差し込みがどのデータから・どう書くかをここだけで決める。
 // 値は「出す」「該当なし」「データ未取得」「この地区には当てはまらない（文ごと出さない）」の4つのどれかで返す
 import type { ScenePlan } from "../conditions/scene.ts";
-import type { BusOuting, DataState, DistrictData, DistrictEvent, Facility, Outing, SourceInfo } from "../data/screen-data.ts";
+import type { BusOuting, CompareCity, DataState, DistrictData, DistrictEvent, Facility, Outing, SourceInfo } from "../data/screen-data.ts";
 import { formatJaDate, formatServiceTime } from "../format.ts";
 import { districtSchoolZones, schoolZonePhrase } from "../karte/school-zones.ts";
 import { reachableStopsPhrase } from "../transit/bus-reach.ts";
@@ -33,6 +33,8 @@ export type PlaceholderContext = {
   plan: ScenePlan;
   // 場面に出す行事（selectSceneEvents の結果）。差し込みにはいちばん目を使う
   events: readonly DistrictEvent[];
+  // 飯田市の気象の平年値など（041。compare_cities の iida の行）。古いデータ・未公開なら null
+  iida: CompareCity | null;
 };
 
 type Placeholder = {
@@ -169,6 +171,16 @@ export const PLACEHOLDERS = {
   大雨の避難場所の住所: {
     topic: "evacuation",
     resolve: ({ district }) => exampleOf(district.evacuationSites, (sites) => sites.find(isHeavyRainSite) ?? null, (f) => f.address),
+  },
+
+  // 飯田市の日降水量30mm以上の日数（平年値。041 仕様書 7.3）。まだ値がなければ文ごと出さない（知らせも出さない）
+  飯田の大雨の日数: {
+    topic: "evacuation",
+    resolve: ({ iida }): PlaceholderValue => {
+      const state = iida?.metrics.rain30_days;
+      if (!state || state.status !== "available") return SKIP;
+      return { status: "value", text: state.value.value.toLocaleString("ja-JP", { maximumFractionDigits: 1 }), source: state.source };
+    },
   },
 
   // 秋

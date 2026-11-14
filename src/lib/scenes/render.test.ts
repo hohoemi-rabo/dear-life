@@ -3,7 +3,7 @@ import { DEFAULT_CONDITIONS, type Conditions } from "@/lib/conditions/model";
 import { planScene } from "@/lib/conditions/scene";
 import type { BusOuting, DistrictData, DistrictEvent, Facility, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
 import { NOTICES } from "@/lib/notices";
-import { availableFixture, busOutingFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
+import { availableFixture, busOutingFixture, compareCityFixture, compareMetricFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
 import { SCENE_TEMPLATE_DRAFTS } from "./drafts";
 import { pickChildcareExample, pickPublicFacilityExample } from "./placeholders";
 import { renderScene, selectSceneEvents } from "./render";
@@ -125,6 +125,17 @@ describe("renderScene", () => {
       "鼎には、市の指定緊急避難場所が2か所あります。",
       "そのうち洪水と土砂災害の両方に使える場所は1か所で、たとえば丘の体育館（丘の体育館の住所）です。",
     ]);
+  });
+
+  it("夏：飯田の日降水量30mm以上の日数（平年値）はデータの文で出し、値がなければ文も知らせも出さない（041）", () => {
+    const JMA = sourceFixture("jma_climate_normals");
+    const withRain = { ...dataWith({}), compareCities: [compareCityFixture("iida", { metrics: { rain30_days: compareMetricFixture(4.5, "日/年", JMA) } })] };
+    const scene = renderScene("夏", conditions(), withRain);
+    const line = scene?.lines.find((item) => item.status === "shown" && item.text.startsWith("飯田の日降水量"));
+    expect(line).toMatchObject({ text: "飯田の日降水量30mm以上の日は、1年に4.5日（平年値）。", kind: "データ", sources: [JMA], karteCard: "disaster" });
+    const without = renderScene("夏", conditions(), dataWith({}));
+    expect(texts(without)?.some((text) => text?.includes("日降水量"))).toBe(false);
+    expect(texts(without)?.at(-1)).toBe("家族で、避難する場所と道すじを話しておきます。");
   });
 
   it("秋：行事は地区の情報として確認日を付け、区ごとの行事は「区によって違います」と書く", () => {
