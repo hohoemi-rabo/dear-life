@@ -26,5 +26,29 @@ export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameH
     "frameHeight": 160,
     "frames": 29,
     "frameMs": 160
+  },
+  "kanae-jumprope-spring": {
+    "frameWidth": 124,
+    "frameHeight": 160,
+    "frames": 16,
+    "frameMs": 80
+  },
+  "kanae-jumprope-summer": {
+    "frameWidth": 122,
+    "frameHeight": 160,
+    "frames": 12,
+    "frameMs": 80
+  },
+  "kanae-jumprope-autumn": {
+    "frameWidth": 118,
+    "frameHeight": 160,
+    "frames": 16,
+    "frameMs": 80
+  },
+  "kanae-jumprope-winter": {
+    "frameWidth": 124,
+    "frameHeight": 160,
+    "frames": 14,
+    "frameMs": 80
   }
 };

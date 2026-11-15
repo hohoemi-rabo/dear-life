@@ -12,7 +12,23 @@ export const MASCOT_SOURCES = {
   // 秋の GIF は背景の内側に、ふちとほんの少しちがう色の四角があるので、ふちの色との差が5以内の色も背景として消す
   "kamisato-sweep-autumn": { source: "kamisato-sweep-autumn.gif", frameStep: 2, nearBackground: 5 },
   "kamisato-sweep-winter": { source: "kamisato-sweep-winter.gif", frameStep: 2 },
-} as const satisfies Record<string, { source: string; frameStep: number; nearBackground?: number }>;
+  // 鼎：公園で縄跳び（2026-11-15 まさゆきさん。くらしの絵の公園に置く）。元が12〜16コマなので全部のコマを使う。
+  // 春・夏・秋はマゼンタの背景で作り直した（2026-11-15。白っぽい背景では跳ぶたびに頭のてっぺんが欠けて見えた）。
+  // 冬は白っぽい背景のまま。rope：縄の輪の内側の背景も消す
+  "kanae-jumprope-spring": { source: "kanae-jumprope-spring.gif", frameStep: 1, key: "magenta" },
+  "kanae-jumprope-summer": { source: "kanae-jumprope-summer.gif", frameStep: 1, key: "magenta" },
+  "kanae-jumprope-autumn": { source: "kanae-jumprope-autumn.gif", frameStep: 1, key: "magenta" },
+  "kanae-jumprope-winter": { source: "kanae-jumprope-winter.gif", frameStep: 1, rope: "brown" },
+} as const satisfies Record<string, {
+  source: string;
+  frameStep: number;
+  nearBackground?: number;
+  rope?: "brown" | "any";
+  // 背景をマゼンタ・緑にしてもらった GIF（scripts/build-mascot.mjs の chromaKey）。steadyScale はカメラの寄り引きをならす。frameHeight は1コマの高さ（px）
+  key?: "magenta" | "green";
+  steadyScale?: boolean;
+  frameHeight?: number;
+}>;
 
 export type MascotMotionId = keyof typeof MASCOT_SOURCES;
 

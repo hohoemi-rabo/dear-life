@@ -13,7 +13,8 @@ import { useApronColor } from "@/lib/mascot/useApronColor";
 // 選んだ色は端末に残す（くらし・カルテ・地区くらべで同じ色になる）。
 // 動きはコマを横に並べた1枚の絵を順にずらして出す。「動きを減らす」では最初のコマで止める。印刷には出さない。
 
-// くらしの絵の上に置くとき。位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる
+// くらしの絵の上に置くとき。位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる。
+// パレットは絵の中央の側に開く（左寄りの鼎で左に開くと、絵の外にはみ出して切れた。2026-11-15 まさゆきさん）
 export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: MascotSpot; tall: MascotSpot }) {
   const style = {
     "--mascot-x": `${tall.x}%`,
@@ -27,9 +28,16 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
     <MascotFigure
       motion={motion}
       style={style}
+      paletteSide={paletteSideFor(wide.x, tall.x)}
       className="absolute left-[var(--mascot-x)] top-[var(--mascot-y)] h-[var(--mascot-h)] -translate-x-1/2 -translate-y-full lg:left-[var(--mascot-x-lg)] lg:top-[var(--mascot-y-lg)] lg:h-[var(--mascot-h-lg)]"
     />
   );
+}
+
+// パレットを開く側：マスコットが絵の左半分にいれば右、右半分にいれば左（絵の中央の側）。x は絵の幅に対する割合（％）。
+// スマホと PC で左右が分かれる置き場所はまだないので、両方の平均で決める
+export function paletteSideFor(...xs: number[]): "left" | "right" {
+  return xs.reduce((sum, x) => sum + x, 0) / xs.length < 50 ? "right" : "left";
 }
 
 // マスコット1つ。置き場所と高さは className（と style）で渡す（位置を持つ要素にする。absolute か relative）。
@@ -90,17 +98,18 @@ export function MascotFigure({
   );
 }
 
-// 動きをどこから始めるか（phase：0〜1）と、1コマを出す長さに掛ける数（speed：0.9〜1.1）。同じ画面に何か所も出るので、
-// 全部がそろって動かないよう、ページを開くたびにマスコットごとに始まりと速さを少しずつ変える（2026-11-15 まさゆきさん）。
+// 動きをどこから始めるか（phase：0〜1）と、1コマを出す長さに掛ける数（speed：0.75〜1.25）。同じ画面に何か所も出るので、
+// 全部がそろって動かないよう、ページを開くたびにマスコットごとに始まりと速さを変える（2026-11-15 まさゆきさん）。
+// はじめは ±10% だったが、鼎の縄跳びはくり返しが約1秒と短く、ずれがわかりづらかったので ±25% にした（2026-11-15 まさゆきさん）。
 // マスコットは絵を読み終えてから端末の側だけで出すので、乱数を使っても静的書き出しの HTML とずれない
-const SPEED_SPREAD = 0.1;
+const SPEED_SPREAD = 0.25;
 function useMotionVariation(): { phase: number; speed: number } {
   const [variation] = useState(() => ({ phase: Math.random(), speed: 1 + (Math.random() * 2 - 1) * SPEED_SPREAD }));
   return variation;
 }
 
-// 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵の上では左。
-// どの地区も絵の右寄りに置くため）に、マスコットの頭の高さから下に向けて出す（上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。
+// 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵とカルテの下の帯では
+// 絵の中央の側。paletteSideFor）に、マスコットの頭の高さから下に向けて出す（上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。
 // ×・Esc・パレットの外を押すと閉じる
 function ApronPalette({
   id,

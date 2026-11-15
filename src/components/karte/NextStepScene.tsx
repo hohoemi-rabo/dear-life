@@ -1,5 +1,5 @@
 import { FamilyRow } from "@/components/illust/FamilyRow";
-import { MascotFigure } from "@/components/mascot/Mascot";
+import { MascotFigure, paletteSideFor } from "@/components/mascot/Mascot";
 import type { Conditions } from "@/lib/conditions/model";
 import type { Season } from "@/lib/conditions/scene";
 import { NEXT_STEP_BACKGROUNDS, propSrc, propSrcSet } from "@/lib/illust/assets";
@@ -11,6 +11,8 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 // 上郷は右の石段のいちばん下の段（くらしと同じく石段を掃く。2026-11-15）。動きのない地区には出さない
 const MASCOT_SPOTS: Partial<Record<DistrictId, { x: number; footFromBottom: number; height: number }>> = {
   kamisato: { x: 87, footFromBottom: 0.22, height: 0.62 },
+  // 鼎は帯に公園がないので、左の街灯と木の右の歩道（家族と同じ道の上。Claude の案）
+  kanae: { x: 27, footFromBottom: 0.09, height: 0.7 },
 };
 
 // カルテの下の帯の絵：地区ごとの背景の道の上を、選んだ家族が歩く（2026-11-05 まさゆきさん）。飾りなので読み上げない。
@@ -40,6 +42,7 @@ export function NextStepScene({ conditions, season }: { conditions: Conditions &
         {motion !== null && mascotSpot !== undefined && (
           <MascotFigure
             motion={motion}
+            paletteSide={paletteSideFor(mascotSpot.x)}
             style={{ left: `${mascotSpot.x}%`, bottom: `${mascotSpot.footFromBottom * 100}%`, height: `${mascotSpot.height * 100}%` }}
             className="absolute -translate-x-1/2"
           />

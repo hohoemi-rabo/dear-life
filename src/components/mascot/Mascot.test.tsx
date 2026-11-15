@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APRON_COLOR_STORAGE_KEY } from "@/lib/mascot/useApronColor";
-import { Mascot } from "./Mascot";
+import { Mascot, paletteSideFor } from "./Mascot";
 
 // jsdom は画像を読まないので、読み終えたことにする（canvas も使えないので、絵は元の色のまま使われる）
 class LoadedImage {
@@ -72,5 +72,12 @@ describe("Mascot（042）", () => {
       render(<Mascot motion="kamisato-sweep-summer" wide={spot} tall={spot} />);
     });
     expect(screen.queryByRole("button", { name: /マスコット/ })).toBeNull();
+  });
+});
+
+describe("paletteSideFor（042）", () => {
+  it("パレットは絵の中央の側に開く（左寄りなら右、右寄りなら左）", () => {
+    expect(paletteSideFor(11.6, 10.5)).toBe("right");
+    expect(paletteSideFor(84.5, 78.5)).toBe("left");
   });
 });

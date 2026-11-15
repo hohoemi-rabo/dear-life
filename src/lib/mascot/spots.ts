@@ -12,6 +12,8 @@ export type MascotPlacement = { motion: MascotMotionId; wide: MascotSpot; tall: 
 const MASCOT_MOTIONS: Partial<Record<DistrictId, Readonly<Record<Season, MascotMotionId>>>> = {
   // 上郷：石段をほうきで掃く。春は着物風、夏はエプロン、秋はニット、冬は帽子とマフラー
   kamisato: { 春: "kamisato-sweep-spring", 夏: "kamisato-sweep-summer", 秋: "kamisato-sweep-autumn", 冬: "kamisato-sweep-winter" },
+  // 鼎：公園で縄跳び（2026-11-15 まさゆきさん。はじめの案のぶらんこ・すべり台から変えた）
+  kanae: { 春: "kanae-jumprope-spring", 夏: "kanae-jumprope-summer", 秋: "kanae-jumprope-autumn", 冬: "kanae-jumprope-winter" },
 };
 
 // 地区と季節の動き。動きがまだない地区・地区を選んでいないときは null（出さない）
@@ -23,6 +25,10 @@ export function mascotMotion(district: DistrictId | null, season: Season): Masco
 // 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。4季節とも同じ構図なので場所も同じ
 const SCENE_SPOTS: Partial<Record<DistrictId, { wide: MascotSpot; tall: MascotSpot }>> = {
   kamisato: { wide: { x: 84.5, y: 50, height: 6.5 }, tall: { x: 78.5, y: 48, height: 6 } },
+  // 鼎は左の公園の、あずまや（テーブル）の手前の地面（2026-11-15 まさゆきさんが s1.png に丸を描いて指定。はじめのぶらんこの手前から移した）。
+  // 縄跳びの絵は頭の上の縄まで入るので、体が上郷と同じくらいに見えるよう少し高くする。
+  // 4季節とも同じ構図なので場所も同じ。近くのピン（学校・夏のペタンク・秋の駅伝）はもっと上を指す
+  kanae: { wide: { x: 11.6, y: 64, height: 7.5 }, tall: { x: 10.5, y: 60.5, height: 7 } },
 };
 
 // くらしの絵（地区・季節）のマスコットの置き方
