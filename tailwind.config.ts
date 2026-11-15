@@ -119,6 +119,11 @@ const config: Config = {
           "50%": { transform: "translateY(-4px)" },
         },
         // マスコット（042）：コマを横に1列に並べた1枚の絵を、左のコマから順にずらす。コマ数と長さは部品が CSS の変数で渡す
+        // マスコット（042）が出てくるとき：足元から少し伸び上がりながら、ふわっと現れる
+        "mascot-in": {
+          "0%": { opacity: "0", transform: "translateY(6%) scale(0.92)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
         "mascot-frames": {
           "0%": { backgroundPositionX: "0%" },
           "100%": { backgroundPositionX: "100%" },
@@ -137,6 +142,7 @@ const config: Config = {
         "walk-to-iida": "walk-to-iida 7s linear infinite",
         "district-notice": "district-notice 1500ms ease-out both",
         "card-glow": "card-glow 900ms ease-out both",
+        "mascot-in": "mascot-in 450ms ease-out both",
         mascot: "mascot-frames var(--mascot-duration) steps(var(--mascot-frames), jump-none) infinite",
       },
     },

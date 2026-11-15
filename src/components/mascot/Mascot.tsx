@@ -82,7 +82,10 @@ export function MascotFigure({
 
   return (
     <div style={style} className={`${className} print:hidden ${open ? "z-30" : "z-10"}`}>
-      <span aria-hidden="true" style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot" />
+      {/* 出てくるときは足元からふわっと（季節を切りかえたときも。外側の箱は置き場所のずらしを持つので、内側で動かす） */}
+      <div className="h-full origin-bottom motion-safe:animate-mascot-in">
+        <span aria-hidden="true" style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot" />
+      </div>
       {/* 押せる範囲は 44px 以上。絵は小さいので、絵に重ねた透明なボタンを、足元をそろえたまま 44px まで広げる（絵は広げない） */}
       <button
         ref={button}
@@ -187,8 +190,10 @@ function ApronPalette({
 // 動きの1枚の絵を読み、服の色を替えた絵の URL を返す。読み終えるまでは null。
 // 青緑（元の色）と、canvas を使えない環境では元の絵をそのまま使う。
 // 色を替えた直後は、新しい色の絵ができるまで前の色の絵を出し続ける（消えて現れるとちらつく）。前の絵の URL は、新しい絵に替えてから手放す
+// 絵の URL と、それがどの動きの絵か。季節を切りかえたとき、新しい動きの絵を読み終えるまでは前の絵を出さない
+// （前の絵を新しい動きのコマ数・長さで動かすと、絵がずれて流れるように見えた。2026-11-15 まさゆきさん）
 function useRecoloredSheet(motion: MascotMotionId, color: ApronColorId): string | null {
-  const [sheet, setSheet] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<{ motion: MascotMotionId; url: string } | null>(null);
   const objectUrl = useRef<string | null>(null);
 
   useEffect(() => {
@@ -201,7 +206,7 @@ function useRecoloredSheet(motion: MascotMotionId, color: ApronColorId): string 
       }
       const previous = objectUrl.current;
       objectUrl.current = owned ? url : null;
-      setSheet(url);
+      setLoaded({ motion, url });
       if (previous !== null) URL.revokeObjectURL(previous);
     };
     const image = new Image();
@@ -214,7 +219,7 @@ function useRecoloredSheet(motion: MascotMotionId, color: ApronColorId): string 
     };
     // 読めないとき（圏外で、まだ端末に残っていないなど）は出さない。マスコットはなくても困らない
     image.onerror = () => {
-      if (!cancelled) setSheet(null);
+      if (!cancelled) setLoaded(null);
     };
     image.src = src;
     return () => {
@@ -230,7 +235,7 @@ function useRecoloredSheet(motion: MascotMotionId, color: ApronColorId): string 
     [],
   );
 
-  return sheet;
+  return loaded !== null && loaded.motion === motion ? loaded.url : null;
 }
 
 function recolorImage(image: HTMLImageElement, color: ApronColorId): Promise<Blob | null> | null {
