@@ -21,6 +21,9 @@ import { SHITAMI_MEMO_ANCHOR } from "@/lib/karte/shitami-memo";
 import { karteDetailHref, kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
 import { parseSeason, SEASON_PARAM } from "@/lib/kurashi/season";
+import { mascotMotion } from "@/lib/mascot/spots";
+import type { MascotMotionId } from "@/lib/mascot/assets";
+import { MascotFigure } from "@/components/mascot/Mascot";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -45,11 +48,18 @@ export function KarteView() {
 
   const chosen = { ...conditions, district };
   const layout = karteLayout(chosen);
+  // マスコット（042）：選んだ地区のしぐさを、くらしで見ていた季節（URL の s）の服装で。カルテには見出しの右・わが家の設定（PC）・下の帯の3か所に出る
+  const mascot = mascotMotion(district, parseSeason(searchParams.get(SEASON_PARAM)));
   const memoItems = checkMemoItems(chosen);
   return (
     <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
       <aside aria-label="わが家の設定" className="hidden xl:block">
-        <ConditionsPanel conditions={chosen} onConditionsChange={setConditions} chooseAgainLabel="条件を変える" />
+        <ConditionsPanel
+          conditions={chosen}
+          onConditionsChange={setConditions}
+          chooseAgainLabel="条件を変える"
+          familyCompanion={mascot !== null && <MascotFigure motion={mascot} className="absolute bottom-0 right-1 h-9" />}
+        />
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">
@@ -66,7 +76,7 @@ export function KarteView() {
           <div className="flex justify-end">
             <KartePrintButton conditions={chosen} current={null} />
           </div>
-          <KarteHeading conditions={chosen} leads={layout.leads} />
+          <KarteHeading conditions={chosen} leads={layout.leads} mascot={mascot} />
         </div>
         <CheckMemo
           conditions={chosen}
@@ -118,17 +128,21 @@ function TitleBook({ className }: { className: string }) {
 
 // 見出し（見本）：家族の絵（PC）・本の印・「わが家のカルテ」・地区の一文・並びの一文と、右に風景の絵。
 // 並びの一文は、条件がどう並びに反映されたかを必ず伝えるもの（要件 4章）
-function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readonly string[] }) {
+function KarteHeading({ conditions, leads, mascot }: { conditions: Chosen; leads: readonly string[]; mascot: MascotMotionId | null }) {
   const header = karteHeaderFor(conditions.district);
   return (
     <header className="flex items-center gap-3 md:gap-4">
       <FamilyRow conditions={conditions} fatherHeight={64} lazy className="hidden shrink-0 xl:flex" />
       <TitleBook className="hidden size-12 sm:block" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h1 className="flex items-center gap-2 whitespace-nowrap text-xl font-extrabold sm:text-2xl md:text-3xl">
-          <TitleBook className="size-8 sm:hidden" />
-          わが家のカルテ
-        </h1>
+        <div className="flex items-end gap-2 md:gap-3">
+          <h1 className="flex items-center gap-2 whitespace-nowrap text-xl font-extrabold sm:text-2xl md:text-3xl">
+            <TitleBook className="size-8 sm:hidden" />
+            わが家のカルテ
+          </h1>
+          {/* マスコット（042）：見出しの右（2026-11-15 まさゆきさん。地区くらべの見出しの横とそろえる） */}
+          {mascot !== null && <MascotFigure motion={mascot} className="relative h-7 md:h-11" />}
+        </div>
         <p className="text-sm md:text-base">
           {DISTRICT_NAMES[conditions.district]}
           の暮らしを、ひとつずつ確かめよう。
