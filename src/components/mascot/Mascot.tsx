@@ -10,10 +10,41 @@ import { useApronColor } from "@/lib/mascot/useApronColor";
 
 // マスコット（042）。移住とは関係ないが、なんか気になって見たくなるもの（2026-11-15 まさゆきさん）。
 // 絵の上に「気づくか気づかないか」くらいの小ささで置き、地区ごとのしぐさで動かす（服装は季節で替わる）。押すと服の色のパレットを出し、
-// 選んだ色は端末に残す（カルテ・地区くらべでも同じ色になる）。
+// 選んだ色は端末に残す（くらし・カルテ・地区くらべで同じ色になる）。
 // 動きはコマを横に並べた1枚の絵を順にずらして出す。「動きを減らす」では最初のコマで止める。印刷には出さない。
-// 位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる
+
+// くらしの絵の上に置くとき。位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる
 export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: MascotSpot; tall: MascotSpot }) {
+  const style = {
+    "--mascot-x": `${tall.x}%`,
+    "--mascot-y": `${tall.y}%`,
+    "--mascot-h": `${tall.height}%`,
+    "--mascot-x-lg": `${wide.x}%`,
+    "--mascot-y-lg": `${wide.y}%`,
+    "--mascot-h-lg": `${wide.height}%`,
+  } as CSSProperties;
+  return (
+    <MascotFigure
+      motion={motion}
+      style={style}
+      className="absolute left-[var(--mascot-x)] top-[var(--mascot-y)] h-[var(--mascot-h)] -translate-x-1/2 -translate-y-full lg:left-[var(--mascot-x-lg)] lg:top-[var(--mascot-y-lg)] lg:h-[var(--mascot-h-lg)]"
+    />
+  );
+}
+
+// マスコット1つ。置き場所と高さは className（と style）で渡す（位置を持つ要素にする。absolute か relative）。
+// 幅は高さと絵の縦横の比で決まる。paletteSide はパレットをマスコットのどちらに出すか
+export function MascotFigure({
+  motion,
+  className,
+  style,
+  paletteSide = "left",
+}: {
+  motion: MascotMotionId;
+  className: string;
+  style?: CSSProperties;
+  paletteSide?: "left" | "right";
+}) {
   const [color, setColor] = useApronColor();
   const sheet = useRecoloredSheet(motion, color);
   const [open, setOpen] = useState(false);
@@ -24,14 +55,6 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
   // 絵を読み終えるまで出さない（元の色の絵が一瞬見えてから色が替わらないように）
   if (sheet === null) return null;
 
-  const style = {
-    "--mascot-x": `${tall.x}%`,
-    "--mascot-y": `${tall.y}%`,
-    "--mascot-h": `${tall.height}%`,
-    "--mascot-x-lg": `${wide.x}%`,
-    "--mascot-y-lg": `${wide.y}%`,
-    "--mascot-h-lg": `${wide.height}%`,
-  } as CSSProperties;
   const spriteStyle = {
     aspectRatio: `${sprite.frameWidth} / ${sprite.frameHeight}`,
     backgroundImage: `url(${sheet})`,
@@ -46,12 +69,7 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
   };
 
   return (
-    <div
-      style={style}
-      className={`absolute left-[var(--mascot-x)] top-[var(--mascot-y)] h-[var(--mascot-h)] -translate-x-1/2 -translate-y-full print:hidden lg:left-[var(--mascot-x-lg)] lg:top-[var(--mascot-y-lg)] lg:h-[var(--mascot-h-lg)] ${
-        open ? "z-30" : "z-10"
-      }`}
-    >
+    <div style={style} className={`${className} print:hidden ${open ? "z-30" : "z-10"}`}>
       <span aria-hidden="true" style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot" />
       {/* 押せる範囲は 44px 以上。絵は小さいので、絵に重ねた透明なボタンを、足元をそろえたまま 44px まで広げる（絵は広げない） */}
       <button
@@ -63,20 +81,23 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
         onClick={() => setOpen((value) => !value)}
         className="absolute bottom-0 left-1/2 size-full min-h-tap min-w-tap -translate-x-1/2 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       />
-      {open && <ApronPalette id={panelId} color={color} onSelect={setColor} onClose={close} />}
+      {open && <ApronPalette id={panelId} side={paletteSide} color={color} onSelect={setColor} onClose={close} />}
     </div>
   );
 }
 
-// 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの左に、マスコットの頭の高さから下に向けて出す（どの地区も絵の右寄りに置くため。
-// 上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。×・Esc・パレットの外を押すと閉じる
+// 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵の上では左。
+// どの地区も絵の右寄りに置くため）に、マスコットの頭の高さから下に向けて出す（上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。
+// ×・Esc・パレットの外を押すと閉じる
 function ApronPalette({
   id,
+  side,
   color,
   onSelect,
   onClose,
 }: {
   id: string;
+  side: "left" | "right";
   color: ApronColorId;
   onSelect: (color: ApronColorId) => void;
   onClose: () => void;
@@ -111,7 +132,7 @@ function ApronPalette({
       id={id}
       role="dialog"
       aria-labelledby={titleId}
-      className="absolute right-full top-0 mr-2 w-max rounded-card bg-surface p-3 shadow-[0_8px_24px_rgb(43_42_38/0.25)] motion-safe:animate-fade-in"
+      className={`absolute top-0 w-max rounded-card ${side === "left" ? "right-full mr-2" : "left-full ml-2"} bg-surface p-3 shadow-[0_8px_24px_rgb(43_42_38/0.25)] motion-safe:animate-fade-in`}
     >
       <div className="flex items-center justify-between gap-2">
         <h2 id={titleId} className="text-sm font-bold text-ink">

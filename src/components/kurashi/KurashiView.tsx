@@ -166,6 +166,7 @@ function SceneWithPins({
   return (
     <>
       <IllustratedScene
+        district={conditions.district}
         pictures={pictures}
         season={season}
         label={label}

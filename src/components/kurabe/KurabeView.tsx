@@ -6,6 +6,7 @@ import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
+import { MascotFigure } from "@/components/mascot/Mascot";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
@@ -29,7 +30,8 @@ import {
   type CompareTarget,
   type CompareView,
 } from "@/lib/kurabe/links";
-import { SEASON_PARAM } from "@/lib/kurashi/season";
+import { parseSeason, SEASON_PARAM } from "@/lib/kurashi/season";
+import { mascotMotion } from "@/lib/mascot/spots";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH, KURABE_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -65,6 +67,7 @@ export function KurabeView() {
     params.set(COMPARE_CITY_PARAM, cityId);
     router.replace(`${KURABE_PATH}?${params.toString()}`, { scroll: false });
   };
+  const mascot = mascotMotion(conditions.district, parseSeason(searchParams.get(SEASON_PARAM)));
   const viewSwitch = (className: string) =>
     view === "all" ? (
       <ViewSwitch href={hrefFor(COMPARE_TOPICS[0])} label="項目を切りかえて見る" className={className} />
@@ -82,16 +85,25 @@ export function KurabeView() {
           </Link>
         )}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-extrabold lg:text-4xl">
-            <span className="hidden lg:inline">4</span>地区をくらべる
-          </h1>
+          <div className="flex items-end gap-3">
+            <h1 className="text-2xl font-extrabold lg:text-4xl">
+              <span className="hidden lg:inline">4</span>地区をくらべる
+            </h1>
+            {/* マスコット（042）：PC は見出しの横の床で、選んだ地区のしぐさを、くらしで見ていた季節の服装でする。
+                4地区の表から離して置き、どれかの地区の印に見えないようにする。地区を選んでいない・動きのない地区では出さない。
+                スマホは見出しの横に置くと見出しが2行に折れるので、下の一文の後ろに置く */}
+            {mascot !== null && <MascotFigure motion={mascot} className="relative hidden h-12 lg:block" />}
+          </div>
           <div className="flex shrink-0 items-center gap-2">
             {viewSwitch("hidden shrink-0 border lg:inline-flex")}
             {/* 見出しの右上の「印刷する」（023） */}
             <KurabePrintButton conditions={conditions} cityParam={cityParam} />
           </div>
         </div>
-        <p className="lg:hidden">選んだ地区と、気になる地区を比較。</p>
+        <div className="flex items-end gap-2 lg:hidden">
+          <p>選んだ地区と、気になる地区を比較。</p>
+          {mascot !== null && <MascotFigure motion={mascot} className="relative h-8" />}
+        </div>
         <p className="hidden gap-x-4 lg:flex lg:items-baseline">
           <span className="font-bold">4地区の暮らしや、いまの街との違いを確かめよう。</span>
           <span className="text-sm text-ink-muted">地区の並びは固定です。優劣・おすすめ順ではありません。</span>

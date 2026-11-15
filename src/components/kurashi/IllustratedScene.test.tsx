@@ -8,7 +8,7 @@ describe("preloadScenePicture（2026-11-01 表示の速さの測り直し）", (
   it("風景の絵の先読みは、<picture> と同じ版の候補・表示幅で、スマホ用と PC 用を幅で出しわける", () => {
     function Scene() {
       preloadScenePicture(pictures);
-      return <IllustratedScene pictures={pictures} season="夏" label="夏" members={[]} hiddenChildren={0} pins={[]} openPin={null} onOpenPin={() => {}} popover={null} />;
+      return <IllustratedScene district="kamisato" pictures={pictures} season="夏" label="夏" members={[]} hiddenChildren={0} pins={[]} openPin={null} onOpenPin={() => {}} popover={null} />;
     }
     const { container } = render(<Scene />);
     const links = [...document.head.querySelectorAll<HTMLLinkElement>('link[rel="preload"][as="image"]')];

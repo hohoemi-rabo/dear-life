@@ -8,6 +8,7 @@ import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
 import type { Season } from "@/lib/conditions/scene";
 import { mascotPlacement } from "@/lib/mascot/spots";
+import type { DistrictId } from "@/lib/town-district/resolve";
 import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
 import { PinIcon } from "./PinIcon";
 import { ScenePin } from "./ScenePin";
@@ -15,6 +16,7 @@ import { ScenePin } from "./ScenePin";
 // 生成AIで描いた季節の風景（028 見本。まず上郷・春）。スマホは縦長、PC は横長の絵を出しわけ、
 // 広場の奥に選んだ家族を斜め後ろ姿で重ね、場所にピンを立てる。PC はピンを押すと絵の上に吹き出しを出す（スマホは下からのシートで、KurashiView が出す）
 export function IllustratedScene({
+  district,
   pictures,
   season,
   label,
@@ -25,6 +27,8 @@ export function IllustratedScene({
   onOpenPin,
   popover,
 }: {
+  // マスコット（042）のしぐさを選ぶ
+  district: DistrictId;
   pictures: KurashiPictures;
   // 家族の服の季節（2026-11-01 まさゆきさん）
   season: Season;
@@ -42,7 +46,7 @@ export function IllustratedScene({
 }) {
   const pinRefs = useRef(new Map<string, HTMLButtonElement>());
   // マスコット（042）。動きが届いた地区の絵にだけ出す
-  const mascot = mascotPlacement(pictures.wide);
+  const mascot = mascotPlacement(district, season);
   const closePopover = () => {
     const pin = openPin;
     onOpenPin(null);

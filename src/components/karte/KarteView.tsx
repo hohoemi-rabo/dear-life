@@ -20,7 +20,7 @@ import { checkMemoItems } from "@/lib/karte/check-memo";
 import { SHITAMI_MEMO_ANCHOR } from "@/lib/karte/shitami-memo";
 import { karteDetailHref, kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
-import { SEASON_PARAM } from "@/lib/kurashi/season";
+import { parseSeason, SEASON_PARAM } from "@/lib/kurashi/season";
 import { mapHref } from "@/lib/map/links";
 import { ERABU_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -159,7 +159,7 @@ function KarteHeading({ conditions, leads }: { conditions: Chosen; leads: readon
 function NextStepBand({ conditions, searchParams }: { conditions: Chosen; searchParams: { get(name: string): string | null } }) {
   return (
     <nav aria-labelledby="next-step-title" className="flex flex-col gap-4 rounded-card bg-warm-soft p-4 md:flex-row md:flex-wrap md:items-center md:p-5 lg:flex-nowrap">
-      <NextStepScene conditions={conditions} />
+      <NextStepScene conditions={conditions} season={parseSeason(searchParams.get(SEASON_PARAM))} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <h2 id="next-step-title" className="text-lg font-bold md:text-xl">
           次は、現地で確かめよう
