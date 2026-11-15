@@ -51,6 +51,7 @@ export function MascotFigure({
   const button = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const sprite = MASCOT_SPRITES[motion];
+  const phase = useStartPhase();
 
   // 絵を読み終えるまで出さない（元の色の絵が一瞬見えてから色が替わらないように）
   if (sheet === null) return null;
@@ -61,6 +62,8 @@ export function MascotFigure({
     backgroundSize: `${sprite.frames * 100}% 100%`,
     "--mascot-frames": sprite.frames,
     "--mascot-duration": `${sprite.frames * sprite.frameMs}ms`,
+    // 動きの始まりをずらす（負の遅れで、動きの途中から始める）
+    animationDelay: `${-Math.round(phase * sprite.frames) * sprite.frameMs}ms`,
   } as CSSProperties;
 
   const close = () => {
@@ -84,6 +87,13 @@ export function MascotFigure({
       {open && <ApronPalette id={panelId} side={paletteSide} color={color} onSelect={setColor} onClose={close} />}
     </div>
   );
+}
+
+// 動きをどこから始めるか（0〜1）。同じ画面に何か所も出るので、全部がそろって動かないよう、ページを開くたびにマスコットごとにずらす
+// （2026-11-15 まさゆきさん）。マスコットは絵を読み終えてから端末の側だけで出すので、乱数を使っても静的書き出しの HTML とずれない
+function useStartPhase(): number {
+  const [phase] = useState(() => Math.random());
+  return phase;
 }
 
 // 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵の上では左。
