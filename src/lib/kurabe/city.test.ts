@@ -16,7 +16,7 @@ describe("いまの街と（041）の表の中身", () => {
     const groups = cityCompareGroups(tokyo, findIida(data), data.districts.kanae);
     expect(groups.map((group) => [group.title, group.rows.map((row) => row.label)])).toEqual([
       ["雨・風・雪", ["1年の降水量", "日降水量30mm以上の日数", "日最大風速10m/s以上の日数", "最深積雪"]],
-      ["水害の被害", ["住まいや店の水害被害額"]],
+      ["水害の被害", ["住まいや店の水害被害額（1人・1年あたり）"]],
       ["人口", ["人口密度", "15歳未満の割合"]],
       ["住まい", ["土地（宅地）の m² 単価", "中古戸建て（築20年以内）", "中古戸建て（築21年以上）"]],
     ]);
@@ -43,7 +43,7 @@ describe("いまの街と（041）の表の中身", () => {
     const iida = compareCityFixture("iida", {
       metrics: {
         precip_annual: compareMetricFixture(1612.5, "mm", JMA, { checkedOn: "2026-11-16" }),
-        flood_damage_10y: compareMetricFixture(1200, "万円", FLOOD, { periodLabel: "2014〜2023年" }),
+        flood_damage_per_person: compareMetricFixture(1200, "円", FLOOD, { periodLabel: "2014〜2023年" }),
       },
     });
     const groups = cityCompareGroups(city, iida, null);

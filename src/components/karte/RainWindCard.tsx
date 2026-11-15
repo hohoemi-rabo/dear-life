@@ -7,7 +7,7 @@ import { NOTICES } from "@/lib/notices";
 
 // 防災カルテの「雨と風は、どれくらい？」（041 仕様書 7.2）。飯田市の気象の平年値と水害被害額を小さいカード5枚で出す。
 // 多い・少ないは書かず、いまの街の値は地区くらべ「いまの街と」で並べて見てもらう。値がなければ「データ未取得」
-export const RAIN_WIND_METRICS: readonly CompareMetricKey[] = ["precip_annual", "rain30_days", "wind10_days", "snow_depth_max", "flood_damage_10y"];
+export const RAIN_WIND_METRICS: readonly CompareMetricKey[] = ["precip_annual", "rain30_days", "wind10_days", "snow_depth_max", "flood_damage_per_person"];
 
 export function rainWindStates(iida: CompareCity | null) {
   return RAIN_WIND_METRICS.map((key) => iida?.metrics[key] ?? ({ status: "unavailable" } as const));

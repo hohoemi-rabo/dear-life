@@ -5,7 +5,7 @@ export const COMPARE_METRIC_KEYS = [
   "rain30_days",
   "wind10_days",
   "snow_depth_max",
-  "flood_damage_10y",
+  "flood_damage_per_person",
   "pop_density",
   "under15_ratio",
 ] as const;
@@ -26,7 +26,9 @@ export const COMPARE_METRICS: readonly CompareMetric[] = [
   { key: "rain30_days", label: "日降水量30mm以上の日数", unit: "日/年", group: "weather", sourceId: "jma_climate_normals" },
   { key: "wind10_days", label: "日最大風速10m/s以上の日数", unit: "日/年", group: "weather", sourceId: "jma_climate_normals" },
   { key: "snow_depth_max", label: "最深積雪", unit: "cm", group: "weather", sourceId: "jma_climate_normals" },
-  { key: "flood_damage_10y", label: "住まいや店の水害被害額", unit: "万円", group: "flood", sourceId: "mlit_flood_statistics" },
+  // 水害被害額は、直近10年の平均を令和2年国勢調査の人口で割った「1人あたり・1年あたり」（2026-11-16 まさゆきさん。
+  // 合計のままだと大きな街ほど大きくなり、水害が多いように見えるため）
+  { key: "flood_damage_per_person", label: "住まいや店の水害被害額（1人・1年あたり）", unit: "円", group: "flood", sourceId: "mlit_flood_statistics" },
   { key: "pop_density", label: "人口密度", unit: "人/km²", group: "population", sourceId: "estat_census_basic" },
   { key: "under15_ratio", label: "15歳未満の割合", unit: "%", group: "population", sourceId: "estat_census_basic" },
 ];

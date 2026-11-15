@@ -126,7 +126,7 @@ export function cityCompareSources(groups: readonly CityCompareGroup[]): CitySou
 export function floodPeriod(groups: readonly CityCompareGroup[]): string | null {
   for (const group of groups) {
     for (const row of group.rows) {
-      if (row.kind !== "metric" || row.key !== "flood_damage_10y") continue;
+      if (row.kind !== "metric" || row.key !== "flood_damage_per_person") continue;
       for (const state of [row.iida, row.city]) {
         if (state.status === "available") return state.value.periodLabel;
       }

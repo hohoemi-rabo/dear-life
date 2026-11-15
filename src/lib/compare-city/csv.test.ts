@@ -50,7 +50,7 @@ describe("いまの街との比較の CSV（041）", () => {
       checkedOn: "2026-11-14",
       note: null,
     });
-    expect(stats.find((row) => row.cityId === "iida" && row.metricKey === "flood_damage_10y")).toMatchObject({ value: null, sourceId: "mlit_flood_statistics" });
+    expect(stats.find((row) => row.cityId === "iida" && row.metricKey === "flood_damage_per_person")).toMatchObject({ value: null, sourceId: "mlit_flood_statistics" });
   });
 
   it.each([
