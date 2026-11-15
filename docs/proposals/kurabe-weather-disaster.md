@@ -109,7 +109,7 @@ compare_city_codes                      -- 不動産取引の取得に使う区�
 
 - `data/compare/cities.csv` と `data/compare/stats.csv` を作る。`stats.csv` は 7都市 × 7指標 = 49行で、**value は全部空**、`period_label`・`source`・`checked_on` も空にしておく
 - `npm run compare:sql` で CSV → マイグレーション SQL を書き出す。`population:sql` と同じ流儀。値が空の行は `value = null` で入れる（画面で「データ未取得」になる）
-- CSV の先頭にコメントで「値は 気象庁『過去の気象データ検索』→ 地点 → 平年値（年・月ごとの値）から」「水害被害額は e-Stat 水害統計調査 表-25 から、千円を万円に換算して10年合計」と、取り方を書いておく
+- CSV の先頭にコメントで「値は 気象庁『過去の気象データ検索』→ 地点 → 平年値（年・月ごとの値）から」「水害被害額は e-Stat 水害統計調査 表-25 から、直近10年の1年あたりの平均を人口で割って1人あたりの円に」と、取り方を書いておく
 - `docs/036_compare_city.md` に「私が手で埋める手順」の節を作る（URL、どの表、どの列、何を足すか、東京23区の扱い）
 
 ### 6.3 Worker（`dear-life-ingest`）
