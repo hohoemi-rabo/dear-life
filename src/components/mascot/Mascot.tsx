@@ -51,19 +51,20 @@ export function MascotFigure({
   const button = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const sprite = MASCOT_SPRITES[motion];
-  const phase = useStartPhase();
+  const { phase, speed } = useMotionVariation();
 
   // 絵を読み終えるまで出さない（元の色の絵が一瞬見えてから色が替わらないように）
   if (sheet === null) return null;
 
+  const frameMs = sprite.frameMs * speed;
   const spriteStyle = {
     aspectRatio: `${sprite.frameWidth} / ${sprite.frameHeight}`,
     backgroundImage: `url(${sheet})`,
     backgroundSize: `${sprite.frames * 100}% 100%`,
     "--mascot-frames": sprite.frames,
-    "--mascot-duration": `${sprite.frames * sprite.frameMs}ms`,
+    "--mascot-duration": `${Math.round(sprite.frames * frameMs)}ms`,
     // 動きの始まりをずらす（負の遅れで、動きの途中から始める）
-    animationDelay: `${-Math.round(phase * sprite.frames) * sprite.frameMs}ms`,
+    animationDelay: `${-Math.round(Math.round(phase * sprite.frames) * frameMs)}ms`,
   } as CSSProperties;
 
   const close = () => {
@@ -89,11 +90,13 @@ export function MascotFigure({
   );
 }
 
-// 動きをどこから始めるか（0〜1）。同じ画面に何か所も出るので、全部がそろって動かないよう、ページを開くたびにマスコットごとにずらす
-// （2026-11-15 まさゆきさん）。マスコットは絵を読み終えてから端末の側だけで出すので、乱数を使っても静的書き出しの HTML とずれない
-function useStartPhase(): number {
-  const [phase] = useState(() => Math.random());
-  return phase;
+// 動きをどこから始めるか（phase：0〜1）と、1コマを出す長さに掛ける数（speed：0.9〜1.1）。同じ画面に何か所も出るので、
+// 全部がそろって動かないよう、ページを開くたびにマスコットごとに始まりと速さを少しずつ変える（2026-11-15 まさゆきさん）。
+// マスコットは絵を読み終えてから端末の側だけで出すので、乱数を使っても静的書き出しの HTML とずれない
+const SPEED_SPREAD = 0.1;
+function useMotionVariation(): { phase: number; speed: number } {
+  const [variation] = useState(() => ({ phase: Math.random(), speed: 1 + (Math.random() * 2 - 1) * SPEED_SPREAD }));
+  return variation;
 }
 
 // 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵の上では左。
