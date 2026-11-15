@@ -1,6 +1,8 @@
 // マスコット（042）の動き：まさゆきさんが用意したアニメーション（assets/mascot/ の GIF）から、画面用の WebP を public/mascot/ に書き出す。
 // 使い方：npm run mascot（GIF を差しかえたら流し直す）
-//   - 背景（白に近い、黄みの少ない色）を、絵のふちから続いているところだけ消す。体のクリーム色は黄みが強いので残る
+//   - 背景を、絵のふちから続いているところだけ消す。背景の色は、全部のコマのふち（幅 BORDER px）に出てくる色そのものとする。
+//     GIF は使う色が少なく（kamisato-sweep は全部で83色、背景は5色）、頭のてっぺんの明るいところは背景とほとんど同じ色なので、
+//     「白っぽい色」のような幅のある決め方では頭まで消える（2026-11-15）
 //   - 背景を消したあとに残った小さな点（GIF の細かい点のざらつき）は消す
 //   - 全部のコマで同じ範囲を切り出す（コマごとに切ると、足の位置がずれて画面でゆれる）
 //   - コマを横に1列に並べた1枚の WebP にする。画面はこれを順にずらして動かし、エプロンの色はこの1枚を一度だけ置きかえる（src/lib/mascot/recolor.ts）
@@ -15,23 +17,38 @@ const sourceDir = join(root, "assets/mascot");
 const outDir = join(root, "public", MASCOT_DIR);
 mkdirSync(outDir, { recursive: true });
 
-// 背景の色：明るく、色みがほとんどない（元の GIF の背景は rgb(248〜252, 246〜249, 234〜245)。体のクリーム色は rgb(239, 211, 178) 前後）
-const BG_MIN_CHANNEL = 225;
-const BG_MAX_CHROMA = 26;
+// 背景の色を集める、絵のふちの幅（px）。キャラクターがふちに触れないことを前提にする（触れていたら止める）
+const BORDER = 12;
 // 背景の色に近いふちの点は、近さに応じて透かす（ふちに白い線を残さない）
 const EDGE_FADE_DISTANCE = 60;
-// これより小さい塊は、背景のざらつきとして消す（落ち葉などの小物はこれより大きい）
-const MIN_BLOB_PIXELS = 80;
+// 背景のまわりに残る、背景の5色に入らない「背景に近い色」の点（GIF の色の切りかえのにじみ）は、
+// 背景から HALO_DEPTH px までだけ追加で消す。奥まで消すと、背景とほとんど同じ色の頭のてっぺんまで消える
+const HALO_DEPTH = 14;
+const HALO_DISTANCE = 40;
+// いちばん大きい塊（キャラクター）に比べてこれより小さい塊は、背景のざらつきとして消す（ほうきは体につながっている）
+const MIN_BLOB_RATIO = 0.03;
 // 1コマの高さ（px）。画面では PC で50px前後に出すので、くっきり見えるよう約3倍にする
 const FRAME_HEIGHT = 160;
 const WEBP_QUALITY = 80;
 
-function isBackground(r, g, b) {
-  return Math.min(r, g, b) >= BG_MIN_CHANNEL && Math.max(r, g, b) - Math.min(r, g, b) <= BG_MAX_CHROMA;
+const colorKey = (data, i) => (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
+
+// 全部のコマのふちに出てくる色（背景の色）
+function borderColors(frames, width, height) {
+  const colors = new Set();
+  for (const data of frames) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (x >= BORDER && y >= BORDER && x < width - BORDER && y < height - BORDER) continue;
+        colors.add(colorKey(data, (y * width + x) * 4));
+      }
+    }
+  }
+  return colors;
 }
 
-// 1コマの背景を透明にする（data は RGBA）。ふちから塗りつぶしで背景をたどる
-function removeBackground(data, width, height) {
+// 1コマの背景を透明にする（data は RGBA）。ふちから塗りつぶしで背景の色をたどる
+function removeBackground(data, width, height, backgroundColors, backgroundRgb) {
   const background = new Uint8Array(width * height);
   const stack = [];
   for (let x = 0; x < width; x++) stack.push(x, (height - 1) * width + x);
@@ -40,7 +57,7 @@ function removeBackground(data, width, height) {
     const k = stack.pop();
     if (background[k]) continue;
     const i = k * 4;
-    if (!isBackground(data[i], data[i + 1], data[i + 2])) continue;
+    if (!backgroundColors.has(colorKey(data, i))) continue;
     background[k] = 1;
     const x = k % width;
     const y = (k - x) / width;
@@ -49,10 +66,29 @@ function removeBackground(data, width, height) {
     if (y > 0) stack.push(k - width);
     if (y < height - 1) stack.push(k + width);
   }
+  // 背景のまわりのにじみ：背景から近いところだけ、背景に近い色を消す
+  let front = [];
+  for (let k = 0; k < width * height; k++) if (background[k]) front.push(k);
+  for (let depth = 0; depth < HALO_DEPTH && front.length > 0; depth++) {
+    const next = [];
+    for (const k of front) {
+      const x = k % width;
+      const y = (k - x) / width;
+      for (const n of [x > 0 ? k - 1 : -1, x < width - 1 ? k + 1 : -1, y > 0 ? k - width : -1, y < height - 1 ? k + width : -1]) {
+        if (n < 0 || background[n]) continue;
+        const i = n * 4;
+        if (Math.hypot(data[i] - backgroundRgb[0], data[i + 1] - backgroundRgb[1], data[i + 2] - backgroundRgb[2]) >= HALO_DISTANCE) continue;
+        background[n] = 1;
+        next.push(n);
+      }
+    }
+    front = next;
+  }
   for (let k = 0; k < width * height; k++) if (background[k]) data[k * 4 + 3] = 0;
 
   // 残った塊のうち小さいものを消す
   const label = new Int32Array(width * height).fill(-1);
+  const blobs = [];
   for (let start = 0; start < width * height; start++) {
     if (background[start] || label[start] !== -1) continue;
     const members = [];
@@ -76,8 +112,10 @@ function removeBackground(data, width, height) {
         stack.push(n);
       }
     }
-    if (members.length < MIN_BLOB_PIXELS) for (const k of members) data[k * 4 + 3] = 0;
+    blobs.push(members);
   }
+  const largest = Math.max(0, ...blobs.map((members) => members.length));
+  for (const members of blobs) if (members.length < largest * MIN_BLOB_RATIO) for (const k of members) data[k * 4 + 3] = 0;
 
   // 背景と接するふちの点は、背景の色に近いほど透かす
   for (let k = 0; k < width * height; k++) {
@@ -91,7 +129,7 @@ function removeBackground(data, width, height) {
       (y > 0 && data[i - width * 4 + 3] === 0) ||
       (y < height - 1 && data[i + width * 4 + 3] === 0);
     if (!touches) continue;
-    const distance = Math.hypot(data[i] - 251, data[i + 1] - 248, data[i + 2] - 238);
+    const distance = Math.hypot(data[i] - backgroundRgb[0], data[i + 1] - backgroundRgb[1], data[i + 2] - backgroundRgb[2]);
     if (distance < EDGE_FADE_DISTANCE) data[i + 3] = Math.round((distance / EDGE_FADE_DISTANCE) * 255);
   }
 }
@@ -127,9 +165,15 @@ for (const [id, spec] of Object.entries(MASCOT_SOURCES)) {
   const frames = [];
   for (let page = 0; page < pages; page += spec.frameStep) {
     const { data } = await sharp(source, { page }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    removeBackground(data, width, height);
     frames.push(data);
   }
+  const backgroundColors = borderColors(frames, width, height);
+  if (backgroundColors.size > 12) {
+    throw new Error(`${spec.source}：ふちの色が ${backgroundColors.size} 色あります。背景が一色でないか、キャラクターが絵のふちに触れています`);
+  }
+  // ふちを透かすときの基準の色（背景の色の平均）
+  const backgroundRgb = [16, 8, 0].map((shift) => [...backgroundColors].reduce((sum, key) => sum + ((key >> shift) & 255), 0) / backgroundColors.size);
+  for (const data of frames) removeBackground(data, width, height, backgroundColors, backgroundRgb);
 
   // 全部のコマを囲む範囲
   let union = null;

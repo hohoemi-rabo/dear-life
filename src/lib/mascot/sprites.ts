@@ -4,9 +4,9 @@ import type { MascotMotionId } from "./assets.ts";
 
 export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameHeight: number; frames: number; frameMs: number }> = {
   "kamisato-sweep": {
-    "frameWidth": 150,
+    "frameWidth": 155,
     "frameHeight": 160,
-    "frames": 35,
+    "frames": 29,
     "frameMs": 160
   }
 };
