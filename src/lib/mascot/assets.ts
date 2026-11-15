@@ -3,7 +3,7 @@
 export const MASCOT_DIR = "mascot";
 
 // frameStep：元のコマを何コマに1つ使うか（上郷は元が 58コマ・1コマ 80ミリ秒。2コマに1つで29コマ・約125KB。
-// 2026-11-15 の仮の値。まさゆきさんが動きを見て決める）
+// 2026-11-15 まさゆきさん OK）
 export const MASCOT_SOURCES = {
   // 上郷：石段をほうきで掃く（地区の目印の石段。くらしの絵の右上の石段に置く）
   "kamisato-sweep": { source: "kamisato-sweep.gif", frameStep: 2 },

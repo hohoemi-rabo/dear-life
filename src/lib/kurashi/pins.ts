@@ -176,6 +176,11 @@ export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-igara-winter-tall": IGARA_WINTER_TALL,
 };
 
+// 上郷の右中央の公民館の屋根。春の歩こう会・夏の人形劇・秋の文化祭のピンが指す。
+// 2026-11-15 まさゆきさん：真上の石段のマスコット（042）と近すぎるので、同じ屋根の右寄りへずらした（前は PC x 82・y 58.5、スマホ x 80・y 60.5）
+const KAMISATO_HALL_ROOF_WIDE: PinSpot = { x: 87, y: 59.5, side: "left" };
+const KAMISATO_HALL_ROOF_TALL: PinSpot = { x: 86, y: 62, side: "left" };
+
 // 行事ごとの場所（2026-10-31 まさゆきさん：行事は行われる場所にピンを立てる）。キーは行事の名前（district_events.name）。
 // 絵は地区ごとなので、名前が同じでもほかの地区の行事とは混ざらない。label はピンの札の短い名前。
 // ここにない行事（名前を Table Editor で変えたときも）は、PIN_SPOTS の event（「地域の行事」）のピンにまとめる
@@ -192,16 +197,16 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   上郷歩こう会: {
     label: "歩こう会",
     spots: {
-      "kurashi-kamisato-spring-wide": { x: 82, y: 58.5, side: "left" },
-      "kurashi-kamisato-spring-tall": { x: 80, y: 60.5, side: "left" },
+      "kurashi-kamisato-spring-wide": KAMISATO_HALL_ROOF_WIDE,
+      "kurashi-kamisato-spring-tall": KAMISATO_HALL_ROOF_TALL,
     },
   },
   // 夏（2026-10-31 まさゆきさん）。会場は地区内の複数か所なので、代表して右中央の公民館（春の歩こう会と同じ屋根）に立てる
   "いいだ人形劇フェスタ 上郷地区公演": {
     label: "人形劇",
     spots: {
-      "kurashi-kamisato-summer-wide": { x: 82, y: 58.5, side: "left" },
-      "kurashi-kamisato-summer-tall": { x: 80, y: 60.5, side: "left" },
+      "kurashi-kamisato-summer-wide": KAMISATO_HALL_ROOF_WIDE,
+      "kurashi-kamisato-summer-tall": KAMISATO_HALL_ROOF_TALL,
     },
   },
   // 夏（2026-10-31 まさゆきさん）。真ん中の体育館。屋根を指す避難場所のピンと重ならないよう、正面を指して札を左に伸ばす
@@ -224,8 +229,8 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   上郷地区文化祭: {
     label: "文化祭",
     spots: {
-      "kurashi-kamisato-autumn-wide": { x: 82, y: 58.5, side: "left" },
-      "kurashi-kamisato-autumn-tall": { x: 80, y: 60.5, side: "left" },
+      "kurashi-kamisato-autumn-wide": KAMISATO_HALL_ROOF_WIDE,
+      "kurashi-kamisato-autumn-tall": KAMISATO_HALL_ROOF_TALL,
     },
   },
   // 冬（2026-11-01 まさゆきさん）。真ん中の体育館の正面（夏の春季スポーツ交流会と同じ場所）

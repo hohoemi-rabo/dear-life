@@ -7,7 +7,7 @@ import type { MascotMotionId } from "./assets.ts";
 export type MascotSpot = { x: number; y: number; height: number };
 export type MascotPlacement = { motion: MascotMotionId; wide: MascotSpot; tall: MascotSpot };
 
-// 上郷：右上の長い石段の中ほど（2026-11-15。仮の場所で、まさゆきさんが見て決める）。
+// 上郷：右上の長い石段の中ほど（2026-11-15 まさゆきさん OK）。
 // 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。4季節とも同じ構図
 const KAMISATO: MascotPlacement = {
   motion: "kamisato-sweep",
