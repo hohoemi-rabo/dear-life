@@ -28,16 +28,16 @@ describe("Mascot（042）", () => {
 
   async function renderMascot() {
     await act(async () => {
-      render(<Mascot motion="kamisato-sweep" wide={spot} tall={spot} />);
+      render(<Mascot motion="kamisato-sweep-summer" wide={spot} tall={spot} />);
     });
     return screen.getByRole("button", { name: /マスコット/ });
   }
 
-  it("押すとエプロンの色のパレットを出し、選んだ色を端末に残す", async () => {
+  it("押すと服の色のパレットを出し、選んだ色を端末に残す", async () => {
     const mascot = await renderMascot();
     expect(mascot.getAttribute("aria-expanded")).toBe("false");
     fireEvent.click(mascot);
-    expect(screen.getByRole("dialog", { name: "エプロンの色" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "服の色" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "青緑" }).getAttribute("aria-pressed")).toBe("true");
 
     await act(async () => {
@@ -69,7 +69,7 @@ describe("Mascot（042）", () => {
     }
     vi.stubGlobal("Image", FailedImage);
     await act(async () => {
-      render(<Mascot motion="kamisato-sweep" wide={spot} tall={spot} />);
+      render(<Mascot motion="kamisato-sweep-summer" wide={spot} tall={spot} />);
     });
     expect(screen.queryByRole("button", { name: /マスコット/ })).toBeNull();
   });

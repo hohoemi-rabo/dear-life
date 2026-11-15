@@ -33,14 +33,27 @@ const WEBP_QUALITY = 80;
 
 const colorKey = (data, i) => (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
 
-// 全部のコマのふちに出てくる色（背景の色）
-function borderColors(frames, width, height) {
+// 全部のコマのふちに出てくる色（背景の色）。nearDistance を渡すと、全部のコマに出てくる色のうち、
+// ふちの色との差がそれ以下の色も背景の色に入れる（秋の GIF は背景の内側に、ふちとほんの少しちがう色の四角がある）
+function borderColors(frames, width, height, nearDistance) {
   const colors = new Set();
   for (const data of frames) {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (x >= BORDER && y >= BORDER && x < width - BORDER && y < height - BORDER) continue;
         colors.add(colorKey(data, (y * width + x) * 4));
+      }
+    }
+  }
+  if (nearDistance > 0) {
+    const border = [...colors].map((key) => [(key >> 16) & 255, (key >> 8) & 255, key & 255]);
+    const seen = new Set();
+    for (const data of frames) {
+      for (let i = 0; i < data.length; i += 4) {
+        const key = colorKey(data, i);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (border.some(([r, g, b]) => Math.hypot(data[i] - r, data[i + 1] - g, data[i + 2] - b) <= nearDistance)) colors.add(key);
       }
     }
   }
@@ -167,10 +180,11 @@ for (const [id, spec] of Object.entries(MASCOT_SOURCES)) {
     const { data } = await sharp(source, { page }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     frames.push(data);
   }
-  const backgroundColors = borderColors(frames, width, height);
+  const backgroundColors = borderColors(frames, width, height, 0);
   if (backgroundColors.size > 12) {
     throw new Error(`${spec.source}：ふちの色が ${backgroundColors.size} 色あります。背景が一色でないか、キャラクターが絵のふちに触れています`);
   }
+  if (spec.nearBackground) for (const key of borderColors(frames, width, height, spec.nearBackground)) backgroundColors.add(key);
   // ふちを透かすときの基準の色（背景の色の平均）
   const backgroundRgb = [16, 8, 0].map((shift) => [...backgroundColors].reduce((sum, key) => sum + ((key >> shift) & 255), 0) / backgroundColors.size);
   for (const data of frames) removeBackground(data, width, height, backgroundColors, backgroundRgb);

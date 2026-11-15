@@ -8,18 +8,16 @@ export type MascotSpot = { x: number; y: number; height: number };
 export type MascotPlacement = { motion: MascotMotionId; wide: MascotSpot; tall: MascotSpot };
 
 // 上郷：右上の長い石段の中ほど（2026-11-15 まさゆきさん OK）。
-// 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。4季節とも同じ構図
-const KAMISATO: MascotPlacement = {
-  motion: "kamisato-sweep",
-  wide: { x: 84.5, y: 50, height: 6.5 },
-  tall: { x: 78.5, y: 48, height: 6 },
-};
+// 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。
+// 4季節とも同じ構図なので場所は同じで、服装（動きの絵）だけを季節で替える
+const KAMISATO_WIDE: MascotSpot = { x: 84.5, y: 50, height: 6.5 };
+const KAMISATO_TALL: MascotSpot = { x: 78.5, y: 48, height: 6 };
 
 export const MASCOT_PLACEMENTS: Partial<Record<KurashiPictureId, MascotPlacement>> = {
-  "kurashi-kamisato-spring-wide": KAMISATO,
-  "kurashi-kamisato-summer-wide": KAMISATO,
-  "kurashi-kamisato-autumn-wide": KAMISATO,
-  "kurashi-kamisato-winter-wide": KAMISATO,
+  "kurashi-kamisato-spring-wide": { motion: "kamisato-sweep-spring", wide: KAMISATO_WIDE, tall: KAMISATO_TALL },
+  "kurashi-kamisato-summer-wide": { motion: "kamisato-sweep-summer", wide: KAMISATO_WIDE, tall: KAMISATO_TALL },
+  "kurashi-kamisato-autumn-wide": { motion: "kamisato-sweep-autumn", wide: KAMISATO_WIDE, tall: KAMISATO_TALL },
+  "kurashi-kamisato-winter-wide": { motion: "kamisato-sweep-winter", wide: KAMISATO_WIDE, tall: KAMISATO_TALL },
 };
 
 // くらしの絵の組（PC の横長・スマホの縦長）からマスコットの置き方を選ぶ。どちらの絵も同じ地区・季節なので、横長の絵で引く

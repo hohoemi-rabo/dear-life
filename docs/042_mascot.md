@@ -52,6 +52,13 @@
 - `public/illust/` は `npm run illust` が一覧にないファイルを消すので、マスコットは別のフォルダ `public/mascot/` に置いた。Service Worker は生成AIの絵と同じく、使ったときに残す
 - 写真：`~/dear-life-screenshots/2026-11-15-042-mascot-kurashi/`（PC・スマホの春と冬、パレットを開いたところ）
 
+## 季節ごとの服装（2026-11-15 まさゆきさん）
+
+- 動きは同じで、服装だけを季節で替える：春は着物風（花の印）、夏はエプロン（はじめの GIF）、秋はニット（葉の印）、冬は毛糸の帽子とマフラー
+- 動きの絵は `kamisato-sweep-{spring,summer,autumn,winter}`。くらしの季節の絵ごとに選ぶ（`src/lib/mascot/spots.ts`）。場所・大きさは4季節とも同じ
+- 色替えは青緑の部分をまるごと替えるので、冬は帽子とマフラーも一緒に替わる。エプロンではない季節があるので、パレットの見出しを「服の色」にした（コードの名前は apron のまま）
+- 写真：`~/dear-life-screenshots/2026-11-15-042-mascot-seasons/all.png`
+
 ## Todo
 
 - [×] （まさゆきさん）見本の絵が既存のキャラクターに似ていないかを確かめる（2026-11-15 OK）

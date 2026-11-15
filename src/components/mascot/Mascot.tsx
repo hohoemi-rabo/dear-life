@@ -9,7 +9,7 @@ import { MASCOT_SPRITES } from "@/lib/mascot/sprites";
 import { useApronColor } from "@/lib/mascot/useApronColor";
 
 // マスコット（042）。移住とは関係ないが、なんか気になって見たくなるもの（2026-11-15 まさゆきさん）。
-// 絵の上に「気づくか気づかないか」くらいの小ささで置き、地区ごとのしぐさで動かす。押すとエプロンの色のパレットを出し、
+// 絵の上に「気づくか気づかないか」くらいの小ささで置き、地区ごとのしぐさで動かす（服装は季節で替わる）。押すと服の色のパレットを出し、
 // 選んだ色は端末に残す（カルテ・地区くらべでも同じ色になる）。
 // 動きはコマを横に並べた1枚の絵を順にずらして出す。「動きを減らす」では最初のコマで止める。印刷には出さない。
 // 位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる
@@ -57,7 +57,7 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
       <button
         ref={button}
         type="button"
-        aria-label="マスコット。押すとエプロンの色を変えられます"
+        aria-label="マスコット。押すと服の色を変えられます"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((value) => !value)}
@@ -68,7 +68,7 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
   );
 }
 
-// エプロンの色のパレット。マスコットの左に、マスコットの頭の高さから下に向けて出す（どの地区も絵の右寄りに置くため。
+// 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの左に、マスコットの頭の高さから下に向けて出す（どの地区も絵の右寄りに置くため。
 // 上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。×・Esc・パレットの外を押すと閉じる
 function ApronPalette({
   id,
@@ -115,7 +115,7 @@ function ApronPalette({
     >
       <div className="flex items-center justify-between gap-2">
         <h2 id={titleId} className="text-sm font-bold text-ink">
-          エプロンの色
+          服の色
         </h2>
         <CloseIconButton onClick={onClose} />
       </div>
@@ -141,7 +141,7 @@ function ApronPalette({
   );
 }
 
-// 動きの1枚の絵を読み、エプロンの色を替えた絵の URL を返す。読み終えるまでは null。
+// 動きの1枚の絵を読み、服の色を替えた絵の URL を返す。読み終えるまでは null。
 // 青緑（元の色）と、canvas を使えない環境では元の絵をそのまま使う。
 // 色を替えた直後は、新しい色の絵ができるまで前の色の絵を出し続ける（消えて現れるとちらつく）。前の絵の URL は、新しい絵に替えてから手放す
 function useRecoloredSheet(motion: MascotMotionId, color: ApronColorId): string | null {

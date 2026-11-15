@@ -3,8 +3,26 @@
 import type { MascotMotionId } from "./assets.ts";
 
 export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameHeight: number; frames: number; frameMs: number }> = {
-  "kamisato-sweep": {
+  "kamisato-sweep-spring": {
     "frameWidth": 155,
+    "frameHeight": 160,
+    "frames": 29,
+    "frameMs": 160
+  },
+  "kamisato-sweep-summer": {
+    "frameWidth": 155,
+    "frameHeight": 160,
+    "frames": 29,
+    "frameMs": 160
+  },
+  "kamisato-sweep-autumn": {
+    "frameWidth": 154,
+    "frameHeight": 160,
+    "frames": 29,
+    "frameMs": 160
+  },
+  "kamisato-sweep-winter": {
+    "frameWidth": 153,
     "frameHeight": 160,
     "frames": 29,
     "frameMs": 160
