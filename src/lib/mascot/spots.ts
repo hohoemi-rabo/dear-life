@@ -11,8 +11,8 @@ export type MascotPlacement = { motion: MascotMotionId; wide: MascotSpot; tall: 
 // 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。4季節とも同じ構図
 const KAMISATO: MascotPlacement = {
   motion: "kamisato-sweep",
-  wide: { x: 84.5, y: 50, height: 6.5 },
-  tall: { x: 78.5, y: 48, height: 6 },
+  wide: { x: 84.5, y: 50, height: 5 },
+  tall: { x: 78.5, y: 48, height: 4.6 },
 };
 
 export const MASCOT_PLACEMENTS: Partial<Record<KurashiPictureId, MascotPlacement>> = {
