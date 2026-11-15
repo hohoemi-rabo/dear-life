@@ -30,7 +30,8 @@
     "compare:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-compare-sql.mjs",
     "scenes:sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-scenes-sql.mjs",
     "pixel": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-pixel.mjs",
-    "illust": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-illust.mjs"
+    "illust": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-illust.mjs",
+    "mascot": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-mascot.mjs"
   },
   "dependencies": {
     "next": "15.5.28",

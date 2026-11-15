@@ -3,9 +3,11 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { preload } from "react-dom";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
+import { Mascot } from "@/components/mascot/Mascot";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
 import type { Season } from "@/lib/conditions/scene";
+import { mascotPlacement } from "@/lib/mascot/spots";
 import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
 import { PinIcon } from "./PinIcon";
 import { ScenePin } from "./ScenePin";
@@ -39,6 +41,8 @@ export function IllustratedScene({
   popover: { eyebrow: string; title: string; content: ReactNode; spot: PinSpot } | null;
 }) {
   const pinRefs = useRef(new Map<string, HTMLButtonElement>());
+  // マスコット（042）。動きが届いた地区の絵にだけ出す
+  const mascot = mascotPlacement(pictures.wide);
   const closePopover = () => {
     const pin = openPin;
     onOpenPin(null);
@@ -55,6 +59,7 @@ export function IllustratedScene({
       <div className="absolute inset-0 hidden lg:block">
         <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.wide} facing="back" season={season} />
       </div>
+      {mascot && <Mascot motion={mascot.motion} wide={mascot.wide} tall={mascot.tall} />}
       {pins.map((pin) => (
         <ScenePin
           key={pin.key}

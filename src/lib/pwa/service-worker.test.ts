@@ -24,6 +24,7 @@ describe("precacheUrls", () => {
         "_next/static/media/font.woff2",
         "illust/kurashi-kamisato-spring-tall-960.webp",
         "illust/erabu-kamisato-05-960.webp",
+        "mascot/kamisato-sweep.webp",
       ]),
     ).toEqual([
       "/",
@@ -140,6 +141,15 @@ describe("Service Worker", () => {
     await worker.fetch("/illust/person-father-back.webp");
     network = offline;
     expect(await (await worker.fetch("/illust/person-father-back.webp"))?.text()).toBe("network:/illust/person-father-back.webp");
+  });
+
+  it("マスコットの動きは使ったときに残し、次は圏外でも出す（042）", async () => {
+    let network = siteNetwork;
+    const worker = startWorker("aaaa0000", [], (url) => network(url));
+    await worker.install();
+    await worker.fetch("/mascot/kamisato-sweep.webp");
+    network = offline;
+    expect(await (await worker.fetch("/mascot/kamisato-sweep.webp"))?.text()).toBe("network:/mascot/kamisato-sweep.webp");
   });
 
   it("残していない画面を圏外で開いたら入口を出す", async () => {

@@ -53,7 +53,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 function isCachedOnUse(pathname) {
-  return pathname.startsWith("/_next/static/") || pathname.startsWith("/illust/");
+  return pathname.startsWith("/_next/static/") || pathname.startsWith("/illust/") || pathname.startsWith("/mascot/");
 }
 
 async function respond(request, url) {
