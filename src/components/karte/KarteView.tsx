@@ -58,7 +58,7 @@ export function KarteView() {
           conditions={chosen}
           onConditionsChange={setConditions}
           chooseAgainLabel="条件を変える"
-          familyCompanion={mascot !== null && <MascotFigure motion={mascot} className="absolute bottom-0 right-1 h-9" />}
+          familyCompanion={mascot !== null && <MascotFigure motion={mascot} className="relative h-9 shrink-0" />}
         />
       </aside>
 

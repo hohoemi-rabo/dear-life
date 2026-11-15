@@ -87,7 +87,8 @@ export function ConditionsStrip({ conditions, onConditionsChange, action }: Prop
 const NO_CAR = "none";
 
 // PC：左の「わが家の設定」と「対象の4地区」（デザインイメージ PC版）。地区・住まい・車はその場で変えられる
-// familyCompanion：家族の絵の右端に重ねるもの（カルテのマスコット。042）。家族の一人に見えないよう、家族から離して右下に置く
+// familyCompanion：家族の絵のすぐ右に並べるもの（カルテのマスコット。042）。家族と一緒に真ん中にそろえるので、
+// 家族が増えるとそのぶん右へずれ、いつも家族の横にいる（「一人でも一人じゃない」を感じてほしい。2026-11-15 まさゆきさん）
 export function ConditionsPanel({
   conditions,
   onConditionsChange,
@@ -102,7 +103,7 @@ export function ConditionsPanel({
           わが家の設定
         </h2>
         {/* 家族はくらしの「わが家」と同じ人物（028 まさゆきさん）。スマホではこの欄を隠しているので、見えるまで読まない */}
-        <div className="relative">
+        <div className="flex items-end justify-center gap-1">
           <FamilyRow conditions={conditions} fatherHeight={72} lazy />
           {familyCompanion}
         </div>
