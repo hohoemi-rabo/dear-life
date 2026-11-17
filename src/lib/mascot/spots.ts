@@ -25,10 +25,11 @@ export function mascotMotion(district: DistrictId | null, season: Season): Masco
   return district === null ? null : (MASCOT_MOTIONS[district]?.[season] ?? null);
 }
 
-// くらしの絵の上の位置。上郷は右上の長い石段の中ほど（2026-11-15 まさゆきさん OK）。
-// 石段の上の神社には行事（黒田人形）のピン、下の公民館には歩こう会のピンが立つので、そのあいだに置く。4季節とも同じ構図なので場所も同じ
+// くらしの絵の上の位置。4季節とも同じ構図なので場所も同じ
 const SCENE_SPOTS: Partial<Record<DistrictId, { wide: MascotSpot; tall: MascotSpot }>> = {
-  kamisato: { wide: { x: 84.5, y: 50, height: 6.5 }, tall: { x: 78.5, y: 48, height: 6 } },
+  // 上郷は左の校庭の、左のゴールの右（2026-11-17 まさゆきさんが s1.png（PC・秋）に赤い丸で指定。
+  // はじめは右上の長い石段の中ほどに置いていた）
+  kamisato: { wide: { x: 20.6, y: 63, height: 6.5 }, tall: { x: 18, y: 60.5, height: 6 } },
   // 鼎は左の公園の、あずまや（テーブル）の手前の地面（2026-11-15 まさゆきさんが s1.png に丸を描いて指定。はじめのぶらんこの手前から移した）。
   // 縄跳びの絵は頭の上の縄まで入るので、体が上郷と同じくらいに見えるよう少し高くする。
   // 4季節とも同じ構図なので場所も同じ。近くのピン（学校・夏のペタンク・秋の駅伝）はもっと上を指す
