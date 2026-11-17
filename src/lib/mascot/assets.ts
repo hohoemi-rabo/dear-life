@@ -25,6 +25,12 @@ export const MASCOT_SOURCES = {
   "igara-drink-summer": { source: "igara-drink-summer.gif", frameStep: 1, key: "magenta" },
   "igara-drink-autumn": { source: "igara-drink-autumn.gif", frameStep: 1, key: "magenta" },
   "igara-drink-winter": { source: "igara-drink-winter.gif", frameStep: 1, key: "magenta" },
+  // 中心市街地：くるっと回って踊る（2026-11-17 まさゆきさん。はじめの案のりんごを見上げる・拾うから変わった。
+  // くらしの絵のりんご並木の道に置く）。4季節ともマゼンタの背景・13〜17コマ・1コマ80ミリ秒
+  "chushin-spin-spring": { source: "chushin-spin-spring.gif", frameStep: 1, key: "magenta" },
+  "chushin-spin-summer": { source: "chushin-spin-summer.gif", frameStep: 1, key: "magenta" },
+  "chushin-spin-autumn": { source: "chushin-spin-autumn.gif", frameStep: 1, key: "magenta" },
+  "chushin-spin-winter": { source: "chushin-spin-winter.gif", frameStep: 1, key: "magenta" },
 } as const satisfies Record<string, {
   source: string;
   frameStep: number;

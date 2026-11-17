@@ -74,5 +74,29 @@ export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameH
     "frameHeight": 160,
     "frames": 28,
     "frameMs": 80
+  },
+  "chushin-spin-spring": {
+    "frameWidth": 149,
+    "frameHeight": 160,
+    "frames": 13,
+    "frameMs": 80
+  },
+  "chushin-spin-summer": {
+    "frameWidth": 142,
+    "frameHeight": 160,
+    "frames": 15,
+    "frameMs": 80
+  },
+  "chushin-spin-autumn": {
+    "frameWidth": 131,
+    "frameHeight": 160,
+    "frames": 17,
+    "frameMs": 80
+  },
+  "chushin-spin-winter": {
+    "frameWidth": 157,
+    "frameHeight": 160,
+    "frames": 13,
+    "frameMs": 80
   }
 };

@@ -16,6 +16,8 @@ const MASCOT_MOTIONS: Partial<Record<DistrictId, Readonly<Record<Season, MascotM
   kanae: { 春: "kanae-jumprope-spring", 夏: "kanae-jumprope-summer", 秋: "kanae-jumprope-autumn", 冬: "kanae-jumprope-winter" },
   // 伊賀良：コップのジュースをストローで飲む（2026-11-17 まさゆきさん。はじめの案の画架から変えた）
   igara: { 春: "igara-drink-spring", 夏: "igara-drink-summer", 秋: "igara-drink-autumn", 冬: "igara-drink-winter" },
+  // 中心市街地：くるっと回って踊る（2026-11-17 まさゆきさん。はじめの案のりんごを見上げる・拾うから変わった）
+  chushin: { 春: "chushin-spin-spring", 夏: "chushin-spin-summer", 秋: "chushin-spin-autumn", 冬: "chushin-spin-winter" },
 };
 
 // 地区と季節の動き。動きがまだない地区・地区を選んでいないときは null（出さない）
@@ -34,6 +36,8 @@ const SCENE_SPOTS: Partial<Record<DistrictId, { wide: MascotSpot; tall: MascotSp
   // 伊賀良は高速バスと路線バスのあいだの乗り場の床（2026-11-17 まさゆきさんが s1.png に丸を描いて指定）。
   // 同日「もう少し手前に」で、床の手前のふち（道路の手前まで）に下げた
   igara: { wide: { x: 50.5, y: 75.5, height: 6.5 }, tall: { x: 49, y: 80.5, height: 6 } },
+  // 中心市街地は、店の並びから公園へ向かう並木の道（2026-11-17 まさゆきさんが s1.png に丸を描いて指定）
+  chushin: { wide: { x: 70.4, y: 64.5, height: 6.5 }, tall: { x: 67, y: 65, height: 6 } },
 };
 
 // くらしの絵（地区・季節）のマスコットの置き方

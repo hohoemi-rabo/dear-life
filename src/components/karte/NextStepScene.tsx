@@ -15,6 +15,8 @@ const MASCOT_SPOTS: Partial<Record<DistrictId, { x: number; footFromBottom: numb
   kanae: { x: 27, footFromBottom: 0.09, height: 0.7 },
   // 伊賀良は左の家と木の右の歩道（家族と同じ道の上。Claude の案）
   igara: { x: 30, footFromBottom: 0.06, height: 0.7 },
+  // 中心市街地は左のビルの右の歩道（家族と同じ道の上。Claude の案）
+  chushin: { x: 31, footFromBottom: 0.04, height: 0.7 },
 };
 
 // カルテの下の帯の絵：地区ごとの背景の道の上を、選んだ家族が歩く（2026-11-05 まさゆきさん）。飾りなので読み上げない。
