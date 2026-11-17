@@ -48,7 +48,7 @@ export function KarteView() {
 
   const chosen = { ...conditions, district };
   const layout = karteLayout(chosen);
-  // マスコット（042）：選んだ地区のしぐさを、くらしで見ていた季節（URL の s）の服装で。カルテには見出しの右・わが家の設定（PC）・下の帯の3か所に出る
+  // マスコット（042）：選んだ地区のしぐさを、くらしで見ていた季節（URL の s）の服装で。カルテには見出しの右・下の帯の2か所に出る（わが家の設定の家族の横は 2026-11-17 まさゆきさんの判断で外した）
   const mascot = mascotMotion(district, parseSeason(searchParams.get(SEASON_PARAM)));
   const memoItems = checkMemoItems(chosen);
   return (
@@ -58,7 +58,6 @@ export function KarteView() {
           conditions={chosen}
           onConditionsChange={setConditions}
           chooseAgainLabel="条件を変える"
-          familyCompanion={mascot !== null && <MascotFigure motion={mascot} className="relative h-9 shrink-0" />}
         />
       </aside>
 
