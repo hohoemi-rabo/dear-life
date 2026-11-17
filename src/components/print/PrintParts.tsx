@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { PixelImage } from "@/components/pixel/PixelImage";
+import { SiteLogo } from "@/components/layout/SiteLogo";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, familyLabel } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { printedOn } from "@/lib/print/print";
-import { SITE_NAME, SITE_NAME_JA } from "@/lib/site";
 
 // 印刷物の部品（023）。紙の幅（A4 縦・余白12mm で約700px）では md 以上の書き方は効かないので、幅で切りかえない書き方にする
 
@@ -22,13 +21,7 @@ export function PrintHeader({ title, conditions }: { title: string; conditions: 
   return (
     <header className="flex flex-col gap-2 border-b-2 border-ink pb-3">
       <div className="flex items-center justify-between gap-4">
-        <p className="flex items-center gap-2">
-          <PixelImage asset="logo" scale={2} decorative />
-          <span className="flex flex-col leading-tight">
-            <span className="text-xl font-extrabold text-primary">{SITE_NAME}</span>
-            <span className="text-xs tracking-[0.3em] text-ink-muted">{SITE_NAME_JA}</span>
-          </span>
-        </p>
+        <SiteLogo className="h-12" sizes="168px" />
         <p className="text-sm">印刷日：{date}</p>
       </div>
       <h1 className="text-2xl font-extrabold">{title}</h1>

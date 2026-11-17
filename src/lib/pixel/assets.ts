@@ -33,8 +33,7 @@ export const PIXEL_ASSETS = {
   "icon-document": { width: 16, height: 16, alt: "文字の並んだ書類" },
   "icon-checklist": { width: 16, height: 16, alt: "チェックの付いた表" },
   "icon-print": { width: 16, height: 16, alt: "紙の出てくるプリンター" },
-  // ロゴと飾り（027）
-  logo: { width: 24, height: 20, alt: "赤い屋根の家と芽" },
+  // 飾り（027。ロゴは 2026-11-17 に生成AIの絵 logo に替えた）
   "deco-grass": { width: 48, height: 10, alt: "花の咲いた草むら" },
 } as const satisfies Record<string, { width: number; height: number; alt: string }>;
 

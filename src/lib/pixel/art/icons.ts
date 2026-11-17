@@ -462,30 +462,6 @@ const CHECKLIST = [
   "..kkkkkkkkkkkk..",
 ];
 
-// ロゴの絵：赤い屋根の家と芽（24×20）
-const LOGO = [
-  "........................",
-  "........kk..........ddd.",
-  ".......krrk........dllld",
-  "......krrrrk.kk...dlllgd",
-  ".....krrrrrrkkk..ddggdd.",
-  "....krrrrrrrrkk.dd.gd...",
-  "...krrrrrrrrrrk....gd...",
-  "..krrrrrrrrrrrrk...gd...",
-  ".kkkkkkkkkkkkkkkk..gd...",
-  "..kwwwwwwwwwwwwk...gd...",
-  "..kwsswwwwwwsswk...gd...",
-  "..kwsswwwwwwsswk...gd...",
-  "..kwwwwwnnwwwwwk...gd...",
-  "..kwwwwwnnwwwwwk...gd...",
-  "..kwwwwwnnwwwwwk...gd...",
-  "..kwwwwwnnwwwwwk..lgdl..",
-  "..kkkkkkkkkkkkkkk.lgdl..",
-  ".lglglglglglglglglglglgl",
-  "gggggggggggggggggggggggg",
-  "dgdgdgdgdgdgdgdgdgdgdgdg",
-];
-
 // 画面の下の草花（48×10）
 const GRASS = [
   "......c.................y................c......",
@@ -524,5 +500,4 @@ export const info = (): Canvas => parseSprite(INFO);
 export const documentIcon = (): Canvas => parseSprite(DOCUMENT);
 export const printer = (): Canvas => parseSprite(PRINTER);
 export const checklist = (): Canvas => parseSprite(CHECKLIST);
-export const logo = (): Canvas => parseSprite(LOGO);
 export const grass = (): Canvas => parseSprite(GRASS);

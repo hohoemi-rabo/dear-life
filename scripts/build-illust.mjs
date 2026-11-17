@@ -6,6 +6,7 @@
 //   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
 //   - 切り出した人物・家・小物の大きさを src/lib/illust/sprites.ts に書く（画面で並べる位置の計算に使う）
+//   - ホーム画面のアイコン（024）を、ロゴの家（logo-mark）から public/icons/ に書く
 //   - 一覧にない古い WebP は消す
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -35,6 +36,7 @@ import {
   TRANSPORT_TAB_ICON_SOURCE,
   TRANSPORT_TAB_ICON_WIDTHS,
 } from "../src/lib/illust/assets.ts";
+import { APP_ICONS, APP_ICON_BACKGROUND, ICON_DIR, appIconArtSize } from "../src/lib/pwa/icons.ts";
 
 const root = join(import.meta.dirname, "..");
 const sourceDir = join(root, "assets/illust");
@@ -205,7 +207,7 @@ for (const [id, { sheet, index, scale = 1, matchHeight }] of Object.entries(SPRI
 
 // 家・小物：濃いところを不透明にし、透明なふちを切り落とす。figure を渡すと、その範囲だけを見る（1枚に並んだ小物）。
 // 大きさは縦横の比を画面で使うため、切り落とした元の大きさを返す
-async function writeOpaqueCrop(source, figure, name, widths) {
+async function opaqueCrop(source, figure) {
   const { data, info } = await opaquePixels(source);
   const { left: fromX, right: toX, top: fromY, bottom: toY } = figure ?? { left: 0, right: info.width - 1, top: 0, bottom: info.height - 1 };
   let left = info.width;
@@ -226,7 +228,11 @@ async function writeOpaqueCrop(source, figure, name, widths) {
   if (right < 0) throw new Error(`${source} に絵が見つかりません（全部透明）`);
   const cropWidth = right - left + 1;
   const cropHeight = bottom - top + 1;
-  const cropped = sharp(data, { raw: info }).extract({ left, top, width: cropWidth, height: cropHeight });
+  return { cropped: sharp(data, { raw: info }).extract({ left, top, width: cropWidth, height: cropHeight }), width: cropWidth, height: cropHeight };
+}
+
+async function writeOpaqueCrop(source, figure, name, widths) {
+  const { cropped, width: cropWidth, height: cropHeight } = await opaqueCrop(source, figure);
   for (const outWidth of widths) {
     const file = `${name}-${outWidth}.webp`;
     const out = await cropped.clone().resize({ width: outWidth }).webp({ quality: WEBP_QUALITY, alphaQuality: 100 }).toFile(join(outDir, file));
@@ -250,6 +256,25 @@ for (const [prop, { source, index, widths = PROP_WIDTHS }] of Object.entries(PRO
     if (!figure) throw new Error(`${source} に左から${index + 1}番目の絵がありません（${figures.length}個）`);
   }
   propSizes[prop] = await writeOpaqueCrop(source, figure, prop, widths);
+}
+
+// ホーム画面のアイコン：ロゴの家を、クリーム色の正方形の真ん中に置く（大きさの決めごとは src/lib/pwa/icons.ts）
+{
+  const { source, index } = PROP_SOURCES["logo-mark"];
+  const figure = (await figuresOf(source))[index];
+  if (!figure) throw new Error(`${source} に左から${index + 1}番目の絵（家）がありません`);
+  const mark = await opaqueCrop(source, figure);
+  const iconDir = join(root, "public", ICON_DIR);
+  mkdirSync(iconDir, { recursive: true });
+  for (const icon of Object.values(APP_ICONS)) {
+    const art = appIconArtSize(icon, mark.width, mark.height);
+    const artPng = await mark.cropped.clone().resize(art).png().toBuffer();
+    await sharp({ create: { width: icon.px, height: icon.px, channels: 3, background: APP_ICON_BACKGROUND } })
+      .composite([{ input: artPng, left: Math.round((icon.px - art.width) / 2), top: Math.round((icon.px - art.height) / 2) }])
+      .png()
+      .toFile(join(iconDir, icon.file));
+    console.log(`書き出し：public${ICON_DIR}/${icon.file}（${icon.px}px、家は ${art.width}×${art.height}）`);
+  }
 }
 
 // 大切にしたいことの絵：1枚に並んだ5つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）

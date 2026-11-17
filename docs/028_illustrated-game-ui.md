@@ -1082,3 +1082,12 @@
 - くらしの季節の切り替えのタブの印（PC だけ、文字の左）を、まさゆきさんが用意した生成AIの絵（桜の花・太陽・もみじの葉・雪の結晶。`assets/illust/common/season-tab-*.png`）に替えた。表示は 20px。夏はそれまでの「雨の中の傘」から太陽になった
 - 使わなくなったコードで描いたドット絵の春・夏・秋の印（`icon-spring`・`icon-summer`・`icon-autumn`）は消した。冬の `icon-winter` はカルテの詳細で使っているので残した
 - 写真：`~/dear-life-screenshots/2026-11-17-028-season-tabs/`
+
+## ロゴ（2026-11-17）
+
+- まさゆきさんが用意したロゴ（窓からマスコットがのぞく赤い屋根の家・DearLife・飯田移住カルテが1枚。`assets/illust/common/dearlife-logo.png`、2000×670）に替えた
+- ヘッダーと印刷の見出しは、それまでの「ドット絵の家＋DearLife＋飯田移住カルテの文字」をロゴ1枚に置きかえた（`SiteLogo`）。高さはスマホ 48px・PC 56px、印刷 48px。読み上げは絵の alt「DearLife 飯田移住カルテ」
+- トップの絵の左上の札（わが家の、これからの暮らし）は、ロゴの左の家だけを切り出して 24px で出す（`logo-mark`、`SiteLogoMark`）
+- ホーム画面のアイコンも同じ家にした（背景はクリーム色。まさゆきさん決定。決めごとは 024）
+- 使わなくなったコードで描いたドット絵のロゴ（`logo`）とアイコンの絵（`src/lib/pixel/art/icon.ts`）は消した
+- 写真：`~/dear-life-screenshots/2026-11-17-logo/`

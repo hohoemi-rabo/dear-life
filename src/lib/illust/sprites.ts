@@ -154,6 +154,8 @@ export const PROP_SIZES: Record<PropId, { width: number; height: number }> = {
   "season-tab-summer": { width: 1007, height: 957 },
   "season-tab-autumn": { width: 1026, height: 1000 },
   "season-tab-winter": { width: 894, height: 971 },
+  "logo": { width: 1554, height: 445 },
+  "logo-mark": { width: 458, height: 445 },
   "karte-next-step-bg-kamisato": { width: 1983, height: 331 },
   "karte-next-step-bg-kanae": { width: 1983, height: 336 },
   "karte-next-step-bg-igara": { width: 2172, height: 407 },

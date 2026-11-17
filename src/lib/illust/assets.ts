@@ -665,6 +665,8 @@ export const PROPS = [
   "season-tab-summer",
   "season-tab-autumn",
   "season-tab-winter",
+  "logo",
+  "logo-mark",
   "disaster-tab-flood",
   "disaster-tab-landslide",
   "disaster-tab-earthquake",
@@ -803,6 +805,10 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "season-tab-summer": { source: "season-tab-summer.png", alt: "太陽", widths: [48, 96] },
   "season-tab-autumn": { source: "season-tab-autumn.png", alt: "もみじの葉", widths: [48, 96] },
   "season-tab-winter": { source: "season-tab-winter.png", alt: "雪の結晶", widths: [48, 96] },
+  // サイトのロゴ（2026-11-17 受け取り。それまでのコードで描いたドット絵から差しかえ）。ヘッダー・印刷の見出しは全体を高さ 48〜56px で出す。
+  // logo-mark は左の家だけ（家と文字のあいだの透明な列で切り分けた1番目）。トップの札と、ホーム画面のアイコン（src/lib/pwa/icons.ts）に使う
+  logo: { source: "dearlife-logo.png", alt: "DearLife 飯田移住カルテ", widths: [200, 400, 600] },
+  "logo-mark": { source: "dearlife-logo.png", index: 0, alt: "窓からマスコットがのぞく、赤い屋根の家", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
   "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
   "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },

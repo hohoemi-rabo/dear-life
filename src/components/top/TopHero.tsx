@@ -1,5 +1,5 @@
 import { IllustPicture } from "@/components/illust/IllustPicture";
-import { PixelImage } from "@/components/pixel/PixelImage";
+import { SiteLogoMark } from "@/components/layout/SiteLogo";
 import { ResumeLastView } from "@/components/pwa/ResumeLastView";
 import { ButtonLink } from "@/components/ui/Button";
 import { ERABU_PATH } from "@/lib/site";
@@ -40,7 +40,7 @@ export function TopHero() {
         <div className="relative overflow-hidden rounded-card border-[3px] border-primary shadow-card">
           <IllustPicture picture="top-hero" sizes="(min-width: 1024px) 58vw, 100vw" priority className="block h-auto w-full" />
           <p className="absolute left-2 top-2 flex items-center gap-2 rounded-button border-2 border-ink bg-surface px-2.5 py-1 text-xs font-extrabold sm:text-sm lg:left-3 lg:top-3 lg:px-3 lg:py-1.5 lg:text-base">
-            <PixelImage asset="logo" scale={1} decorative />
+            <SiteLogoMark className="h-6" sizes="24px" />
             わが家の、これからの暮らし
           </p>
           {/* 押せない札（季節のタブではない。絵は季節で替えない。2026-11-07 まさゆきさん）。スマホの見本にはない */}

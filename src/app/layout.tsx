@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 import { RememberLastView } from "@/components/pwa/RememberLastView";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
-import { APP_ICONS, appIconPx, appIconSrc } from "@/lib/pwa/icons";
+import { APP_ICONS, appIconSizes, appIconSrc } from "@/lib/pwa/icons";
 import { SITE_CATCHPHRASE, SITE_NAME, SITE_NAME_JA, TARGET_DISTRICTS_LABEL, THEME_COLOR } from "@/lib/site";
 import "./globals.css";
 
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   description: `${SITE_CATCHPHRASE}。${TARGET_DISTRICTS_LABEL}の4地区で、家族の暮らしを季節の場面で見て、相場・学校・保育・交通・防災を公開データで確かめられる、登録不要のWebサービスです。`,
   // iPhone は manifest のアイコンを使わないので、ホーム画面用を別に渡す（024）
   icons: {
-    apple: { url: appIconSrc(APP_ICONS.apple), sizes: `${appIconPx(APP_ICONS.apple)}x${appIconPx(APP_ICONS.apple)}` },
+    apple: { url: appIconSrc(APP_ICONS.apple), sizes: appIconSizes(APP_ICONS.apple) },
   },
   appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };

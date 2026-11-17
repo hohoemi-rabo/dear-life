@@ -1,21 +1,11 @@
-// 行事の絵と、ホーム画面のアイコンで使う四角・屋根。墨の輪郭で囲む
+// 行事の絵。四角は墨の輪郭で囲む
 import { createCanvas, fillRect, parseSprite, setPixel, stamp, type Canvas } from "../canvas.ts";
 import type { ColorKey } from "../palette.ts";
 
 // 墨の輪郭つきの四角
-export function box(canvas: Canvas, x: number, y: number, width: number, height: number, fill: ColorKey): void {
+function box(canvas: Canvas, x: number, y: number, width: number, height: number, fill: ColorKey): void {
   fillRect(canvas, x, y, width, height, "k");
   fillRect(canvas, x + 1, y + 1, width - 2, height - 2, fill);
-}
-
-// 三角屋根（上の頂点から左右に1ドットずつ広げる）
-export function gableRoof(canvas: Canvas, cx: number, top: number, rows: number, fill: ColorKey): void {
-  for (let i = 0; i < rows; i++) {
-    fillRect(canvas, cx - i - 1, top + i, (i + 1) * 2, 1, fill);
-    setPixel(canvas, cx - i - 1, top + i, "k");
-    setPixel(canvas, cx + i, top + i, "k");
-  }
-  fillRect(canvas, cx - rows - 1, top + rows, rows * 2 + 2, 1, "k");
 }
 
 // 行事「祭り」：提灯を下げた舞台と人形
