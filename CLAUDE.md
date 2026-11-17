@@ -39,7 +39,7 @@ npm run evacuation:sql # 飯田市オープンデータ「指定緊急避難場�
 npm run public-facilities:sql # 飯田市オープンデータ「公共施設一覧」から、暮らしに関係する公共施設のマイグレーションを作る（009）
 npm run pixel          # ドット絵を描いて public/pixel/ に PNG を書き出す。確認用の拡大画像は .pixel-preview/（013）
 npm run mascot         # assets/mascot/ のマスコットの GIF から、背景を消してコマを横に並べた WebP を public/mascot/ に書き、大きさを src/lib/mascot/sprites.ts に書く（042）
-npm run illust         # assets/illust/ の生成AIの絵から、画面用の WebP を public/illust/ に書き、人物を切り分けて大きさを src/lib/illust/sprites.ts に書く。ホーム画面のアイコン（public/icons/、024）もロゴの家から書く（028）
+npm run illust         # assets/illust/ の生成AIの絵から、画面用の WebP を public/illust/ に書き、人物を切り分けて大きさを src/lib/illust/sprites.ts に書く。ホーム画面のアイコン（public/icons/、024）とファビコン（src/app/favicon.ico）もロゴの家から書く（028）
 npm run scenes:sql     # src/lib/scenes/drafts.ts から場面のひな形のマイグレーションを作る（決まりごとのチェックを通してから。017）
 npm run population:sql # e-Stat「国勢調査 小地域集計」の年齢別人口から、4地区の人口と年齢構成のマイグレーションを作る（011）
 npm run rent:sql       # e-Stat の国勢調査（借家の世帯数）と住宅・土地統計調査（飯田市の家賃の平均）から、マイグレーションを作る（034。.env.local の ESTAT_APP_ID を使う）

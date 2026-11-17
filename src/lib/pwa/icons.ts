@@ -26,6 +26,11 @@ export const APP_ICONS = {
   apple: { file: "apple-touch-icon.png", px: 180, fit: "fit" },
 } as const satisfies Record<string, AppIcon>;
 
+// ブラウザのタブのファビコン（src/app/favicon.ico。2026-11-17 にロゴの家にした）。小さい場所なので背景は透明にし、家を正方形いっぱいに置く。
+// 1つの .ico に 16・32・48px を入れ、ブラウザが画面の細かさに合わせて選ぶ
+export const FAVICON_FILE = "src/app/favicon.ico";
+export const FAVICON_SIZES = [16, 32, 48] as const;
+
 export function appIconSrc(icon: AppIcon): string {
   return `${ICON_DIR}/${icon.file}`;
 }

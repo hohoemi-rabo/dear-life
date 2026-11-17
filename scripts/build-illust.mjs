@@ -6,7 +6,7 @@
 //   - 家・車・大切にしたいことの絵などの小物は少し透けているところを不透明にそろえ、透明なふちを切り落としてから縮める
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
 //   - 切り出した人物・家・小物の大きさを src/lib/illust/sprites.ts に書く（画面で並べる位置の計算に使う）
-//   - ホーム画面のアイコン（024）を、ロゴの家（logo-mark）から public/icons/ に書く
+//   - ホーム画面のアイコン（024）を、ロゴの家（logo-mark）から public/icons/ に書く。ブラウザのタブのファビコン（src/app/favicon.ico）も同じ家から書く
 //   - 一覧にない古い WebP は消す
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,7 +36,7 @@ import {
   TRANSPORT_TAB_ICON_SOURCE,
   TRANSPORT_TAB_ICON_WIDTHS,
 } from "../src/lib/illust/assets.ts";
-import { APP_ICONS, APP_ICON_BACKGROUND, ICON_DIR, appIconArtSize } from "../src/lib/pwa/icons.ts";
+import { APP_ICONS, APP_ICON_BACKGROUND, FAVICON_FILE, FAVICON_SIZES, ICON_DIR, appIconArtSize } from "../src/lib/pwa/icons.ts";
 
 const root = join(import.meta.dirname, "..");
 const sourceDir = join(root, "assets/illust");
@@ -275,6 +275,40 @@ for (const [prop, { source, index, widths = PROP_WIDTHS }] of Object.entries(PRO
       .toFile(join(iconDir, icon.file));
     console.log(`書き出し：public${ICON_DIR}/${icon.file}（${icon.px}px、家は ${art.width}×${art.height}）`);
   }
+
+  // ファビコン：透明な正方形に、家を縦横の比のまま目いっぱい置く。.ico の中身は大きさごとの PNG
+  const faviconPngs = [];
+  for (const px of FAVICON_SIZES) {
+    faviconPngs.push(
+      await mark.cropped
+        .clone()
+        .resize({ width: px, height: px, fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toBuffer(),
+    );
+  }
+  writeFileSync(join(root, FAVICON_FILE), icoOf(FAVICON_SIZES, faviconPngs));
+  console.log(`書き出し：${FAVICON_FILE}（${FAVICON_SIZES.join("・")}px）`);
+}
+
+// PNG を並べた .ico を作る（ヘッダー6バイト＋1枚ごとの目次16バイト＋PNG の中身）
+function icoOf(sizes, pngs) {
+  const header = Buffer.alloc(6 + 16 * pngs.length);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(pngs.length, 4);
+  let offset = header.length;
+  pngs.forEach((png, i) => {
+    const entry = 6 + 16 * i;
+    header.writeUInt8(sizes[i] % 256, entry);
+    header.writeUInt8(sizes[i] % 256, entry + 1);
+    header.writeUInt16LE(1, entry + 4);
+    header.writeUInt16LE(32, entry + 6);
+    header.writeUInt32LE(png.length, entry + 8);
+    header.writeUInt32LE(offset, entry + 12);
+    offset += png.length;
+  });
+  return Buffer.concat([header, ...pngs]);
 }
 
 // 大切にしたいことの絵：1枚に並んだ5つを切り分ける。大きさは画面で使わない（枠の中に収めて出す）
