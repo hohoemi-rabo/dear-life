@@ -29,9 +29,10 @@ export function TopDistricts() {
                   className="block aspect-[3/1] w-full lg:aspect-[2/1] object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
                 />
               </span>
-              <span className="flex min-h-tap items-center justify-between px-3 py-2 text-lg font-extrabold lg:px-4">
-                {name}
-                <span aria-hidden="true" className="text-primary">
+              {/* 地区名はカードの真ん中、矢印は右端（2026-11-17 まさゆきさん）。左右を同じ幅の列にして、矢印の幅で名前がずれないようにする */}
+              <span className="grid min-h-tap grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 text-lg font-extrabold lg:px-4">
+                <span className="col-start-2">{name}</span>
+                <span aria-hidden="true" className="justify-self-end text-primary">
                   →
                 </span>
               </span>
