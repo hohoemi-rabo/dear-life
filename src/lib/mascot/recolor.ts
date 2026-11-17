@@ -21,11 +21,12 @@ export const APRON_COLORS: Readonly<Record<ApronColorId, ApronColor>> = {
 
 export const DEFAULT_APRON_COLOR: ApronColorId = "teal";
 
-// エプロンとみなす色相の範囲と、彩度のしきい値。彩度がしきい値から FADE だけ上までは少しずつ替え、エプロンと体のさかいの点に青緑を残さない
+// エプロンとみなす色相の範囲と、彩度のしきい値。彩度がしきい値から FADE だけ上までは少しずつ替え、エプロンと体のさかいの点に青緑を残さない。
+// 伊賀良の冬の服は彩度 0.02〜0.06 とほぼ灰色なので、下限を低くしてある（2026-11-17。ほかの動きの見え方は変わらないのを確かめた）
 const APRON_HUE_MIN = 110;
 const APRON_HUE_MAX = 230;
-const APRON_SATURATION_MIN = 0.03;
-const APRON_SATURATION_FADE = 0.05;
+const APRON_SATURATION_MIN = 0.008;
+const APRON_SATURATION_FADE = 0.02;
 // エプロンのふつうの明るさ（パレットの見本の色に使う）
 const APRON_TYPICAL_LIGHTNESS = 0.42;
 

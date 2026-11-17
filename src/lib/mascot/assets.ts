@@ -19,6 +19,12 @@ export const MASCOT_SOURCES = {
   "kanae-jumprope-summer": { source: "kanae-jumprope-summer.gif", frameStep: 1, key: "magenta" },
   "kanae-jumprope-autumn": { source: "kanae-jumprope-autumn.gif", frameStep: 1, key: "magenta" },
   "kanae-jumprope-winter": { source: "kanae-jumprope-winter.gif", frameStep: 1, rope: "brown" },
+  // 伊賀良：コップのジュースをストローで飲む（2026-11-17 まさゆきさん。はじめの案の画架から変えた。
+  // くらしの絵の高速バスと路線バスのあいだに置く）。4季節ともマゼンタの背景・20〜28コマ・1コマ80ミリ秒
+  "igara-drink-spring": { source: "igara-drink-spring.gif", frameStep: 1, key: "magenta" },
+  "igara-drink-summer": { source: "igara-drink-summer.gif", frameStep: 1, key: "magenta" },
+  "igara-drink-autumn": { source: "igara-drink-autumn.gif", frameStep: 1, key: "magenta" },
+  "igara-drink-winter": { source: "igara-drink-winter.gif", frameStep: 1, key: "magenta" },
 } as const satisfies Record<string, {
   source: string;
   frameStep: number;

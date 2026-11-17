@@ -19,6 +19,12 @@ describe("recolorApron（042）", () => {
     expect(dark[0] + dark[1] + dark[2]).toBeLessThan(light[0] + light[1] + light[2]);
   });
 
+  it("灰色がかった青緑（伊賀良の冬の帽子・マフラー・服）も、ちゃんと選んだ色にする", () => {
+    const winter = pixel(110, 118, 116);
+    recolorApron(winter, "red");
+    expect(winter[0]).toBeGreaterThan(winter[1] + 40);
+  });
+
   it("体のクリーム色・目のこげ茶・ほうきの茶色・透明な点は変えない", () => {
     for (const color of [pixel(239, 211, 178), pixel(70, 45, 30), pixel(170, 120, 60), pixel(95, 119, 110, 0)]) {
       const before = [...color];

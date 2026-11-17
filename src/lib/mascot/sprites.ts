@@ -50,5 +50,29 @@ export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameH
     "frameHeight": 160,
     "frames": 14,
     "frameMs": 80
+  },
+  "igara-drink-spring": {
+    "frameWidth": 133,
+    "frameHeight": 160,
+    "frames": 24,
+    "frameMs": 80
+  },
+  "igara-drink-summer": {
+    "frameWidth": 129,
+    "frameHeight": 160,
+    "frames": 20,
+    "frameMs": 80
+  },
+  "igara-drink-autumn": {
+    "frameWidth": 112,
+    "frameHeight": 160,
+    "frames": 27,
+    "frameMs": 80
+  },
+  "igara-drink-winter": {
+    "frameWidth": 114,
+    "frameHeight": 160,
+    "frames": 28,
+    "frameMs": 80
   }
 };

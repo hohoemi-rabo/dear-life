@@ -14,6 +14,8 @@ const MASCOT_MOTIONS: Partial<Record<DistrictId, Readonly<Record<Season, MascotM
   kamisato: { 春: "kamisato-sweep-spring", 夏: "kamisato-sweep-summer", 秋: "kamisato-sweep-autumn", 冬: "kamisato-sweep-winter" },
   // 鼎：公園で縄跳び（2026-11-15 まさゆきさん。はじめの案のぶらんこ・すべり台から変えた）
   kanae: { 春: "kanae-jumprope-spring", 夏: "kanae-jumprope-summer", 秋: "kanae-jumprope-autumn", 冬: "kanae-jumprope-winter" },
+  // 伊賀良：コップのジュースをストローで飲む（2026-11-17 まさゆきさん。はじめの案の画架から変えた）
+  igara: { 春: "igara-drink-spring", 夏: "igara-drink-summer", 秋: "igara-drink-autumn", 冬: "igara-drink-winter" },
 };
 
 // 地区と季節の動き。動きがまだない地区・地区を選んでいないときは null（出さない）
@@ -29,6 +31,8 @@ const SCENE_SPOTS: Partial<Record<DistrictId, { wide: MascotSpot; tall: MascotSp
   // 縄跳びの絵は頭の上の縄まで入るので、体が上郷と同じくらいに見えるよう少し高くする。
   // 4季節とも同じ構図なので場所も同じ。近くのピン（学校・夏のペタンク・秋の駅伝）はもっと上を指す
   kanae: { wide: { x: 11.6, y: 64, height: 7.5 }, tall: { x: 10.5, y: 60.5, height: 7 } },
+  // 伊賀良は高速バスと路線バスのあいだの乗り場の床（2026-11-17 まさゆきさんが s1.png に丸を描いて指定）
+  igara: { wide: { x: 50.5, y: 74, height: 6.5 }, tall: { x: 49, y: 79.5, height: 6 } },
 };
 
 // くらしの絵（地区・季節）のマスコットの置き方
