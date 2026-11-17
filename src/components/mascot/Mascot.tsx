@@ -2,13 +2,13 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { CloseIconButton } from "@/components/ui/BottomSheet";
-import { mascotSrc, type MascotMotionId } from "@/lib/mascot/assets";
+import { MASCOT_NAME, mascotSrc, type MascotMotionId } from "@/lib/mascot/assets";
 import { APRON_COLOR_IDS, APRON_COLORS, apronSwatch, recolorApron, type ApronColorId } from "@/lib/mascot/recolor";
 import type { MascotSpot } from "@/lib/mascot/spots";
 import { MASCOT_SPRITES } from "@/lib/mascot/sprites";
 import { useApronColor } from "@/lib/mascot/useApronColor";
 
-// マスコット（042）。移住とは関係ないが、なんか気になって見たくなるもの（2026-11-15 まさゆきさん）。
+// マスコット「ぽてり」（042）。移住とは関係ないが、なんか気になって見たくなるもの（2026-11-15 まさゆきさん）。
 // 絵の上に「気づくか気づかないか」くらいの小ささで置き、地区ごとのしぐさで動かす（服装は季節で替わる）。押すと服の色のパレットを出し、
 // 選んだ色は端末に残す（くらし・カルテ・地区くらべで同じ色になる）。
 // 動きはコマを横に並べた1枚の絵を順にずらして出す。「動きを減らす」では最初のコマで止める。印刷には出さない。
@@ -90,7 +90,7 @@ export function MascotFigure({
       <button
         ref={button}
         type="button"
-        aria-label="マスコット。押すと服の色を変えられます"
+        aria-label={`${MASCOT_NAME}。押すと服の色を変えられます`}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((value) => !value)}
@@ -161,7 +161,7 @@ function ApronPalette({
     >
       <div className="flex items-center justify-between gap-2">
         <h2 id={titleId} className="text-sm font-bold text-ink">
-          服の色
+          {MASCOT_NAME}の服の色
         </h2>
         <CloseIconButton onClick={onClose} />
       </div>
