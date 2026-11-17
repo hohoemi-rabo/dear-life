@@ -162,66 +162,6 @@ const FAMILY = [
   "................",
 ];
 
-// 桜（春）
-const SAKURA = [
-  "................",
-  "......kkk.......",
-  ".....kcccr......",
-  "..kk.kcccr.kk...",
-  ".kccrkccrkcccr..",
-  ".kcccckcckccccr.",
-  "..kcccyyyccccr..",
-  "...kccyoycccr...",
-  "..kcccyyycccck..",
-  ".kccccckcccccck.",
-  ".kcccrk.kccccr..",
-  "..kcrk...kccr...",
-  "...kk.....kk....",
-  "................",
-  "................",
-  "................",
-];
-
-// 傘と雨（夏の大雨）
-const UMBRELLA = [
-  "................",
-  ".......k........",
-  ".....kkkkk......",
-  "...kkbbbbbkk....",
-  "..kbbbbbbbbbk...",
-  ".kbbbbbbbbbbbk..",
-  ".kbbbbbbbbbbbk..",
-  "kbbbbbbbbbbbbbk.",
-  "kkkbkkkbkkkbkkk.",
-  ".......k........",
-  ".s.....k...s....",
-  ".......k........",
-  "...s...k......s.",
-  ".......k.k......",
-  "........k.......",
-  "................",
-];
-
-// 紅葉（秋）
-const MAPLE = [
-  "................",
-  ".......k........",
-  "......kok.......",
-  "..k...kok...k...",
-  "..kok.kok..kok..",
-  "..koorkoorkook..",
-  "...koooooooook..",
-  ".kkoooooooooookk",
-  ".kooooooooooook.",
-  "..kooooooooook..",
-  "...koooooooook..",
-  "..koookoookoook.",
-  "..kkk..knk..kkk.",
-  ".......knk......",
-  ".......knk......",
-  "................",
-];
-
 // 雪の結晶（冬）
 const SNOW = [
   "................",
@@ -569,9 +509,6 @@ export const pin = (): Canvas => parseSprite(PIN);
 export const house = (): Canvas => parseSprite(HOUSE);
 export const carIcon = (): Canvas => parseSprite(CAR);
 export const family = (): Canvas => parseSprite(FAMILY);
-export const sakura = (): Canvas => parseSprite(SAKURA);
-export const umbrella = (): Canvas => parseSprite(UMBRELLA);
-export const maple = (): Canvas => parseSprite(MAPLE);
 export const snow = (): Canvas => parseSprite(SNOW);
 export const chart = (): Canvas => parseSprite(CHART);
 export const map = (): Canvas => parseSprite(MAP);

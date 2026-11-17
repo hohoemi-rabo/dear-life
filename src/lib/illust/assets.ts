@@ -661,6 +661,10 @@ export const PROPS = [
   "karte-entry-zone",
   "karte-entry-schools",
   "karte-entry-nursery",
+  "season-tab-spring",
+  "season-tab-summer",
+  "season-tab-autumn",
+  "season-tab-winter",
   "disaster-tab-flood",
   "disaster-tab-landslide",
   "disaster-tab-earthquake",
@@ -794,6 +798,11 @@ export const PROP_SOURCES: Record<PropId, { source: string; index?: number; alt:
   "karte-entry-zone": { source: "karte-entry-zone.png", alt: "赤い屋根の小さな家", widths: [48, 96] },
   "karte-entry-schools": { source: "karte-entry-schools.png", alt: "開いた教科書", widths: [48, 96] },
   "karte-entry-nursery": { source: "karte-entry-nursery.png", alt: "黄色い屋根の幼稚園", widths: [48, 96] },
+  // くらしの季節の切り替えのタブの印（2026-11-17 受け取り。それまでのコードで描いたドット絵から差しかえ）
+  "season-tab-spring": { source: "season-tab-spring.png", alt: "桜の花", widths: [48, 96] },
+  "season-tab-summer": { source: "season-tab-summer.png", alt: "太陽", widths: [48, 96] },
+  "season-tab-autumn": { source: "season-tab-autumn.png", alt: "もみじの葉", widths: [48, 96] },
+  "season-tab-winter": { source: "season-tab-winter.png", alt: "雪の結晶", widths: [48, 96] },
   // カルテの下の「次は、現地で確かめよう」の背景（2026-11-05 受け取り）。飾りなので画面では読み上げない
   "karte-next-step-bg-kamisato": { source: "karte-next-step-bg-kamisato.png", alt: "段々の畑と家、石段の上の鳥居と、土の道", widths: [480, 960] },
   "karte-next-step-bg-kanae": { source: "karte-next-step-bg-kanae.png", alt: "商店と街灯、赤い屋根の駅とバス停と、れんがの道", widths: [480, 960] },

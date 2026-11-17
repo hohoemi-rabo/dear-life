@@ -1,7 +1,7 @@
 "use client";
 
 import { SEASONS, type Season } from "@/lib/conditions/scene";
-import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { propSrc, propSrcSet } from "@/lib/illust/assets";
 import { SEASON_ICONS, SEASON_STYLES } from "./season-styles";
 
 // 春・夏・秋・冬の切り替え（F-11）。好きな順に見られる。最初は春（URL に季節がないとき）。
@@ -23,7 +23,16 @@ export function SeasonTabs({ season, onSelect }: { season: Season; onSelect: (se
               selected ? `${SEASON_STYLES[item].label} text-white shadow-card` : "text-ink hover:bg-kinari-deep",
             ].join(" ")}
           >
-            <PixelIcon icon={SEASON_ICONS[item]} size="sm" className="hidden lg:inline-block" />
+            {/* 季節の印。そばの文字で意味がわかるので読み上げない */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- 静的書き出しなので WebP をそのまま出す */}
+            <img
+              src={propSrc(SEASON_ICONS[item], 48)}
+              srcSet={propSrcSet(SEASON_ICONS[item])}
+              sizes="20px"
+              alt=""
+              draggable={false}
+              className="hidden size-5 shrink-0 select-none object-contain lg:inline-block"
+            />
             {item}
           </button>
         );

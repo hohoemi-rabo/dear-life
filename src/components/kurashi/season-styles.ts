@@ -1,5 +1,5 @@
 import type { Season } from "@/lib/conditions/scene";
-import type { PixelAssetId } from "@/lib/pixel/assets";
+import type { PropId } from "@/lib/illust/assets";
 
 // 季節のアクセント色。ドット絵の側（季節の切り替え・場面の絵のまわり）だけで使い、実データの側には使わない（要件 8.1）。
 // Tailwind が見つけられるよう、クラス名は省略せずに書く
@@ -10,10 +10,10 @@ export const SEASON_STYLES: Readonly<Record<Season, { selected: string; label: s
   冬: { selected: "border-winter bg-winter-soft text-winter", label: "bg-winter" },
 };
 
-// 季節のアイコン（タブ・場面の見出し・サムネイル。027）
+// 季節の切り替えのタブの印（2026-11-17 まさゆきさんが用意した生成AIの絵。それまではコードで描いたドット絵）
 export const SEASON_ICONS = {
-  春: "icon-spring",
-  夏: "icon-summer",
-  秋: "icon-autumn",
-  冬: "icon-winter",
-} as const satisfies Readonly<Record<Season, PixelAssetId>>;
+  春: "season-tab-spring",
+  夏: "season-tab-summer",
+  秋: "season-tab-autumn",
+  冬: "season-tab-winter",
+} as const satisfies Readonly<Record<Season, PropId>>;
