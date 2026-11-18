@@ -43,10 +43,31 @@ describe("UpdatePrompt", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
-  it("「あとで」で閉じる", () => {
-    const { worker } = waitingVersion();
-    fireEvent.click(screen.getByRole("button", { name: "あとで" }));
-    expect(screen.queryByRole("heading", { name: "新しい版があります" })).not.toBeInTheDocument();
-    expect(worker.postMessage).not.toHaveBeenCalled();
+  it("「あとで」はなく、画面全体を覆って後ろの画面を使えなくする（2026-11-18 まさゆきさん）", () => {
+    const page = document.createElement("main");
+    page.append(Object.assign(document.createElement("button"), { textContent: "後ろのボタン" }));
+    document.body.prepend(page);
+    waitingVersion();
+    expect(screen.queryByRole("button", { name: "あとで" })).not.toBeInTheDocument();
+    const dialog = screen.getByRole("alertdialog", { name: "新しい版があります" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(page.inert).toBe(true);
+    expect(screen.getByRole("button", { name: "更新する" })).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    page.remove();
+  });
+
+  it("待たせているあいだ（お問い合わせを書いているあいだ）は出さず、やめたら出す", () => {
+    watcher = createUpdateWatcher({ container: Object.assign(new EventTarget(), { controller: {} as ServiceWorker }), reload: vi.fn() });
+    const release = watcher.hold();
+    render(<UpdatePrompt />);
+    act(() => {
+      const registration = Object.assign(new EventTarget(), { waiting: { postMessage: vi.fn() }, installing: null });
+      watcher.watch(registration as unknown as ServiceWorkerRegistration);
+    });
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+    act(() => release());
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   });
 });

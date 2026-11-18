@@ -77,12 +77,13 @@ describe("createUpdateWatcher", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
-  it("「あとで」を押した版は出さず、もっと新しい版が届いたらまた出す", () => {
+  it("お知らせを待たせているあいだは出さず、待たせるのをやめたら出す（お問い合わせ。2026-11-18）", () => {
     const { watcher, arrive } = setup();
+    const release = watcher.hold();
     arrive();
-    watcher.dismiss();
     expect(watcher.pending()).toBe(false);
-    arrive();
+    release();
+    release();
     expect(watcher.pending()).toBe(true);
   });
 });

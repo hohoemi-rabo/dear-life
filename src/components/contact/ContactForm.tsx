@@ -1,6 +1,7 @@
 "use client";
 
-import { type FormEvent, useId, useState } from "react";
+import { type FormEvent, useEffect, useId, useState } from "react";
+import { serviceWorkerUpdate } from "@/lib/pwa/update";
 import { Button } from "@/components/ui/Button";
 import {
   CONTACT_API_PATH,
@@ -42,6 +43,13 @@ export function ContactForm() {
   const countId = useId();
   const length = contactMessageLength(message);
   const overLimit = length > CONTACT_MESSAGE_MAX_LENGTH;
+  const sent = status.kind === "sent";
+
+  // 新しい版のお知らせ（030）は、更新すると読み直して書いている本文が消えるので、送り終えるまで待たせる（2026-11-18 まさゆきさん）
+  useEffect(() => {
+    if (sent) return;
+    return serviceWorkerUpdate()?.hold();
+  }, [sent]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

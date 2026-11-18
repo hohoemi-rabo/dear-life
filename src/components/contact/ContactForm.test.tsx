@@ -1,12 +1,22 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CONTACT_MESSAGE_MAX_LENGTH } from "@/lib/contact/rules";
+import { createUpdateWatcher, type UpdateWatcher } from "@/lib/pwa/update";
 import { CONTACT_FAILURE_TEXT, CONTACT_SENT_TEXT, ContactForm } from "./ContactForm";
+
+let watcher: UpdateWatcher;
+vi.mock("@/lib/pwa/update", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/pwa/update")>()),
+  serviceWorkerUpdate: () => watcher,
+}));
 
 const fetchMock = vi.fn();
 let online = true;
 
 beforeEach(() => {
+  // 新しい版がもう待っている状態（お知らせを出せる状態）
+  watcher = createUpdateWatcher({ container: Object.assign(new EventTarget(), { controller: {} as ServiceWorker }), reload: vi.fn() });
+  watcher.watch(Object.assign(new EventTarget(), { waiting: { postMessage: vi.fn() }, installing: null }) as unknown as ServiceWorkerRegistration);
   fetchMock.mockReset();
   online = true;
   vi.stubGlobal("fetch", fetchMock);
@@ -32,6 +42,26 @@ function respond(status: number, body: unknown) {
 }
 
 describe("ContactForm", () => {
+  it("書いているあいだは新しい版のお知らせを待たせ、送り終えたら出せるようにする（030。2026-11-18）", async () => {
+    render(<ContactForm />);
+    expect(watcher.pending()).toBe(false);
+    respond(500, { ok: false, error: "unavailable" });
+    await send("送れなかった本文");
+    expect(watcher.pending()).toBe(false);
+    respond(200, { ok: true });
+    await send("送れた本文");
+    expect(watcher.pending()).toBe(true);
+    fireEvent.change(textbox(), { target: { value: "もう1通" } });
+    expect(watcher.pending()).toBe(false);
+  });
+
+  it("ページを離れたら待たせるのをやめる", () => {
+    const { unmount } = render(<ContactForm />);
+    expect(watcher.pending()).toBe(false);
+    unmount();
+    expect(watcher.pending()).toBe(true);
+  });
+
   it("本文と空のハニーポットを送り、送れたら入力を消して知らせる", async () => {
     respond(200, { ok: true });
     render(<ContactForm />);

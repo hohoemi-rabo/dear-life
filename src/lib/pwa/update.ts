@@ -1,7 +1,9 @@
 // 新しい版の画面が届いたことを知らせ、押されたら入れ替える（030）。
 // Service Worker は新しい版を入れ終えても、画面がすべて閉じられるまで待つ（skipWaiting しない。024）。
 // スマホ、特にホーム画面から開いたアプリは閉じられないことが多く、古い版が残り続けるので、待っている版があれば
-// 「更新する」を出し、押されたときだけ入れ替えて読み直す。勝手には入れ替えない（開いている画面の部品と混ざらないように）
+// 「更新する」を出し、押されたときだけ入れ替えて読み直す。勝手には入れ替えない（開いている画面の部品と混ざらないように）。
+// 2026-11-18 まさゆきさん：「あとで」はなくし、更新しないと使えないようにした。ただし、お問い合わせのページでは
+// 書いている本文が読み直しで消えないよう、送り終えるまでお知らせを待たせる（hold）
 
 // service-worker.js の message の受け口と同じ値
 export const SKIP_WAITING_MESSAGE = { type: "SKIP_WAITING" } as const;
@@ -17,14 +19,18 @@ export type UpdateWatcher = ReturnType<typeof createUpdateWatcher>;
 
 export function createUpdateWatcher({ container, reload }: UpdateDeps) {
   let waiting: WaitingWorker | null = null;
-  let dismissed: WaitingWorker | null = null;
+  let holds = 0;
   let reloading = false;
   const listeners = new Set<() => void>();
+
+  function notify(): void {
+    for (const listener of listeners) listener();
+  }
 
   function setWaiting(worker: WaitingWorker | null): void {
     if (worker === waiting) return;
     waiting = worker;
-    for (const listener of listeners) listener();
+    notify();
   }
 
   return {
@@ -57,16 +63,24 @@ export function createUpdateWatcher({ container, reload }: UpdateDeps) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    // 「あとで」を押した版は出さない（もっと新しい版が届いたら、また出す）
+    // 待っている版があり、お知らせを待たせている画面がないとき
     pending(): boolean {
-      return waiting !== null && waiting !== dismissed;
+      return waiting !== null && holds === 0;
     },
     apply(): void {
       waiting?.postMessage(SKIP_WAITING_MESSAGE);
     },
-    dismiss(): void {
-      dismissed = waiting;
-      for (const listener of listeners) listener();
+    // お知らせを待たせる（お問い合わせの本文を書いているあいだ）。返す関数で待たせるのをやめる（2回呼んでも1回分）
+    hold(): () => void {
+      holds += 1;
+      notify();
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        holds -= 1;
+        notify();
+      };
     },
   };
 }
