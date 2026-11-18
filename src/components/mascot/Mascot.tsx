@@ -101,6 +101,28 @@ export function MascotFigure({
   );
 }
 
+// 一人のときだけ「わが家」の人の絵の横に並ぶぽてり（043）。まばたきだけをする。押せない（服の色はここでは変えられない）が、
+// ほかの場所（くらしの絵・カルテの見出しなど）で変えた色で出し、同じ画面で変えたときもすぐ合わせる（2026-11-18 まさゆきさん）。
+// 高さは className で渡す。人の絵と同じく飾りなので読み上げない。「動きを減らす」では開いた目のコマで止める
+export function MascotCompanion({ motion, className }: { motion: MascotMotionId; className: string }) {
+  const [color] = useApronColor();
+  const sheet = useRecoloredSheet(motion, color);
+  if (sheet === null) return null;
+  const sprite = MASCOT_SPRITES[motion];
+  const spriteStyle: CSSProperties = {
+    aspectRatio: `${sprite.frameWidth} / ${sprite.frameHeight}`,
+    backgroundImage: `url(${sheet})`,
+    backgroundSize: `${sprite.frames * 100}% 100%`,
+  };
+  return (
+    <div aria-hidden="true" data-testid="single-mascot" className={`${className} shrink-0 print:hidden`}>
+      <div className="h-full origin-bottom motion-safe:animate-mascot-in">
+        <span style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot-blink" />
+      </div>
+    </div>
+  );
+}
+
 // 動きをどこから始めるか（phase：0〜1）と、1コマを出す長さに掛ける数（speed：0.75〜1.25）。同じ画面に何か所も出るので、
 // 全部がそろって動かないよう、ページを開くたびにマスコットごとに始まりと速さを変える（2026-11-15 まさゆきさん）。
 // はじめは ±10% だったが、鼎の縄跳びはくり返しが約1秒と短く、ずれがわかりづらかったので ±25% にした（2026-11-15 まさゆきさん）。

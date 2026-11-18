@@ -34,6 +34,12 @@ export const MASCOT_SOURCES = {
   "chushin-spin-summer": { source: "chushin-spin-summer.gif", frameStep: 1, key: "magenta" },
   "chushin-spin-autumn": { source: "chushin-spin-autumn.gif", frameStep: 1, key: "magenta" },
   "chushin-spin-winter": { source: "chushin-spin-winter.gif", frameStep: 1, key: "magenta" },
+  // 一人のときだけ「わが家」に出るぽてり（043。2026-11-18 まさゆきさん）。季節の服の立ち姿の1枚の絵（マゼンタの背景）から、
+  // まばたきのコマ（開いた目・半分閉じた目・閉じた目）を作る。動きはまばたきだけ（目を左右に動かすのはしない）
+  "single-blink-spring": { source: "single-blink-spring.png", frameStep: 1, key: "magenta", blink: true, frameHeight: 240 },
+  "single-blink-summer": { source: "single-blink-summer.png", frameStep: 1, key: "magenta", blink: true, frameHeight: 240 },
+  "single-blink-autumn": { source: "single-blink-autumn.png", frameStep: 1, key: "magenta", blink: true, frameHeight: 240 },
+  "single-blink-winter": { source: "single-blink-winter.png", frameStep: 1, key: "magenta", blink: true, frameHeight: 240 },
 } as const satisfies Record<string, {
   source: string;
   frameStep: number;
@@ -43,6 +49,8 @@ export const MASCOT_SOURCES = {
   key?: "magenta" | "green";
   steadyScale?: boolean;
   frameHeight?: number;
+  // 止まった1枚の絵から、まばたきの3コマ（開く・半分・閉じる）を作る（scripts/build-mascot.mjs の blinkFrames。043）
+  blink?: boolean;
 }>;
 
 export type MascotMotionId = keyof typeof MASCOT_SOURCES;

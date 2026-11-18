@@ -64,7 +64,7 @@ export function KurashiView() {
   return (
     <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start lg:gap-6">
       <aside aria-label="わが家" className="hidden lg:sticky lg:top-4 lg:block">
-        <HomeCard conditions={chosen} onChangeConditions={() => setConditionsOpen(true)} />
+        <HomeCard conditions={chosen} season={season} onChangeConditions={() => setConditionsOpen(true)} />
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">

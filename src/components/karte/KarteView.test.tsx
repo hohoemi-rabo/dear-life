@@ -510,3 +510,36 @@ describe("KarteView：わが家の下見プラン（036。はじめの名前は�
     expect(paper).toHaveTextContent("窓や床の断熱工事はしましたか？");
   });
 });
+
+describe("一人のときだけ人の絵の横にぽてりが並ぶ（043）", () => {
+  // jsdom は画像を読まないので、読み終えたことにする
+  class LoadedImage {
+    decoding = "";
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    set src(_value: string) {
+      queueMicrotask(() => this.onload?.());
+    }
+  }
+  beforeEach(() => {
+    vi.stubGlobal("Image", LoadedImage);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const companionIn = () => screen.getByRole("complementary", { name: "わが家の設定" }).querySelector<HTMLElement>('[data-testid="single-mascot"]');
+
+  it("大人1人・子ども0人なら、見ている季節の服で出す", async () => {
+    await open("s=winter&d=kanae&a=1&k=0&h=rent&c=0");
+    expect(companionIn()?.querySelector("span")?.style.backgroundImage).toContain("/mascot/single-blink-winter.webp");
+  });
+
+  it("子どもがいる・大人2人のときは出さない", async () => {
+    await open("s=winter&d=kanae&a=1&k=1&h=rent&c=0");
+    expect(companionIn()).toBeNull();
+    cleanup();
+    await open("s=winter&d=kanae&a=2&k=0&h=rent&c=0");
+    expect(companionIn()).toBeNull();
+  });
+});

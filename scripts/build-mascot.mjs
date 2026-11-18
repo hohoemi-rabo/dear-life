@@ -10,6 +10,7 @@
 //   - key（"magenta" か "green"）を付けた GIF は、背景をその色として色で消す（chromaKey。2026-11-15）。背景がクリーム色だと頭のてっぺんと
 //     見分けられず欠けたので、これからの動きはマゼンタ（なければ緑）の背景で作ってもらう。床の影と、体に映った背景の色の照り返しも消す
 //   - steadyScale を付けると、カメラが寄ったり引いたりして大きさが変わる動画を、頭の幅で同じ大きさにそろえる
+//   - blink を付けると、止まった1枚の絵（PNG）から、まばたきの3コマを作る（043。一人のときだけ「わが家」に出るぽてり）
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
@@ -373,6 +374,82 @@ function opaqueBounds(data, width, height) {
   return right < 0 ? null : { left, top, right, bottom };
 }
 
+// まばたき（043）：止まった1枚の絵（1254×1254・マゼンタの背景）から、開いた目・半分閉じた目・閉じた目の3コマを作る。
+// 目の位置は4季節の絵で同じ（2026-11-18 に測った。暗い茶色の点を囲む範囲）。目のまわりを肌の色でなめらかに埋めてから、
+// 半分の目は元の目を下側に縦につぶして描き、閉じた目は下向きの弧（‿）を描く。左目は頭のふちに近いので、背景の点は埋めない・肌の色に使わない
+const BLINK_SOURCE_SIZE = 1254;
+const BLINK_EYES = [
+  { x0: 452, x1: 481, y0: 358, y1: 387 },
+  { x0: 645, x1: 680, y0: 413, y1: 447 },
+].map(({ x0, x1, y0, y1 }) => ({ cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, rx: (x1 - x0) / 2 + 3, ry: (y1 - y0) / 2 + 3 }));
+// 閉じた目の線の色（口の茶色に近い色）と太さ（px）
+const BLINK_LINE_RGB = [58, 34, 20];
+const BLINK_LINE_WIDTH = 5.5;
+// 半分閉じた目の、縦の縮め方
+const BLINK_HALF_SCALE = 0.45;
+
+function blinkFrames(source, width, height) {
+  if (width !== BLINK_SOURCE_SIZE || height !== BLINK_SOURCE_SIZE) {
+    throw new Error(`まばたきの元の絵は ${BLINK_SOURCE_SIZE}×${BLINK_SOURCE_SIZE} の前提です（${width}×${height}）。目の位置を測り直してください`);
+  }
+  const rgbAt = (x, y) => {
+    const i = (Math.round(y) * width + Math.round(x)) * 4;
+    return [source[i], source[i + 1], source[i + 2]];
+  };
+  const isBackground = ([r, g, b]) => r > 180 && b > 180 && g < 150;
+  const inside = (eye, x, y, scale = 1) => ((x - eye.cx) / (eye.rx * scale)) ** 2 + ((y - eye.cy) / (eye.ry * scale)) ** 2 <= 1;
+  // 目をふさいだところの肌の色：目のまわりの輪の左右・上下の点を、距離で混ぜる（背景の点は使わない）
+  const RING = 1.45;
+  const skin = (eye, x, y) => {
+    const hx = eye.rx * RING * Math.sqrt(Math.max(0, 1 - ((y - eye.cy) / (eye.ry * RING)) ** 2));
+    const vy = eye.ry * RING * Math.sqrt(Math.max(0, 1 - ((x - eye.cx) / (eye.rx * RING)) ** 2));
+    const pairs = [
+      [rgbAt(eye.cx - hx, y), rgbAt(eye.cx + hx, y), hx ? (x - (eye.cx - hx)) / (2 * hx) : 0.5],
+      [rgbAt(x, eye.cy - vy), rgbAt(x, eye.cy + vy), vy ? (y - (eye.cy - vy)) / (2 * vy) : 0.5],
+    ];
+    const parts = [];
+    for (const [a, b, t] of pairs) {
+      if (!isBackground(a) && !isBackground(b)) parts.push(a.map((v, c) => v * (1 - t) + b[c] * t));
+      else if (!isBackground(a)) parts.push(a);
+      else if (!isBackground(b)) parts.push(b);
+    }
+    if (parts.length === 0) throw new Error("まばたき：目のまわりに肌の色がありません。目の位置を測り直してください");
+    return [0, 1, 2].map((c) => parts.reduce((sum, part) => sum + part[c], 0) / parts.length);
+  };
+
+  const draw = (mode) => {
+    const data = Buffer.from(source);
+    if (mode === "open") return data;
+    for (const eye of BLINK_EYES) {
+      for (let y = Math.floor(eye.cy - eye.ry * 1.4); y <= eye.cy + eye.ry * 1.4; y++) {
+        for (let x = Math.floor(eye.cx - eye.rx * 1.4); x <= eye.cx + eye.rx * 1.4; x++) {
+          if (!inside(eye, x, y, 1.3) || isBackground(rgbAt(x, y))) continue;
+          let color = skin(eye, x, y);
+          if (mode === "half") {
+            // 元の目を、下のほうを軸に縦につぶす（上まぶたが下りてきたように）
+            const pivot = eye.cy + eye.ry * 0.25;
+            const sy = pivot + (y - pivot) / BLINK_HALF_SCALE;
+            if (y > eye.cy - eye.ry * 0.2 && inside(eye, x, sy)) color = rgbAt(x, sy);
+          } else {
+            const u = (x - eye.cx) / (eye.rx * 0.95);
+            if (Math.abs(u) <= 1) {
+              const arcY = eye.cy + eye.ry * 0.15 + eye.ry * 0.35 * (1 - u * u);
+              const alpha = Math.max(0, Math.min(1, BLINK_LINE_WIDTH - Math.abs(y - arcY)));
+              color = color.map((v, c) => v * (1 - alpha) + BLINK_LINE_RGB[c] * alpha);
+            }
+          }
+          const i = (y * width + x) * 4;
+          data[i] = Math.round(color[0]);
+          data[i + 1] = Math.round(color[1]);
+          data[i + 2] = Math.round(color[2]);
+        }
+      }
+    }
+    return data;
+  };
+  return [draw("open"), draw("half"), draw("closed")];
+}
+
 const written = new Set();
 const sizes = {};
 for (const [id, spec] of Object.entries(MASCOT_SOURCES)) {
@@ -388,6 +465,7 @@ for (const [id, spec] of Object.entries(MASCOT_SOURCES)) {
     const { data } = await sharp(source, { page }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     frames.push(data);
   }
+  if (spec.blink) frames = blinkFrames(frames[0], width, height);
   if (spec.key) {
     for (const data of frames) chromaKey(data, width, height, spec.key);
   } else {

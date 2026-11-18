@@ -86,8 +86,14 @@ export function ConditionsStrip({ conditions, onConditionsChange, action }: Prop
 
 const NO_CAR = "none";
 
-// PC：左の「わが家の設定」と「対象の4地区」（デザインイメージ PC版）。地区・住まい・車はその場で変えられる
-export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLabel }: Props & { chooseAgainLabel?: string }) {
+// PC：左の「わが家の設定」と「対象の4地区」（デザインイメージ PC版）。地区・住まい・車はその場で変えられる。
+// familyCompanion：家族の絵のすぐ右に並べるもの（一人のときのぽてり。043）。家族と一緒に真ん中にそろえる
+export function ConditionsPanel({
+  conditions,
+  onConditionsChange,
+  chooseAgainLabel,
+  familyCompanion,
+}: Props & { chooseAgainLabel?: string; familyCompanion?: ReactNode }) {
   return (
     <div className="flex flex-col gap-4">
       <section aria-labelledby="settings-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
@@ -96,7 +102,10 @@ export function ConditionsPanel({ conditions, onConditionsChange, chooseAgainLab
           わが家の設定
         </h2>
         {/* 家族はくらしの「わが家」と同じ人物（028 まさゆきさん）。スマホではこの欄を隠しているので、見えるまで読まない */}
-        <FamilyRow conditions={conditions} fatherHeight={72} lazy />
+        <div className="flex items-end justify-center gap-1">
+          <FamilyRow conditions={conditions} fatherHeight={72} lazy />
+          {familyCompanion}
+        </div>
         <p className="text-center font-bold">{familyLabel(conditions)}</p>
         <div className="flex flex-col gap-2 text-sm">
           <SettingRow icon={<SettingsIcon icon="district" />} label="地区">

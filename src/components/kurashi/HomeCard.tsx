@@ -4,20 +4,36 @@ import type { ReactNode } from "react";
 import { CAR_LABELS, DISTRICT_NAMES, HOUSING_LABELS, familyLabel } from "@/lib/conditions/labels";
 import type { Conditions } from "@/lib/conditions/model";
 import { FamilyRow } from "@/components/illust/FamilyRow";
+import { MascotCompanion } from "@/components/mascot/Mascot";
+import type { Season } from "@/lib/conditions/scene";
+import { singleMascotMotion } from "@/lib/mascot/single";
 import type { DistrictId } from "@/lib/town-district/resolve";
 
 // お父さん（立つ）の絵の高さ（px）。ほかの人はこれに合わせて縮める（背の比をえらぶと同じにする）
 const FATHER_HEIGHT = 104;
 
-// PC の左の「わが家」（028 見本）：選んだ家族の絵と条件、「選び直す」。条件はえらぶで選んだもの
-export function HomeCard({ conditions, onChangeConditions }: { conditions: Conditions & { district: DistrictId }; onChangeConditions: () => void }) {
+// PC の左の「わが家」（028 見本）：選んだ家族の絵と条件、「選び直す」。条件はえらぶで選んだもの。
+// season は見ている季節（一人のときに並ぶぽてりの服。043）
+export function HomeCard({
+  conditions,
+  season,
+  onChangeConditions,
+}: {
+  conditions: Conditions & { district: DistrictId };
+  season: Season;
+  onChangeConditions: () => void;
+}) {
+  const companion = singleMascotMotion(conditions, season);
   return (
     <section aria-labelledby="home-title" className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card">
       <h2 id="home-title" className="font-bold">
         わが家
       </h2>
-      {/* スマホでは「わが家」を隠しているので、見えるまで読まない（2026-11-01 測り直し） */}
-      <FamilyRow conditions={conditions} fatherHeight={FATHER_HEIGHT} lazy />
+      {/* スマホでは「わが家」を隠しているので、見えるまで読まない（2026-11-01 測り直し）。一人のときは横にぽてりが並ぶ（043） */}
+      <div className="flex items-end justify-center gap-1">
+        <FamilyRow conditions={conditions} fatherHeight={FATHER_HEIGHT} lazy />
+        {companion !== null && <MascotCompanion motion={companion} className="h-16" />}
+      </div>
       <p className="text-center text-sm">{familyLabel(conditions)}</p>
       <ul className="flex flex-col gap-2 border-t border-line pt-3 text-sm">
         <Row icon={<PlaceIcon />}>{DISTRICT_NAMES[conditions.district]}</Row>

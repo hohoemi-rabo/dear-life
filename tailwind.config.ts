@@ -128,6 +128,20 @@ const config: Config = {
           "0%": { backgroundPositionX: "0%" },
           "100%": { backgroundPositionX: "100%" },
         },
+        // 一人のときだけ「わが家」に出るぽてり（043）のまばたき。コマは 開く（0%）・半分（50%）・閉じる（100%）の3つ。
+        // 9秒のうち、なかほどで1回、終わりに2回つづけてまばたきする（1コマ約70ミリ秒）。目を左右に動かすのはしない（2026-11-18 まさゆきさん）
+        "mascot-blink": {
+          "0%, 44%": { backgroundPositionX: "0%" },
+          "44.8%": { backgroundPositionX: "50%" },
+          "45.6%": { backgroundPositionX: "100%" },
+          "46.4%": { backgroundPositionX: "50%" },
+          "47.2%, 92%": { backgroundPositionX: "0%" },
+          "92.8%": { backgroundPositionX: "50%" },
+          "93.6%": { backgroundPositionX: "100%" },
+          "94.4%, 95.6%": { backgroundPositionX: "0%" },
+          "96.4%": { backgroundPositionX: "100%" },
+          "97.2%, 100%": { backgroundPositionX: "0%" },
+        },
       },
       animation: {
         "pop-in": "pop-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
@@ -144,6 +158,7 @@ const config: Config = {
         "card-glow": "card-glow 900ms ease-out both",
         "mascot-in": "mascot-in 450ms ease-out both",
         mascot: "mascot-frames var(--mascot-duration) steps(var(--mascot-frames), jump-none) infinite",
+        "mascot-blink": "mascot-blink 9s steps(1, end) infinite",
       },
     },
   },

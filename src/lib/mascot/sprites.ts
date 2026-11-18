@@ -98,5 +98,29 @@ export const MASCOT_SPRITES: Record<MascotMotionId, { frameWidth: number; frameH
     "frameHeight": 160,
     "frames": 13,
     "frameMs": 80
+  },
+  "single-blink-spring": {
+    "frameWidth": 153,
+    "frameHeight": 240,
+    "frames": 3,
+    "frameMs": 100
+  },
+  "single-blink-summer": {
+    "frameWidth": 151,
+    "frameHeight": 240,
+    "frames": 3,
+    "frameMs": 100
+  },
+  "single-blink-autumn": {
+    "frameWidth": 153,
+    "frameHeight": 240,
+    "frames": 3,
+    "frameMs": 100
+  },
+  "single-blink-winter": {
+    "frameWidth": 156,
+    "frameHeight": 240,
+    "frames": 3,
+    "frameMs": 100
   }
 };

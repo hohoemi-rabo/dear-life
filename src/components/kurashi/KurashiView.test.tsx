@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BusOuting, DistrictData, DistrictEvent, ScreenData, SceneTemplate } from "@/lib/data/screen-data";
 import { EVENTS_CREDIT } from "@/lib/credits";
 import { NOTICES } from "@/lib/notices";
@@ -643,5 +643,38 @@ describe("KurashiView：上郷・冬の風景とピン（028）", () => {
       fireEvent.click(pin("バス・電車"));
     });
     expect(screen.getByRole("dialog", { name: "上郷のバス停" })).toHaveTextContent("データ未取得");
+  });
+});
+
+describe("一人のときだけ人の絵の横にぽてりが並ぶ（043）", () => {
+  // jsdom は画像を読まないので、読み終えたことにする
+  class LoadedImage {
+    decoding = "";
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    set src(_value: string) {
+      queueMicrotask(() => this.onload?.());
+    }
+  }
+  beforeEach(() => {
+    vi.stubGlobal("Image", LoadedImage);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const companionIn = () => screen.getByRole("region", { name: "わが家" }).querySelector<HTMLElement>('[data-testid="single-mascot"]');
+
+  it("大人1人・子ども0人なら、見ている季節の服で出す", async () => {
+    await open("s=winter&d=kanae&a=1&k=0&h=rent&c=0");
+    expect(companionIn()?.querySelector("span")?.style.backgroundImage).toContain("/mascot/single-blink-winter.webp");
+  });
+
+  it("子どもがいる・大人2人のときは出さない", async () => {
+    await open("s=winter&d=kanae&a=1&k=1&h=rent&c=0");
+    expect(companionIn()).toBeNull();
+    cleanup();
+    await open("s=winter&d=kanae&a=2&k=0&h=rent&c=0");
+    expect(companionIn()).toBeNull();
   });
 });
