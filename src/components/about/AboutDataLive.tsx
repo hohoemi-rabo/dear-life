@@ -3,7 +3,7 @@
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { orderedSources, supportCheckedRange } from "@/lib/about/sources";
+import { eventSourceRanges, orderedSources, supportCheckedRange, type DateRange } from "@/lib/about/sources";
 import { EVENTS_CREDIT, HIGHWAY_BUS_CREDIT, STORES_CREDIT } from "@/lib/credits";
 import { formatJaDate, formatQuarterRange } from "@/lib/format";
 import { eventSources } from "@/lib/kurabe/compare";
@@ -149,7 +149,7 @@ export function ManualDataList() {
 
 function ManualDataListBody() {
   const data = useScreenData();
-  const events = eventSources(data);
+  const events = eventSourceRanges(eventSources(data));
   const support = supportCheckedRange(data);
   return (
     <div className="flex flex-col gap-4">
@@ -177,9 +177,9 @@ function ManualDataListBody() {
           <p className="text-sm text-ink-muted">いま画面に出している行事はありません。</p>
         ) : (
           <ul className="flex flex-col gap-1 text-sm">
-            {events.map((event) => (
-              <li key={`${event.note}-${event.checkedOn}`}>
-                資料：{event.note}・確認日 <time dateTime={event.checkedOn}>{formatJaDate(event.checkedOn)}</time>
+            {events.map(({ note, range }) => (
+              <li key={note}>
+                資料：{note}・確認日 <DateRangeText range={range} />
               </li>
             ))}
           </ul>
@@ -194,17 +194,26 @@ function ManualDataListBody() {
         </p>
         {support ? (
           <p className="text-sm">
-            {data.supportPrograms.length}件・確認日 <time dateTime={support.from}>{formatJaDate(support.from)}</time>
-            {support.to !== support.from && (
-              <>
-                〜<time dateTime={support.to}>{formatJaDate(support.to)}</time>
-              </>
-            )}
+            {data.supportPrograms.length}件・確認日 <DateRangeText range={support} />
           </p>
         ) : (
           <p className="text-sm text-ink-muted">いま画面に出している支援制度はありません。</p>
         )}
       </section>
     </div>
+  );
+}
+
+// 確認日の幅。同じ日なら1日だけ出す（行事・支援制度）
+function DateRangeText({ range }: { range: DateRange }) {
+  return (
+    <>
+      <time dateTime={range.from}>{formatJaDate(range.from)}</time>
+      {range.to !== range.from && (
+        <>
+          〜<time dateTime={range.to}>{formatJaDate(range.to)}</time>
+        </>
+      )}
+    </>
   );
 }

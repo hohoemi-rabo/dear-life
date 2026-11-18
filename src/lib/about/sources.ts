@@ -20,6 +20,10 @@ export const SOURCE_USES: ReadonlyArray<readonly [id: string, use: string]> = [
   ["mhlw_medical_clinics", "地区の診療所の数"],
   ["estat_census_small_area", "地区の人口と年齢構成"],
   ["rakuen_shinshu_iida_sheet", "冬の場面の雪と路面凍結の文"],
+  // 地区くらべの「いまの街と」（041）。使い道を足し忘れていたので 2026-11-18 に足した（022 の確認。まさゆきさん）
+  ["jma_climate_normals", "いまの街とくらべる雨・風・雪（防災カルテの雨と風も）"],
+  ["mlit_flood_statistics", "いまの街とくらべる水害の被害"],
+  ["estat_census_basic", "いまの街とくらべる人口密度と子どもの割合"],
 ];
 
 export type SourceEntry = { source: SourceInfo; use: string | null };
@@ -34,6 +38,21 @@ export function orderedSources(sources: readonly SourceInfo[]): SourceEntry[] {
 }
 
 export type DateRange = { from: string; to: string };
+
+// 行事の資料ごとの確認日の幅。同じ資料で確認日だけちがう行は1行にまとめる（伊賀良をあとで足したので2行に分かれていた。2026-11-18 まさゆきさん）。
+// 並びは資料が最初に出てくる順
+export function eventSourceRanges(sources: readonly { note: string; checkedOn: string }[]): { note: string; range: DateRange }[] {
+  const ranges = new Map<string, DateRange>();
+  for (const { note, checkedOn } of sources) {
+    const range = ranges.get(note);
+    if (range === undefined) ranges.set(note, { from: checkedOn, to: checkedOn });
+    else {
+      if (checkedOn < range.from) range.from = checkedOn;
+      if (checkedOn > range.to) range.to = checkedOn;
+    }
+  }
+  return [...ranges].map(([note, range]) => ({ note, range }));
+}
 
 // 支援制度の確認日の幅（YYYY-MM-DD）。公開済みの制度がなければ null
 export function supportCheckedRange(data: ScreenData): DateRange | null {

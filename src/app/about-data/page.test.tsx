@@ -49,6 +49,24 @@ beforeEach(() => {
           },
         ],
       },
+      // 同じ資料を、あとから確認日をずらして足した地区（伊賀良は 2026-11-05 に足した）
+      igara: {
+        events: [
+          {
+            season: "夏",
+            name: "伊賀良地区のペタンク大会",
+            chushinArea: null,
+            timingNote: "7月",
+            scope: "地区全体",
+            participation: "未確認",
+            participationNote: null,
+            isForChildren: false,
+            art: "運動会",
+            sourceNote: "飯田市の公民館活動（令和7年度）",
+            checkedOn: "2026-11-05",
+          },
+        ],
+      },
     }),
     sources: [UNKNOWN, CHILDCARE, { ...MARKET_SOURCE, credit: "出典：国土交通省 不動産情報ライブラリ（https://www.reinfolib.mlit.go.jp/）。…" }],
     marketSummary: {
@@ -125,7 +143,9 @@ describe("データについて（022・F-08・7.3）", () => {
     expect(manual).toHaveTextContent(
       "地区の行事は、飯田市の公民館資料や地区公民館の情報をもとに独自にまとめたものです。年によって変わることがあります。",
     );
-    expect(manual).toHaveTextContent("資料：飯田市の公民館活動（令和7年度）・確認日 2026年10月26日");
+    // 同じ資料は確認日の幅の1行にまとめる（2026-11-18 まさゆきさん）
+    expect(manual).toHaveTextContent("資料：飯田市の公民館活動（令和7年度）・確認日 2026年10月26日〜2026年11月5日");
+    expect(manual.textContent?.match(/資料：/g)).toHaveLength(1);
     expect(manual).toHaveTextContent("2件・確認日 2026年10月20日〜2026年10月26日");
   });
 
