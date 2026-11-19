@@ -101,6 +101,25 @@ describe("データについて（022・F-08・7.3）", () => {
     expect(within(section("出典")).getByText(REINFOLIB_API_CREDIT)).toBeInTheDocument();
   });
 
+  it("相場の計算のしかた・出典・手でまとめた情報は、押すと開く欄にする（最初は閉じる。2026-11-19）", async () => {
+    await open();
+    for (const name of ["住まいの相場の計算のしかた", "出典", "手でまとめた情報"]) {
+      const details = section(name).querySelector("details") as HTMLDetailsElement;
+      expect(details.open).toBe(false);
+      expect(within(details.querySelector("summary") as HTMLElement).getByRole("heading", { name })).toBeInTheDocument();
+    }
+    // ほかの欄は閉じない
+    expect(section("利用上の注意").querySelector("details")).toBeNull();
+  });
+
+  it("#about-market 付きで来たら（地区くらべの「くわしい計算のしかた」）、その欄だけを開く", async () => {
+    window.history.replaceState(null, "", "/about-data#about-market");
+    await open();
+    expect((section("住まいの相場の計算のしかた").querySelector("details") as HTMLDetailsElement).open).toBe(true);
+    expect((section("出典").querySelector("details") as HTMLDetailsElement).open).toBe(false);
+    window.history.replaceState(null, "", "/");
+  });
+
   it("相場の対象期間と、除いた取引の件数を理由ごとに出す", async () => {
     await open();
     const market = section("住まいの相場の計算のしかた");

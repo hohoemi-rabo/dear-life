@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ManualDataList, MarketCounts, SourceList } from "@/components/about/AboutDataLive";
+import { CollapsibleSection } from "@/components/about/CollapsibleSection";
 import { DataStateLegend } from "@/components/data/DataStateMessage";
 import { InstallGuide } from "@/components/pwa/InstallGuide";
 import { ButtonLink } from "@/components/ui/Button";
@@ -60,7 +61,7 @@ export default function AboutDataPage() {
         <DataStateLegend place="その地区" />
       </Section>
 
-      <Section id="about-market" title="住まいの相場の計算のしかた">
+      <CollapsibleSection id="about-market" title="住まいの相場の計算のしかた">
         <p>
           国土交通省 不動産情報ライブラリの取引価格情報（飯田市）を、地区ごとに集計しています。現在の売り出し価格ではなく、過去の取引の参考値です。
         </p>
@@ -83,17 +84,17 @@ export default function AboutDataPage() {
         <p>
           地区くらべの「いまの街と」で並べる都市（東京23区・横浜市・名古屋市・大阪市・長野市・松本市）の相場も、同じ不動産情報ライブラリの取引から、飯田の地区と同じ対象期間・同じ除外・同じ分け方で中央値を出しています。東京23区と政令市は、すべての区の取引を合わせた値です。すべての区の取引を取り込み終えるまでは「データ未取得」と出します。
         </p>
-      </Section>
+      </CollapsibleSection>
 
-      <Section id="about-sources" title="出典">
+      <CollapsibleSection id="about-sources" title="出典">
         <p>{REINFOLIB_API_CREDIT}</p>
         <p className="text-sm text-ink-muted">
           自動で取り込むデータは取得日、手で確かめたデータは確認日を出しています。どのデータも、元のデータを地区ごとにまとめるなど加工して使っています。
         </p>
         <SourceList />
-      </Section>
+      </CollapsibleSection>
 
-      <Section id="about-manual" title="手でまとめた情報">
+      <CollapsibleSection id="about-manual" title="手でまとめた情報">
         <ManualDataList />
         <section aria-labelledby="about-compare-cities" className="flex flex-col gap-2">
           <h3 id="about-compare-cities" className="font-bold">
@@ -111,7 +112,7 @@ export default function AboutDataPage() {
             季節と条件ごとのひな形に、上の出典のデータを差し込んで作っています。文には「データ」「地区の情報」「想定」の印を付けています。「想定」は場面をつなぐための作った文で、数字・施設名・地区の評価は入れていません。
           </p>
         </section>
-      </Section>
+      </CollapsibleSection>
 
       <Section id="about-map" title="地図">
         <p>地図の画面の背景の地図・航空写真・立体の建物は、Google マップを使っています。地図データの出典は、地図の右下に Google が表示しています。</p>
