@@ -21,8 +21,9 @@ describe("labels", () => {
     expect(familyLabel({ adults: 2, children: 0, parent: "father" })).toBe("大人2人・子ども0人");
   });
 
-  it("大人1人のときは、選んだ大人（お母さん・お父さん）で書く", () => {
+  it("大人1人のときは、選んだ大人（お母さん・お父さん、子ども0人なら女性・男性）で書く", () => {
     expect(familyLabel({ adults: 1, children: 2, parent: "mother" })).toBe("お母さん・子ども2人");
-    expect(familyLabel({ adults: 1, children: 0, parent: "father" })).toBe("お父さん・子ども0人");
+    expect(familyLabel({ adults: 1, children: 0, parent: "father" })).toBe("男性・子ども0人");
+    expect(familyLabel({ adults: 1, children: 0, parent: "mother" })).toBe("女性・子ども0人");
   });
 });

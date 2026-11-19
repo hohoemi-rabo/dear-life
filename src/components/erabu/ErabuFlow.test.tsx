@@ -183,6 +183,19 @@ describe("ErabuFlow：質問の進行", () => {
     expect(params().has("o")).toBe(false);
   });
 
+  it("一人暮らし（大人1人・子ども0人）のときは、女性・男性と呼ぶ", async () => {
+    await open("d=kamisato&q=family");
+    await tap("大人を1人減らす");
+    await tap("子どもを1人減らす");
+    expect(screen.getByRole("button", { name: "女性" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: "お母さん" })).not.toBeInTheDocument();
+    await tap("男性");
+    expect(params().get("o")).toBe("father");
+    expect(screen.getByRole("group", { name: "わが家のプレビュー：上郷で暮らす、男性・子ども0人の家族" })).toBeInTheDocument();
+    await tap("子どもを1人増やす");
+    expect(screen.getByRole("button", { name: "お父さん" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("車は必須：選ぶまで次へを押せず、「まだ決めない」もない。0台を選べば大切なことへ進める", async () => {
     await open("d=kamisato&q=car");
     expect(screen.getByRole("button", { name: /大切にしたいことへ/ })).toBeDisabled();

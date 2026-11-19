@@ -82,9 +82,20 @@ export const SINGLE_PARENT_LABELS: Readonly<Record<SingleParent, string>> = {
   father: "お父さん",
 };
 
-// 大人1人のときは、選んだ大人（お母さん・お父さん）を出す
+// 子どもがいない一人暮らしでは「お母さん・お父さん」は合わないので、「女性・男性」と呼ぶ（2026-11-19 まさゆきさん）
+const SINGLE_ADULT_LABELS: Readonly<Record<SingleParent, string>> = {
+  mother: "女性",
+  father: "男性",
+};
+
+// 大人1人のときの大人の呼び名。子どもがいればお母さん・お父さん、いなければ女性・男性
+export function singleAdultLabel(parent: SingleParent, children: number): string {
+  return (children === 0 ? SINGLE_ADULT_LABELS : SINGLE_PARENT_LABELS)[parent];
+}
+
+// 大人1人のときは、選んだ大人（お母さん・お父さん、子ども0人なら女性・男性）を出す
 export function familyLabel({ adults, children, parent }: { adults: number; children: number; parent: SingleParent }): string {
-  const grownUps = adults === 1 ? SINGLE_PARENT_LABELS[parent] : `大人${adults}人`;
+  const grownUps = adults === 1 ? singleAdultLabel(parent, children) : `大人${adults}人`;
   return `${grownUps}・子ども${children}人`;
 }
 

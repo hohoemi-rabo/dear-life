@@ -12,7 +12,7 @@ import {
   HOUSING_LABELS,
   KARTE_CARD_LABELS,
   PRIORITIES,
-  SINGLE_PARENT_LABELS,
+  singleAdultLabel,
   type CarCount,
   type Housing,
   type Priority,
@@ -161,7 +161,7 @@ function CheckMark({ className, sizeClassName = "size-6 text-sm" }: { className:
 }
 
 // 家族の人数（028 見本）：大人・子どもの「−・＋」を横に並べ、下に「人数を変えると、家族も変わります。」の絵。
-// 家族の絵そのものは上のプレビューに出る。大人1人のときは、お母さん・お父さんを選べるようにする
+// 家族の絵そのものは上のプレビューに出る。大人1人のときは、お母さん・お父さん（子ども0人なら女性・男性）を選べるようにする
 // （ひとり親の家族も多いので。2026-10-31 まさゆきさん）
 function FamilyCounter({ conditions, onChange }: ChoiceProps) {
   return (
@@ -170,7 +170,9 @@ function FamilyCounter({ conditions, onChange }: ChoiceProps) {
         <Counter label="大人" value={conditions.adults} range={ADULTS_RANGE} onChange={(adults) => onChange({ adults })} />
         <Counter label="子ども" value={conditions.children} range={CHILDREN_RANGE} onChange={(children) => onChange({ children })} />
       </div>
-      {conditions.adults === 1 && <ParentChoice parent={conditions.parent} onChange={(parent) => onChange({ parent })} />}
+      {conditions.adults === 1 && (
+        <ParentChoice parent={conditions.parent} childCount={conditions.children} onChange={(parent) => onChange({ parent })} />
+      )}
       <FamilyHint />
     </div>
   );
@@ -179,7 +181,16 @@ function FamilyCounter({ conditions, onChange }: ChoiceProps) {
 const SINGLE_PARENTS: readonly SingleParent[] = ["mother", "father"];
 
 // 大人1人のときの大人。人物の絵と名前を並べ、選んだほうは枠を緑にして ✓ を付ける（家・地区のカードと同じ印）
-function ParentChoice({ parent, onChange }: { parent: SingleParent; onChange: (parent: SingleParent) => void }) {
+// 子ども0人のときは「女性・男性」と呼ぶ（singleAdultLabel）
+function ParentChoice({
+  parent,
+  childCount,
+  onChange,
+}: {
+  parent: SingleParent;
+  childCount: number;
+  onChange: (parent: SingleParent) => void;
+}) {
   return (
     <div className="flex items-center gap-3 rounded-card bg-kinari-deep px-3 py-2">
       <span id="erabu-single-parent" className="shrink-0 font-bold">
@@ -203,7 +214,7 @@ function ParentChoice({ parent, onChange }: { parent: SingleParent; onChange: (p
                 {selected && <CheckMark className="-right-1.5 -top-1.5" sizeClassName="size-5 text-xs" />}
                 {/* eslint-disable-next-line @next/next/no-img-element -- 切り出した小さな WebP をそのまま出す（FamilyHint と同じ） */}
                 <img src={spriteSrc(spriteId(id, "stand"))} alt="" draggable={false} className="h-10 w-auto select-none" />
-                <span className="whitespace-nowrap">{SINGLE_PARENT_LABELS[id]}</span>
+                <span className="whitespace-nowrap">{singleAdultLabel(id, childCount)}</span>
               </button>
             </li>
           );
