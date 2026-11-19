@@ -9,7 +9,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { DISTRICT_NAMES } from "@/lib/conditions/labels";
 import { GOOGLE_FLAT_MAP_CREDIT } from "@/lib/credits";
-import { pointFeatures, schoolDistrictFeatures, type MapSelection } from "@/lib/map/features";
+import { pointFeatures, type FeatureCollection, type MapSelection, type MultiPolygonGeometry, type SchoolDistrictProperties } from "@/lib/map/features";
 import { clearMapDataCache, loadMapData } from "@/lib/map/load-map-data";
 import type { MapPointKind } from "@/lib/map/map-data";
 import { POINT_STYLES } from "@/lib/map/style";
@@ -20,6 +20,8 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 // 車を選ぶのに要るのはバス停の場所だけなので、選んだ地区のバス停と駅だけを平面で出す（立体・ほかの施設・一覧は出さない）
 const KINDS: readonly MapPointKind[] = ["bus_stops", "train_stations"];
 const VISIBLE_KINDS: ReadonlySet<MapPointKind> = new Set(KINDS);
+// このシートは小学校区を出さないので、面は作らない（面をつなげる計算と polygon-clipping を、えらぶに読ませない。044）
+const NO_SCHOOL_DISTRICTS: FeatureCollection<MultiPolygonGeometry, SchoolDistrictProperties> = { type: "FeatureCollection", features: [] };
 
 export function BusStopMapSheet({ open, onClose, district }: { open: boolean; onClose: () => void; district: DistrictId }) {
   return (
@@ -49,7 +51,6 @@ function BusStopMap({ district }: { district: DistrictId }) {
     const all = pointFeatures(data);
     return { ...all, features: all.features.filter((feature) => feature.properties.district === district) };
   }, [data, district]);
-  const schoolDistricts = useMemo(() => schoolDistrictFeatures(data), [data]);
   const [selected, setSelected] = useState<MapSelection | null>(null);
   const states = KINDS.map((kind) => ({ kind, state: data.districts[district].points[kind] }));
 
@@ -67,7 +68,7 @@ function BusStopMap({ district }: { district: DistrictId }) {
       <div className={MAP_FRAME}>
         <LazyMapCanvas
           points={points}
-          schoolDistricts={schoolDistricts}
+          schoolDistricts={NO_SCHOOL_DISTRICTS}
           visibleKinds={VISIBLE_KINDS}
           showSchoolDistricts={false}
           tilted={false}

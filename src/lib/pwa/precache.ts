@@ -1,6 +1,6 @@
 // Service Worker（024）が入れるときに端末に残すファイルの一覧と、sw.js の組み立て。scripts/build-sw.mjs とテストが使う。
 // 残すのは、画面（HTML と、画面の移動で読む .txt）・JS と CSS・ドット絵・アイコン・地図の部品。
-// _next/static/media（フォントの分割ファイル約120個と、MapLibre の使わない写し）と、生成AIの絵（illust/。端末の幅ごとの版が
+// _next/static/media（フォントの分割ファイル）と、生成AIの絵（illust/。端末の幅ごとの版が
 // すべて入っていて約11MB。2026-11-01 測り直し）と、マスコットの動き（mascot/。1地区 約150KB。042）は大きいので先に残さず、使ったときに残す（service-worker.js）
 export function precacheUrl(file: string): string | null {
   if (file === "sw.js" || file === "404.html") return null;

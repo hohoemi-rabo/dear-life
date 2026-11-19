@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ScreenDataFormatError } from "../data/screen-data";
-import { mergeSchoolDistrictPieces, pointFeatures, schoolDistrictFeatures, findPoint } from "./features";
+import { pointFeatures, findPoint } from "./features";
+import { mergeSchoolDistrictPieces, schoolDistrictFeatures } from "./school-district-features";
 import { parseMapData } from "./map-data";
 import { pointKindSummary, schoolDistrictSummary } from "./summary";
 
