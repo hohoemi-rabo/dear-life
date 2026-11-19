@@ -365,12 +365,12 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
 
   it("車：0台を選んだときだけ、バス停の地図をその場のシートで開ける（地図の画面へは移らない）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
-    expect(screen.queryByRole("button", { name: "バス停を地図で見る" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "バス停と駅を地図で見る" })).toBeNull();
     await tap(/^1台/);
-    expect(screen.queryByRole("button", { name: "バス停を地図で見る" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "バス停と駅を地図で見る" })).toBeNull();
     await tap(/^0台/);
-    expect(screen.queryByRole("link", { name: "バス停を地図で見る" })).toBeNull();
-    await tap("バス停を地図で見る");
+    expect(screen.queryByRole("link", { name: "バス停と駅を地図で見る" })).toBeNull();
+    await tap("バス停と駅を地図で見る");
     expect(screen.getByRole("dialog", { name: "上郷のバス停と駅" })).toBeInTheDocument();
     expect(params().get("q")).toBe("car");
   });

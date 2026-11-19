@@ -204,7 +204,7 @@ function BusStopMapButton({ district }: { district: DistrictId }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={`${TEXT_LINK} inline-flex`}>
-        バス停を地図で見る
+        バス停と駅を地図で見る
         <span aria-hidden="true">›</span>
       </button>
       <BusStopMapSheet open={open} onClose={() => setOpen(false)} district={district} />
@@ -313,7 +313,7 @@ function pillAction(compact: boolean): string {
 const OUTLINE_ACTION =
   "inline-flex min-h-[3.25rem] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-line bg-surface px-2 text-xs font-bold min-[400px]:px-3 min-[400px]:text-[0.8125rem] sm:px-4 sm:text-sm text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
-// 文字だけの小さなリンク（バス停を地図で見る・PC の選ばずに進む）
+// 文字だけの小さなリンク（バス停と駅を地図で見る・PC の選ばずに進む）
 const TEXT_LINK = "min-h-tap items-center gap-1 self-start text-sm font-bold text-primary underline-offset-4 hover:underline";
 
 // 枠のない文字だけの操作（戻る）
