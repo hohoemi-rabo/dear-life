@@ -8,6 +8,8 @@ export const THEME_COLOR = "#F7F3EA";
 // 地区の一覧そのものは 004 の地区マスタが正。ここは画面の表記だけを持つ
 export const TARGET_DISTRICTS_LABEL = "上郷・鼎・伊賀良・中心市街地";
 
+// トップ（033）。ロゴのほかに、ヘッダー（PC）・「≡」メニュー・フッターからも戻れるようにする（2026-11-19 まさゆきさん）
+export const TOP_PATH = "/";
 export const ABOUT_DATA_PATH = "/about-data";
 export const CONTACT_PATH = "/contact";
 export const ERABU_PATH = "/erabu";

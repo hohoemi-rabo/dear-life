@@ -13,11 +13,13 @@ describe("HeaderNav", () => {
     expect(screen.getByRole("link", { name: "データについて" })).toHaveAttribute("href", "/about-data");
     // スマホの「≡」メニューは出さない（見本は「ⓘ データ」）
     expect(screen.queryByText("≡")).toBeNull();
+    expect(screen.queryByRole("link", { name: "トップ" })).toBeNull();
   });
 
-  it("カルテでは進みぐあいを出す", () => {
+  it("カルテでは進みぐあいと、トップへ戻るリンクを出す", () => {
     vi.mocked(usePathname).mockReturnValue("/karte");
     render(<HeaderNav />);
     expect(screen.getByRole("list", { name: "進みぐあい" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "トップ" })).toHaveAttribute("href", "/");
   });
 });

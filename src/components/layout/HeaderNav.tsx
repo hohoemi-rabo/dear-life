@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ABOUT_DATA_PATH, ERABU_PATH, KURABE_PATH } from "@/lib/site";
+import { ABOUT_DATA_PATH, ERABU_PATH, KURABE_PATH, TOP_PATH } from "@/lib/site";
 import { HeaderMenu } from "./HeaderMenu";
 import { StepIndicator } from "./StepIndicator";
 
@@ -20,17 +20,26 @@ export function HeaderNav() {
           <HeaderMenu />
         </div>
       )}
-      <Link
-        href={ABOUT_DATA_PATH}
-        aria-label="データについて"
-        className={`min-h-tap items-center gap-1.5 text-sm font-bold text-ink underline-offset-4 hover:underline md:order-last md:flex ${isTop ? "flex" : "hidden"}`}
-      >
-        <InfoIcon />
-        {/* 並びの隙間（gap）が入らないよう、ひとつの文字のかたまりにする */}
-        <span>
-          データ<span className={isTop ? "max-md:hidden" : ""}>について</span>
-        </span>
-      </Link>
+      {/* PC はロゴのほかにトップへ戻る文字のリンクを「データについて」の左に置く（スマホは「≡」メニューの中。2026-11-19 まさゆきさん）。
+          ヘッダーは両端に寄せる並びなので、2つを1つのかたまりにして右端に置く。スマホでは contents で今までどおりの並びに出す */}
+      <div className="contents md:order-last md:flex md:items-center md:gap-6">
+        {!isTop && (
+          <Link href={TOP_PATH} className="hidden min-h-tap items-center text-sm font-bold text-ink underline-offset-4 hover:underline md:flex">
+            トップ
+          </Link>
+        )}
+        <Link
+          href={ABOUT_DATA_PATH}
+          aria-label="データについて"
+          className={`min-h-tap items-center gap-1.5 text-sm font-bold text-ink underline-offset-4 hover:underline md:flex ${isTop ? "flex" : "hidden"}`}
+        >
+          <InfoIcon />
+          {/* 並びの隙間（gap）が入らないよう、ひとつの文字のかたまりにする */}
+          <span>
+            データ<span className={isTop ? "max-md:hidden" : ""}>について</span>
+          </span>
+        </Link>
+      </div>
       {/* 地区くらべのスマホの見本には進みぐあいがない（029）。トップはまだどのステップでもないので出さない（033。2026-11-07 まさゆきさん） */}
       {!isTop && (
         <div className={`w-full md:w-auto ${pathname === KURABE_PATH ? "hidden md:block" : ""}`}>

@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { ABOUT_DATA_PATH, CONTACT_PATH, ERABU_PATH } from "@/lib/site";
+import { ABOUT_DATA_PATH, CONTACT_PATH, ERABU_PATH, TOP_PATH } from "@/lib/site";
 
 const ITEMS = [
+  { href: TOP_PATH, label: "トップへ" },
   { href: ABOUT_DATA_PATH, label: "データについて" },
   { href: ERABU_PATH, label: "はじめから選ぶ" },
   { href: CONTACT_PATH, label: "お問い合わせ" },
 ] as const;
 
-// スマホのヘッダーの「≡」メニュー（027）。画面を移ってもヘッダーは残るので、移ったら閉じる
+// スマホのヘッダーの「≡」メニュー（027）。トップでは出さない（HeaderNav）ので、「トップへ」はいつも出してよい。画面を移ってもヘッダーは残るので、移ったら閉じる
 export function HeaderMenu() {
   const pathname = usePathname();
   const menu = useRef<HTMLDetailsElement>(null);
