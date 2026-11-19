@@ -74,7 +74,10 @@ describe("BusStopMapSheet（えらぶの車0台）", () => {
     expect(canvas.props?.points.features.every((feature) => feature.properties.district === "kamisato")).toBe(true);
     expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["bus_stops", "train_stations"]);
     expect(within(sheet).queryByRole("button", { name: "立体で見る" })).toBeNull();
-    expect(within(sheet).getByText(GOOGLE_FLAT_MAP_CREDIT)).toBeInTheDocument();
+    // 出典は「出典を見る」の閉じた欄の中
+    const sources = within(sheet).getByText("出典を見る").closest("details") as HTMLDetailsElement;
+    expect(sources.open).toBe(false);
+    expect(within(sources).getByText(GOOGLE_FLAT_MAP_CREDIT)).toBeInTheDocument();
 
     fireEvent.click(within(sheet).getAllByRole("button", { name: "点：bus_stops" })[0]);
     expect(within(sheet).getByText("kamisatoのバス停1")).toBeInTheDocument();

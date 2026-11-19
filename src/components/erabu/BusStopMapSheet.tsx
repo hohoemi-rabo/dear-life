@@ -77,10 +77,19 @@ function BusStopMap({ district }: { district: DistrictId }) {
         />
       </div>
       <SelectionDetail data={data} selected={selected} hint="点をタップすると、名前と住所が出ます。" />
-      <section aria-label="出典" className="flex flex-col gap-2">
-        {states.map(({ kind, state }) => state.status !== "unavailable" && <DataSourceNote key={kind} source={state.source} />)}
-        <p className="text-xs text-ink-muted">{GOOGLE_FLAT_MAP_CREDIT}</p>
-      </section>
+      {/* 出典はシートでは目立たせず、押すと開く欄にする（2026-11-19 まさゆきさん。カルテの詳細の出典の欄と同じく最初は閉じる） */}
+      <details className="group rounded-card border border-line bg-surface">
+        <summary className="flex min-h-tap cursor-pointer list-none items-center justify-between gap-2 px-4 py-2 text-sm font-bold [&::-webkit-details-marker]:hidden">
+          出典を見る
+          <span aria-hidden="true" className="text-ink-muted transition-transform group-open:rotate-90">
+            ›
+          </span>
+        </summary>
+        <div className="flex flex-col gap-2 border-t border-line px-4 py-3">
+          {states.map(({ kind, state }) => state.status !== "unavailable" && <DataSourceNote key={kind} source={state.source} />)}
+          <p className="text-xs text-ink-muted">{GOOGLE_FLAT_MAP_CREDIT}</p>
+        </div>
+      </details>
     </div>
   );
 }
