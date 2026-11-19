@@ -54,11 +54,19 @@ function carText(conditions: Conditions): string {
 }
 
 // スマホ：家族の絵と選んだ条件の帯（028 見本 karte-mobile.png）。地区はその場で切りかえられる（F-04）。
-// action（「条件を変える」）は右に置く
-export function ConditionsStrip({ conditions, onConditionsChange, action }: Props & { action?: ReactNode }) {
+// action（「条件を変える」）は右に置く。familyCompanion は家族の絵のすぐ右に並べるもの（一人のときのぽてり。043。2026-11-19 にスマホにも出した）
+export function ConditionsStrip({
+  conditions,
+  onConditionsChange,
+  action,
+  familyCompanion,
+}: Props & { action?: ReactNode; familyCompanion?: ReactNode }) {
   return (
     <section aria-label="選んだ条件" className="flex items-center gap-3 rounded-card border border-line bg-surface p-3 shadow-card">
-      <FamilyRow conditions={conditions} fatherHeight={44} className="shrink-0" />
+      <div className="flex shrink-0 items-end gap-0.5">
+        <FamilyRow conditions={conditions} fatherHeight={44} className="shrink-0" />
+        {familyCompanion}
+      </div>
       <div className="flex min-w-0 flex-1 flex-col text-[13px] leading-snug">
         <label className="inline-flex items-center self-start">
           <span className="sr-only">地区を切り替える</span>

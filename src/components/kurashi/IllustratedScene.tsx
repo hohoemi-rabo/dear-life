@@ -3,10 +3,12 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { preload } from "react-dom";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
-import { Mascot } from "@/components/mascot/Mascot";
+import { Mascot, MascotCompanion } from "@/components/mascot/Mascot";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
 import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
 import type { Season } from "@/lib/conditions/scene";
+import { companionPlacement } from "@/lib/illust/family";
+import type { MascotMotionId } from "@/lib/mascot/assets";
 import { mascotPlacement } from "@/lib/mascot/spots";
 import type { DistrictId } from "@/lib/town-district/resolve";
 import type { PinSpot, ScenePinSpec } from "@/lib/kurashi/pins";
@@ -26,6 +28,7 @@ export function IllustratedScene({
   openPin,
   onOpenPin,
   popover,
+  companion = null,
 }: {
   // マスコット（042）のしぐさを選ぶ
   district: DistrictId;
@@ -43,6 +46,8 @@ export function IllustratedScene({
   onOpenPin: (pin: string | null) => void;
   // PC の吹き出し（開いているピンの中身）。スマホでは null
   popover: { eyebrow: string; title: string; content: ReactNode; spot: PinSpot } | null;
+  // 一人のときのぽてり（043）。スマホの縦長の絵で、風景を眺める人の横に並べる（PC は左の「わが家」に出る）
+  companion?: MascotMotionId | null;
 }) {
   const pinRefs = useRef(new Map<string, HTMLButtonElement>());
   // マスコット（042）。動きが届いた地区の絵にだけ出す
@@ -59,6 +64,7 @@ export function IllustratedScene({
       <ScenePicture pictures={pictures} />
       <div className="absolute inset-0 lg:hidden">
         <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.tall} facing="back" season={season} />
+        {companion && <SceneCompanion motion={companion} members={members} background={pictures.tall} />}
       </div>
       <div className="absolute inset-0 hidden lg:block">
         <FamilyLayer members={members} hiddenChildren={hiddenChildren} background={pictures.wide} facing="back" season={season} />
@@ -89,6 +95,17 @@ export function IllustratedScene({
         <span className="hidden lg:inline">暮らしを想像するための風景</span>
       </span>
     </figure>
+  );
+}
+
+// 一人のときのぽてり（043）を、風景を眺める人のすぐ右に立たせる（2026-11-19 まさゆきさん：スマホでも出す）
+function SceneCompanion({ motion, members, background }: { motion: MascotMotionId; members: readonly Person[]; background: KurashiPictureId }) {
+  const spot = companionPlacement(members, background);
+  if (!spot) return null;
+  return (
+    <span className="absolute z-10" style={{ left: `${spot.left}%`, bottom: `${100 - spot.footY}%`, height: `${spot.height}%` }}>
+      <MascotCompanion motion={motion} className="h-full" />
+    </span>
   );
 }
 

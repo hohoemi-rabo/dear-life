@@ -15,6 +15,7 @@ import { useConditions } from "@/lib/conditions/useConditions";
 import { kurashiPicturesFor, type KurashiPictures } from "@/lib/illust/assets";
 import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { karteHref } from "@/lib/kurashi/links";
+import { singleMascotMotion } from "@/lib/mascot/single";
 import { pinSheet } from "@/lib/kurashi/pin-sheets";
 import { ALL_EVENTS_KEY, openPinSpec, scenePins } from "@/lib/kurashi/pins";
 import { SEASON_SLUGS } from "@/lib/kurashi/season";
@@ -172,6 +173,7 @@ function SceneWithPins({
         label={label}
         members={familyMembers(conditions)}
         hiddenChildren={hiddenChildren(conditions)}
+        companion={singleMascotMotion(conditions, season)}
         pins={pins}
         openPin={openPin}
         onOpenPin={onOpenPin}

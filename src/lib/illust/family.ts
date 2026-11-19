@@ -119,6 +119,8 @@ export type Placement = {
   footY: number;
   // 背の高さ（背景の高さに対する％）。ポーズごとの幅は、この高さと画像の縦横の比から決まる
   heightPercent: (pose: Pose) => number;
+  // 立つポーズの横幅（背景の幅に対する％）
+  width: number;
 };
 
 export function placeFamily(members: readonly Person[], background: FamilyStageId): Placement[] {
@@ -141,6 +143,21 @@ export function placeFamily(members: readonly Person[], background: FamilyStageI
     if (index > 0) left -= widths[index] * overlap;
     const centerX = left + widths[index] / 2;
     left += widths[index];
-    return { person, centerX, footY: stage.footY, heightPercent: (pose) => heightOf(person, pose) };
+    return { person, centerX, footY: stage.footY, heightPercent: (pose) => heightOf(person, pose), width: widths[index] };
   });
+}
+
+// 一人のときのぽてり（043）を、いちばん右の人のすぐ右に並べる位置（スマホのくらしの風景。2026-11-19 まさゆきさん）。
+// 背はお父さん（立つ）の約6割（PC の「わが家」の 64px ÷ 104px と同じ比）。人と少し重ねて寄りそわせる
+const COMPANION_HEIGHT_RATIO = 64 / 104;
+const COMPANION_OVERLAP = 0.15;
+
+export function companionPlacement(members: readonly Person[], background: FamilyStageId): { left: number; footY: number; height: number } | null {
+  const last = placeFamily(members, background).at(-1);
+  if (!last) return null;
+  return {
+    left: last.centerX + last.width * (0.5 - COMPANION_OVERLAP),
+    footY: last.footY,
+    height: STAGES[background].adultHeight * COMPANION_HEIGHT_RATIO,
+  };
 }

@@ -52,7 +52,7 @@ export function KarteView() {
   // マスコット（042）：選んだ地区のしぐさを、くらしで見ていた季節（URL の s）の服装で。カルテには見出しの右・下の帯の2か所に出る（わが家の設定の家族の横の地区のしぐさは 2026-11-17 まさゆきさんの判断で外した。一人のときのまばたきのぽてり（043）は別）
   const season = parseSeason(searchParams.get(SEASON_PARAM));
   const mascot = mascotMotion(district, season);
-  // 一人のときだけ「わが家の設定」の人の絵の横に並ぶぽてり（043。PC の幅1280px以上だけ。押せない）
+  // 一人のときだけ人の絵の横に並ぶぽてり（043。押せない）。PC は「わが家の設定」、スマホは上の条件の帯（2026-11-19 まさゆきさん）
   const companion = singleMascotMotion(chosen, season);
   const memoItems = checkMemoItems(chosen);
   return (
@@ -72,6 +72,7 @@ export function KarteView() {
             conditions={chosen}
             onConditionsChange={setConditions}
             action={<ChooseAgainLink conditions={chosen} label="条件を変える" icon="icon-gear" className="flex-col gap-0 text-xs" />}
+            familyCompanion={companion !== null && <MascotCompanion motion={companion} className="h-7" />}
           />
         </div>
 

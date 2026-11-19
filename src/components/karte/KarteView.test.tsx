@@ -529,17 +529,22 @@ describe("一人のときだけ人の絵の横にぽてりが並ぶ（043）", (
   });
 
   const companionIn = () => screen.getByRole("complementary", { name: "わが家の設定" }).querySelector<HTMLElement>('[data-testid="single-mascot"]');
+  // スマホの上の条件の帯（2026-11-19）
+  const stripCompanion = () => screen.getByRole("region", { name: "選んだ条件" }).querySelector<HTMLElement>('[data-testid="single-mascot"]');
 
-  it("大人1人・子ども0人なら、見ている季節の服で出す", async () => {
+  it("大人1人・子ども0人なら、見ている季節の服で出す（PC の「わが家の設定」と、スマホの条件の帯）", async () => {
     await open("s=winter&d=kanae&a=1&k=0&h=rent&c=0");
     expect(companionIn()?.querySelector("span")?.style.backgroundImage).toContain("/mascot/single-blink-winter.webp");
+    expect(stripCompanion()?.querySelector("span")?.style.backgroundImage).toContain("/mascot/single-blink-winter.webp");
   });
 
   it("子どもがいる・大人2人のときは出さない", async () => {
     await open("s=winter&d=kanae&a=1&k=1&h=rent&c=0");
     expect(companionIn()).toBeNull();
+    expect(stripCompanion()).toBeNull();
     cleanup();
     await open("s=winter&d=kanae&a=2&k=0&h=rent&c=0");
     expect(companionIn()).toBeNull();
+    expect(stripCompanion()).toBeNull();
   });
 });
