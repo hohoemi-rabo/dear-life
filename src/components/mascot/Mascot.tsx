@@ -96,7 +96,19 @@ export function MascotFigure({
         onClick={() => setOpen((value) => !value)}
         className="absolute bottom-0 left-1/2 size-full min-h-tap min-w-tap -translate-x-1/2 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       />
-      {open && <ApronPalette id={panelId} side={paletteSide} color={color} onSelect={setColor} onClose={close} />}
+      {open && (
+        <ApronPalette
+          id={panelId}
+          side={paletteSide}
+          color={color}
+          // 色を選んだらパレットを閉じる（2026-11-19 まさゆきさん）
+          onSelect={(next) => {
+            setColor(next);
+            close();
+          }}
+          onClose={close}
+        />
+      )}
     </div>
   );
 }
@@ -135,7 +147,7 @@ function useMotionVariation(): { phase: number; speed: number } {
 
 // 服の色のパレット（はじめは夏のエプロンだけだったので、色の名前などのコードは apron のまま）。マスコットの横（くらしの絵とカルテの下の帯では
 // 絵の中央の側。paletteSideFor）に、マスコットの頭の高さから下に向けて出す（上に向けると、絵の上に重ねた見出し・季節の切りかえの下にもぐる）。
-// ×・Esc・パレットの外を押すと閉じる
+// 色を選ぶ・×・Esc・パレットの外を押すと閉じる
 function ApronPalette({
   id,
   side,

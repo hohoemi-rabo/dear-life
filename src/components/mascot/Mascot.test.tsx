@@ -46,7 +46,7 @@ describe("Mascot（042）", () => {
     return screen.getByRole("button", { name: /ぽてり/ });
   }
 
-  it("押すと服の色のパレットを出し、選んだ色を端末に残す", async () => {
+  it("押すと服の色のパレットを出し、選んだ色を端末に残して、パレットを閉じる", async () => {
     const mascot = await renderMascot();
     expect(mascot.getAttribute("aria-expanded")).toBe("false");
     fireEvent.click(mascot);
@@ -57,6 +57,10 @@ describe("Mascot（042）", () => {
       fireEvent.click(screen.getByRole("button", { name: "赤" }));
     });
     expect(localStorage.getItem(APRON_COLOR_STORAGE_KEY)).toBe("red");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(mascot);
+    // もう一度開くと、選んだ色に印が付いている
+    fireEvent.click(mascot);
     expect(screen.getByRole("button", { name: "赤" }).getAttribute("aria-pressed")).toBe("true");
   });
 
