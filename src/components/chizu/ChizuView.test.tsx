@@ -133,7 +133,10 @@ describe("ChizuView（021・032）", () => {
     expect(within(districtButtons()).getByRole("button", { name: "鼎" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(NOTICES.mapPosition)).toBeInTheDocument();
     expect(screen.getByText(NOTICES.mapOffline)).toBeInTheDocument();
-    expect(screen.getByText(GOOGLE_MAPS_CREDIT)).toBeInTheDocument();
+    // 出典と対象時点は、押すと開く欄（最初は閉じる。2026-11-19）
+    const sources = screen.getByText("出典と対象時点を見る").closest("details") as HTMLDetailsElement;
+    expect(sources.open).toBe(false);
+    expect(within(sources).getByText(GOOGLE_MAPS_CREDIT)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /いいだWebまっぷ（飯田市）/ })).toHaveAttribute("href", "https://www.city.iida.lg.jp/soshiki/168/iidawebmap.html");
   });
 
@@ -168,10 +171,14 @@ describe("ChizuView（021・032）", () => {
     cleanup();
     await open("d=kanae&layer=transit");
     expect([...(canvas.props?.visibleKinds ?? [])]).toEqual(["bus_stops", "train_stations"]);
+    // 施設の種類から来たときは、小学校区の塗り分けを出さない（2026-11-19）
+    expect(canvas.props?.showSchoolDistricts).toBe(false);
+    expect(within(layers()).getByRole("checkbox", { name: /^小学校区/ })).not.toBeChecked();
     // 知らない値なら、ふだんの見え方
     cleanup();
     await open("d=kanae&layer=toString");
     expect(canvas.props?.visibleKinds.has("schools")).toBe(true);
+    expect(canvas.props?.showSchoolDistricts).toBe(true);
   });
 
   it("点をタップすると名称・住所・出典を出す。住所のない駅は「出典に記載なし」", async () => {

@@ -696,7 +696,7 @@ describe("KarteDetailView：移動", () => {
     expect(screen.queryByRole("link", { name: /地図で周辺を確かめる/ })).toBeNull();
     // 車0台は行ける場所のタブから開く：バス停と駅の両方
     expect(mapLink()).toMatch(/&layer=transit$/);
-    for (const [tab, layer] of [[/バス停/, "bus_stops"], [/電車/, "train_stations"], [/冬のおでかけ/, "transit"]] as const) {
+    for (const [tab, layer] of [[/バス停/, "transit"], [/電車/, "train_stations"], [/冬のおでかけ/, "transit"]] as const) {
       await act(async () => {
         fireEvent.click(screen.getByRole("tab", { name: tab }));
       });

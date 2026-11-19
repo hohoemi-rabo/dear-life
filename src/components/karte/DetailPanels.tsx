@@ -215,7 +215,8 @@ export function OtherDetailCard({
 // その地区に点がないタブ（伊賀良の電車など）には出さない
 function TransportMapLink({ tabId, district }: { tabId: string; district: DistrictData }) {
   const hasPoints = (state: DataState<readonly Facility[]>) => state.status === "available" && state.value.length > 0;
-  if (tabId === "bus") return hasPoints(district.busStops) ? <FacilityMapLink layer="bus_stops" /> : null;
+  // バス停のタブも、乗りかえる駅と一緒に見られるようにバス停と駅の両方を出す（2026-11-19 まさゆきさん）
+  if (tabId === "bus") return hasPoints(district.busStops) ? <FacilityMapLink layer="transit" /> : null;
   if (tabId === "train") return hasPoints(district.trainStations) ? <FacilityMapLink layer="train_stations" /> : null;
   return hasPoints(district.busStops) || hasPoints(district.trainStations) ? <FacilityMapLink layer="transit" /> : null;
 }

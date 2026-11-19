@@ -20,7 +20,7 @@ export function schoolDistrictMapHref(conditions: Conditions, seasonSlug: string
 }
 
 // カルテの「地図で場所を見る」で、最初にチェックを入れる種類（子育て・学校は 039、防災・交通は 040）。
-// transit は交通の「行ける場所」「冬のおでかけ」のタブから：乗る場所のバス停と駅の両方（2026-11-13 まさゆきさん）
+// transit は交通の「バス停」「行ける場所」「冬のおでかけ」のタブから：乗る場所のバス停と駅の両方（2026-11-13 まさゆきさん。バス停のタブは 2026-11-19 から）
 const FACILITY_LAYER_KINDS = {
   schools: ["schools"],
   childcare: ["childcare"],

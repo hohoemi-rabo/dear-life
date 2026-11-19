@@ -43,6 +43,12 @@ function initialKinds(layer: string | null): readonly MapPointKind[] {
   return facilityLayerKinds(layer) ?? INITIALLY_VISIBLE;
 }
 
+// 小学校区の塗り分けは、ふだんの見え方と学区のタブから来たときだけ出す。
+// カルテの「地図で場所を見る」から来たとき（バス停と駅など）は、その種類の点だけが見えるように出さない（2026-11-19 まさゆきさん）
+function initialSchoolDistricts(layer: string | null): boolean {
+  return layer === SCHOOL_DISTRICT_LAYER || facilityLayerKinds(layer) === null;
+}
+
 // 05 地図（F-06）。施設を種類ごとに出し分け、点をタップすると名称・住所・出典を出す。小学校区は面で出し、距離は出さない。
 // 最初は真上から見た平面の Google マップで開き、「立体で見る」で写真の建物の立体にする（032）。useSearchParams を使うので <Suspense> の中で使う
 export function ChizuView() {
@@ -103,7 +109,7 @@ function MapScreen({ focus }: { focus: DistrictId | null }) {
   const [visibleKinds, setVisibleKinds] = useState<ReadonlySet<MapPointKind>>(
     () => new Set(initialKinds(searchParams.get(MAP_LAYER_PARAM))),
   );
-  const [showSchoolDistricts, setShowSchoolDistricts] = useState(true);
+  const [showSchoolDistricts, setShowSchoolDistricts] = useState(() => initialSchoolDistricts(searchParams.get(MAP_LAYER_PARAM)));
   const [tilted, setTilted] = useState(false);
   const [selected, setSelected] = useState<MapSelection | null>(null);
 
@@ -372,21 +378,27 @@ function Sources({ data }: { data: MapData }) {
   for (const summary of [...MAP_POINT_KINDS.map((kind) => pointKindSummary(data, kind)), schoolDistrictSummary(data)]) {
     if (summary.status !== "unavailable") sources.set(summary.source.id, summary.source);
   }
+  // 出典と対象時点は、押すと開く欄にする（2026-11-19 まさゆきさん。カルテの詳細の出典の欄と同じく最初は閉じる）
   return (
-    <Card as="section" aria-labelledby="map-sources" className="flex flex-col gap-3 lg:col-span-2">
-      <h2 id="map-sources" className="text-lg font-bold">
-        出典と対象時点
-      </h2>
-      <DataStateLegend place="4地区" />
-      <ul className="flex flex-col divide-y divide-line">
-        {[...sources.values()].map((source) => (
-          <li key={source.id} className="py-2">
-            <DataSourceNote source={source} />
-          </li>
-        ))}
-        <li className="py-2 text-xs text-ink-muted">{GOOGLE_MAPS_CREDIT}</li>
-      </ul>
-    </Card>
+    <details className="group rounded-card border border-line bg-surface shadow-card lg:col-span-2">
+      <summary className="flex min-h-tap cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-bold [&::-webkit-details-marker]:hidden">
+        出典と対象時点を見る
+        <span aria-hidden="true" className="text-ink-muted transition-transform group-open:rotate-90">
+          ›
+        </span>
+      </summary>
+      <div className="flex flex-col gap-3 border-t border-line px-4 py-3">
+        <DataStateLegend place="4地区" />
+        <ul className="flex flex-col divide-y divide-line">
+          {[...sources.values()].map((source) => (
+            <li key={source.id} className="py-2">
+              <DataSourceNote source={source} />
+            </li>
+          ))}
+          <li className="py-2 text-xs text-ink-muted">{GOOGLE_MAPS_CREDIT}</li>
+        </ul>
+      </div>
+    </details>
   );
 }
 
