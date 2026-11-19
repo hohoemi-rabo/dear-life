@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { CarLayer } from "@/components/illust/CarLayer";
@@ -13,7 +13,7 @@ import { PriorityMarkLayer } from "@/components/illust/PriorityMarkLayer";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { CAR_LABELS, DISTRICT_NAMES, familyLabel, HOUSING_LABELS, KARTE_CARD_LABELS, PRIORITIES } from "@/lib/conditions/labels";
-import type { Conditions } from "@/lib/conditions/model";
+import { hasNoCar, type Conditions } from "@/lib/conditions/model";
 import { conditionsHref, writeConditions } from "@/lib/conditions/url";
 import { useConditions } from "@/lib/conditions/useConditions";
 import {
@@ -28,7 +28,9 @@ import {
 } from "@/lib/erabu/questions";
 import { erabuBaseFor } from "@/lib/illust/assets";
 import { familyMembers, hiddenChildren } from "@/lib/illust/family";
-import { KURASHI_PATH, MAP_PATH } from "@/lib/site";
+import { KURASHI_PATH } from "@/lib/site";
+import type { DistrictId } from "@/lib/town-district/resolve";
+import { BusStopMapSheet } from "./BusStopMapSheet";
 import { ErabuProgress } from "./ErabuProgress";
 import { ErabuReplyCard } from "./ErabuReplyCard";
 import { CAR_STAGES, QuestionBody } from "./QuestionBody";
@@ -152,9 +154,9 @@ export function ErabuFlow() {
           <div className="contents lg:flex lg:w-[320px] lg:shrink-0 lg:flex-col lg:gap-3">
             <div className="max-lg:order-2">{questionSection}</div>
             {actions}
-            {current === "car" && (
+            {current === "car" && hasNoCar(conditions) && conditions.district !== null && (
               <div className="flex justify-center max-lg:order-3 lg:justify-start">
-                <BusStopTextLink conditions={conditions} />
+                <BusStopMapButton district={conditions.district} />
               </div>
             )}
             {current === "priorities" && question.optional && (
@@ -195,16 +197,18 @@ function SideNextLabel({ label }: { label: string }) {
   );
 }
 
-// 地図でバス停を見る文字だけのリンク（カードや絵は付けない。2026-11-06 まさゆきさん。スマホも PC と同じ）
-function BusStopTextLink({ conditions }: { conditions: Conditions }) {
+// 車0台を選んだときだけ出す、バス停の地図を開く文字だけのボタン（カードや絵は付けない。2026-11-06 まさゆきさん）。
+// 地図の画面へ移ると車の質問に戻れなかったので、えらぶの画面のままシートで開く（2026-11-19 まさゆきさん）
+function BusStopMapButton({ district }: { district: DistrictId }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Link
-      href={conditionsHref(MAP_PATH, conditions)}
-      className={`${TEXT_LINK} inline-flex`}
-    >
-      バス停を地図で見る
-      <span aria-hidden="true">›</span>
-    </Link>
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={`${TEXT_LINK} inline-flex`}>
+        バス停を地図で見る
+        <span aria-hidden="true">›</span>
+      </button>
+      <BusStopMapSheet open={open} onClose={() => setOpen(false)} district={district} />
+    </>
   );
 }
 

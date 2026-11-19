@@ -28,3 +28,5 @@ export const STORES_CREDIT = `カルテの交通「行ける場所」の店の�
 
 // 地図の画面の背景（032）。地図の中の Google のロゴと「地図データ ©…」は Google が出すので消さない（Google マップの規約）
 export const GOOGLE_MAPS_CREDIT = "背景の地図・航空写真・立体の建物：Google マップ（地図データの出典は、地図の右下に Google が表示しています）";
+// えらぶの車の質問のバス停の地図（平面だけで、立体は出さない。2026-11-19 まさゆきさん）
+export const GOOGLE_FLAT_MAP_CREDIT = "背景の地図・航空写真：Google マップ（地図データの出典は、地図の右下に Google が表示しています）";

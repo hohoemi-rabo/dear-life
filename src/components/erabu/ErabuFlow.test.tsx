@@ -44,6 +44,8 @@ vi.mock("next/navigation", async () => {
 
 let screenData: ScreenData;
 vi.mock("@/lib/data/load-screen-data", () => ({ loadScreenData: () => Promise.resolve(screenData) }));
+// 車0台のバス停の地図のシート。中身は BusStopMapSheet.test.tsx で確かめるので、ここでは読み込み中のままにする
+vi.mock("@/lib/map/load-map-data", () => ({ loadMapData: () => new Promise(() => {}), clearMapDataCache: () => {} }));
 
 const EDUCATION = sourceFixture("iida_education", { checkedOn: "2026-10-24", fetchedOn: null });
 const CHILDCARE = sourceFixture("iida_childcare", { checkedOn: "2026-10-24", fetchedOn: null });
@@ -361,10 +363,16 @@ describe("ErabuFlow：選ぶたびの返事（要件 4章）", () => {
     expectStage("車なしの暮らしを想像します");
   });
 
-  it("車：台数によらず、地図でバス停を見るリンクを条件つきで出す", async () => {
+  it("車：0台を選んだときだけ、バス停の地図をその場のシートで開ける（地図の画面へは移らない）", async () => {
     await open("d=kamisato&a=2&k=1&h=new&c=2&q=car");
-    expectStage("家族で2台以上の暮らしを想像します");
-    expect(screen.getByRole("link", { name: "バス停を地図で見る" })).toHaveAttribute("href", "/chizu?d=kamisato&a=2&k=1&h=new&c=2");
+    expect(screen.queryByRole("button", { name: "バス停を地図で見る" })).toBeNull();
+    await tap(/^1台/);
+    expect(screen.queryByRole("button", { name: "バス停を地図で見る" })).toBeNull();
+    await tap(/^0台/);
+    expect(screen.queryByRole("link", { name: "バス停を地図で見る" })).toBeNull();
+    await tap("バス停を地図で見る");
+    expect(screen.getByRole("dialog", { name: "上郷のバス停と駅" })).toBeInTheDocument();
+    expect(params().get("q")).toBe("car");
   });
 
   it("出典が未公開ならデータ未取得と出し、作った数字で埋めない", async () => {
