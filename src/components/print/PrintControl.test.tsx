@@ -76,6 +76,25 @@ describe("PrintControl（023）", () => {
     expect(print).toHaveBeenCalledTimes(1);
   });
 
+  it("印刷用の中身がまだ届いていないあいだは、窓の「印刷する」を押せない。届いたら押せる（044）", () => {
+    const onOpen = vi.fn();
+    const props = { options: OPTIONS, initial: ["housing"], shortcut: ["summary"], onOpen } as const;
+    const { rerender } = render(<PrintControl {...props} documentReady={false} renderDocument={() => null} />);
+    fireEvent.click(screen.getByRole("button", { name: "印刷する" }));
+    // 窓を開くときに、中身の読み込み（読み直し）を頼む
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    const sheet = within(screen.getByRole("dialog"));
+    const waiting = sheet.getByRole("button", { name: "準備しています" });
+    expect(waiting).toBeDisabled();
+    fireEvent.click(waiting);
+    expect(print).not.toHaveBeenCalled();
+
+    rerender(<PrintControl {...props} documentReady renderDocument={(items) => <Document items={items} />} />);
+    fireEvent.click(sheet.getByRole("button", { name: "印刷する" }));
+    expect(print).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("printed")).toHaveTextContent("housing（印刷用）");
+  });
+
   it("ブラウザのメニューから印刷したときは、shortcut を出す", () => {
     render(<PrintControl options={OPTIONS} initial={["housing"]} shortcut={["summary"]} renderDocument={(items) => <Document items={items} />} />);
     expect(printed()).toBeNull();

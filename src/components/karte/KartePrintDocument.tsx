@@ -1,0 +1,162 @@
+"use client";
+
+import { findIida } from "@/lib/kurabe/city";
+import { DataStateMessage } from "@/components/data/DataStateMessage";
+import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
+import { PixelIcon } from "@/components/pixel/PixelIcon";
+import { PrintBlock, PrintCheckList, PrintHeader, PrintSection } from "@/components/print/PrintParts";
+import { karteLayout } from "@/lib/conditions/karte-order";
+import { DISTRICT_NAMES, KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
+import { hasNoCar } from "@/lib/conditions/model";
+import { checkMemoItems } from "@/lib/karte/check-memo";
+import { detailTexts, entryNumber } from "@/lib/karte/details";
+import { transportQuestion } from "@/lib/karte/entries";
+import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
+import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
+import { IIDA_AKIYA_BANK } from "@/lib/map/links";
+import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
+import { NoticeBox } from "./DetailCard";
+import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
+import { HousingCards } from "./HousingCard";
+import { KarteCardIcon } from "./KarteCardIcon";
+import { KarteEntries } from "./KarteEntries";
+import type { KartePrintChosen as Chosen, KartePrintItem } from "./KartePrint";
+import { BusReach } from "./ShitamiMemo";
+import { SupportBeforeApply } from "./SupportFinder";
+
+// カルテの印刷用の中身（023）。7項目の詳細のパネルを全部読むので、KartePrint.tsx があとから読む（044）。
+// ここを KartePrint.tsx 以外から直接読み込まない（読み込むと、その画面の最初の読み込みに7項目分が入る）
+export function KartePrintDocument({ conditions, items }: { conditions: Chosen; items: readonly KartePrintItem[] }) {
+  return (
+    <ScreenDataBoundary fallback={null}>
+      <PrintHeader title="わが家のカルテ" conditions={conditions} />
+      {items.map((item, index) => (
+        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : item === "shitami" ? "わが家の下見プラン" : KARTE_CARD_LABELS[item]}>
+          {item === "summary" ? (
+            <SummaryPrint conditions={conditions} />
+          ) : item === "shitami" ? (
+            <ShitamiPrint conditions={conditions} />
+          ) : (
+            <CardPrint card={item} conditions={conditions} />
+          )}
+        </PrintSection>
+      ))}
+    </ScreenDataBoundary>
+  );
+}
+
+// まとめ：一覧の見出しの文と、7項目のカード（ボタンは紙では隠す）
+function SummaryPrint({ conditions }: { conditions: Chosen }) {
+  const layout = karteLayout(conditions);
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-extrabold">カルテのまとめ</h2>
+        <p>{DISTRICT_NAMES[conditions.district]}の暮らしを、ひとつずつ確かめよう。</p>
+        {layout.leads.map((lead) => (
+          <p key={lead} className="text-sm text-ink-muted">
+            {lead}
+          </p>
+        ))}
+      </div>
+      <KarteEntries cards={layout.cards} conditions={conditions} memoItems={checkMemoItems(conditions)} highlighted={false} />
+    </>
+  );
+}
+
+// 下見プラン：入れた項目ごとに、名前・バスの便の例・確認点（ペンで印を付ける空の箱）・添え書き。地図などのリンクは紙では使えないので出さない
+function ShitamiPrint({ conditions }: { conditions: Chosen }) {
+  const data = useScreenData();
+  const { ids } = useShitamiMemo(conditions.district);
+  const outing = data.districts[conditions.district].busOuting;
+  return (
+    <>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-extrabold">わが家の下見プラン</h2>
+        <p>{DISTRICT_NAMES[conditions.district]}：飯田に行った日に、見たい・試したいこと。</p>
+      </div>
+      {ids.map((id) => {
+        const item = SHITAMI_ITEMS[id];
+        return (
+          <PrintBlock key={id} className="flex flex-col gap-3">
+            <h3 className="text-lg font-bold">{item.title}</h3>
+            <p>{item.summary}</p>
+            {item.lead && <p className="text-sm">{item.lead}</p>}
+            {id === "bus-to-town" &&
+              (outing.status === "available" ? (
+                <BusReach districtName={DISTRICT_NAMES[conditions.district]} outing={outing.value} />
+              ) : (
+                <DataStateMessage state={outing} />
+              ))}
+            <PrintCheckList title={item.checkTitle} items={item.checks} />
+            {item.note && <p className="text-sm">{item.note}</p>}
+          </PrintBlock>
+        );
+      })}
+    </>
+  );
+}
+
+// 1項目：番号と問い → タブの中身をすべて → 現地で確かめたいこと（空の箱） → 数字の根拠
+function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
+  const data = useScreenData();
+  const district = data.districts[conditions.district];
+  const districtName = DISTRICT_NAMES[conditions.district];
+  const { cards } = karteLayout(conditions);
+  const texts = detailTexts(card, { housing: conditions.housing, transportQuestion: transportQuestion(conditions.car) });
+
+  let panels;
+  let basis;
+  if (card === "housing") {
+    // 画面と同じカードを並べる（040）。「物件情報を探す」のボタンは紙では押せないので、行き先を文字で出す
+    panels = (
+      <>
+        <HousingCards district={district} rent={data.rent} housing={conditions.housing} />
+        <p className="break-inside-avoid text-sm">
+          物件情報：{IIDA_AKIYA_BANK.name}　{IIDA_AKIYA_BANK.url}
+        </p>
+      </>
+    );
+    basis = [
+      ...(conditions.housing === "rent" ? rentBasisRows(data.rent, district.housingTenure, districtName) : []),
+      ...housingBasisRows(district, districtName),
+    ];
+  } else {
+    const noCar = hasNoCar(conditions);
+    const iida = findIida(data);
+    const tabs = printTabs(card, detailTabs(card, { district, noCar, iida }));
+    panels = tabs.map((tab) => (
+      <PrintBlock key={tab.id} breakable className="space-y-3">
+        {tabs.length > 1 && <h3 className="break-after-avoid font-bold">{tab.label}</h3>}
+        <OtherTabPanel card={card} tab={tab} district={district} supportPrograms={data.supportPrograms} noCar={noCar} iida={iida} />
+      </PrintBlock>
+    ));
+    basis = otherBasisRows(card, tabs, data.supportPrograms);
+  }
+
+  return (
+    <>
+      <div className="flex break-after-avoid flex-col gap-1">
+        <p className="flex items-center gap-2 font-bold">
+          <KarteCardIcon card={card} size="sm" />
+          項目{entryNumber(cards, card)}　{KARTE_CARD_LABELS[card]}
+        </p>
+        <h2 className="text-xl font-extrabold">{texts.question.long}</h2>
+      </div>
+      {panels}
+      {texts.checkNote ? (
+        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
+      ) : (
+        <PrintCheckList title={texts.checkTitle} items={texts.checks} />
+      )}
+      {texts.notice && <NoticeBox title={texts.notice} className="break-inside-avoid" />}
+      <PrintBlock className="flex flex-col gap-2">
+        <h3 className="flex items-center gap-2 font-bold">
+          <PixelIcon icon="icon-document" size="sm" />
+          数字の根拠（出典・対象・確認日）
+        </h3>
+        <BasisTables rows={basis} note={texts.basisNote} />
+      </PrintBlock>
+    </>
+  );
+}

@@ -21,6 +21,8 @@ export function PrintControl<Id extends string>({
   initial,
   shortcut,
   renderDocument,
+  documentReady = true,
+  onOpen,
   className = "",
 }: {
   options: readonly PrintOption<Id>[];
@@ -28,6 +30,11 @@ export function PrintControl<Id extends string>({
   initial: readonly Id[];
   shortcut: readonly Id[];
   renderDocument: (selected: readonly Id[]) => ReactNode;
+  // 印刷用の中身をあとから読む画面（カルテ。044）が、届くまで false にする。そのあいだは窓の「印刷する」を押せない
+  // （印刷は押したその場で呼ぶ必要があるので、押してから待つことはできない）
+  documentReady?: boolean;
+  // 窓を開くときに呼ぶ（中身の読み込みに失敗していたら、ここで読み直す）
+  onOpen?: () => void;
   className?: string;
 }) {
   const ids = options.map((option) => option.id);
@@ -67,13 +74,14 @@ export function PrintControl<Id extends string>({
       setSafariGuideOpen(true);
       return;
     }
+    onOpen?.();
     setSelected(initial);
     setOpen(true);
   };
 
   const print = () => {
     const chosen = orderSelection(ids, selected);
-    if (chosen.length === 0) return;
+    if (chosen.length === 0 || !documentReady) return;
     // 印刷のあとも中身は消さない（iPhone の Safari は印刷の画面を出す前に afterprint が来ることがあり、消すと白紙になる）
     flushSync(() => {
       setOpen(false);
@@ -122,9 +130,9 @@ export function PrintControl<Id extends string>({
           <Button variant="quiet" onClick={() => setSelected(toggleAll(ids, selected))}>
             {allSelected ? "すべて外す" : "すべて選ぶ"}
           </Button>
-          <Button onClick={print} disabled={selected.length === 0}>
+          <Button onClick={print} disabled={selected.length === 0 || !documentReady}>
             <PixelIcon icon="icon-print" size="sm" />
-            印刷する
+            {documentReady ? "印刷する" : "準備しています"}
           </Button>
         </div>
       </BottomSheet>

@@ -1,41 +1,75 @@
 "use client";
 
-import { findIida } from "@/lib/kurabe/city";
-import { DataStateMessage } from "@/components/data/DataStateMessage";
-import { ScreenDataBoundary, useScreenData } from "@/components/data/ScreenDataBoundary";
+import { useEffect, useSyncExternalStore, type ComponentType } from "react";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
 import { PrintControl, type PrintOption } from "@/components/print/PrintControl";
-import { PrintBlock, PrintCheckList, PrintHeader, PrintSection } from "@/components/print/PrintParts";
 import { karteLayout } from "@/lib/conditions/karte-order";
-import { DISTRICT_NAMES, KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
-import { hasNoCar, type Conditions } from "@/lib/conditions/model";
-import { checkMemoItems } from "@/lib/karte/check-memo";
-import { detailTexts, entryNumber } from "@/lib/karte/details";
-import { transportQuestion } from "@/lib/karte/entries";
-import { SHITAMI_ITEMS } from "@/lib/karte/shitami-memo";
+import { KARTE_CARD_LABELS, type KarteCard } from "@/lib/conditions/labels";
+import type { Conditions } from "@/lib/conditions/model";
 import { useShitamiMemo } from "@/lib/karte/useShitamiMemo";
 import type { DistrictId } from "@/lib/town-district/resolve";
-import { BasisTables, housingBasisRows, otherBasisRows, rentBasisRows } from "./DetailBasis";
-import { IIDA_AKIYA_BANK } from "@/lib/map/links";
-import { NoticeBox } from "./DetailCard";
-import { OtherTabPanel, detailTabs, printTabs } from "./DetailPanels";
-import { SupportBeforeApply } from "./SupportFinder";
-import { HousingCards } from "./HousingCard";
 import { KarteCardIcon } from "./KarteCardIcon";
-import { KarteEntries } from "./KarteEntries";
-import { BusReach } from "./ShitamiMemo";
 
 type Chosen = Conditions & { district: DistrictId };
+export type KartePrintChosen = Chosen;
 
 // 印刷で選べるもの：カルテのまとめ（一覧）と7項目（023。2026-11-09 まさゆきさん：項目ごとに選ぶ）と、
 // わが家の下見プラン（036。紙でも持っていけるように。メモが空のときは選べるものに出さない）
 export type KartePrintItem = "summary" | KarteCard | "shitami";
+
+// 印刷用の中身（KartePrintDocument.tsx）は7項目の詳細のパネルを全部読むので、画面の最初の読み込みには入れず、あとから読む（044）。
+// Safari はタップから時間をおいた印刷を無視する（PrintControl）ので、押してから読むのではなく、画面が落ち着いたら先に読んでおく。
+// 届くまでは窓の「印刷する」を押せなくする。届く前にブラウザのメニューから印刷すると、画面そのままが印刷される（044 で受け入れた）
+type DocumentComponent = ComponentType<{ conditions: Chosen; items: readonly KartePrintItem[] }>;
+let documentComponent: DocumentComponent | null = null;
+let documentLoading: Promise<void> | null = null;
+const documentListeners = new Set<() => void>();
+
+export function loadKartePrintDocument(): Promise<void> {
+  documentLoading ??= import("./KartePrintDocument").then(
+    (loaded) => {
+      documentComponent = loaded.KartePrintDocument;
+      for (const listener of documentListeners) listener();
+    },
+    (error: unknown) => {
+      // 通信できなかったときは、次に窓を開いたときにもう一度読む
+      documentLoading = null;
+      console.error("印刷用の中身を読み込めませんでした", error);
+    },
+  );
+  return documentLoading;
+}
+
+function subscribeDocument(onChange: () => void): () => void {
+  documentListeners.add(onChange);
+  return () => documentListeners.delete(onChange);
+}
+
+function useKartePrintDocument(): DocumentComponent | null {
+  const component = useSyncExternalStore(
+    subscribeDocument,
+    () => documentComponent,
+    () => null,
+  );
+  useEffect(() => {
+    if (documentComponent !== null) return;
+    // 画面の中身の読み込みと描画をじゃましないよう、手があいたときに読む（Safari には requestIdleCallback がない）
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(() => void loadKartePrintDocument());
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = setTimeout(() => void loadKartePrintDocument(), 1);
+    return () => clearTimeout(timer);
+  }, []);
+  return component;
+}
 
 // カルテ一覧と詳細の見出しの右上に置く「印刷する」。一覧から開くとすべてに、詳細から開くとその項目だけにチェックを入れる。
 // ブラウザのメニューから印刷したときは、開いているページの分（一覧ならまとめ、詳細ならその項目）を出す
 export function KartePrintButton({ conditions, current }: { conditions: Chosen; current: KarteCard | null }) {
   const { cards } = karteLayout(conditions);
   const shitami = useShitamiMemo(conditions.district);
+  const PrintDocument = useKartePrintDocument();
   const options: PrintOption<KartePrintItem>[] = [
     {
       id: "summary",
@@ -68,142 +102,9 @@ export function KartePrintButton({ conditions, current }: { conditions: Chosen; 
       options={options}
       initial={current === null ? all : [current]}
       shortcut={current === null ? ["summary"] : [current]}
-      renderDocument={(selected) => <KartePrintDocument conditions={conditions} items={selected} />}
+      documentReady={PrintDocument !== null}
+      onOpen={() => void loadKartePrintDocument()}
+      renderDocument={(selected) => (PrintDocument === null ? null : <PrintDocument conditions={conditions} items={selected} />)}
     />
-  );
-}
-
-function KartePrintDocument({ conditions, items }: { conditions: Chosen; items: readonly KartePrintItem[] }) {
-  return (
-    <ScreenDataBoundary fallback={null}>
-      <PrintHeader title="わが家のカルテ" conditions={conditions} />
-      {items.map((item, index) => (
-        <PrintSection key={item} first={index === 0} label={item === "summary" ? "カルテのまとめ" : item === "shitami" ? "わが家の下見プラン" : KARTE_CARD_LABELS[item]}>
-          {item === "summary" ? (
-            <SummaryPrint conditions={conditions} />
-          ) : item === "shitami" ? (
-            <ShitamiPrint conditions={conditions} />
-          ) : (
-            <CardPrint card={item} conditions={conditions} />
-          )}
-        </PrintSection>
-      ))}
-    </ScreenDataBoundary>
-  );
-}
-
-// まとめ：一覧の見出しの文と、7項目のカード（ボタンは紙では隠す）
-function SummaryPrint({ conditions }: { conditions: Chosen }) {
-  const layout = karteLayout(conditions);
-  return (
-    <>
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-extrabold">カルテのまとめ</h2>
-        <p>{DISTRICT_NAMES[conditions.district]}の暮らしを、ひとつずつ確かめよう。</p>
-        {layout.leads.map((lead) => (
-          <p key={lead} className="text-sm text-ink-muted">
-            {lead}
-          </p>
-        ))}
-      </div>
-      <KarteEntries cards={layout.cards} conditions={conditions} memoItems={checkMemoItems(conditions)} highlighted={false} />
-    </>
-  );
-}
-
-// 下見プラン：入れた項目ごとに、名前・バスの便の例・確認点（ペンで印を付ける空の箱）・添え書き。地図などのリンクは紙では使えないので出さない
-function ShitamiPrint({ conditions }: { conditions: Chosen }) {
-  const data = useScreenData();
-  const { ids } = useShitamiMemo(conditions.district);
-  const outing = data.districts[conditions.district].busOuting;
-  return (
-    <>
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-extrabold">わが家の下見プラン</h2>
-        <p>{DISTRICT_NAMES[conditions.district]}：飯田に行った日に、見たい・試したいこと。</p>
-      </div>
-      {ids.map((id) => {
-        const item = SHITAMI_ITEMS[id];
-        return (
-          <PrintBlock key={id} className="flex flex-col gap-3">
-            <h3 className="text-lg font-bold">{item.title}</h3>
-            <p>{item.summary}</p>
-            {item.lead && <p className="text-sm">{item.lead}</p>}
-            {id === "bus-to-town" &&
-              (outing.status === "available" ? (
-                <BusReach districtName={DISTRICT_NAMES[conditions.district]} outing={outing.value} />
-              ) : (
-                <DataStateMessage state={outing} />
-              ))}
-            <PrintCheckList title={item.checkTitle} items={item.checks} />
-            {item.note && <p className="text-sm">{item.note}</p>}
-          </PrintBlock>
-        );
-      })}
-    </>
-  );
-}
-
-// 1項目：番号と問い → タブの中身をすべて → 現地で確かめたいこと（空の箱） → 数字の根拠
-function CardPrint({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
-  const data = useScreenData();
-  const district = data.districts[conditions.district];
-  const districtName = DISTRICT_NAMES[conditions.district];
-  const { cards } = karteLayout(conditions);
-  const texts = detailTexts(card, { housing: conditions.housing, transportQuestion: transportQuestion(conditions.car) });
-
-  let panels;
-  let basis;
-  if (card === "housing") {
-    // 画面と同じカードを並べる（040）。「物件情報を探す」のボタンは紙では押せないので、行き先を文字で出す
-    panels = (
-      <>
-        <HousingCards district={district} rent={data.rent} housing={conditions.housing} />
-        <p className="break-inside-avoid text-sm">
-          物件情報：{IIDA_AKIYA_BANK.name}　{IIDA_AKIYA_BANK.url}
-        </p>
-      </>
-    );
-    basis = [
-      ...(conditions.housing === "rent" ? rentBasisRows(data.rent, district.housingTenure, districtName) : []),
-      ...housingBasisRows(district, districtName),
-    ];
-  } else {
-    const noCar = hasNoCar(conditions);
-    const iida = findIida(data);
-    const tabs = printTabs(card, detailTabs(card, { district, noCar, iida }));
-    panels = tabs.map((tab) => (
-      <PrintBlock key={tab.id} breakable className="space-y-3">
-        {tabs.length > 1 && <h3 className="break-after-avoid font-bold">{tab.label}</h3>}
-        <OtherTabPanel card={card} tab={tab} district={district} supportPrograms={data.supportPrograms} noCar={noCar} iida={iida} />
-      </PrintBlock>
-    ));
-    basis = otherBasisRows(card, tabs, data.supportPrograms);
-  }
-
-  return (
-    <>
-      <div className="flex break-after-avoid flex-col gap-1">
-        <p className="flex items-center gap-2 font-bold">
-          <KarteCardIcon card={card} size="sm" />
-          項目{entryNumber(cards, card)}　{KARTE_CARD_LABELS[card]}
-        </p>
-        <h2 className="text-xl font-extrabold">{texts.question.long}</h2>
-      </div>
-      {panels}
-      {texts.checkNote ? (
-        <SupportBeforeApply title={texts.checkTitle} text={texts.checkNote} />
-      ) : (
-        <PrintCheckList title={texts.checkTitle} items={texts.checks} />
-      )}
-      {texts.notice && <NoticeBox title={texts.notice} className="break-inside-avoid" />}
-      <PrintBlock className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-2 font-bold">
-          <PixelIcon icon="icon-document" size="sm" />
-          数字の根拠（出典・対象・確認日）
-        </h3>
-        <BasisTables rows={basis} note={texts.basisNote} />
-      </PrintBlock>
-    </>
   );
 }
