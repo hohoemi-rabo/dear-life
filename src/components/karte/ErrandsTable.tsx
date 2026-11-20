@@ -109,7 +109,7 @@ export function ErrandsTable({ district, notice }: { district: DistrictData; not
       </button>
       <div className="flex flex-col gap-1">
         <p className="flex items-center gap-2 text-sm">
-          <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-bold text-white">
+          <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gold-deep text-xs font-bold text-white">
             i
           </span>
           乗るバス停によって便数が変わります。

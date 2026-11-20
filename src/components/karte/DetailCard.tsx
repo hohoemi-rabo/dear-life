@@ -118,7 +118,7 @@ function TabLabel({ label }: { label: string }) {
 export function NoticeBox({ title, body, className = "" }: { title: string; body?: string; className?: string }) {
   return (
     <div className={`flex gap-2 rounded-button bg-warm-soft p-3 ${className}`}>
-      <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold font-bold text-white">
+      <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold-deep font-bold text-white">
         !
       </span>
       <p className="flex flex-col text-sm">

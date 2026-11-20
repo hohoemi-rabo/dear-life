@@ -14,17 +14,18 @@ const config: Config = {
         ink: { DEFAULT: "#2B2A26", muted: "#5F5B52" },
         line: "#E2DACA",
         primary: { DEFAULT: "#1F6E5E", hover: "#185A4D", soft: "#E2F0EC" },
-        // 季節の色（ドット絵の側だけで使う）
-        spring: { DEFAULT: "#C2526B", soft: "#FBE8EC" },
-        summer: { DEFAULT: "#2A73A8", soft: "#E2EFF8" },
-        autumn: { DEFAULT: "#B65A17", soft: "#FBEADB" },
-        winter: { DEFAULT: "#3C88AD", soft: "#E4F2F8" },
+        // 季節の色（ドット絵の側だけで使う）。ink は soft の上に置く文字の色で、色の差を 4.5:1 以上にするため DEFAULT より少し濃くした（025）
+        spring: { DEFAULT: "#C2526B", soft: "#FBE8EC", ink: "#AC485F" },
+        summer: { DEFAULT: "#2A73A8", soft: "#E2EFF8", ink: "#286FA2" },
+        autumn: { DEFAULT: "#B65A17", soft: "#FBEADB", ink: "#A75215" },
+        winter: { DEFAULT: "#3C88AD", soft: "#E4F2F8", ink: "#327291" },
         // ドット絵の側：選択肢の絵の背景（パレットの「薄い空」「緑」と同じ色。027）
         pixel: { sky: "#D3EAF0", grass: "#5E9A4E" },
         // えらぶの返事のカード（デザインイメージの温かい色。027）
         warm: { DEFAULT: "#E5B970", soft: "#FFF6E3" },
         // えらぶの「＋」（見本の金色。白い記号との色の差を 3:1 以上にするため、見本より少し濃くした。028）
-        gold: { DEFAULT: "#A8812F", hover: "#8F6C25" },
+        // deep は白い文字を載せる番号の丸に使う（白との色の差を 4.5:1 以上にする。025）
+        gold: { DEFAULT: "#A8812F", hover: "#8F6C25", deep: "#937129" },
         // えらぶ 01 の地区の札。選んだ地区は明るい薄緑（深緑の文字）、選んでいない地区は暗い濃い緑（2026-10-29 まさゆきさん）
         "map-label": { selected: "#A6E3BC", idle: "#123F36" },
         // えらぶ 02 の子育て・学校の返事のカード（見本の薄いピンク。028）

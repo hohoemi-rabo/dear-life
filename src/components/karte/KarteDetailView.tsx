@@ -79,7 +79,7 @@ function Detail({ card, conditions }: { card: KarteCard; conditions: Chosen }) {
       <header className="flex items-center gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <p className="flex items-center gap-2 text-lg font-bold">
-            <span className="flex size-9 items-center justify-center rounded-full bg-gold text-base text-white">
+            <span className="flex size-9 items-center justify-center rounded-full bg-gold-deep text-base text-white">
               <span className="sr-only">項目</span>
               {entryNumber(layout.cards, card)}
             </span>

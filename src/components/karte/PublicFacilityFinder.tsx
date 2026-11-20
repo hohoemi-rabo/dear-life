@@ -140,7 +140,7 @@ function FacilityRows({ facilities, label }: { facilities: readonly Facility[]; 
 function InfoNote({ text }: { text: string }) {
   return (
     <p className="flex items-center gap-2 rounded-button bg-kinari px-3 py-2 text-sm">
-      <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gold text-xs font-bold text-white">
+      <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gold-deep text-xs font-bold text-white">
         i
       </span>
       {text}
