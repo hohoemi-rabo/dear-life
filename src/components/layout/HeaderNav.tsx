@@ -24,7 +24,7 @@ export function HeaderNav() {
           ヘッダーは両端に寄せる並びなので、2つを1つのかたまりにして右端に置く。スマホでは contents で今までどおりの並びに出す */}
       <div className="contents md:order-last md:flex md:items-center md:gap-6">
         {!isTop && (
-          <Link href={TOP_PATH} className="hidden min-h-tap items-center text-sm font-bold text-ink underline-offset-4 hover:underline md:flex">
+          <Link href={TOP_PATH} className="hidden min-h-tap min-w-tap items-center justify-center text-sm font-bold text-ink underline-offset-4 hover:underline md:flex">
             トップ
           </Link>
         )}
