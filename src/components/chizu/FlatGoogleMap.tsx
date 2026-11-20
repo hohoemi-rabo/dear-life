@@ -50,6 +50,8 @@ export function FlatGoogleMap(props: Props) {
         mapTypeControl: true,
         streetViewControl: true,
         fullscreenControl: false,
+        // Google の部品（地図と航空写真の切りかえ・カメラ・ストリートビュー）は既定で 40px。タップ領域 44px にそろえる（要件 8章、025）
+        controlSize: 44,
       });
       created.fitBounds(districtBounds(initialFocus.current), FIT_PADDING);
       const map = created;
