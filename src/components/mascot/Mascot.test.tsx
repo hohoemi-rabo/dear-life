@@ -92,6 +92,156 @@ describe("Mascot（042）", () => {
   });
 });
 
+describe("Mascot をさわって動かす（046）", () => {
+  beforeEach(() => {
+    vi.stubGlobal("Image", LoadedImage);
+    localStorage.clear();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  // 絵は 400×300px、ぽてりは 20×30px で、足元は絵の (200, 150)（＝50%, 50%）
+  function layOut(mascot: HTMLElement) {
+    const root = mascot.parentElement!;
+    const frame = root.parentElement!;
+    const rect = (left: number, top: number, width: number, height: number) =>
+      ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
+    vi.spyOn(frame, "getBoundingClientRect").mockReturnValue(rect(0, 0, 400, 300));
+    vi.spyOn(root, "getBoundingClientRect").mockReturnValue(rect(190, 120, 20, 30));
+    return root;
+  }
+
+  async function renderInFrame(motion: "kamisato-sweep-summer" | "kamisato-sweep-autumn" = "kamisato-sweep-summer") {
+    let rerender!: (ui: React.ReactElement) => void;
+    await act(async () => {
+      ({ rerender } = render(
+        <figure>
+          <Mascot motion={motion} wide={spot} tall={spot} />
+        </figure>,
+      ));
+    });
+    const mascot = screen.getByRole("button", { name: /ぽてり/ });
+    return { mascot, root: layOut(mascot), rerender };
+  }
+
+  const mouse = { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0 };
+  const finger = { pointerId: 2, pointerType: "touch", isPrimary: true, button: 0 };
+  const spotOf = (root: HTMLElement) => [root.style.getPropertyValue("--mascot-x"), root.style.getPropertyValue("--mascot-y")];
+
+  it("PC：ドラッグで動かし、離してもパレットは開かない", async () => {
+    const { mascot, root } = await renderInFrame();
+    fireEvent.pointerDown(mascot, { ...mouse, clientX: 200, clientY: 150 });
+    fireEvent.pointerMove(mascot, { ...mouse, clientX: 240, clientY: 180 });
+    expect(screen.getByTestId("mascot-body").dataset.lifted).toBe("true");
+    fireEvent.pointerUp(mascot, { ...mouse, clientX: 240, clientY: 180 });
+    fireEvent.click(mascot);
+    expect(spotOf(root)).toEqual(["60%", "60%"]);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByTestId("mascot-body").dataset.lifted).toBeUndefined();
+    // 次にさっと押したときは、今までどおりパレットを開く
+    fireEvent.pointerDown(mascot, { ...mouse, clientX: 240, clientY: 180 });
+    fireEvent.pointerUp(mascot, { ...mouse, clientX: 241, clientY: 180 });
+    fireEvent.click(mascot);
+    expect(screen.getByRole("dialog", { name: "ぽてりの服の色" })).toBeTruthy();
+  });
+
+  it("絵の外には出さない", async () => {
+    const { mascot, root } = await renderInFrame();
+    fireEvent.pointerDown(mascot, { ...mouse, clientX: 200, clientY: 150 });
+    fireEvent.pointerMove(mascot, { ...mouse, clientX: -500, clientY: -500 });
+    // 左は体の半分（10px＝2.5%）、上は体の高さ（30px＝10%）だけ内側
+    expect(spotOf(root)).toEqual(["2.5%", "10%"]);
+    fireEvent.pointerMove(mascot, { ...mouse, clientX: 1000, clientY: 1000 });
+    expect(spotOf(root)).toEqual(["97.5%", "100%"]);
+  });
+
+  it("絵に重ねた見出しの下にはもぐらせない", async () => {
+    const cover = document.createElement("div");
+    cover.setAttribute("data-mascot-cover", "");
+    document.body.append(cover);
+    vi.spyOn(cover, "getBoundingClientRect").mockReturnValue({ bottom: 60 } as DOMRect);
+    try {
+      const { mascot, root } = await renderInFrame();
+      fireEvent.pointerDown(mascot, { ...mouse, clientX: 200, clientY: 150 });
+      fireEvent.pointerMove(mascot, { ...mouse, clientX: 200, clientY: -500 });
+      // 見出しの下端（60px）＋体の高さ（30px）＝ 90px（30%）
+      expect(spotOf(root)).toEqual(["50%", "30%"]);
+    } finally {
+      cover.remove();
+    }
+  });
+
+  it("スマホ：押しっぱなしで持ち上げてから動かす。パレットが開いていたら閉じる", async () => {
+    vi.useFakeTimers();
+    const { mascot, root } = await renderInFrame();
+    fireEvent.click(mascot);
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    fireEvent.pointerDown(mascot, { ...finger, clientX: 200, clientY: 150 });
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(screen.getByTestId("mascot-body").dataset.lifted).toBe("true");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    // 持ち上げている間は、指を動かしてもページをスクロールさせない
+    const touchMove = new Event("touchmove", { cancelable: true });
+    mascot.dispatchEvent(touchMove);
+    expect(touchMove.defaultPrevented).toBe(true);
+    fireEvent.pointerMove(mascot, { ...finger, clientX: 160, clientY: 120 });
+    fireEvent.pointerUp(mascot, { ...finger, clientX: 160, clientY: 120 });
+    fireEvent.click(mascot);
+    expect(spotOf(root)).toEqual(["40%", "40%"]);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("スマホ：さっと押して離したときはパレットを開く", async () => {
+    vi.useFakeTimers();
+    const { mascot, root } = await renderInFrame();
+    fireEvent.pointerDown(mascot, { ...finger, clientX: 200, clientY: 150 });
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
+    fireEvent.pointerUp(mascot, { ...finger, clientX: 200, clientY: 150 });
+    fireEvent.click(mascot);
+    expect(screen.getByRole("dialog", { name: "ぽてりの服の色" })).toBeTruthy();
+    expect(spotOf(root)).toEqual(["50%", "50%"]);
+  });
+
+  it("スマホ：持ち上げる前に指が動いたらスクロールに任せ、ぽてりは動かさない", async () => {
+    vi.useFakeTimers();
+    const { mascot, root } = await renderInFrame();
+    fireEvent.pointerDown(mascot, { ...finger, clientX: 200, clientY: 150 });
+    fireEvent.pointerMove(mascot, { ...finger, clientX: 200, clientY: 100 });
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(screen.getByTestId("mascot-body").dataset.lifted).toBeUndefined();
+    const touchMove = new Event("touchmove", { cancelable: true });
+    mascot.dispatchEvent(touchMove);
+    expect(touchMove.defaultPrevented).toBe(false);
+    fireEvent.pointerMove(mascot, { ...finger, clientX: 200, clientY: 50 });
+    expect(spotOf(root)).toEqual(["50%", "50%"]);
+  });
+
+  it("季節（動き）を切りかえると、元の場所に戻る", async () => {
+    const { mascot, root, rerender } = await renderInFrame();
+    fireEvent.pointerDown(mascot, { ...mouse, clientX: 200, clientY: 150 });
+    fireEvent.pointerMove(mascot, { ...mouse, clientX: 240, clientY: 180 });
+    fireEvent.pointerUp(mascot, { ...mouse, clientX: 240, clientY: 180 });
+    expect(spotOf(root)).toEqual(["60%", "60%"]);
+    await act(async () => {
+      rerender(
+        <figure>
+          <Mascot motion="kamisato-sweep-autumn" wide={spot} tall={spot} />
+        </figure>,
+      );
+    });
+    const after = screen.getByRole("button", { name: /ぽてり/ }).parentElement!;
+    expect(spotOf(after)).toEqual(["50%", "50%"]);
+  });
+});
+
 describe("MascotCompanion（043。一人のときに「わが家」に並ぶぽてり）", () => {
   beforeEach(() => {
     vi.stubGlobal("Image", LoadedImage);

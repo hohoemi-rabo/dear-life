@@ -77,7 +77,8 @@ export function KurashiView() {
           style={skyStyle(pictures)}
           className="-mx-4 -mt-6 flex flex-col bg-[var(--sky)] lg:relative lg:mx-0 lg:mt-0 lg:overflow-hidden lg:rounded-card lg:bg-none lg:shadow-card"
         >
-          <div className="relative z-30 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] px-4 pb-3 pt-3 lg:absolute lg:inset-x-0 lg:top-0 lg:pb-8 lg:pt-6">
+          {/* data-mascot-cover：絵の上に重ねた見出し。ぽてり（046）をこの下にもぐらせない */}
+          <div data-mascot-cover className="relative z-30 bg-[linear-gradient(to_bottom,rgb(255_255_255/0.8),rgb(255_255_255/0.45)_65%,transparent)] px-4 pb-3 pt-3 lg:absolute lg:inset-x-0 lg:top-0 lg:pb-8 lg:pt-6">
             {heading}
           </div>
           <div className="-mt-[37%] lg:mt-0">

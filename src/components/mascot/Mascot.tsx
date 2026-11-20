@@ -7,6 +7,7 @@ import { APRON_COLOR_IDS, APRON_COLORS, apronSwatch, recolorApron, type ApronCol
 import type { MascotSpot } from "@/lib/mascot/spots";
 import { MASCOT_SPRITES } from "@/lib/mascot/sprites";
 import { useApronColor } from "@/lib/mascot/useApronColor";
+import { useMascotDrag } from "./useMascotDrag";
 
 // マスコット「ぽてり」（042）。移住とは関係ないが、なんか気になって見たくなるもの（2026-11-15 まさゆきさん）。
 // 絵の上に「気づくか気づかないか」くらいの小ささで置き、地区ごとのしぐさで動かす（服装は季節で替わる）。押すと服の色のパレットを出し、
@@ -14,7 +15,8 @@ import { useApronColor } from "@/lib/mascot/useApronColor";
 // 動きはコマを横に並べた1枚の絵を順にずらして出す。「動きを減らす」では最初のコマで止める。印刷には出さない。
 
 // くらしの絵の上に置くとき。位置はスマホ（縦長の絵）と PC（横長の絵）で別に持ち、CSS の変数で切りかえる（ScenePin と同じ）。ピンより下に重ねる。
-// パレットは絵の中央の側に開く（左寄りの鼎で左に開くと、絵の外にはみ出して切れた。2026-11-15 まさゆきさん）
+// パレットは絵の中央の側に開く（左寄りの鼎で左に開くと、絵の外にはみ出して切れた。2026-11-15 まさゆきさん）。
+// さわって絵の中を動かせる（046。PC はドラッグ、スマホは押しっぱなしで持ち上げる）。地区・季節（＝動き）を切りかえると元の場所に戻る
 export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: MascotSpot; tall: MascotSpot }) {
   const style = {
     "--mascot-x": `${tall.x}%`,
@@ -29,6 +31,7 @@ export function Mascot({ motion, wide, tall }: { motion: MascotMotionId; wide: M
       motion={motion}
       style={style}
       paletteSide={paletteSideFor(wide.x, tall.x)}
+      draggable={{ resetKey: motion }}
       className="absolute left-[var(--mascot-x)] top-[var(--mascot-y)] h-[var(--mascot-h)] -translate-x-1/2 -translate-y-full lg:left-[var(--mascot-x-lg)] lg:top-[var(--mascot-y-lg)] lg:h-[var(--mascot-h-lg)]"
     />
   );
@@ -41,23 +44,36 @@ export function paletteSideFor(...xs: number[]): "left" | "right" {
 }
 
 // マスコット1つ。置き場所と高さは className（と style）で渡す（位置を持つ要素にする。absolute か relative）。
-// 幅は高さと絵の縦横の比で決まる。paletteSide はパレットをマスコットのどちらに出すか
+// 幅は高さと絵の縦横の比で決まる。paletteSide はパレットをマスコットのどちらに出すか。
+// draggable はくらしの絵の上（Mascot）だけ。置き場所の変数（--mascot-x など）を、動かした場所で上書きする。resetKey が替わったら元の場所に戻す
 export function MascotFigure({
   motion,
   className,
   style,
   paletteSide = "left",
+  draggable,
 }: {
   motion: MascotMotionId;
   className: string;
   style?: CSSProperties;
   paletteSide?: "left" | "right";
+  draggable?: { resetKey: string };
 }) {
   const [color, setColor] = useApronColor();
   const sheet = useRecoloredSheet(motion, color);
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const panelId = useId();
+  // 持ち上げたらパレットを閉じる
+  const drag = useMascotDrag({
+    enabled: draggable !== undefined,
+    shown: sheet !== null,
+    resetKey: draggable?.resetKey ?? "",
+    root,
+    button,
+    onLift: () => setOpen(false),
+  });
   const sprite = MASCOT_SPRITES[motion];
   const { phase, speed } = useMotionVariation();
 
@@ -81,10 +97,20 @@ export function MascotFigure({
   };
 
   return (
-    <div style={style} className={`${className} print:hidden ${open ? "z-30" : "z-10"}`}>
-      {/* 出てくるときは足元からふわっと（季節を切りかえたときも。外側の箱は置き場所のずらしを持つので、内側で動かす） */}
-      <div className="h-full origin-bottom motion-safe:animate-mascot-in">
-        <span aria-hidden="true" style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot" />
+    <div ref={root} style={{ ...style, ...drag.spotStyle }} className={`${className} print:hidden ${open ? "z-30" : "z-10"}`}>
+      {/* 持ち上げている間は少し浮かせて大きくし、離したら少しはねて着地する（046。「動きを減らす」でははねない） */}
+      <div
+        data-testid="mascot-body"
+        data-lifted={drag.lifted || undefined}
+        onAnimationEnd={(event) => {
+          if (event.target === event.currentTarget) drag.onLandingEnd();
+        }}
+        className={`h-full origin-bottom ${drag.lifted ? "-translate-y-[10%] scale-110 drop-shadow-[0_6px_4px_rgb(43_42_38/0.35)]" : ""} ${drag.landing ? "motion-safe:animate-mascot-land" : ""} motion-safe:transition-transform motion-safe:duration-150`}
+      >
+        {/* 出てくるときは足元からふわっと（季節を切りかえたときも。外側の箱は置き場所のずらしを持つので、内側で動かす） */}
+        <div className="h-full origin-bottom motion-safe:animate-mascot-in">
+          <span aria-hidden="true" style={spriteStyle} className="block h-full bg-no-repeat motion-safe:animate-mascot" />
+        </div>
       </div>
       {/* 押せる範囲は 44px 以上。絵は小さいので、絵に重ねた透明なボタンを、足元をそろえたまま 44px まで広げる（絵は広げない） */}
       <button
@@ -93,7 +119,12 @@ export function MascotFigure({
         aria-label={`${MASCOT_NAME}。押すと服の色を変えられます`}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          // 動かしたあとのクリックでは開かない
+          if (drag.consumeClick()) return;
+          setOpen((value) => !value);
+        }}
+        {...drag.buttonProps}
         className="absolute bottom-0 left-1/2 size-full min-h-tap min-w-tap -translate-x-1/2 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       />
       {open && (

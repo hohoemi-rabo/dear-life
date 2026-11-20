@@ -138,6 +138,14 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(6%) scale(0.92)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
+        // くらしの絵の上のぽてりを離したとき（046）：持ち上げた姿（浮かせて大きく）から下りて、少しつぶれ、小さくはねて着地する
+        "mascot-land": {
+          "0%": { transform: "translateY(-10%) scale(1.1)" },
+          "40%": { transform: "translateY(0) scale(1.08, 0.9)" },
+          "62%": { transform: "translateY(-6%) scale(0.97, 1.04)" },
+          "82%": { transform: "translateY(0) scale(1.03, 0.97)" },
+          "100%": { transform: "translateY(0) scale(1)" },
+        },
         "mascot-frames": {
           "0%": { backgroundPositionX: "0%" },
           "100%": { backgroundPositionX: "100%" },
@@ -172,6 +180,7 @@ const config: Config = {
         "district-notice": "district-notice 1500ms ease-out both",
         "card-glow": "card-glow 900ms ease-out both",
         "mascot-in": "mascot-in 450ms ease-out both",
+        "mascot-land": "mascot-land 420ms ease-out both",
         mascot: "mascot-frames var(--mascot-duration) steps(var(--mascot-frames), jump-none) infinite",
         "mascot-blink": "mascot-blink 9s steps(1, end) infinite",
       },
