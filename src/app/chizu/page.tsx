@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 // 05 地図（021）。選んだ地区は URL パラメータで持つので、読むのはブラウザで動き出してから（静的書き出しではビルド時に値がない）
 export default function ChizuPage() {
   return (
-    <Suspense fallback={<ScreenSkeleton label="地図を読み込んでいます" />}>
+    <Suspense fallback={<ScreenSkeleton label="地図を読み込んでいます" fillScreen />}>
       <ChizuView />
     </Suspense>
   );

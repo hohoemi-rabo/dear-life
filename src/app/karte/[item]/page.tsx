@@ -25,7 +25,7 @@ export default async function KarteDetailPage({ params }: { params: Params }) {
   const card = karteCardFromSlug((await params).item);
   if (!card) notFound();
   return (
-    <Suspense fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
+    <Suspense fallback={<ScreenSkeleton label="カルテを読み込んでいます" fillScreen />}>
       <KarteDetailView card={card} />
     </Suspense>
   );

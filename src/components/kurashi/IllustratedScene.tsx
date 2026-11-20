@@ -5,7 +5,8 @@ import { preload } from "react-dom";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { Mascot, MascotCompanion } from "@/components/mascot/Mascot";
 import { CloseIconButton, SheetEyebrow } from "@/components/ui/BottomSheet";
-import { ILLUST_PICTURES, illustPictureSrc, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
+import { ILLUST_PICTURES, type KurashiPictureId, type KurashiPictures, type Person } from "@/lib/illust/assets";
+import { largestSrc, scenePicturePreloads, scenePictureSrcSet, TALL_SIZES, WIDE_MEDIA, WIDE_SIZES } from "@/lib/kurashi/scene-picture";
 import type { Season } from "@/lib/conditions/scene";
 import { companionPlacement } from "@/lib/illust/family";
 import type { MascotMotionId } from "@/lib/mascot/assets";
@@ -109,41 +110,17 @@ function SceneCompanion({ motion, members, background }: { motion: MascotMotionI
   );
 }
 
-// 横長（PC）に切りかえる幅と、絵の表示幅。<picture> と先読み（preloadScenePicture）で同じものを使う（違うと別の版を2回読む）
-const WIDE_MEDIA = "(min-width: 1024px)";
-const TALL_MEDIA = "(max-width: 1023.98px)";
-const WIDE_SIZES = "(min-width: 1400px) 1150px, 80vw";
-const TALL_SIZES = "100vw";
-
-function scenePictureSrcSet(id: KurashiPictureId): string {
-  return ILLUST_PICTURES[id].widths.map((w) => `${illustPictureSrc(id, w)} ${w}w`).join(", ");
-}
-
-function largestSrc(id: KurashiPictureId): string {
-  return illustPictureSrc(id, ILLUST_PICTURES[id].widths.at(-1)!);
-}
-
 // 風景の絵を、画面のデータを待たずに読み始める（絵は地区と季節だけで決まる）。データの読み込み（約1秒）と並べて読むため、
-// ScreenDataBoundary の外（KurashiView）で呼ぶ（2026-11-01 測り直し）。同じ絵を何度呼んでも、先読みは1回だけ
+// ScreenDataBoundary の外（KurashiView）で呼ぶ（2026-11-01 測り直し）。同じ絵を何度呼んでも、先読みは1回だけ。
+// HTML にも同じ先読みを埋めこんである（ScenePicturePreloadScript）。こちらは季節を切りかえたときのため
 export function preloadScenePicture(pictures: KurashiPictures) {
-  preload(largestSrc(pictures.tall), {
-    as: "image",
-    imageSrcSet: scenePictureSrcSet(pictures.tall),
-    imageSizes: TALL_SIZES,
-    media: TALL_MEDIA,
-    fetchPriority: "high",
-  });
-  preload(largestSrc(pictures.wide), {
-    as: "image",
-    imageSrcSet: scenePictureSrcSet(pictures.wide),
-    imageSizes: WIDE_SIZES,
-    media: WIDE_MEDIA,
-    fetchPriority: "high",
-  });
+  for (const { href, srcSet, sizes, media } of scenePicturePreloads(pictures)) {
+    preload(href, { as: "image", imageSrcSet: srcSet, imageSizes: sizes, media, fetchPriority: "high" });
+  }
 }
 
 // スマホは縦長、PC は横長の絵（<picture> で幅によって選ばせ、両方は読まない）。説明は figure の名前で読むので飾りにする
-function ScenePicture({ pictures }: { pictures: KurashiPictures }) {
+export function ScenePicture({ pictures }: { pictures: KurashiPictures }) {
   const tall = ILLUST_PICTURES[pictures.tall];
   return (
     <picture>

@@ -26,7 +26,7 @@ import type { DistrictId } from "@/lib/town-district/resolve";
 import { ConditionsSheet } from "./ConditionsSheet";
 import { EventCard } from "./EventCard";
 import { HomeCard } from "./HomeCard";
-import { IllustratedScene, preloadScenePicture } from "./IllustratedScene";
+import { IllustratedScene, preloadScenePicture, ScenePicture } from "./IllustratedScene";
 import { PinSheetContent } from "./PinSheetContent";
 import { SceneHeading } from "./SceneHeading";
 import { SeasonThumbnails } from "./SeasonThumbnails";
@@ -82,7 +82,8 @@ export function KurashiView() {
             {heading}
           </div>
           <div className="-mt-[37%] lg:mt-0">
-            <ScreenDataBoundary fallback={<Skeleton className="aspect-[1122/1402] w-full rounded-none lg:aspect-[3/2]" />}>
+            {/* データを待つ間も風景の絵は出す（絵は地区と季節だけで決まる）。ピン・家族はデータが届いてから重ねる（025） */}
+            <ScreenDataBoundary fallback={<SceneWaiting pictures={pictures} />}>
               <SceneWithPins pictures={pictures} season={season} conditions={chosen} openPin={openPin} onOpenPin={setOpenPin} />
             </ScreenDataBoundary>
           </div>
@@ -278,6 +279,16 @@ function NoDistrict({ conditions }: { conditions: Conditions }) {
           <span aria-hidden="true">→</span>
         </ButtonLink>
       </Card>
+    </div>
+  );
+}
+
+// データを待つ間の風景。IllustratedScene と同じ枠に絵だけを出し、読み込み中であることを読み上げで伝える
+function SceneWaiting({ pictures }: { pictures: KurashiPictures }) {
+  return (
+    <div role="status" aria-busy="true" className="relative isolate aspect-[1122/1402] overflow-hidden bg-pixel-sky lg:aspect-[3/2]">
+      <span className="sr-only">読み込んでいます</span>
+      <ScenePicture pictures={pictures} />
     </div>
   );
 }
