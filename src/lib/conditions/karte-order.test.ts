@@ -12,7 +12,7 @@ describe("karteLayout", () => {
   it("子ども0人・車未選択・大切にしたいことなし：既定の並びのまま、子育て・学校だけ下へ", () => {
     const result = layout(0, null);
     expect(result.cards).toEqual(["housing", "transport", "disaster", "population", "public_facilities", "childcare", "support"]);
-    expect(result.leads).toEqual(["子どもがいないので、子育て・学校の情報は下の方に表示しています。"]);
+    expect(result.leads).toEqual([]);
     expect(result.transportNotice).toBeNull();
   });
 
@@ -27,19 +27,19 @@ describe("karteLayout", () => {
       "public_facilities",
       "support",
     ]);
-    expect(layout(1, null).leads).toEqual(["子どもがいるので、子育て・学校の情報を前の方に表示しています。"]);
+    expect(layout(1, null).leads).toEqual([]);
   });
 
   it("子ども0人：大切にしたいことで子育て・学校を選んだときは、選んだ位置に置く", () => {
     const result = layout(0, null, ["childcare"]);
     expect(result.cards).toEqual(["childcare", "housing", "transport", "disaster", "population", "public_facilities", "support"]);
-    expect(result.leads).toEqual(["子育て・学校に関する情報を先に表示しています。"]);
+    expect(result.leads).toEqual(["子育て・学校を「わが家の大切なこと」にまとめています。"]);
   });
 
   it("車0台：交通を上げ、注意書きを添える", () => {
     const result = layout(0, 0);
     expect(result.cards).toEqual(["transport", "housing", "disaster", "population", "public_facilities", "childcare", "support"]);
-    expect(result.leads).toContain("車を持たない暮らしなので、交通の情報を前の方に表示しています。");
+    expect(result.leads).toEqual([]);
     expect(result.transportNotice).toBe(NO_CAR_NOTICE);
     expect(NO_CAR_NOTICE).toBe("本数や時間帯によっては、車なしの暮らしが難しいことがあります。");
   });
@@ -47,17 +47,14 @@ describe("karteLayout", () => {
   it("車0台・子ども1人以上・大切にしたいことあり：大切にしたいこと → 子育て・学校 → 交通", () => {
     const result = layout(1, 0, ["population"]);
     expect(result.cards).toEqual(["population", "childcare", "transport", "housing", "disaster", "public_facilities", "support"]);
-    expect(result.leads).toEqual([
-      "人口に関する情報を先に表示しています。",
-      "子どもがいるので、子育て・学校の情報を前の方に表示しています。",
-      "車を持たない暮らしなので、交通の情報を前の方に表示しています。",
-    ]);
+    // 子ども・車の文は出さない（048）
+    expect(result.leads).toEqual(["人口を「わが家の大切なこと」にまとめています。"]);
   });
 
   it("車0台で交通を大切にしたいことに選んだときは、交通を選んだ位置に置き、注意書きは添える", () => {
     const result = layout(0, 0, ["housing", "transport"]);
     expect(result.cards).toEqual(["housing", "transport", "disaster", "population", "public_facilities", "childcare", "support"]);
-    expect(result.leads).not.toContain("車を持たない暮らしなので、交通の情報を前の方に表示しています。");
+    expect(result.leads).toEqual(["住まい・交通を「わが家の大切なこと」にまとめています。"]);
     expect(result.transportNotice).toBe(NO_CAR_NOTICE);
   });
 
@@ -70,10 +67,10 @@ describe("karteLayout", () => {
   it("大切にしたいことは既定の並び順で先に並べ、一文にまとめる。選ばなかった分野も隠さない", () => {
     const result = layout(1, null, ["population", "housing", "disaster"]);
     expect(result.cards).toEqual(["housing", "disaster", "population", "childcare", "transport", "public_facilities", "support"]);
-    expect(result.leads[0]).toBe("住まい・防災・人口に関する情報を先に表示しています。");
+    expect(result.leads).toEqual(["住まい・防災・人口を「わが家の大切なこと」にまとめています。"]);
   });
 
-  it("どの条件の組み合わせでも、7枚すべてを1回ずつ出し、支援制度は最後に置き、一文を必ず出す", () => {
+  it("どの条件の組み合わせでも、7枚すべてを1回ずつ出し、支援制度は最後に置く。一文は大切にしたいことを選んだときだけ", () => {
     const allPriorities: Priority[] = ["housing", "childcare", "transport", "disaster", "population"];
     for (const children of [0, 1]) {
       for (const car of [0, 1, 2, null] as const) {
@@ -83,7 +80,7 @@ describe("karteLayout", () => {
           expect(new Set(result.cards).size).toBe(7);
           expect(result.cards.at(-1)).toBe("support");
           expect(result.cards.slice(0, priorities.length)).toEqual(priorities);
-          expect(result.leads.length).toBeGreaterThan(0);
+          expect(result.leads).toHaveLength(priorities.length > 0 ? 1 : 0);
         }
       }
     }

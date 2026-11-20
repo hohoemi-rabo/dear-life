@@ -16,7 +16,8 @@ const url = vi.hoisted(() => {
       return query;
     },
     set(next: string) {
-      query = next.includes("?") ? next.slice(next.indexOf("?") + 1) : "";
+      const withoutHash = next.split("#")[0];
+      query = withoutHash.includes("?") ? withoutHash.slice(withoutHash.indexOf("?") + 1) : "";
       for (const listener of listeners) listener();
     },
     subscribe(listener: () => void) {
@@ -63,9 +64,19 @@ const minorTitles = () =>
     .map((link) => link.textContent);
 const card = (id: string) => document.getElementById(`karte-${id}`) as HTMLElement;
 const tabLabels = () =>
-  within(screen.getByRole("navigation", { name: "項目へ移る" }))
-    .getAllByRole("link")
-    .map((link) => link.textContent);
+  within(screen.getByRole("tablist", { name: "カルテの項目" }))
+    .getAllByRole("tab")
+    .map((tab) => tab.textContent);
+const selectedTab = () => screen.getByRole("tab", { selected: true }).textContent;
+const shownCards = () =>
+  Array.from(screen.getByRole("tabpanel").querySelectorAll<HTMLElement>('[id^="karte-"]'))
+    .map((element) => element.id.replace("karte-", ""))
+    .filter((id) => id !== "tabpanel");
+async function chooseTab(name: string) {
+  await act(async () => {
+    fireEvent.click(screen.getByRole("tab", { name }));
+  });
+}
 
 beforeEach(() => {
   screenData = karteScreenData();
@@ -73,14 +84,12 @@ beforeEach(() => {
 });
 
 describe("KarteView：並びと上部の一文（F-03・4章）", () => {
-  it("子どもありは子育て・学校を先に置き、一文で伝える。大きいカード4つと小さいカード3つに分け、タブは7項目を同じ順で", async () => {
+  it("子どもありは子育て・学校を先に置く。大きいカード4つと小さいカード3つに分け、タブは「すべて」と7項目を同じ順で。大切にしたいことがなければ一文は出さない", async () => {
     await open("d=kanae&a=2&k=1&h=new");
     expect(titlesIn("くらしの項目")).toEqual(["子育て・学校", "住まい", "交通", "防災"]);
     expect(minorTitles().map((text) => text?.slice(0, 4))).toEqual(["人口地区", "公共施設", "支援制度"]);
-    expect(tabLabels()).toEqual(["子育て・学校", "住まい", "交通", "防災", "人口", "公共施設", "支援制度"]);
-    expect(screen.getByRole("note", { name: "表示の順番" })).toHaveTextContent(
-      "子どもがいるので、子育て・学校の情報を前の方に表示しています。",
-    );
+    expect(tabLabels()).toEqual(["すべて", "子育て・学校", "住まい", "交通", "防災", "人口", "公共施設", "支援制度"]);
+    expect(screen.queryByRole("note", { name: "表示の順番" })).toBeNull();
     expect(screen.getByText("鼎の暮らしを、ひとつずつ確かめよう。")).toBeInTheDocument();
   });
 
@@ -92,19 +101,11 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
     expect(tabs.getByRole("link", { name: "地図" })).toHaveAttribute("href", "/chizu?s=autumn&d=kanae&a=2&k=1&h=new");
   });
 
-  it("タブは一覧のカードへ移る", async () => {
-    await open("d=kanae&a=2&k=1&h=new");
-    const tab = screen.getByRole("link", { name: "防災" });
-    expect(tab).toHaveAttribute("href", "#karte-disaster");
-    expect(card("disaster")).not.toBeNull();
-  });
-
-  it("車0台・大切にしたいことあり：大切にしたいこと → 交通。交通のカードは「車なしで」の問いと注意書き", async () => {
-    await open("d=kanae&a=2&k=0&h=new&c=0&p=disaster");
+  it("車0台・大切にしたいことあり：「すべて」では大切にしたいこと → 交通。一文は大切にしたいことの行だけ。交通のカードは「車なしで」の問いと注意書き", async () => {
+    await open("d=kanae&a=2&k=0&h=new&c=0&p=disaster&tab=all");
     expect(titlesIn("くらしの項目")).toEqual(["防災", "交通", "住まい", "子育て・学校"]);
     const note = screen.getByRole("note", { name: "表示の順番" });
-    expect(note).toHaveTextContent("防災に関する情報を先に表示しています。");
-    expect(note).toHaveTextContent("車を持たない暮らしなので、交通の情報を前の方に表示しています。");
+    expect(note).toHaveTextContent(/^防災を「わが家の大切なこと」にまとめています。$/);
     expect(card("transport")).toHaveTextContent("車なしで、どう動く？");
     expect(card("transport")).toHaveTextContent(NOTICES.carFree);
   });
@@ -113,6 +114,89 @@ describe("KarteView：並びと上部の一文（F-03・4章）", () => {
     await open("d=kanae&k=1&c=1");
     expect(card("transport")).toHaveTextContent("車1台で、どう動く？");
     expect(card("transport")).not.toHaveTextContent(NOTICES.carFree);
+  });
+});
+
+describe("KarteView：タブ（048）", () => {
+  it("大切にしたいことを選んだら、タブは「わが家の大切なこと」「すべて」と7項目。開くと選んだ項目のカードを全部出す（人口も）", async () => {
+    await open("d=kamisato&a=2&k=1&c=1&h=new&p=disaster,population");
+    expect(tabLabels()).toEqual(["わが家の大切なこと", "すべて", "防災", "人口", "子育て・学校", "住まい", "交通", "公共施設", "支援制度"]);
+    expect(selectedTab()).toBe("わが家の大切なこと");
+    expect(shownCards()).toEqual(["disaster", "population"]);
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", "karte-tab-mine");
+    expect(new URLSearchParams(url.query).has("tab")).toBe(false);
+  });
+
+  it("「ほかの項目も見る」で「すべて」に切りかわり、7枚を出す。URL に tab=all を残す", async () => {
+    await open("d=kamisato&a=2&k=1&c=1&h=new&p=disaster");
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /ほかの項目も見る/ }));
+    });
+    expect(selectedTab()).toBe("すべて");
+    expect(shownCards()).toEqual(["disaster", "childcare", "housing", "transport", "population", "public_facilities", "support"]);
+    expect(new URLSearchParams(url.query).get("tab")).toBe("all");
+    expect(screen.queryByRole("button", { name: /ほかの項目も見る/ })).toBeNull();
+  });
+
+  it("何も選ばなければ「すべて」で開き、「わが家の大切なこと」のタブは出さない", async () => {
+    await open("d=kanae&a=2&k=0&c=1&h=new");
+    expect(tabLabels()[0]).toBe("すべて");
+    expect(screen.queryByRole("tab", { name: "わが家の大切なこと" })).toBeNull();
+    expect(selectedTab()).toBe("すべて");
+    expect(shownCards()).toHaveLength(7);
+  });
+
+  it("項目のタブはその1枚だけを出す。小さいカードも1枚。URL は詳細のページと同じ名前", async () => {
+    await open("d=kanae&a=2&k=0&c=1&h=new&p=housing");
+    await chooseTab("公共施設");
+    expect(shownCards()).toEqual(["public_facilities"]);
+    expect(new URLSearchParams(url.query).get("tab")).toBe("public-facilities");
+    await chooseTab("住まい");
+    expect(shownCards()).toEqual(["housing"]);
+    // 開いたときのタブに戻ったら tab は消す
+    await chooseTab("わが家の大切なこと");
+    expect(new URLSearchParams(url.query).has("tab")).toBe(false);
+  });
+
+  it("矢印キーで隣のタブへ移る", async () => {
+    await open("d=kanae&a=2&k=0&c=1&h=new");
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole("tab", { name: "すべて" }), { key: "ArrowRight" });
+    });
+    expect(selectedTab()).toBe("住まい");
+    expect(document.activeElement).toBe(screen.getByRole("tab", { name: "住まい" }));
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole("tab", { name: "住まい" }), { key: "ArrowLeft" });
+    });
+    expect(selectedTab()).toBe("すべて");
+  });
+
+  it.each([
+    ["tab=unknown&p=disaster", "わが家の大切なこと"],
+    ["tab=mine", "すべて"],
+    ["tab=unknown", "すべて"],
+  ])("URL の %s は、開いたときのタブ（%s）に戻す", async (query, expected) => {
+    await open(`d=kanae&a=2&k=0&c=1&h=new&${query}`);
+    expect(selectedTab()).toBe(expected);
+  });
+
+  it("詳細のページへのリンクは、見ていたタブを持っていく", async () => {
+    await open("d=kanae&a=2&k=0&c=1&h=new&tab=disaster");
+    expect(within(card("disaster")).getByRole("link", { name: /避難場所を確かめる/ })).toHaveAttribute(
+      "href",
+      "/karte/disaster?d=kanae&a=2&k=0&h=new&c=1&tab=disaster",
+    );
+  });
+
+  it("#karte-<項目> で来たら、その項目のタブに切りかえる", async () => {
+    window.location.hash = "#karte-transport";
+    try {
+      await open("d=kanae&a=2&k=0&c=1&h=new&p=disaster");
+      expect(selectedTab()).toBe("交通");
+      expect(shownCards()).toEqual(["transport"]);
+    } finally {
+      window.location.hash = "";
+    }
   });
 });
 
@@ -284,8 +368,8 @@ describe("わが家の設定の欄のアイコン（2026-11-05 まさゆきさ�
 describe("項目ごとの印（2026-11-05 まさゆきさん）", () => {
   it("タブは7項目それぞれの絵を出す。住まいはわが家の設定の家の絵で、どの絵のファイルもある", async () => {
     await open("d=kamisato");
-    const nav = screen.getByRole("navigation", { name: "項目へ移る" });
-    const sources = Array.from(nav.querySelectorAll("img")).map((image) => image.getAttribute("src") ?? "");
+    const tabs = screen.getByRole("tablist", { name: "カルテの項目" });
+    const sources = Array.from(tabs.querySelectorAll('img[src^="/illust/"]')).map((image) => image.getAttribute("src") ?? "");
     expect(new Set(sources)).toEqual(
       new Set([
         "/illust/settings-housing-64.webp",

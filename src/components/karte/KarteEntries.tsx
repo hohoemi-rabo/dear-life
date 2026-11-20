@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { DataSourceNote } from "@/components/data/DataSourceNote";
 import { DataStateMessage } from "@/components/data/DataStateMessage";
 import { useScreenData } from "@/components/data/ScreenDataBoundary";
@@ -33,6 +33,7 @@ import { checkMemoTagFor, type CheckMemoItem } from "@/lib/karte/check-memo";
 import { marketCategoryOrder } from "@/lib/karte/housing";
 import { RENT_NOTICE, RENT_TITLE, formatRentManYen, renterSharePercent } from "@/lib/housing/rent";
 import { karteDetailHref } from "@/lib/karte/links";
+import { KARTE_TAB_LABELS, karteTabSlug, type KarteTab } from "@/lib/karte/tabs";
 import { NOTICES } from "@/lib/notices";
 import { ABOUT_DATA_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -50,7 +51,8 @@ export const CARD_PICTURES: Readonly<Record<Exclude<KarteCard, "housing">, PropI
 };
 
 // 一覧のカード（図鑑の目次。028 見本）。上の段は絵と問いの大きいカード、下の段は人口・公共施設・支援制度の小さいカード。
-// 並び順は karteLayout のまま。#karte-<card> 付きで開いたら、データが届いてカードが出てからそこまで移る
+// cards は今のタブで出すカード（048）。並び順は karteLayout のまま。
+// #karte-<card> 付きで開いたら、データが届いてそのカードが出てから一度だけそこまで移る
 export function KarteEntries({
   cards,
   conditions,
@@ -71,11 +73,16 @@ export function KarteEntries({
   // 印刷用の中身（023）では、カードへ移るための id を付けず、移る動きもしない（画面のカードと id が重なるため）
   const printing = usePrintMode();
 
+  const scrolled = useRef(false);
+  const shownKey = cards.join(",");
   useEffect(() => {
-    if (printing) return;
+    if (printing || scrolled.current) return;
     const id = window.location.hash.slice(1);
-    if (id) document.getElementById(id)?.scrollIntoView?.({ block: "start" });
-  }, [printing]);
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    target.scrollIntoView?.({ block: "start" });
+    scrolled.current = true;
+  }, [printing, shownKey]);
 
   const bodies: Record<MainKarteCard, ReactNode> = {
     housing:
@@ -110,66 +117,116 @@ export function KarteEntries({
 
   return (
     <div className="flex flex-col gap-4">
-      <ul aria-label="くらしの項目" className="grid gap-4 lg:grid-cols-2">
-        {main.map((card) => (
-          <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
-            <MemoTagContext.Provider value={checkMemoTagFor(memoItems, card)}>{bodies[card]}</MemoTagContext.Provider>
-          </li>
-        ))}
-      </ul>
-      <ul aria-label="そのほかの項目" className="grid gap-3 md:grid-cols-3 md:gap-4">
-        {minor.map((card) => (
-          <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
-            <MinorEntry card={card} href={detailHref(card)} />
-          </li>
-        ))}
-      </ul>
+      {main.length > 0 && (
+        <ul aria-label="くらしの項目" className="grid gap-4 lg:grid-cols-2">
+          {main.map((card) => (
+            <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
+              <MemoTagContext.Provider value={checkMemoTagFor(memoItems, card)}>{bodies[card]}</MemoTagContext.Provider>
+            </li>
+          ))}
+        </ul>
+      )}
+      {minor.length > 0 && (
+        <ul aria-label="そのほかの項目" className="grid gap-3 md:grid-cols-3 md:gap-4">
+          {minor.map((card) => (
+            <li key={card} id={printing ? undefined : karteCardAnchor(card)} className={`flex scroll-mt-4 break-inside-avoid rounded-card ${glow}`}>
+              <MinorEntry card={card} href={detailHref(card)} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
-// 7項目のタブ（見本）。押すと一覧のそのカードまで移る。スマホは横に流し、右の「›」で先を見せる
-export function KarteTabs({ cards }: { cards: readonly KarteCard[] }) {
-  const [current, setCurrent] = useState<KarteCard | null>(cards[0] ?? null);
-  const scrollRight = (event: React.MouseEvent<HTMLButtonElement>) =>
-    event.currentTarget.previousElementSibling?.scrollBy({
-      left: 160,
-      behavior: "smooth",
-    });
+export const KARTE_TABPANEL_ID = "karte-tabpanel";
+export const karteTabId = (tab: KarteTab) => `karte-tab-${karteTabSlug(tab)}`;
+
+// カルテのタブ（048）。押すとそのタブのカードを出す。PC（xl）は2段：上に「わが家の大切なこと」「すべて」、下に7項目の格子（見本）。
+// スマホ・iPad は1行で横に流し、右の「›」で先を見せる。矢印キー・Home・End で移れる
+export function KarteTabs({
+  tabs,
+  current,
+  onSelect,
+}: {
+  tabs: readonly KarteTab[];
+  current: KarteTab;
+  onSelect: (tab: KarteTab) => void;
+}) {
+  const list = useRef<HTMLDivElement>(null);
+  const scrollRight = () => list.current?.scrollBy({ left: 160, behavior: "smooth" });
+  // スマホ・iPad の横に流す列で、選んだタブが隠れていたら見える位置まで送る（URL の tab で右の方のタブから開いたとき）。
+  // 画面の縦は動かさないよう、列の横の位置だけを変える
+  useEffect(() => {
+    const row = list.current;
+    const active = document.getElementById(karteTabId(current));
+    if (!row || !active || row.scrollWidth <= row.clientWidth) return;
+    const left = active.offsetLeft - row.offsetLeft;
+    const right = left + active.offsetWidth;
+    if (left < row.scrollLeft || right > row.scrollLeft + row.clientWidth - 48) row.scrollLeft = Math.max(0, left - 16);
+  }, [current]);
+  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const last = tabs.length - 1;
+    const target = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: last }[event.key];
+    if (target === undefined) return;
+    event.preventDefault();
+    const next = tabs[(target + tabs.length) % tabs.length];
+    onSelect(next);
+    document.getElementById(karteTabId(next))?.focus();
+  };
+  const groups = [tabs.filter(isGroupTab), tabs.filter((tab) => !isGroupTab(tab))];
   return (
-    <nav aria-label="項目へ移る" className="relative">
-      <ul className="flex gap-2 overflow-x-auto pb-1 pr-12 [scrollbar-width:none] md:pr-0 xl:grid xl:grid-cols-7 xl:overflow-visible">
-        {cards.map((card) => {
-          const active = card === current;
-          return (
-            <li key={card} className="shrink-0">
-              <a
-                href={`#${karteCardAnchor(card)}`}
-                onClick={() => setCurrent(card)}
-                aria-current={active ? "true" : undefined}
-                className={[
-                  "flex min-h-tap items-center justify-center gap-1.5 whitespace-nowrap rounded-button border px-4 text-sm font-bold shadow-card",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                  active ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
-                ].join(" ")}
-              >
-                <KarteCardIcon card={card} size="sm" />
-                {KARTE_CARD_LABELS[card]}
-              </a>
-            </li>
-          );
-        })}
-      </ul>
+    <div className="relative">
+      <div
+        ref={list}
+        role="tablist"
+        aria-label="カルテの項目"
+        className="flex gap-2 overflow-x-auto pb-1 pr-12 [scrollbar-width:none] md:pr-0 xl:flex-col xl:overflow-visible"
+      >
+        {groups.map((group, row) => (
+          <div key={row} role="presentation" className={row === 0 ? "contents xl:flex xl:gap-2" : "contents xl:grid xl:grid-cols-7 xl:gap-2"}>
+            {group.map((tab) => {
+              const active = tab === current;
+              const index = tabs.indexOf(tab);
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  id={karteTabId(tab)}
+                  aria-selected={active}
+                  aria-controls={KARTE_TABPANEL_ID}
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => onSelect(tab)}
+                  onKeyDown={(event) => moveFocus(event, index)}
+                  className={[
+                    "flex min-h-tap shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-button border px-4 text-sm font-bold shadow-card",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                    active ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary",
+                  ].join(" ")}
+                >
+                  {isGroupTab(tab) ? <PixelIcon icon={tab === "mine" ? "icon-checklist" : "icon-book"} size="sm" /> : <KarteCardIcon card={tab} size="sm" />}
+                  {isGroupTab(tab) ? KARTE_TAB_LABELS[tab] : KARTE_CARD_LABELS[tab]}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
       <button
         type="button"
         onClick={scrollRight}
-        aria-label="ほかの項目を見る"
+        aria-label="ほかのタブを見る"
         className="absolute right-0 top-0 flex min-h-tap min-w-tap items-center justify-center rounded-full border border-line bg-surface text-xl font-bold text-primary shadow-card md:hidden"
       >
         <span aria-hidden="true">›</span>
       </button>
-    </nav>
+    </div>
   );
+}
+
+function isGroupTab(tab: KarteTab): tab is "mine" | "all" {
+  return tab === "mine" || tab === "all";
 }
 
 // カードの見出しの横に付ける「まずはここから」の札。カードの中身の部品ごとに渡さずにすむよう、枠だけが読む

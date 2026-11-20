@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
 import { ChooseAgainLink, ConditionsPanel, ConditionsStrip } from "@/components/conditions/ConditionsPanel";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { FamilyRow } from "@/components/illust/FamilyRow";
 import { ScreenTabBar } from "@/components/layout/ScreenTabBar";
 import { PixelIcon } from "@/components/pixel/PixelIcon";
-import { ButtonLink } from "@/components/ui/Button";
+import { ButtonLink, buttonClassName } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ScreenSkeleton } from "@/components/ui/Skeleton";
 import { karteLayout } from "@/lib/conditions/karte-order";
@@ -18,6 +19,16 @@ import { useConditions } from "@/lib/conditions/useConditions";
 import { karteHeaderFor, propSrc, propSrcSet } from "@/lib/illust/assets";
 import { checkMemoItems } from "@/lib/karte/check-memo";
 import { SHITAMI_MEMO_ANCHOR } from "@/lib/karte/shitami-memo";
+import {
+  KARTE_TAB_PARAM,
+  karteTabCards,
+  karteTabFromHash,
+  karteTabs,
+  parseKarteTab,
+  withKarteTab,
+  type KarteTab,
+} from "@/lib/karte/tabs";
+import type { Priority } from "@/lib/conditions/labels";
 import { karteDetailHref, kurashiHref } from "@/lib/karte/links";
 import { kurabeHref } from "@/lib/kurabe/links";
 import { parseSeason, SEASON_PARAM } from "@/lib/kurashi/season";
@@ -33,7 +44,7 @@ import { KartePrintButton } from "./KartePrint";
 import { NextStepScene } from "./NextStepScene";
 import { ShitamiMemoSection } from "./ShitamiMemo";
 import { DistrictSwitchNotice } from "./DistrictSwitchNotice";
-import { KarteEntries, KarteTabs } from "./KarteEntries";
+import { KARTE_TABPANEL_ID, KarteEntries, KarteTabs, karteTabId } from "./KarteEntries";
 import { useDistrictSwitch } from "./useDistrictSwitch";
 
 type Chosen = Conditions & { district: DistrictId };
@@ -45,6 +56,7 @@ export function KarteView() {
   const searchParams = useSearchParams();
   const { district } = conditions;
   const { noticeDistrict, cardsHighlighted } = useDistrictSwitch(district);
+  const { tab, selectTab } = useKarteTab(conditions.priorities);
   if (district === null) return <NoDistrict conditions={conditions} />;
 
   const chosen = { ...conditions, district };
@@ -93,11 +105,25 @@ export function KarteView() {
           }
           shitamiMemoHref={`#${SHITAMI_MEMO_ANCHOR}`}
         />
-        <KarteTabs cards={layout.cards} />
+        <KarteTabs tabs={karteTabs(layout.cards, chosen.priorities)} current={tab} onSelect={selectTab} />
 
-        <ScreenDataBoundary fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
-          <KarteEntries cards={layout.cards} conditions={chosen} memoItems={memoItems} highlighted={cardsHighlighted} />
-        </ScreenDataBoundary>
+        <div role="tabpanel" id={KARTE_TABPANEL_ID} aria-labelledby={karteTabId(tab)} className="flex flex-col gap-4">
+          <ScreenDataBoundary fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
+            <KarteEntries
+              cards={karteTabCards(tab, layout.cards, chosen.priorities)}
+              conditions={chosen}
+              memoItems={memoItems}
+              highlighted={cardsHighlighted}
+            />
+          </ScreenDataBoundary>
+          {/* 選んだカードだけで終わりにせず、選ばなかった項目にも気づけるように（048。一文は付けない。2026-11-20 まさゆきさん） */}
+          {tab === "mine" && (
+            <button type="button" onClick={() => selectTab("all")} className={buttonClassName("secondary", "self-center")}>
+              ほかの項目も見る
+              <span aria-hidden="true">→</span>
+            </button>
+          )}
+        </div>
 
         {/* わが家の下見プラン（036）。カードと「次は、現地で確かめよう」のあいだに置く */}
         <ScreenDataBoundary fallback={<ScreenSkeleton label="下見プランを読み込んでいます" />}>
@@ -116,6 +142,34 @@ export function KarteView() {
   );
 }
 
+// 今のタブ（048）。URL の tab から読み、押したら tab を書きかえる（履歴は増やさない）。
+// 一覧のカードの id（#karte-<card>）で来たときは、そのカードが出る項目のタブに切りかえる
+function useKarteTab(priorities: readonly Priority[]): { tab: KarteTab; selectTab: (tab: KarteTab) => void } {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const tab = parseKarteTab(searchParams.get(KARTE_TAB_PARAM), priorities);
+
+  const selectTab = useCallback(
+    (next: KarteTab, hash = "") => {
+      const query = withKarteTab(searchParams, next, priorities).toString();
+      router.replace(`${query ? `${pathname}?${query}` : pathname}${hash}`, { scroll: false });
+    },
+    [pathname, priorities, router, searchParams],
+  );
+
+  // 開いたときに一度だけ見る
+  const hashChecked = useRef(false);
+  useEffect(() => {
+    if (hashChecked.current) return;
+    hashChecked.current = true;
+    const card = karteTabFromHash(window.location.hash);
+    if (card !== null && card !== tab) selectTab(card, window.location.hash);
+  }, [selectTab, tab]);
+
+  return { tab, selectTab };
+}
+
 // 「わが家のカルテ」の左の本。PC は見出しの横に大きく、スマホは見出しの文字の左に出す。飾りなので読み上げない
 function TitleBook({ className }: { className: string }) {
   return (
@@ -132,7 +186,7 @@ function TitleBook({ className }: { className: string }) {
 }
 
 // 見出し（見本）：家族の絵（PC）・本の印・「わが家のカルテ」・地区の一文・並びの一文と、右に風景の絵。
-// 並びの一文は、条件がどう並びに反映されたかを必ず伝えるもの（要件 4章）
+// 並びの一文は、大切にしたいことを選んだときに「わが家の大切なこと」にまとめたことを伝える（要件 4章・048）
 function KarteHeading({ conditions, leads, mascot }: { conditions: Chosen; leads: readonly string[]; mascot: MascotMotionId | null }) {
   const header = karteHeaderFor(conditions.district);
   return (
@@ -152,11 +206,13 @@ function KarteHeading({ conditions, leads, mascot }: { conditions: Chosen; leads
           {DISTRICT_NAMES[conditions.district]}
           の暮らしを、ひとつずつ確かめよう。
         </p>
-        <div role="note" aria-label="表示の順番" className="flex flex-col text-xs text-ink-muted md:text-sm">
-          {leads.map((lead) => (
-            <p key={lead}>{lead}</p>
-          ))}
-        </div>
+        {leads.length > 0 && (
+          <div role="note" aria-label="表示の順番" className="flex flex-col text-xs text-ink-muted md:text-sm">
+            {leads.map((lead) => (
+              <p key={lead}>{lead}</p>
+            ))}
+          </div>
+        )}
       </div>
       <picture className="w-28 shrink-0 sm:w-48 lg:w-[min(40%,520px)]">
         <source media="(min-width: 1024px)" srcSet={propSrcSet(header.wide)} sizes="min(40vw, 520px)" />

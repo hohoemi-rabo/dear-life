@@ -1,5 +1,5 @@
 // カルテのカードの並び順と、上部の一文（要件 4章・F-03）。
-// 並べ替えるだけで、どのカードも隠さない。点数化・おすすめの判定はしない
+// 並べ替えるだけで、どのカードも隠さない（どのタブに出すかは 048 の src/lib/karte/tabs.ts）。点数化・おすすめの判定はしない
 import { KARTE_CARD_LABELS, KARTE_CARDS, PRIORITIES, type KarteCard } from "./labels.ts";
 import { hasChildren, hasNoCar, type Conditions } from "./model.ts";
 
@@ -7,7 +7,8 @@ export const NO_CAR_NOTICE = "本数や時間帯によっては、車なしの�
 
 export type KarteLayout = {
   cards: KarteCard[];
-  // 条件がどう並びに反映されたかを伝える文。子どもの有無でかならず1文は入る
+  // 大切にしたいことを選んだときだけ、「わが家の大切なこと」のタブにまとめたことを伝える文（048）。
+  // 子ども・車の文は、開いたときの画面（選んだカードだけ）と合わないので出さない（2026-11-20 まさゆきさん）
   leads: string[];
   // 車0台のときの交通の注意書き。それ以外は null
   transportNotice: string | null;
@@ -32,13 +33,8 @@ export function karteLayout(conditions: Pick<Conditions, "children" | "car" | "p
   );
   const cards: KarteCard[] = [...raised, ...rest, ...(lowerChildcare ? (["childcare"] as const) : []), "support"];
 
-  const leads: string[] = [];
-  if (prioritized.length > 0) {
-    leads.push(`${prioritized.map((card) => KARTE_CARD_LABELS[card]).join("・")}に関する情報を先に表示しています。`);
-  }
-  if (raiseChildcare) leads.push("子どもがいるので、子育て・学校の情報を前の方に表示しています。");
-  if (lowerChildcare) leads.push("子どもがいないので、子育て・学校の情報は下の方に表示しています。");
-  if (raiseTransport) leads.push("車を持たない暮らしなので、交通の情報を前の方に表示しています。");
+  const leads =
+    prioritized.length > 0 ? [`${prioritized.map((card) => KARTE_CARD_LABELS[card]).join("・")}を「わが家の大切なこと」にまとめています。`] : [];
 
   return { cards, leads, transportNotice: hasNoCar(conditions) ? NO_CAR_NOTICE : null };
 }

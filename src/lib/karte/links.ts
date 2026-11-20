@@ -6,6 +6,7 @@ import { SEASON_PARAM } from "../kurashi/season.ts";
 import { KARTE_PATH, KURASHI_PATH } from "../site.ts";
 import { karteDetailPath } from "./entries.ts";
 import { SHITAMI_MEMO_ANCHOR } from "./shitami-memo.ts";
+import { KARTE_TAB_PARAM } from "./tabs.ts";
 
 type ReadableParams = { get(name: string): string | null };
 
@@ -14,14 +15,20 @@ export function kurashiHref(conditions: Conditions, current: ReadableParams): st
   return seasonalHref(KURASHI_PATH, conditions, current.get(SEASON_PARAM));
 }
 
-// 地区くらべ（020）・地図（021）から「カルテに戻る」。季節も持ち回り、カルテからくらしに戻ったときに同じ季節で開く
+// 地区くらべ（020）・地図（021）・詳細のページから「カルテに戻る」。季節も持ち回り、カルテからくらしに戻ったときに同じ季節で開く。
+// 一覧で見ていたタブ（048 の tab）があれば、そのタブで戻る
 export function karteBackHref(conditions: Conditions, current: ReadableParams): string {
-  return seasonalHref(KARTE_PATH, conditions, current.get(SEASON_PARAM));
+  return withTab(seasonalHref(KARTE_PATH, conditions, current.get(SEASON_PARAM)), current);
 }
 
-// 一覧のカードから、その項目の詳細のページ（図鑑の1ページ。028）へ。条件と季節を持ったまま移る
+// 一覧のカードから、その項目の詳細のページ（図鑑の1ページ。028）へ。条件と季節と、一覧で見ていたタブ（048）を持ったまま移る
 export function karteDetailHref(conditions: Conditions, card: KarteCard, current: ReadableParams): string {
-  return seasonalHref(karteDetailPath(card), conditions, current.get(SEASON_PARAM));
+  return withTab(seasonalHref(karteDetailPath(card), conditions, current.get(SEASON_PARAM)), current);
+}
+
+function withTab(href: string, current: ReadableParams): string {
+  const tab = current.get(KARTE_TAB_PARAM);
+  return tab ? `${href}&${KARTE_TAB_PARAM}=${encodeURIComponent(tab)}` : href;
 }
 
 // 「下見プランを見る」：カルテ一覧の「わが家の下見プラン」へ（036）。くらしからは見ていた季節を渡す

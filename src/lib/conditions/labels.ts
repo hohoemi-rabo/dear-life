@@ -99,7 +99,7 @@ export function familyLabel({ adults, children, parent }: { adults: number; chil
   return `${grownUps}・子ども${children}人`;
 }
 
-// カルテの一覧のカードの id。上の7項目のタブから、そのカードへ移るのに使う（028。くらしの場面からは詳細のページへ移る）
+// カルテの一覧のカードの id。#karte-<card> で来たら、その項目のタブに切りかえてから移る（048。くらしの場面からは詳細のページへ移る）
 export function karteCardAnchor(card: KarteCard): string {
   return `karte-${card}`;
 }
