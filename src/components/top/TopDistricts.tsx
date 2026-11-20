@@ -5,7 +5,9 @@ import { DISTRICT_PICTURES } from "@/lib/illust/assets";
 import { erabuHrefFor } from "@/lib/top/links";
 import { Marker } from "./TopIcon";
 
-// 4地区のカード（033 見本）。押すと、その地区を選んだ状態でえらぶを始める。絵はえらぶ 01 と同じ
+// 4地区のカード（033 見本）。押すと、その地区を選んだ状態でえらぶを始める。絵はえらぶ 01 と同じ。
+// スマホは絵と地区名の段の高さを約7:3にする（2026-11-20 まさゆきさん。3/1 だと約6:4）。地区名の段はタップ領域の 44px なので、絵を 3/2 にする。
+// iPad の幅（sm〜）はカードが広く、3/1 のままでも約7:3
 export function TopDistricts() {
   return (
     <section aria-labelledby="top-districts" className="flex flex-col gap-3">
@@ -26,7 +28,7 @@ export function TopDistricts() {
                   picture={DISTRICT_PICTURES[id]}
                   sizes="(min-width: 1024px) 25vw, 50vw"
                   decorative
-                  className="block aspect-[3/1] w-full lg:aspect-[2/1] object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
+                  className="block aspect-[3/2] w-full sm:aspect-[3/1] lg:aspect-[2/1] object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none"
                 />
               </span>
               {/* 地区名はカードの真ん中、矢印は右端（2026-11-17 まさゆきさん）。左右を同じ幅の列にして、矢印の幅で名前がずれないようにする */}
