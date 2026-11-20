@@ -158,6 +158,25 @@ describe("KarteView：タブ（048）", () => {
     expect(new URLSearchParams(url.query).has("tab")).toBe(false);
   });
 
+  it("タブを押すと、カードの枠をふわっと出す。開いたときと「動きを減らす」の設定では動かさない", async () => {
+    const animate = vi.fn();
+    const original = HTMLElement.prototype.animate;
+    HTMLElement.prototype.animate = animate;
+    try {
+      await open("d=kanae&a=2&k=0&c=1&h=new&p=housing");
+      expect(animate).not.toHaveBeenCalled();
+      await chooseTab("すべて");
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(animate.mock.contexts[0]).toBe(screen.getByRole("tabpanel"));
+      vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce") }));
+      await chooseTab("交通");
+      expect(animate).toHaveBeenCalledTimes(1);
+    } finally {
+      HTMLElement.prototype.animate = original;
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("矢印キーで隣のタブへ移る", async () => {
     await open("d=kanae&a=2&k=0&c=1&h=new");
     await act(async () => {

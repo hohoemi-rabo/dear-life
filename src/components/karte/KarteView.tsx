@@ -57,6 +57,7 @@ export function KarteView() {
   const { district } = conditions;
   const { noticeDistrict, cardsHighlighted } = useDistrictSwitch(district);
   const { tab, selectTab } = useKarteTab(conditions.priorities);
+  const panelRef = useTabFadeIn(tab);
   if (district === null) return <NoDistrict conditions={conditions} />;
 
   const chosen = { ...conditions, district };
@@ -107,7 +108,7 @@ export function KarteView() {
         />
         <KarteTabs tabs={karteTabs(layout.cards, chosen.priorities)} current={tab} onSelect={selectTab} />
 
-        <div role="tabpanel" id={KARTE_TABPANEL_ID} aria-labelledby={karteTabId(tab)} className="flex flex-col gap-4">
+        <div ref={panelRef} role="tabpanel" id={KARTE_TABPANEL_ID} aria-labelledby={karteTabId(tab)} className="flex flex-col gap-4">
           <ScreenDataBoundary fallback={<ScreenSkeleton label="カルテを読み込んでいます" />}>
             <KarteEntries
               cards={karteTabCards(tab, layout.cards, chosen.priorities)}
@@ -168,6 +169,28 @@ function useKarteTab(priorities: readonly Priority[]): { tab: KarteTab; selectTa
   }, [selectTab, tab]);
 
   return { tab, selectTab };
+}
+
+// タブを押したら、出てきたカードをふわっと出す（2026-11-20 まさゆきさん）。開いたときは動かさない。
+// 中身を作り直すとデータの読み込みやカードへ移る動きがやり直しになるので、枠に Web Animations をかけるだけにする。
+// 「動きを減らす」の設定では動かさない
+const TAB_FADE_MS = 320;
+function useTabFadeIn(tab: KarteTab) {
+  const panel = useRef<HTMLDivElement>(null);
+  const shownTab = useRef(tab);
+  useEffect(() => {
+    if (shownTab.current === tab) return;
+    shownTab.current = tab;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    panel.current?.animate?.(
+      [
+        { opacity: 0, transform: "translateY(12px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ],
+      { duration: TAB_FADE_MS, easing: "ease-out" },
+    );
+  }, [tab]);
+  return panel;
 }
 
 // 「わが家のカルテ」の左の本。PC は見出しの横に大きく、スマホは見出しの文字の左に出す。飾りなので読み上げない
