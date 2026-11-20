@@ -37,6 +37,8 @@ const config: Config = {
         "kind-data": { DEFAULT: "#1F6E5E", soft: "#E2F0EC" },
         "kind-local": { DEFAULT: "#8A5A12", soft: "#F6EBD7" },
         "kind-assumed": { DEFAULT: "#6E6A60", soft: "#EEEAE2" },
+        // くらしの風景のスマホのピン（045）：地図のピンの赤。季節の色でも実データの側の色でもなく、ピンだけで使う（2026-11-20 まさゆきさん）
+        pin: "#E2483B",
       },
       fontFamily: {
         sans: ["var(--font-body)", ...defaultTheme.fontFamily.sans],
@@ -51,6 +53,10 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 2px rgb(43 42 38 / 0.06), 0 2px 8px rgb(43 42 38 / 0.06)",
+        // くらしの風景のピンと名前の札（045）：明るい絵の上でも浮いて見えるよう、カードより濃い影
+        pin: "0 3px 8px rgb(0 0 0 / 0.35)",
+        // スマホのしずく形のピン。形を -45度 回しているので、影も回した向きで付けると下に落ちて見える
+        "pin-drop": "-3px 5px 10px rgb(0 0 0 / 0.45)",
       },
       // タップ領域は 44px 以上（要件 8章）
       minHeight: { tap: "44px" },
@@ -118,6 +124,11 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-4px)" },
         },
+        // くらしの PC のピン（045）：丸のまわりに白い光の輪が広がって消える。強さは「とりあえず普通」（2026-11-20 まさゆきさん）
+        "pin-halo": {
+          "0%": { boxShadow: "0 0 0 0 rgb(255 255 255 / 0.9)" },
+          "100%": { boxShadow: "0 0 0 14px rgb(255 255 255 / 0)" },
+        },
         // マスコット（042）：コマを横に1列に並べた1枚の絵を、左のコマから順にずらす。コマ数と長さは部品が CSS の変数で渡す
         // マスコット（042）が出てくるとき：足元から少し伸び上がりながら、ふわっと現れる
         "mascot-in": {
@@ -153,6 +164,7 @@ const config: Config = {
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
+        "pin-halo": "pin-halo 2s ease-out infinite",
         "walk-to-iida": "walk-to-iida 7s linear infinite",
         "district-notice": "district-notice 1500ms ease-out both",
         "card-glow": "card-glow 900ms ease-out both",

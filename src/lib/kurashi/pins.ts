@@ -22,7 +22,8 @@ export const PIN_LABELS: Readonly<Record<PinId, string>> = {
 };
 
 // x・y はピンの先が指す場所。side は札をピンのどちら側に伸ばすか（絵の右の端では左に伸ばして、はみ出さないようにする）。
-// side は同じピンならスマホと PC でそろえる（ピンは1つのボタンで、並びの向きは切りかえない）
+// side はスマホ（tall）と PC（wide）で別に決められる（045 で名前を PC でもいつも出すようにし、ピンの形と大きさもスマホと PC で変わったため）。
+// 045（2026-11-20）でスマホのピンを大きなしずく形にしたとき、ピン・名前の札が重ならないよう、スマホの位置と向きを少しずつ直した（指す場所は変えない範囲）
 // label は、その絵だけ札の名前を変えるとき（伊賀良は高速バスと分けるので「路線バス」）
 export type PinSpot = { x: number; y: number; side: "right" | "left"; label?: string };
 
@@ -50,8 +51,8 @@ const KAMISATO_WIDE: PinSpots = {
 const KAMISATO_TALL: PinSpots = {
   school: { x: 27.6, y: 49, side: "right" },
   event: { x: 85, y: 40, side: "left" },
-  housing: { x: 51, y: 39.5, side: "left" },
-  public: { x: 72, y: 69.5, side: "left" },
+  housing: { x: 50.5, y: 40.5, side: "left" },
+  public: { x: 72, y: 70.5, side: "left" },
   evacuation: { x: 68, y: 51, side: "right" },
   population: { x: 65, y: 41, side: "right" },
   transit: { x: 82, y: 71.5, side: "left" },
@@ -77,9 +78,9 @@ const CHUSHIN_TALL: PinSpots = {
   housing: { x: 84, y: 59, side: "left" },
   public: { x: 47, y: 50, side: "right" },
   evacuation: { x: 64.5, y: 50, side: "right" },
-  population: { x: 40, y: 38.5, side: "right" },
+  population: { x: 40, y: 40.5, side: "right" },
   transit: { x: 19, y: 49, side: "right" },
-  snow: { x: 61, y: 75, side: "right" },
+  snow: { x: 58, y: 75.5, side: "right" },
 };
 
 // 鼎（2026-11-03。案の段階で、まさゆきさんの確認待ち）：学校＝左奥の時計の校舎、バス＝手前のバス停、電車＝奥の小さな駅（まさゆきさんが絵に足した。2026-11-03 まさゆきさんの指示で2本に分けた）、
@@ -91,18 +92,19 @@ const KANAE_WIDE: PinSpots = {
   housing: { x: 40, y: 46, side: "left" },
   public: { x: 66, y: 46, side: "right" },
   evacuation: { x: 88, y: 40, side: "left" },
-  population: { x: 50, y: 42, side: "right" },
+  // 人口は、秋に右へ伸びる住まいの札と重ならないよう少し上を指す（045 で PC でも名前をいつも出すようにしたため）
+  population: { x: 50, y: 40, side: "right" },
   bus: { x: 82.4, y: 61, side: "left" },
   train: { x: 47, y: 44, side: "right" },
   snow: { x: 60, y: 80, side: "right" },
 };
 const KANAE_TALL: PinSpots = {
-  school: { x: 20, y: 40.5, side: "right" },
+  school: { x: 21.5, y: 40.5, side: "left" },
   event: { x: 56, y: 55, side: "right" },
-  housing: { x: 42, y: 50, side: "left" },
+  housing: { x: 42, y: 52.5, side: "left" },
   public: { x: 65, y: 44.5, side: "right" },
-  evacuation: { x: 87, y: 42, side: "left" },
-  population: { x: 50, y: 39, side: "right" },
+  evacuation: { x: 89.5, y: 42, side: "left" },
+  population: { x: 50, y: 40.5, side: "right" },
   bus: { x: 85, y: 60, side: "left" },
   train: { x: 48, y: 42, side: "right" },
   snow: { x: 72, y: 74, side: "right" },
@@ -126,20 +128,20 @@ const IGARA_WIDE: PinSpots = {
   snow: { x: 72, y: 77, side: "right" },
 };
 const IGARA_TALL: PinSpots = {
-  school: { x: 34.8, y: 56, side: "left" },
+  school: { x: 34, y: 57, side: "left" },
   event: { x: 89.5, y: 73, side: "left" },
-  housing: { x: 49, y: 52, side: "right" },
+  housing: { x: 47.5, y: 48.5, side: "left" },
   public: { x: 78, y: 60.5, side: "left" },
   evacuation: { x: 62, y: 60.5, side: "left" },
   population: { x: 76, y: 49, side: "right" },
-  bus: { x: 57.2, y: 72.5, side: "right", label: "路線バス" },
-  highway: { x: 40.4, y: 72.5, side: "left" },
+  bus: { x: 55.5, y: 69.5, side: "left", label: "路線バス" },
+  highway: { x: 39.5, y: 77.5, side: "left" },
   snow: { x: 75, y: 80.5, side: "right" },
 };
-// スマホの冬は路線バスの札が右に伸びるので、地域の行事を少し上げて札どうしが重ならないようにする
+// スマホの冬は、まとめた「地域の行事」のピンが出たときに路線バスの札と重ならないよう、少し上げる
 const IGARA_WINTER_TALL: PinSpots = { ...IGARA_TALL, event: { x: 89.5, y: 66.5, side: "left" } };
-// スマホの夏は体育館と公民館に行事のピンが3本立つので、避難場所を少し左へ寄せて札と重ならないようにする
-const IGARA_SUMMER_TALL: PinSpots = { ...IGARA_TALL, evacuation: { x: 60, y: 60.5, side: "left" } };
+// スマホの夏は体育館と公民館に行事のピンが3本立つので、避難場所を体育館の上の側に上げ、札を右に伸ばして重ならないようにする（045）
+const IGARA_SUMMER_TALL: PinSpots = { ...IGARA_TALL, evacuation: { x: 61, y: 55.5, side: "right" } };
 
 export const PIN_SPOTS: Readonly<Record<KurashiPictureId, PinSpots>> = {
   "kurashi-kamisato-spring-wide": KAMISATO_WIDE,
@@ -185,7 +187,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "黒田人形",
     spots: {
       "kurashi-kamisato-spring-wide": { x: 87, y: 38.5, side: "left" },
-      "kurashi-kamisato-spring-tall": { x: 85, y: 40, side: "left" },
+      "kurashi-kamisato-spring-tall": { x: 85, y: 40.5, side: "left" },
     },
   },
   // 分館ごとに歩く（右中央の公民館）。公民館の屋根を指す。公共施設のピン（同じ公民館の正面）とは上下・左右をずらして札を重ねない
@@ -193,7 +195,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "歩こう会",
     spots: {
       "kurashi-kamisato-spring-wide": { x: 82, y: 58.5, side: "left" },
-      "kurashi-kamisato-spring-tall": { x: 80, y: 60.5, side: "left" },
+      "kurashi-kamisato-spring-tall": { x: 80, y: 59.5, side: "left" },
     },
   },
   // 夏（2026-10-31 まさゆきさん）。会場は地区内の複数か所なので、代表して右中央の公民館（春の歩こう会と同じ屋根）に立てる
@@ -201,7 +203,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "人形劇",
     spots: {
       "kurashi-kamisato-summer-wide": { x: 82, y: 58.5, side: "left" },
-      "kurashi-kamisato-summer-tall": { x: 80, y: 60.5, side: "left" },
+      "kurashi-kamisato-summer-tall": { x: 83, y: 60.5, side: "left" },
     },
   },
   // 夏（2026-10-31 まさゆきさん）。真ん中の体育館。屋根を指す避難場所のピンと重ならないよう、正面を指して札を左に伸ばす
@@ -209,7 +211,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "スポーツ",
     spots: {
       "kurashi-kamisato-summer-wide": { x: 47.5, y: 57, side: "left" },
-      "kurashi-kamisato-summer-tall": { x: 54, y: 58.5, side: "left" },
+      "kurashi-kamisato-summer-tall": { x: 51, y: 58.5, side: "left" },
     },
   },
   // 秋（2026-11-01 まさゆきさん）。左中央の小学校の校庭。校舎を指す学校のピンと重ならないよう、校庭のまん中を指す
@@ -217,7 +219,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "大運動会",
     spots: {
       "kurashi-kamisato-autumn-wide": { x: 30.5, y: 63.5, side: "right" },
-      "kurashi-kamisato-autumn-tall": { x: 33, y: 62.5, side: "right" },
+      "kurashi-kamisato-autumn-tall": { x: 33, y: 62.5, side: "left" },
     },
   },
   // 秋（2026-11-01 まさゆきさん）。右中央の公民館（春の歩こう会・夏の人形劇と同じ屋根）
@@ -274,7 +276,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "大運動会",
     spots: {
       "kurashi-chushin-autumn-wide": { x: 83, y: 44, side: "left" },
-      "kurashi-chushin-autumn-tall": { x: 72, y: 47, side: "left" },
+      "kurashi-chushin-autumn-tall": { x: 70.5, y: 49, side: "right" },
     },
   },
   // 秋（丸山）。白い大きな建物の正面（夏の人形劇と同じ場所）
@@ -290,7 +292,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "もちつき",
     spots: {
       "kurashi-chushin-winter-wide": { x: 88, y: 66, side: "left" },
-      "kurashi-chushin-winter-tall": { x: 92, y: 70, side: "left" },
+      "kurashi-chushin-winter-tall": { x: 93, y: 70, side: "left" },
     },
   },
   // 冬（橋北）。白い大きな建物の正面。札は、駅のピンの札にかからないよう低めに、左へ伸ばす
@@ -310,12 +312,12 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     },
   },
   // 夏。公民館の中でやっている（2026-11-03 まさゆきさん）。
-  // スマホは避難場所の札を隠さないよう、公民館の左寄りを指す。札は左へ伸ばす（向きはスマホと PC でそろえる）
+  // スマホは避難場所の札を隠さないよう、公民館の左寄りを指す。札は左へ伸ばす
   "いいだ人形劇フェスタ 鼎地区公演": {
     label: "人形劇",
     spots: {
       "kurashi-kanae-summer-wide": { x: 66, y: 46, side: "left" },
-      "kurashi-kanae-summer-tall": { x: 58, y: 41, side: "left" },
+      "kurashi-kanae-summer-tall": { x: 55, y: 41, side: "left" },
     },
   },
   // 夏。外の校庭でする（2026-11-03 まさゆきさん）。校舎を指す学校のピンと重ならないよう、校庭の右寄りを指す
@@ -324,14 +326,14 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "文化祭",
     spots: {
       "kurashi-kanae-autumn-wide": { x: 85, y: 46, side: "left" },
-      "kurashi-kanae-autumn-tall": { x: 86, y: 48, side: "left" },
+      "kurashi-kanae-autumn-tall": { x: 86, y: 47, side: "left" },
     },
   },
   鼎地区縦断駅伝大会: {
     label: "駅伝",
     spots: {
       "kurashi-kanae-autumn-wide": { x: 24, y: 50, side: "left" },
-      "kurashi-kanae-autumn-tall": { x: 28, y: 48.5, side: "left" },
+      "kurashi-kanae-autumn-tall": { x: 28, y: 51.5, side: "left" },
     },
   },
   // 冬。体育館でする（2026-11-03 まさゆきさん）。冬は避難場所のピンが出ないので空いている
@@ -346,7 +348,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "ペタンク",
     spots: {
       "kurashi-kanae-summer-wide": { x: 24, y: 50, side: "left" },
-      "kurashi-kanae-summer-tall": { x: 28, y: 48.5, side: "left" },
+      "kurashi-kanae-summer-tall": { x: 28, y: 51.5, side: "left" },
     },
   },
   // 伊賀良の行事の場所は 2026-11-05 まさゆきさん。春は校舎横の階段あたり
@@ -362,23 +364,23 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "人形劇",
     spots: {
       "kurashi-igara-summer-wide": { x: 83, y: 56, side: "left" },
-      "kurashi-igara-summer-tall": { x: 86, y: 60, side: "left" },
+      "kurashi-igara-summer-tall": { x: 87.5, y: 64, side: "left" },
     },
   },
   // 夏。公民館
   こども寺子屋: {
     label: "寺子屋",
     spots: {
-      "kurashi-igara-summer-wide": { x: 70, y: 57, side: "right" },
-      "kurashi-igara-summer-tall": { x: 75, y: 67, side: "right" },
+      "kurashi-igara-summer-wide": { x: 72, y: 62, side: "right" },
+      "kurashi-igara-summer-tall": { x: 74, y: 72.5, side: "right" },
     },
   },
   // 夏。体育館
   "夏季スポーツ交流会（囲碁ボール）": {
     label: "囲碁ボール",
     spots: {
-      "kurashi-igara-summer-wide": { x: 46.5, y: 58, side: "left" },
-      "kurashi-igara-summer-tall": { x: 52, y: 66, side: "left" },
+      "kurashi-igara-summer-wide": { x: 45, y: 57.5, side: "left" },
+      "kurashi-igara-summer-tall": { x: 52, y: 66.5, side: "left" },
     },
   },
   // 秋。公園
@@ -393,16 +395,16 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
   伊賀良地区運動会: {
     label: "運動会",
     spots: {
-      "kurashi-igara-autumn-wide": { x: 27, y: 64.5, side: "right" },
-      "kurashi-igara-autumn-tall": { x: 22, y: 64.5, side: "right" },
+      "kurashi-igara-autumn-wide": { x: 27, y: 59, side: "right" },
+      "kurashi-igara-autumn-tall": { x: 20, y: 65.5, side: "right" },
     },
   },
   // 秋。運動公園だが絵にないので校庭
   いがらミニマラソン大会: {
     label: "ミニマラソン",
     spots: {
-      "kurashi-igara-autumn-wide": { x: 36.5, y: 64, side: "right" },
-      "kurashi-igara-autumn-tall": { x: 52, y: 68, side: "right" },
+      "kurashi-igara-autumn-wide": { x: 40, y: 57.5, side: "right" },
+      "kurashi-igara-autumn-tall": { x: 53, y: 68.5, side: "right" },
     },
   },
   // 秋。公民館
@@ -410,7 +412,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "文化祭",
     spots: {
       "kurashi-igara-autumn-wide": { x: 83, y: 56, side: "left" },
-      "kurashi-igara-autumn-tall": { x: 86, y: 62.5, side: "left" },
+      "kurashi-igara-autumn-tall": { x: 86, y: 60.5, side: "left" },
     },
   },
   // 冬。体育館
@@ -418,7 +420,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "ボッチャ",
     spots: {
       "kurashi-igara-winter-wide": { x: 51, y: 51.5, side: "left" },
-      "kurashi-igara-winter-tall": { x: 62, y: 60.5, side: "left" },
+      "kurashi-igara-winter-tall": { x: 62, y: 58, side: "right" },
     },
   },
   // 冬。公民館
@@ -426,7 +428,7 @@ export const EVENT_PINS: Readonly<Record<string, { label: string; spots: Partial
     label: "書き初め",
     spots: {
       "kurashi-igara-winter-wide": { x: 83, y: 56, side: "left" },
-      "kurashi-igara-winter-tall": { x: 86, y: 64, side: "left" },
+      "kurashi-igara-winter-tall": { x: 90.5, y: 66.5, side: "left" },
     },
   },
 };

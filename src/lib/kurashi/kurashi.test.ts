@@ -137,33 +137,6 @@ describe("くらしのピン（028）", () => {
     expect(openPinSpec(pins, null, [])).toBeNull();
   });
 
-  it("札をどちらに伸ばすかは、スマホと PC で同じ", () => {
-    const seasons = [
-      pictures,
-      { wide: "kurashi-kamisato-summer-wide", tall: "kurashi-kamisato-summer-tall" },
-      { wide: "kurashi-kamisato-autumn-wide", tall: "kurashi-kamisato-autumn-tall" },
-      { wide: "kurashi-kamisato-winter-wide", tall: "kurashi-kamisato-winter-tall" },
-      { wide: "kurashi-chushin-spring-wide", tall: "kurashi-chushin-spring-tall" },
-      { wide: "kurashi-chushin-summer-wide", tall: "kurashi-chushin-summer-tall" },
-      { wide: "kurashi-chushin-autumn-wide", tall: "kurashi-chushin-autumn-tall" },
-      { wide: "kurashi-chushin-winter-wide", tall: "kurashi-chushin-winter-tall" },
-      { wide: "kurashi-kanae-spring-wide", tall: "kurashi-kanae-spring-tall" },
-      { wide: "kurashi-kanae-summer-wide", tall: "kurashi-kanae-summer-tall" },
-      { wide: "kurashi-kanae-autumn-wide", tall: "kurashi-kanae-autumn-tall" },
-      { wide: "kurashi-kanae-winter-wide", tall: "kurashi-kanae-winter-tall" },
-      { wide: "kurashi-igara-spring-wide", tall: "kurashi-igara-spring-tall" },
-      { wide: "kurashi-igara-summer-wide", tall: "kurashi-igara-summer-tall" },
-      { wide: "kurashi-igara-autumn-wide", tall: "kurashi-igara-autumn-tall" },
-      { wide: "kurashi-igara-winter-wide", tall: "kurashi-igara-winter-tall" },
-    ] as const;
-    for (const { wide, tall } of seasons) {
-      for (const pin of Object.keys(PIN_SPOTS[wide]) as (keyof (typeof PIN_SPOTS)[typeof wide])[]) {
-        expect(PIN_SPOTS[tall][pin]?.side).toBe(PIN_SPOTS[wide][pin]?.side);
-      }
-      for (const { spots } of Object.values(EVENT_PINS)) expect(spots[tall]?.side).toBe(spots[wide]?.side);
-    }
-  });
-
   it("小さな絵は、ピンの場所が枠の真ん中に来るように切り出し、絵の外にははみ出さない", () => {
     // 枠と絵の比が同じなら、縦も横と同じだけ拡大する
     expect(thumbnailPosition({ x: 50, y: 50 }, 3, 16 / 9, 16 / 9)).toEqual({ x: 50, y: 50 });
