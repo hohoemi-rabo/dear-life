@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ScenePin } from "./ScenePin";
 
-// jsdom は CSS の幅の切りかえを見ないので、スマホ（lg 未満）と PC（lg 以上）の指定がどちらも付いていることを確かめる
+// 名前の札は PC だけに出すので、向きは PC の絵（wide）の side で決まる。スマホ（tall）の side には左右されない
 function renderPin(tallSide: "left" | "right", wideSide: "left" | "right") {
   render(
     <ScenePin
@@ -18,16 +18,12 @@ function renderPin(tallSide: "left" | "right", wideSide: "left" | "right") {
 }
 
 describe("ScenePin（045）", () => {
-  it("名前の札は、スマホと PC でそれぞれの向きに伸ばす", () => {
-    const tag = renderPin("left", "right");
-    expect(tag.className).toMatch(/(^|\s)right-full(\s|$)/);
-    expect(tag.className).toMatch(/(^|\s)lg:left-full(\s|$)/);
+  it("名前の札は PC の向きに伸ばす（右）", () => {
+    expect(renderPin("left", "right").className).toMatch(/(^|\s)left-full(\s|$)/);
   });
 
-  it("スマホで右・PC で左のときも、それぞれの向きにする", () => {
-    const tag = renderPin("right", "left");
-    expect(tag.className).toMatch(/(^|\s)left-full(\s|$)/);
-    expect(tag.className).toMatch(/(^|\s)lg:right-full(\s|$)/);
+  it("名前の札は PC の向きに伸ばす（左）", () => {
+    expect(renderPin("right", "left").className).toMatch(/(^|\s)right-full(\s|$)/);
   });
 
   it("読み上げの名前は1つだけで、押すと開くことを伝える", () => {

@@ -55,6 +55,8 @@ const config: Config = {
         card: "0 1px 2px rgb(43 42 38 / 0.06), 0 2px 8px rgb(43 42 38 / 0.06)",
         // くらしの風景のピンと名前の札（045）：明るい絵の上でも浮いて見えるよう、カードより濃い影
         pin: "0 3px 8px rgb(0 0 0 / 0.35)",
+        // PC のピンのやわらかい白い光（「動きを減らす」のときの光。動くときは pin-glow で強さが変わる）
+        "pin-glow": "0 0 16px 6px rgb(255 255 255 / 0.8)",
         // スマホのしずく形のピン。形を -45度 回しているので、影も回した向きで付けると下に落ちて見える
         "pin-drop": "-3px 5px 10px rgb(0 0 0 / 0.45)",
       },
@@ -124,10 +126,11 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-4px)" },
         },
-        // くらしの PC のピン（045）：丸のまわりに白い光の輪が広がって消える。強さは「とりあえず普通」（2026-11-20 まさゆきさん）
-        "pin-halo": {
-          "0%": { boxShadow: "0 0 0 0 rgb(255 255 255 / 0.9)" },
-          "100%": { boxShadow: "0 0 0 14px rgb(255 255 255 / 0)" },
+        // くらしの PC のピン（045）：丸のまわりがやわらかく白く光り、ふくらんで、しぼむ（2026-11-20 まさゆきさん：細い輪ではなく「光る白」）。
+        // 「動きを減らす」では動かさず、shadow-pin-glow の光をそのまま出す
+        "pin-glow": {
+          "0%, 100%": { boxShadow: "0 0 10px 3px rgb(255 255 255 / 0.6)" },
+          "50%": { boxShadow: "0 0 24px 10px rgb(255 255 255 / 0.95)" },
         },
         // マスコット（042）：コマを横に1列に並べた1枚の絵を、左のコマから順にずらす。コマ数と長さは部品が CSS の変数で渡す
         // マスコット（042）が出てくるとき：足元から少し伸び上がりながら、ふわっと現れる
@@ -164,7 +167,7 @@ const config: Config = {
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
-        "pin-halo": "pin-halo 2s ease-out infinite",
+        "pin-glow": "pin-glow 2s ease-in-out infinite",
         "walk-to-iida": "walk-to-iida 7s linear infinite",
         "district-notice": "district-notice 1500ms ease-out both",
         "card-glow": "card-glow 900ms ease-out both",

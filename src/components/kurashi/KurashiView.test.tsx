@@ -256,12 +256,14 @@ describe("KurashiView：上郷・春の風景とピン（028）", () => {
     expect(pin("公共施設")).toBeInTheDocument();
   });
 
-  it("ピンの名前は、マウスをあてなくても PC でもいつも出す（045）", async () => {
+  it("ピンの名前の札は、PC ではマウスをあてなくてもいつも出し、スマホでは出さない（045）", async () => {
     await open("d=kamisato&a=2&k=1&h=new");
     for (const name of ["学校", "地域の行事", "住まい"]) {
       const tag = within(pin(name)).getByText(name);
-      // jsdom は CSS の幅の切りかえを見ないので、どの幅でも隠す指定（lg:hidden など）が付いていないことを確かめる
-      expect(tag.className).not.toMatch(/(^|\s)(\w+:)*hidden(\s|$)/);
+      // jsdom は CSS の幅の切りかえを見ないので、スマホでは隠し、PC（lg）では出す指定だけが付いていることを確かめる
+      expect(tag.className).toMatch(/(^|\s)hidden(\s|$)/);
+      expect(tag.className).toMatch(/(^|\s)lg:block(\s|$)/);
+      expect(tag.className).not.toMatch(/group-hover|group-focus/);
     }
   });
 
