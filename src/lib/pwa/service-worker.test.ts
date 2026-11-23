@@ -25,6 +25,8 @@ describe("precacheUrls", () => {
         "illust/kurashi-kamisato-spring-tall-960.webp",
         "illust/erabu-kamisato-05-960.webp",
         "mascot/kamisato-sweep.webp",
+        "video/kamisato-ishidan.mp4",
+        "video/kamisato-ishidan-poster.webp",
       ]),
     ).toEqual([
       "/",
@@ -150,6 +152,16 @@ describe("Service Worker", () => {
     await worker.fetch("/mascot/kamisato-sweep.webp");
     network = offline;
     expect(await (await worker.fetch("/mascot/kamisato-sweep.webp"))?.text()).toBe("network:/mascot/kamisato-sweep.webp");
+  });
+
+  it("絵が写真に変わる動画は扱わず、最初の1枚は使ったときに残す（050）", async () => {
+    let network = siteNetwork;
+    const worker = startWorker("aaaa0000", [], (url) => network(url));
+    await worker.install();
+    expect(worker.fetch("/video/kamisato-ishidan.mp4")).toBeUndefined();
+    await worker.fetch("/video/kamisato-ishidan-poster.webp");
+    network = offline;
+    expect(await (await worker.fetch("/video/kamisato-ishidan-poster.webp"))?.text()).toBe("network:/video/kamisato-ishidan-poster.webp");
   });
 
   it("残していない画面を圏外で開いたら入口を出す", async () => {

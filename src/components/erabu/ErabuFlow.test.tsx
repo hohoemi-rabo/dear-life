@@ -137,6 +137,12 @@ describe("ErabuFlow：質問の進行", () => {
     expect(within(map).queryByText("鼎")).toBeNull();
   });
 
+  it("飯田市全体の絵に、絵が写真に変わる動画の目印を出す（050）", async () => {
+    await open();
+    const map = screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
+    expect(within(map).getByRole("button", { name: "上郷の景色：絵が本物の写真に変わる動画を見る" })).toBeInTheDocument();
+  });
+
   it("地区がないまま後ろの質問の URL を開いたら、地区の質問を出す", async () => {
     await open("q=car");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("どの地区で暮らす？");

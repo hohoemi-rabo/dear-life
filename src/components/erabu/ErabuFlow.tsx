@@ -7,6 +7,7 @@ import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { CarLayer } from "@/components/illust/CarLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { HouseLayer } from "@/components/illust/HouseLayer";
+import { PhotoSpotLayer } from "@/components/illust/PhotoSpotLayer";
 import { PreviewFrame } from "@/components/illust/PreviewFrame";
 import { PriorityMarkLayer } from "@/components/illust/PriorityMarkLayer";
 import { BottomActionBar } from "@/components/ui/BottomActionBar";
@@ -232,8 +233,10 @@ function ErabuPreview({
   if (question === "district") {
     return (
       <PreviewFrame background="erabu-iida-overview" label="わが家のプレビュー：飯田市の4地区">
-        {/* 4地区の札（DistrictMapLayer）は、絵から写真に変わる動画の機能を足すまで外している（2026-11-23 まさゆきさん。
-            足したあとに札を付け直す。位置の値は src/lib/illust/districts.ts に残してある）。地区は下の選択肢で選ぶ */}
+        {/* 4地区の札（DistrictMapLayer）は、絵から写真に変わる動画の機能（050）のあいだ外している（2026-11-23 まさゆきさん。
+            位置の値は src/lib/illust/districts.ts に残してある）。地区は下の選択肢で選ぶ。
+            かわりに、押すと絵が本物の写真に変わる動画が流れる場所の目印を出す（050。いまは試しの1か所） */}
+        <PhotoSpotLayer />
         {conditions.district !== null && <StageTag>{DISTRICT_NAMES[conditions.district]}を舞台に、暮らしをつくります。</StageTag>}
       </PreviewFrame>
     );

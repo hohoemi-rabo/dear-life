@@ -49,11 +49,18 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   // ほかのサイト（Supabase・地理院タイル）は扱わない
   if (url.origin !== self.location.origin || url.pathname === "/sw.js") return;
+  // 動画（050）はブラウザが範囲を指定して少しずつ読む（206 の返事）。入れ物に残せず、まるごと返すと iPhone で流れないので、扱わない
+  if (isVideo(url.pathname)) return;
   event.respondWith(respond(request, url));
 });
 
+function isVideo(pathname) {
+  return pathname.startsWith("/video/") && pathname.endsWith(".mp4");
+}
+
+// 動画の最初の1枚（/video/*.webp）は絵と同じく使ったときに残す。圏外では動画は流れないが、絵は出せる
 function isCachedOnUse(pathname) {
-  return pathname.startsWith("/_next/static/") || pathname.startsWith("/illust/") || pathname.startsWith("/mascot/");
+  return pathname.startsWith("/_next/static/") || pathname.startsWith("/illust/") || pathname.startsWith("/mascot/") || pathname.startsWith("/video/");
 }
 
 async function respond(request, url) {

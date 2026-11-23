@@ -98,6 +98,21 @@ const config: Config = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "fade-out": {
+          "0%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
+        // 絵が写真に変わる動画の窓（050）：押した目印から、ドット絵がふわっと広がって出る。閉じるときは小さくなりながら消える。
+        // 長さは src/lib/illust/photo-spots.ts の PHOTO_SPOT_TIMING とそろえる
+        "photo-spot-in": {
+          "0%": { opacity: "0", transform: "scale(0.12)" },
+          "60%": { opacity: "1" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "photo-spot-out": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.92)" },
+        },
         // 絵に出せない5人目からの子どもを増やしたとき（028）：今いる子どもたちがぴょんと跳ねる
         hop: {
           "0%, 100%": { transform: "translateY(0)" },
@@ -175,6 +190,9 @@ const config: Config = {
         "sheet-in": "sheet-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "sheet-out": "sheet-out 200ms ease-in both",
         "fade-in": "fade-in 300ms ease-out both",
+        "fade-out": "fade-out 300ms ease-in both",
+        "photo-spot-in": "photo-spot-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "photo-spot-out": "photo-spot-out 300ms ease-in both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
         "pin-glow": "pin-glow 2s ease-in-out infinite",
         "walk-to-iida": "walk-to-iida 7s linear infinite",
