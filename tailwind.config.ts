@@ -109,6 +109,12 @@ const config: Config = {
           "60%": { opacity: "1" },
           "100%": { opacity: "1", transform: "scale(1)" },
         },
+        // 準備中の場所を押したときの吹き出し（050）：ふわっと出て、少しとどまり、自然に消える。長さは PHOTO_SPOT_TIMING.preparingMs とそろえる
+        "preparing-bubble": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "12%, 80%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(0)" },
+        },
         "photo-spot-out": {
           "0%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "0", transform: "scale(0.92)" },
@@ -193,6 +199,7 @@ const config: Config = {
         "fade-out": "fade-out 300ms ease-in both",
         "photo-spot-in": "photo-spot-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "photo-spot-out": "photo-spot-out 300ms ease-in both",
+        "preparing-bubble": "preparing-bubble 2000ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
         "pin-glow": "pin-glow 2s ease-in-out infinite",
         "walk-to-iida": "walk-to-iida 7s linear infinite",

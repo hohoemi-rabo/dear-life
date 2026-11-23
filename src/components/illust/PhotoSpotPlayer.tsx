@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { DISTRICT_NAMES } from "@/lib/conditions/labels";
-import { PHOTO_SPOT_TIMING, type PhotoSpot } from "@/lib/illust/photo-spots";
+import { PHOTO_SPOT_TIMING, type PlayablePhotoSpot } from "@/lib/illust/photo-spots";
 
 // 押した場所のドット絵がふわっと出て、それが本物の写真に変わっていく動画を流す窓（050）。
 // 流れ：押した目印から絵がふわっと広がる → 動画（音なし）を流す → 終わったらひと呼吸おいて自動で閉じる。
@@ -14,7 +14,7 @@ export function PhotoSpotPlayer({
   origin,
   onClose,
 }: {
-  spot: PhotoSpot;
+  spot: PlayablePhotoSpot;
   // 押した目印の画面上の位置。絵はここから広がる
   origin: { x: number; y: number };
   onClose: () => void;
@@ -78,7 +78,7 @@ export function PhotoSpotPlayer({
   return (
     <dialog
       ref={dialog}
-      aria-label={`${district}の景色：絵が本物の写真に変わる動画`}
+      aria-label={`${district}の${spot.place}：絵が本物の写真に変わる動画`}
       onCancel={(event) => {
         event.preventDefault();
         requestClose();
@@ -100,8 +100,8 @@ export function PhotoSpotPlayer({
       >
         <video
           ref={video}
-          src={spot.video}
-          poster={spot.poster}
+          src={spot.media.video}
+          poster={spot.media.poster}
           muted
           playsInline
           preload="auto"
