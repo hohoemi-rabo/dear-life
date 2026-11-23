@@ -30,8 +30,8 @@ export const PHOTO_SPOTS: readonly PhotoSpot[] = [
   { id: "kamisato-ishidan", district: "kamisato", place: "神社の石段", x: 68.7, y: 72.3, media: media("kamisato-ishidan") },
   // 上郷のリニアの高架。絵は free-materials.com のフリー素材の写真をもとにしたリニアのドット絵、写真はまさゆきさんが撮った駅の工事現場
   { id: "kamisato-linear", district: "kamisato", place: "リニアの高架", x: 71.8, y: 85.0, media: media("kamisato-linear") },
-  // 中心市街地の駅（準備中）と、右の神社・ロータリー（絵はまさゆきさんのドット絵、写真はまさゆきさんが撮った神社の門・ロータリー）
-  { id: "chushin-station", district: "chushin", place: "駅", x: 57.8, y: 32.2, media: null },
+  // 中心市街地の駅・右の神社・ロータリー（絵はまさゆきさんのドット絵、写真はまさゆきさんが撮った駅舎・神社の門・ロータリー）
+  { id: "chushin-station", district: "chushin", place: "駅", x: 57.8, y: 32.2, media: media("chushin-station") },
   { id: "chushin-shrine", district: "chushin", place: "神社", x: 70.1, y: 33.2, media: media("chushin-shrine") },
   { id: "chushin-roundabout", district: "chushin", place: "ロータリー", x: 63.9, y: 42.7, media: media("chushin-roundabout") },
   // 鼎の通り沿いの店のあたり（準備中）
