@@ -14,7 +14,11 @@ import {
   compareCityOptions,
   findIida,
   floodPeriod,
+  FLOOD_NO_RECORD_LABEL,
   formatMetricValue,
+  iidaFloodNoRecordNotice,
+  iidaFloodState,
+  isIidaFloodNoRecord,
   type CityCompareGroup,
   type CityMarketRow,
   type CityMetricRow,
@@ -41,12 +45,13 @@ type Props = {
 
 export const GROUP_SUBTITLES: Partial<Record<CityCompareGroup["id"], string>> = { weather: "気象庁 平年値（1991〜2020年）" };
 
-// 表の下の注意書き（画面と印刷で同じ）。水害は対象期間を後ろに足す
+// 表の下の注意書き（画面と印刷で同じ）。水害は対象期間を後ろに足し、飯田市が記録なしならその一文も足す（051）
 export function cityNotices(groups: readonly CityCompareGroup[]): string[] {
   const flood = floodPeriod(groups);
+  const noRecord = iidaFloodNoRecordNotice(iidaFloodState(groups));
   return [
     NOTICES.compareWeather,
-    flood ? `${NOTICES.compareFlood}対象期間：${flood}。` : NOTICES.compareFlood,
+    (flood ? `${NOTICES.compareFlood}対象期間：${flood}。` : NOTICES.compareFlood) + (noRecord ?? ""),
     NOTICES.compareHousing,
     NOTICES.market,
     NOTICES.compareNotJudgement,
@@ -258,7 +263,7 @@ export function cityCell(row: CityMetricRow | CityMarketRow, size: CellSize): Re
 }
 
 export function iidaCell(row: CityMetricRow | CityMarketRow, size: CellSize, erabuHref: string): ReactNode {
-  if (row.kind === "metric") return <MetricCell state={row.iida} size={size} />;
+  if (row.kind === "metric") return <MetricCell state={row.iida} size={size} noRecord={isIidaFloodNoRecord(row.key, row.iida)} />;
   if (row.district === null) {
     return (
       <span className="flex flex-col items-center gap-0.5 text-sm">
@@ -272,8 +277,8 @@ export function iidaCell(row: CityMetricRow | CityMarketRow, size: CellSize, era
   return <MarketCell state={row.district} land={row.key === "land"} size={size} />;
 }
 
-// 雨・水害・人口の値。値段ではないので、値段用のフォントは使わない（027）
-function MetricCell({ state, size }: { state: DataState<CompareMetricValue>; size: CellSize }) {
+// 雨・水害・人口の値。値段ではないので、値段用のフォントは使わない（027）。noRecord は「0円（記録なし）」（051）
+function MetricCell({ state, size, noRecord = false }: { state: DataState<CompareMetricValue>; size: CellSize; noRecord?: boolean }) {
   if (state.status !== "available") return <DataStateLabel state={state} />;
   const { value, unit, periodLabel } = state.value;
   return (
@@ -281,6 +286,7 @@ function MetricCell({ state, size }: { state: DataState<CompareMetricValue>; siz
       <span className="font-bold tabular-nums">
         <span className={size === "large" ? "text-3xl font-extrabold" : "text-2xl font-extrabold"}>{formatMetricValue(value)}</span>
         <span className="ml-1 text-base">{unit}</span>
+        {noRecord && <span className="inline-block whitespace-nowrap text-base">{FLOOD_NO_RECORD_LABEL}</span>}
       </span>
       <span className="text-xs text-ink-muted">{periodLabel}</span>
     </span>

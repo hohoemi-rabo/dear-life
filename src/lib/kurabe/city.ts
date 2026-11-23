@@ -5,6 +5,7 @@ import { COMPARE_METRICS, type CompareMetricGroup, type CompareMetricKey } from 
 import type { CompareCity, CompareMetricValue, DataState, DistrictData, MarketCategory, MarketStat, ScreenData, SourceInfo } from "../data/screen-data.ts";
 import { formatQuarterRange } from "../format.ts";
 import { MARKET_CATEGORY_LABELS } from "../karte/housing.ts";
+import { NOTICES } from "../notices.ts";
 
 export const IIDA_CITY_ID = "iida";
 // 比べる都市を選んでいないとき・知らない値のとき（仕様書 7.1）
@@ -133,4 +134,28 @@ export function floodPeriod(groups: readonly CityCompareGroup[]): string | null 
     }
   }
   return null;
+}
+
+// 飯田市の水害被害額の 0 は、国の統計（水害統計調査 表-25）に飯田市の行がない＝記録がないという意味。
+// 「0円」だけだと「水害のない街」と読まれるので、値に「（記録なし）」を添え、注意書きを足す（051。2026-11-23 まさゆきさん）
+export const FLOOD_NO_RECORD_LABEL = "（記録なし）";
+
+export function isIidaFloodNoRecord(key: CompareMetricKey, iida: DataState<CompareMetricValue>): boolean {
+  return key === "flood_damage_per_person" && iida.status === "available" && iida.value.value === 0;
+}
+
+// 表の飯田市の水害被害額。行がなければ「データ未取得」
+export function iidaFloodState(groups: readonly CityCompareGroup[]): DataState<CompareMetricValue> {
+  for (const group of groups) {
+    for (const row of group.rows) {
+      if (row.kind === "metric" && row.key === "flood_damage_per_person") return row.iida;
+    }
+  }
+  return UNAVAILABLE;
+}
+
+// 注意書きの一文。記録なしでなければ null
+export function iidaFloodNoRecordNotice(iida: DataState<CompareMetricValue>): string | null {
+  if (iida.status !== "available" || !isIidaFloodNoRecord("flood_damage_per_person", iida)) return null;
+  return NOTICES.compareFloodNoRecord(iida.value.periodLabel);
 }

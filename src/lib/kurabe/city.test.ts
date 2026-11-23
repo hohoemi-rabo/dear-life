@@ -3,7 +3,8 @@ import { COMPARE_METRICS } from "@/lib/compare-city/metrics";
 import { NOTICES } from "@/lib/notices";
 import { EVALUATION_WORDS } from "@/lib/scenes/check";
 import { compareCityFixture, compareMetricFixture, MARKET_SOURCE, marketFixture, screenDataFixture, sourceFixture } from "@/test/screen-data-fixture";
-import { cityCompareGroups, cityCompareSources, compareCityOptions, findIida, floodPeriod, formatMetricValue } from "./city";
+import { cityNotices } from "@/components/kurabe/CityCompareView";
+import { cityCompareGroups, cityCompareSources, compareCityOptions, findIida, floodPeriod, formatMetricValue, iidaFloodNoRecordNotice, isIidaFloodNoRecord } from "./city";
 import { parseCompareCity, parseCompareView } from "./links";
 
 const JMA = sourceFixture("jma_climate_normals", { publisher: "気象庁" });
@@ -68,10 +69,33 @@ describe("いまの街と（041）の表の中身", () => {
       ...cityCompareGroups(null, null, null).flatMap((group) => [group.title, ...group.rows.map((row) => row.label)]),
       NOTICES.compareWeather,
       NOTICES.compareFlood,
+      NOTICES.compareFloodNoRecord("2014〜2023年"),
       NOTICES.compareHousing,
       NOTICES.compareNotJudgement,
     ];
     expect(words.filter((text) => EVALUATION_WORDS.test(text))).toEqual([]);
+  });
+});
+
+describe("飯田市の水害被害額が 0 のとき（051）", () => {
+  const flood = (value: number) => compareMetricFixture(value, "円", FLOOD, { periodLabel: "2014〜2023年" });
+  const NO_RECORD = "2014〜2023年の国の統計に、飯田市の住まいや店の水害被害の記録はありません。";
+
+  it("0 のときだけ記録なし。値のある年・ほかの指標・データ未取得は記録なしにしない", () => {
+    expect(isIidaFloodNoRecord("flood_damage_per_person", flood(0))).toBe(true);
+    expect(isIidaFloodNoRecord("flood_damage_per_person", flood(17))).toBe(false);
+    expect(isIidaFloodNoRecord("snow_depth_max", compareMetricFixture(0, "cm", JMA))).toBe(false);
+    expect(isIidaFloodNoRecord("flood_damage_per_person", { status: "unavailable" })).toBe(false);
+    expect(iidaFloodNoRecordNotice(flood(0))).toBe(NO_RECORD);
+    expect(iidaFloodNoRecordNotice(flood(17))).toBeNull();
+  });
+
+  it("注意書きは対象期間のあとに記録なしの一文を足す。飯田に値があれば足さない", () => {
+    const tokyo = compareCityFixture("tokyo", { metrics: { flood_damage_per_person: flood(317) } });
+    const floodNotice = (iidaValue: number) =>
+      cityNotices(cityCompareGroups(tokyo, compareCityFixture("iida", { metrics: { flood_damage_per_person: flood(iidaValue) } }), null))[1];
+    expect(floodNotice(0)).toBe(`${NOTICES.compareFlood}対象期間：2014〜2023年。${NO_RECORD}`);
+    expect(floodNotice(1200)).toBe(`${NOTICES.compareFlood}対象期間：2014〜2023年。`);
   });
 });
 

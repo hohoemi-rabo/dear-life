@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DataStateLabel } from "@/components/data/DataStateMessage";
 import { compareMetric, type CompareMetricKey } from "@/lib/compare-city/metrics";
 import type { CompareCity } from "@/lib/data/screen-data";
-import { formatMetricValue } from "@/lib/kurabe/city";
+import { FLOOD_NO_RECORD_LABEL, formatMetricValue, iidaFloodNoRecordNotice, isIidaFloodNoRecord } from "@/lib/kurabe/city";
 import { NOTICES } from "@/lib/notices";
 
 // 防災カルテの「雨と風は、どれくらい？」（041 仕様書 7.2）。飯田市の気象の平年値と水害被害額を小さいカード5枚で出す。
@@ -14,6 +14,7 @@ export function rainWindStates(iida: CompareCity | null) {
 }
 
 export function RainWindCard({ iida, compareHref }: { iida: CompareCity | null; compareHref?: string }) {
+  const floodNoRecord = iidaFloodNoRecordNotice(iida?.metrics.flood_damage_per_person ?? { status: "unavailable" });
   return (
     <section aria-labelledby="rain-wind-title" className="flex break-inside-avoid flex-col gap-3 rounded-card border border-line bg-surface p-4 shadow-card md:p-5">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -35,6 +36,7 @@ export function RainWindCard({ iida, compareHref }: { iida: CompareCity | null; 
                     <span className="font-bold tabular-nums">
                       <span className="text-2xl font-extrabold">{formatMetricValue(state.value.value)}</span>
                       <span className="ml-1 text-sm">{state.value.unit}</span>
+                      {isIidaFloodNoRecord(key, state) && <span className="inline-block whitespace-nowrap text-sm">{FLOOD_NO_RECORD_LABEL}</span>}
                     </span>
                     <span className="text-xs text-ink-muted">{state.value.periodLabel}</span>
                   </>
@@ -46,7 +48,10 @@ export function RainWindCard({ iida, compareHref }: { iida: CompareCity | null; 
           );
         })}
       </dl>
-      <p className="text-sm text-ink-muted">{NOTICES.compareFlood}</p>
+      <p className="text-sm text-ink-muted">
+        {NOTICES.compareFlood}
+        {floodNoRecord}
+      </p>
       {compareHref && (
         <Link href={compareHref} className="inline-flex min-h-tap items-center gap-1 self-end font-bold text-primary underline underline-offset-4 hover:no-underline print:hidden">
           いまの街とくらべる
