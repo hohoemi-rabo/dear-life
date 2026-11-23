@@ -130,11 +130,15 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("button", { name: "上郷" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  // 札は、絵から写真に変わる動画の機能を足すまで外している（2026-11-23）。札を付け直したら、札を押して選べるテストを戻す
-  it("飯田市全体の絵には、いまは地区の札を出さない", async () => {
+  // 選んだ地区の札だけを立てる（050。2026-11-23 まさゆきさん）。札は押せない飾りで、地区は下の選択肢で選ぶ
+  it("飯田市全体の絵には、選ぶまで札を出さず、選んだ地区の札だけを立てる", async () => {
     await open();
-    const map = screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
-    expect(within(map).queryByText("鼎")).toBeNull();
+    const map = () => screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
+    expect(within(map()).queryByTestId("district-map-label")).toBeNull();
+    await tap("鼎");
+    expect(within(map()).getAllByTestId("district-map-label").map((label) => label.textContent)).toEqual(["鼎"]);
+    await tap("伊賀良");
+    expect(within(map()).getAllByTestId("district-map-label").map((label) => label.textContent)).toEqual(["伊賀良"]);
   });
 
   it("飯田市全体の絵に、絵が写真に変わる動画の目印を出す（050）", async () => {
