@@ -30,10 +30,10 @@ export const PHOTO_SPOTS: readonly PhotoSpot[] = [
   { id: "kamisato-ishidan", district: "kamisato", place: "神社の石段", x: 68.7, y: 72.3, media: media("kamisato-ishidan") },
   // 上郷のリニアの高架。絵は free-materials.com のフリー素材の写真をもとにしたリニアのドット絵、写真はまさゆきさんが撮った駅の工事現場
   { id: "kamisato-linear", district: "kamisato", place: "リニアの高架", x: 71.8, y: 85.0, media: media("kamisato-linear") },
-  // 中心市街地の駅・右の神社・ロータリー（準備中）
+  // 中心市街地の駅・右の神社（準備中）と、ロータリー（絵はまさゆきさんのロータリーのドット絵、写真はまさゆきさんが撮ったロータリー）
   { id: "chushin-station", district: "chushin", place: "駅", x: 57.8, y: 32.2, media: null },
   { id: "chushin-shrine", district: "chushin", place: "神社", x: 70.1, y: 33.2, media: null },
-  { id: "chushin-roundabout", district: "chushin", place: "ロータリー", x: 63.9, y: 42.7, media: null },
+  { id: "chushin-roundabout", district: "chushin", place: "ロータリー", x: 63.9, y: 42.7, media: media("chushin-roundabout") },
   // 鼎の通り沿いの店のあたり（準備中）
   { id: "kanae-street", district: "kanae", place: "通り沿いの店", x: 26.8, y: 61.3, media: null },
   // 伊賀良の飯田IC の料金所とバス乗り場のあたり（準備中）
