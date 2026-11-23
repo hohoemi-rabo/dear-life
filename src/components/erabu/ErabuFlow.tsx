@@ -5,7 +5,6 @@ import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
 import { CarLayer } from "@/components/illust/CarLayer";
-import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
 import { HouseLayer } from "@/components/illust/HouseLayer";
 import { PreviewFrame } from "@/components/illust/PreviewFrame";
@@ -135,7 +134,7 @@ export function ErabuFlow() {
     </BottomActionBar>
   );
 
-  const preview = <ErabuPreview question={current} conditions={conditions} onSelectDistrict={(district) => setConditions({ district })} />;
+  const preview = <ErabuPreview question={current} conditions={conditions} />;
 
   if (side) {
     // PC（lg 以上）は、左に絵・右に細い列（質問・選択肢・次へ・返事）。ノートパソコンでも選ぶときに絵が見えるよう、
@@ -226,16 +225,15 @@ const PREVIEW_FIT_HEIGHT = "lg:max-w-[max(480px,calc((100dvh-181px)*1.5))]";
 function ErabuPreview({
   question,
   conditions,
-  onSelectDistrict,
 }: {
   question: QuestionId;
   conditions: Conditions;
-  onSelectDistrict: (district: NonNullable<Conditions["district"]>) => void;
 }) {
   if (question === "district") {
     return (
       <PreviewFrame background="erabu-iida-overview" label="わが家のプレビュー：飯田市の4地区">
-        <DistrictMapLayer selected={conditions.district} onSelect={onSelectDistrict} />
+        {/* 4地区の札（DistrictMapLayer）は、絵から写真に変わる動画の機能を足すまで外している（2026-11-23 まさゆきさん。
+            足したあとに札を付け直す。位置の値は src/lib/illust/districts.ts に残してある）。地区は下の選択肢で選ぶ */}
         {conditions.district !== null && <StageTag>{DISTRICT_NAMES[conditions.district]}を舞台に、暮らしをつくります。</StageTag>}
       </PreviewFrame>
     );

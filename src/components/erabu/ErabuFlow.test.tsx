@@ -130,14 +130,11 @@ describe("ErabuFlow：質問の進行", () => {
     expect(screen.getByRole("button", { name: "上郷" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("飯田市全体の絵の地区の札を押しても、その地区を選べる", async () => {
+  // 札は、絵から写真に変わる動画の機能を足すまで外している（2026-11-23）。札を付け直したら、札を押して選べるテストを戻す
+  it("飯田市全体の絵には、いまは地区の札を出さない", async () => {
     await open();
     const map = screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
-    await act(async () => {
-      fireEvent.click(within(map).getByText("鼎"));
-    });
-    expect(params().get("d")).toBe("kanae");
-    expect(screen.getByRole("button", { name: "鼎" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(map).queryByText("鼎")).toBeNull();
   });
 
   it("地区がないまま後ろの質問の URL を開いたら、地区の質問を出す", async () => {
