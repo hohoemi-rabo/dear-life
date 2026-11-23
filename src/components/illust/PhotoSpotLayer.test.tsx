@@ -110,9 +110,9 @@ describe("PhotoSpotLayer：絵が写真に変わる動画（050）", () => {
     expect(dialog).toHaveTextContent("動画を読み込めませんでした");
   });
 
-  it("上郷の2か所と中心市街地のロータリーは動画、ほかは準備中にする", () => {
+  it("上郷の2か所と中心市街地の神社・ロータリーは動画、ほかは準備中にする", () => {
     const districts = (playable: boolean) => [...new Set(PHOTO_SPOTS.filter((spot) => isPlayable(spot) === playable).map((spot) => spot.district))];
-    expect(PHOTO_SPOTS.filter(isPlayable).map((spot) => spot.id)).toEqual(["kamisato-ishidan", "kamisato-linear", "chushin-roundabout"]);
+    expect(PHOTO_SPOTS.filter(isPlayable).map((spot) => spot.id)).toEqual(["kamisato-ishidan", "kamisato-linear", "chushin-shrine", "chushin-roundabout"]);
     expect(districts(false)).toEqual(["chushin", "kanae", "igara"]);
   });
 
