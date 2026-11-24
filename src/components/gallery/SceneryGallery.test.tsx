@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { GALLERY_SPOTS, type GalleryState } from "@/lib/gallery/gallery";
 import { SceneryGallery } from "./SceneryGallery";
@@ -43,10 +43,23 @@ describe("SceneryGallery：写真一覧（052）", () => {
     expect(onOpenSpot).toHaveBeenCalledWith(spot("chushin-shrine"));
   });
 
-  it("× で閉じる", () => {
+  it("× で閉じる。ふわっと消える動き（0.22秒）が終わってから閉じる", () => {
+    vi.useFakeTimers();
     const { dialog, onClose } = renderGallery({ tab: "all", spot: null });
     fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
-    expect(onClose).toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(200));
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(30));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("「動きを減らす」の設定では、待たずにすぐ閉じる", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce") }));
+    const { dialog, onClose } = renderGallery({ tab: "all", spot: null });
+    fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
   });
 });
 
@@ -84,6 +97,16 @@ describe("SceneryGallery：見比べる（052）", () => {
     expect(within(dialog).queryByText(/境目を左右に動かす/)).toBeNull();
     fireEvent.click(within(dialog).getByRole("button", { name: "ドット絵" }));
     expect(within(dialog).getByRole("group", { name: "中心市街地の飯田駅のドット絵" })).toBeInTheDocument();
+  });
+
+  it("場所を移っても、選んだ見せ方（実際の写真など）はそのまま", () => {
+    const state = { tab: "all" as const, spot: spot("chushin-station") };
+    const handlers = { onTab: vi.fn(), onOpenSpot: vi.fn(), onBackToList: vi.fn(), onMove: vi.fn(), onClose: vi.fn() };
+    const { rerender } = render(<SceneryGallery state={state} {...handlers} />);
+    fireEvent.click(screen.getByRole("button", { name: "実際の写真" }));
+    rerender(<SceneryGallery state={{ ...state, spot: spot("chushin-shrine") }} {...handlers} />);
+    expect(screen.getByRole("button", { name: "実際の写真", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "中心市街地の大宮神社の実際の写真" })).toBeInTheDocument();
   });
 
   it("前の場所・次の場所は、選んでいるタブの中で回る", () => {

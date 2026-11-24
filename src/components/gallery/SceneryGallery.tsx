@@ -7,6 +7,9 @@ import { GALLERY_TABS, gallerySections, neighbourSpots, type GalleryState, type 
 import { galleryImageSrc, galleryImageSrcSet, GALLERY_PHOTO_CREDIT, GALLERY_SIZE, GALLERY_WIDTHS, type GallerySpot } from "@/lib/illust/photo-spots";
 import { CompareFrame, type CompareMode } from "./CompareFrame";
 
+// 閉じる動き（tailwind の animate-gallery-out）の長さ。終わってから閉じる
+const CLOSE_MS = 220;
+
 const MODES: readonly { id: CompareMode; label: string }[] = [
   { id: "photo", label: "実際の写真" },
   { id: "pixel", label: "ドット絵" },
@@ -15,7 +18,9 @@ const MODES: readonly { id: CompareMode; label: string }[] = [
 
 // 飯田の風景を見る（052 見本）。えらぶ 01 から開く窓で、写真一覧と、ドット絵と写真を見比べる画面を出す。
 // 窓の状態（タブ・場所）は URL に持ち、ここは見せるだけ。移り方（履歴に足すか置きかえるか）は呼ぶ側（ErabuFlow）が決める。
-// ネイティブの <dialog> の showModal で開くので、後ろの画面は押せず、閉じるとフォーカスは開いたボタンに戻る。Esc でも閉じる
+// ネイティブの <dialog> の showModal で開くので、後ろの画面は押せず、閉じるとフォーカスは開いたボタンに戻る。Esc でも閉じる。
+// 窓は少し下からふわっと浮かび上がって出て、閉じるときは少し沈みながら消える。一覧 ⇔ 見比べる・場所の移動では中身だけをふわっと出し直す
+// （2026-11-24 まさゆきさん）。「動きを減らす」では動かさない
 export function SceneryGallery({
   state,
   onTab,
@@ -34,6 +39,22 @@ export function SceneryGallery({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+  const [closing, setClosing] = useState(false);
+  // 見比べる窓の見せ方。はじめは「見比べる」（見本）。中身を作り直しても（場所の移動）、窓を開いているあいだは選んだ見せ方のまま
+  const [mode, setMode] = useState<CompareMode>("compare");
+  const closeTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  const requestClose = () => {
+    if (closing) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      onClose();
+      return;
+    }
+    setClosing(true);
+    closeTimer.current = window.setTimeout(onClose, CLOSE_MS);
+  };
 
   useEffect(() => {
     const element = dialog.current;
@@ -63,19 +84,22 @@ export function SceneryGallery({
       aria-labelledby="scenery-gallery-title"
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        requestClose();
       }}
       // 後ろの暗いところ（::backdrop）を押すと、押した先が dialog そのものになる
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) requestClose();
       }}
-      className="m-auto max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-3xl overflow-y-auto overscroll-contain rounded-[1.25rem] border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-black/50 motion-safe:backdrop:animate-fade-in sm:max-h-[calc(100dvh-2rem)]"
+      className={`m-auto max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-3xl overflow-y-auto overscroll-contain rounded-[1.25rem] border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-black/50 sm:max-h-[calc(100dvh-2rem)] ${
+        closing ? "motion-safe:animate-gallery-out motion-safe:backdrop:animate-fade-out" : "motion-safe:animate-gallery-in motion-safe:backdrop:animate-fade-in"
+      }`}
     >
-      <div className="flex flex-col gap-4 px-3 pb-5 pt-3 sm:px-6 sm:pb-6 sm:pt-5">
+      {/* 一覧 ⇔ 見比べる・場所の移動のたびに作り直して、中身をふわっと出し直す */}
+      <div key={view} className="flex flex-col gap-4 px-3 pb-5 pt-3 motion-safe:animate-gallery-view-in sm:px-6 sm:pb-6 sm:pt-5">
         {state.spot ? (
-          <CompareView key="compare" spot={state.spot} tab={state.tab} heading={heading} onBackToList={onBackToList} onMove={onMove} onClose={onClose} />
+          <CompareView spot={state.spot} tab={state.tab} mode={mode} onMode={setMode} heading={heading} onBackToList={onBackToList} onMove={onMove} onClose={requestClose} />
         ) : (
-          <ListView tab={state.tab} heading={heading} onTab={onTab} onOpenSpot={onOpenSpot} onClose={onClose} />
+          <ListView tab={state.tab} heading={heading} onTab={onTab} onOpenSpot={onOpenSpot} onClose={requestClose} />
         )}
       </div>
     </dialog>
@@ -178,6 +202,8 @@ function SpotCard({ spot, onOpen }: { spot: GallerySpot; onOpen: () => void }) {
 function CompareView({
   spot,
   tab,
+  mode,
+  onMode,
   heading,
   onBackToList,
   onMove,
@@ -185,13 +211,13 @@ function CompareView({
 }: {
   spot: GallerySpot;
   tab: GalleryTab;
+  mode: CompareMode;
+  onMode: (mode: CompareMode) => void;
   heading: RefObject<HTMLHeadingElement | null>;
   onBackToList: () => void;
   onMove: (spot: GallerySpot) => void;
   onClose: () => void;
 }) {
-  // はじめは「見比べる」（見本）。場所を移っても選んだ見せ方は変えない
-  const [mode, setMode] = useState<CompareMode>("compare");
   const { previous, next } = neighbourSpots(tab, spot);
   const district = DISTRICT_NAMES[spot.district];
   return (
@@ -222,7 +248,7 @@ function CompareView({
               key={id}
               type="button"
               aria-pressed={selected}
-              onClick={() => setMode(id)}
+              onClick={() => onMode(id)}
               className={`inline-flex min-h-tap items-center justify-center whitespace-nowrap rounded-full border px-2 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-w-[9.5rem] sm:px-6 sm:text-base ${
                 selected ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink hover:border-primary/50"
               }`}

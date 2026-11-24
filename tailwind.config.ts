@@ -119,6 +119,20 @@ const config: Config = {
           "0%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "0", transform: "scale(0.92)" },
         },
+        // 飯田の風景を見る（052）の窓：少し下から、ふわっと浮かび上がって出る。閉じるときは少し沈みながら消える。
+        // 一覧 ⇔ 見比べる・場所の移動では、中身だけを軽くふわっと出し直す。長さは SceneryGallery の CLOSE_MS とそろえる
+        "gallery-in": {
+          "0%": { opacity: "0", transform: "translateY(16px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "gallery-out": {
+          "0%": { opacity: "1", transform: "translateY(0) scale(1)" },
+          "100%": { opacity: "0", transform: "translateY(10px) scale(0.97)" },
+        },
+        "gallery-view-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         // 絵に出せない5人目からの子どもを増やしたとき（028）：今いる子どもたちがぴょんと跳ねる
         hop: {
           "0%, 100%": { transform: "translateY(0)" },
@@ -199,6 +213,9 @@ const config: Config = {
         "fade-out": "fade-out 300ms ease-in both",
         "photo-spot-in": "photo-spot-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "photo-spot-out": "photo-spot-out 300ms ease-in both",
+        "gallery-in": "gallery-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        "gallery-out": "gallery-out 220ms ease-in both",
+        "gallery-view-in": "gallery-view-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
         "preparing-bubble": "preparing-bubble 2000ms ease-out both",
         "pin-bob": "pin-bob 2.4s ease-in-out infinite",
         "pin-glow": "pin-glow 2s ease-in-out infinite",

@@ -148,6 +148,8 @@ describe("ErabuFlow：質問の進行", () => {
   });
 
   describe("飯田の風景を見る（052）", () => {
+    // 窓は少し沈みながら消えてから閉じる（0.22秒）
+    const waitForGalleryClose = () => act(() => new Promise((resolve) => setTimeout(resolve, 250)));
     const galleryButtons = () => screen.getAllByRole("button", { name: "飯田の風景を見る" });
 
     it("PC の札・スマホのボタンから写真一覧を開き、条件を残したまま URL に入れる", async () => {
@@ -172,6 +174,7 @@ describe("ErabuFlow：質問の進行", () => {
       expect(params().get("gs")).toBe("chushin-roundabout");
       expect(screen.getByRole("heading", { name: "中心市街地のロータリー" })).toBeInTheDocument();
       await tap("閉じる");
+      await waitForGalleryClose();
       expect(go).toHaveBeenCalledWith(-2);
       go.mockRestore();
     });
@@ -179,6 +182,7 @@ describe("ErabuFlow：質問の進行", () => {
     it("URL を開いた直後（足した履歴がない）の × は、窓のパラメータを消して閉じる", async () => {
       await open("d=igara&g=all");
       await tap("閉じる");
+      await waitForGalleryClose();
       expect(url.query).toBe("d=igara");
       expect(screen.queryByRole("dialog")).toBeNull();
     });
