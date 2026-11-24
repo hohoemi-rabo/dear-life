@@ -7,6 +7,7 @@
 //     （1枚に並んだ小物は、人物と同じく透明な列で切り分ける）
 //   - 切り出した人物・家・小物の大きさを src/lib/illust/sprites.ts に書く（画面で並べる位置の計算に使う）
 //   - ホーム画面のアイコン（024）を、ロゴの家（logo-mark）から public/icons/ に書く。ブラウザのタブのファビコン（src/app/favicon.ico）も同じ家から書く
+//   - ギャラリー（052）のドット絵と写真を、同じ大きさの WebP にして public/illust/gallery/ に書く（場所は src/lib/illust/photo-spots.ts）
 //   - 一覧にない古い WebP は消す
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,6 +37,7 @@ import {
   TRANSPORT_TAB_ICON_SOURCE,
   TRANSPORT_TAB_ICON_WIDTHS,
 } from "../src/lib/illust/assets.ts";
+import { GALLERY_DIR, GALLERY_SIZE, GALLERY_WIDTHS, PHOTO_SPOTS } from "../src/lib/illust/photo-spots.ts";
 import { APP_ICONS, APP_ICON_BACKGROUND, FAVICON_FILE, FAVICON_SIZES, ICON_DIR, appIconArtSize } from "../src/lib/pwa/icons.ts";
 
 const root = join(import.meta.dirname, "..");
@@ -375,6 +377,37 @@ ${Object.entries(propSizes).map(([prop, { width, height }]) => `  "${prop}": { w
 `,
 );
 console.log("書き出し：src/lib/illust/sprites.ts");
+
+// ギャラリー（052）：場所ごとのドット絵と写真を、同じ大きさ（16:9）にそろえて public/illust/gallery/ に書く。
+// 見比べる窓で2枚を重ねるので、大きさがそろっていないと境目でずれる。元の比がほんの少し違うものは、真ん中を残して切りそろえる。
+// 写真の撮影情報（位置など）は sharp が書き出しで落とす（元の画像にも入っていないことを 2026-11-24 に確かめた）
+const galleryDir = join(outDir, "gallery");
+mkdirSync(galleryDir, { recursive: true });
+const galleryWritten = new Set();
+written.add("gallery");
+for (const spot of PHOTO_SPOTS) {
+  if (!spot.gallery) continue;
+  for (const kind of ["pixel", "photo"]) {
+    const source = sharp(join(sourceDir, "gallery", spot.gallery[kind])).rotate();
+    for (const outWidth of GALLERY_WIDTHS) {
+      const outHeight = Math.round((outWidth * GALLERY_SIZE.height) / GALLERY_SIZE.width);
+      const file = `${spot.id}-${kind}-${outWidth}.webp`;
+      const info = await source
+        .clone()
+        .resize({ width: outWidth, height: outHeight, fit: "cover", position: "centre" })
+        .webp({ quality: WEBP_QUALITY })
+        .toFile(join(galleryDir, file));
+      galleryWritten.add(file);
+      console.log(`書き出し：public/${GALLERY_DIR}/${file}（${info.width}×${info.height}、${Math.round(info.size / 1024)}KB）`);
+    }
+  }
+}
+for (const file of readdirSync(galleryDir)) {
+  if (!galleryWritten.has(file)) {
+    rmSync(join(galleryDir, file));
+    console.log(`削除：public/${GALLERY_DIR}/${file}（一覧にない）`);
+  }
+}
 
 for (const file of readdirSync(outDir)) {
   if (!written.has(file)) {

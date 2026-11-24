@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isPlayable, PHOTO_SPOT_TIMING, PHOTO_SPOTS } from "@/lib/illust/photo-spots";
 import { PhotoSpotLayer } from "./PhotoSpotLayer";
 
-const MARKER = "上郷の神社の石段：絵が本物の写真に変わる動画を見る";
-const DIALOG = "上郷の神社の石段：絵が本物の写真に変わる動画";
+const MARKER = "上郷の飯沼神社：絵が本物の写真に変わる動画を見る";
+const DIALOG = "上郷の飯沼神社：絵が本物の写真に変わる動画";
 const PREPARING = "鼎の通り沿いの店：絵が本物の写真に変わる動画（準備中）";
 
 let play: ReturnType<typeof vi.fn<() => Promise<void>>>;

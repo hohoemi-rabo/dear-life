@@ -144,7 +144,64 @@ describe("ErabuFlow：質問の進行", () => {
   it("飯田市全体の絵に、絵が写真に変わる動画の目印を出す（050）", async () => {
     await open();
     const map = screen.getByRole("group", { name: "わが家のプレビュー：飯田市の4地区" });
-    expect(within(map).getByRole("button", { name: "上郷の神社の石段：絵が本物の写真に変わる動画を見る" })).toBeInTheDocument();
+    expect(within(map).getByRole("button", { name: "上郷の飯沼神社：絵が本物の写真に変わる動画を見る" })).toBeInTheDocument();
+  });
+
+  describe("飯田の風景を見る（052）", () => {
+    const galleryButtons = () => screen.getAllByRole("button", { name: "飯田の風景を見る" });
+
+    it("PC の札・スマホのボタンから写真一覧を開き、条件を残したまま URL に入れる", async () => {
+      await open("d=kanae");
+      // PC は絵の右上の札、スマホは見出しの下のボタン（どちらかを CSS で隠す）
+      expect(galleryButtons()).toHaveLength(2);
+      await act(async () => {
+        fireEvent.click(galleryButtons()[1]);
+      });
+      expect(url.push).toHaveBeenLastCalledWith("/erabu?d=kanae&g=all");
+      expect(params().get("d")).toBe("kanae");
+      expect(screen.getByRole("dialog", { name: "飯田の風景を見る" })).toBeInTheDocument();
+    });
+
+    it("一覧から場所を開いて、× で閉じると足した分だけ履歴を戻る", async () => {
+      const go = vi.spyOn(window.history, "go").mockImplementation(() => {});
+      await open();
+      await act(async () => {
+        fireEvent.click(galleryButtons()[0]);
+      });
+      await tap("ロータリー");
+      expect(params().get("gs")).toBe("chushin-roundabout");
+      expect(screen.getByRole("heading", { name: "中心市街地のロータリー" })).toBeInTheDocument();
+      await tap("閉じる");
+      expect(go).toHaveBeenCalledWith(-2);
+      go.mockRestore();
+    });
+
+    it("URL を開いた直後（足した履歴がない）の × は、窓のパラメータを消して閉じる", async () => {
+      await open("d=igara&g=all");
+      await tap("閉じる");
+      expect(url.query).toBe("d=igara");
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    it("「〈場所〉をじっくり見る →」は動画を見るまで出さず、最後に見た場所の見比べる窓を開く", async () => {
+      vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve());
+      vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+      await open();
+      expect(screen.queryByRole("button", { name: /をじっくり見る/ })).toBeNull();
+      await tap("上郷の飯沼神社：絵が本物の写真に変わる動画を見る");
+      await tap("中心市街地の大宮神社：絵が本物の写真に変わる動画を見る");
+      expect(screen.getByRole("button", { name: "大宮神社をじっくり見る" })).toBeInTheDocument();
+      await tap("大宮神社をじっくり見る");
+      expect(url.push).toHaveBeenLastCalledWith("/erabu?g=all&gs=chushin-shrine");
+      expect(screen.getByRole("heading", { name: "中心市街地の大宮神社" })).toBeInTheDocument();
+      vi.restoreAllMocks();
+    });
+
+    it("地区の質問でなければ、URL に窓のパラメータがあっても開かない", async () => {
+      await open("d=kamisato&q=family&g=all");
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(screen.queryByRole("button", { name: "飯田の風景を見る" })).toBeNull();
+    });
   });
 
   it("地区がないまま後ろの質問の URL を開いたら、地区の質問を出す", async () => {

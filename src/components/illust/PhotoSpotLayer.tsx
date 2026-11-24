@@ -9,8 +9,9 @@ import { PhotoSpotPlayer } from "./PhotoSpotPlayer";
 // 目印は赤い丸に白い再生の三角で、まわりがやわらかく光り（くらしの PC のピンと同じ光）、ゆっくり上下にゆれる。
 // 動画のない場所も同じ目印にし、押すと目印のそばに「準備中です」の吹き出しを約2秒出して自然に消す（2026-11-23 まさゆきさん）。
 // スマホでは絵が小さいので目印も小さくする（2026-11-23 まさゆきさん）。押せる広さはどの幅でも 44px 以上。
-// 光もゆれも「動きを減らす」では動かさない
-export function PhotoSpotLayer() {
+// 光もゆれも「動きを減らす」では動かさない。
+// 動画を開いたら onPlay で知らせる（えらぶ 01 の「〈場所〉をじっくり見る →」を最後に見た場所にする。052）
+export function PhotoSpotLayer({ onPlay }: { onPlay?: (spot: PlayablePhotoSpot) => void }) {
   const [playing, setPlaying] = useState<{ spot: PlayablePhotoSpot; origin: { x: number; y: number } } | null>(null);
   // 準備中の吹き出しを出している場所。同じ場所を続けて押したら出し直す（count を key にする）
   const [preparing, setPreparing] = useState<{ id: string; count: number } | null>(null);
@@ -64,6 +65,7 @@ export function PhotoSpotLayer() {
                     }
                     const rect = event.currentTarget.getBoundingClientRect();
                     setPlaying({ spot, origin: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } });
+                    onPlay?.(spot);
                   }}
                   className="group flex min-h-tap min-w-tap items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >

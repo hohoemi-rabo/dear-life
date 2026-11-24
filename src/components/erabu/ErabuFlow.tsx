@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ScreenDataBoundary } from "@/components/data/ScreenDataBoundary";
+import { SceneryGallery } from "@/components/gallery/SceneryGallery";
+import { useGalleryRoute } from "@/components/gallery/useGalleryRoute";
 import { CarLayer } from "@/components/illust/CarLayer";
 import { DistrictMapLayer } from "@/components/illust/DistrictMapLayer";
 import { FamilyLayer } from "@/components/illust/FamilyLayer";
@@ -28,6 +30,7 @@ import {
   type QuestionId,
 } from "@/lib/erabu/questions";
 import { erabuBaseFor } from "@/lib/illust/assets";
+import { hasGallery, type GallerySpot, type PlayablePhotoSpot } from "@/lib/illust/photo-spots";
 import { familyMembers, hiddenChildren } from "@/lib/illust/family";
 import { KURASHI_PATH } from "@/lib/site";
 import type { DistrictId } from "@/lib/town-district/resolve";
@@ -56,16 +59,29 @@ export function ErabuFlow() {
   };
 
   const side = SIDE_LAYOUT_QUESTIONS.includes(current);
+  const atDistrict = current === "district";
 
+  // 飯田の風景を見る（052）。地区の質問でだけ開ける。「〈場所〉をじっくり見る →」は、動画で最後に見た場所（見る前は出さない）
+  const gallery = useGalleryRoute();
+  const [lastSpot, setLastSpot] = useState<GallerySpot | null>(null);
+  const rememberSpot = (spot: PlayablePhotoSpot) => {
+    if (hasGallery(spot)) setLastSpot(spot);
+  };
+
+  const questionHeading = (
+    <div className={`flex flex-col items-center gap-1 text-center ${side ? "lg:items-start lg:text-left" : ""}`}>
+      {/* PC の右の列（320px）では、いちばん長い「どんな暮らしを、大切にしたい？」が1行に収まる大きさにする */}
+      <h1 id="erabu-question" className={`text-[1.375rem] font-extrabold max-[374px]:text-xl min-[400px]:text-2xl ${side ? "lg:text-xl" : ""}`}>
+        {question.title}
+      </h1>
+      <p className="text-sm text-ink-muted">{question.lead}</p>
+    </div>
+  );
+
+  // 右に列を置くとき（side）は、見出しを選択肢のまとまりの外に出す。スマホの地区の質問では見出しを絵の上に置くため（052 見本）
   const questionSection = (
     <section aria-labelledby="erabu-question" className={`flex flex-col gap-4 ${side ? "lg:gap-3" : ""}`}>
-      <div className={`flex flex-col items-center gap-1 text-center ${side ? "lg:items-start lg:text-left" : ""}`}>
-        {/* PC の右の列（320px）では、いちばん長い「どんな暮らしを、大切にしたい？」が1行に収まる大きさにする */}
-        <h1 id="erabu-question" className={`text-[1.375rem] font-extrabold max-[374px]:text-xl min-[400px]:text-2xl ${side ? "lg:text-xl" : ""}`}>
-          {question.title}
-        </h1>
-        <p className="text-sm text-ink-muted">{question.lead}</p>
-      </div>
+      {!side && questionHeading}
       <QuestionBody question={current} conditions={conditions} onChange={setConditions} side={side} />
       {current === "district" && conditions.district !== null && (
         <DistrictStage name={DISTRICT_NAMES[conditions.district]} className={side ? "lg:hidden" : ""} />
@@ -136,7 +152,9 @@ export function ErabuFlow() {
     </BottomActionBar>
   );
 
-  const preview = <ErabuPreview question={current} conditions={conditions} />;
+  const preview = (
+    <ErabuPreview question={current} conditions={conditions} onOpenGallery={() => gallery.open()} onPlaySpot={rememberSpot} />
+  );
 
   if (side) {
     // PC（lg 以上）は、左に絵・右に細い列（質問・選択肢・次へ・返事）。ノートパソコンでも選ぶときに絵が見えるよう、
@@ -151,8 +169,22 @@ export function ErabuFlow() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-center lg:gap-6">
           <div className={`contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-4 ${PREVIEW_FIT_HEIGHT}`}>
             {preview}
+            {atDistrict && lastSpot && (
+              <button type="button" onClick={() => gallery.open(lastSpot)} className={SPOT_LINK}>
+                {lastSpot.place}をじっくり見る
+                <span aria-hidden="true">→</span>
+              </button>
+            )}
           </div>
           <div className="contents lg:flex lg:w-[320px] lg:shrink-0 lg:flex-col lg:gap-3">
+            {/* スマホの地区の質問は、見出しと「飯田の風景を見る」を絵の上に置く（052 見本）。ほかの質問は今までどおり絵の下 */}
+            <div className={atDistrict ? "max-lg:order-first" : "max-lg:order-2"}>{questionHeading}</div>
+            {atDistrict && (
+              <button type="button" onClick={() => gallery.open()} aria-haspopup="dialog" className={`${GALLERY_BUTTON} max-lg:order-first lg:hidden`}>
+                <GalleryGlyph className="size-6" />
+                飯田の風景を見る
+              </button>
+            )}
             <div className="max-lg:order-2">{questionSection}</div>
             {actions}
             {current === "car" && hasNoCar(conditions) && conditions.district !== null && (
@@ -173,6 +205,16 @@ export function ErabuFlow() {
             <div className="max-lg:order-4">{reply}</div>
           </div>
         </div>
+        {atDistrict && gallery.state && (
+          <SceneryGallery
+            state={gallery.state}
+            onTab={gallery.setTab}
+            onOpenSpot={gallery.openSpot}
+            onBackToList={gallery.backToList}
+            onMove={gallery.move}
+            onClose={gallery.close}
+          />
+        )}
       </div>
     );
   }
@@ -227,9 +269,15 @@ const PREVIEW_FIT_HEIGHT = "lg:max-w-[max(480px,calc((100dvh-181px)*1.5))]";
 function ErabuPreview({
   question,
   conditions,
+  onOpenGallery,
+  onPlaySpot,
 }: {
   question: QuestionId;
   conditions: Conditions;
+  // 飯田の風景を見る（052）を開く。PC は絵の右上の白い札から
+  onOpenGallery: () => void;
+  // 絵が写真に変わる動画を開いた場所（050）
+  onPlaySpot: (spot: PlayablePhotoSpot) => void;
 }) {
   if (question === "district") {
     return (
@@ -237,7 +285,17 @@ function ErabuPreview({
         {/* 地区は下の選択肢で選び、選んだ地区の札だけを絵に立てる（050。2026-11-23 まさゆきさん）。
             押すと絵が本物の写真に変わる動画が流れる場所の目印は、札より手前に出す（050） */}
         <DistrictMapLayer selected={conditions.district} />
-        <PhotoSpotLayer />
+        <PhotoSpotLayer onPlay={onPlaySpot} />
+        {/* PC は絵の右上の白い札（052 見本）。スマホは見出しの下の緑のボタン */}
+        <button
+          type="button"
+          onClick={onOpenGallery}
+          aria-haspopup="dialog"
+          className="absolute right-2 top-2 z-20 hidden min-h-tap items-center gap-2 rounded-full border border-line bg-surface/95 px-4 text-sm font-bold text-ink shadow-card transition duration-150 hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:inline-flex"
+        >
+          <GalleryGlyph className="size-5 text-primary" />
+          飯田の風景を見る
+        </button>
         {conditions.district !== null && <StageTag>{DISTRICT_NAMES[conditions.district]}を舞台に、暮らしをつくります。</StageTag>}
       </PreviewFrame>
     );
@@ -298,6 +356,25 @@ function DistrictStage({ name, className = "" }: { name: string; className?: str
     </p>
   );
 }
+
+// 風景の写真の印（052 見本の 🖼）。飾り
+function GalleryGlyph({ className }: { className: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 ${className}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <rect x="3" y="4.5" width="18" height="15" rx="2" />
+      <path d="m3.5 17 5.5-6 4 4.5 2.5-2.5 5 4.5" />
+      <circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// 絵の下の「〈場所〉をじっくり見る →」（052 見本。下線つきの文字。スマホは左寄せ、PC は絵の真ん中）
+const SPOT_LINK =
+  "inline-flex min-h-tap items-center gap-1.5 self-start font-bold text-primary underline decoration-2 underline-offset-[6px] hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:-mt-2 lg:self-center";
+
+// スマホの「飯田の風景を見る」（052 見本の緑の横長ボタン）
+const GALLERY_BUTTON =
+  "inline-flex min-h-[3.25rem] w-full items-center justify-center gap-2.5 rounded-full bg-primary px-6 text-lg font-bold text-white shadow-card transition duration-150 hover:bg-primary-hover active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 // 次へ進む大きなボタン（見本の丸い深緑のボタン）
 const PILL_ACTION =
