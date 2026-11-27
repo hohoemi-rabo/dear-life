@@ -11,6 +11,7 @@ import {
   familyLabel,
   HOUSING_LABELS,
   KARTE_CARD_LABELS,
+  MORE_DISTRICTS_NOTE,
   PRIORITIES,
   singleAdultLabel,
   type CarCount,
@@ -62,31 +63,34 @@ type ChoiceProps = Omit<Props, "question" | "side">;
 // side のときは、PC で左に小さな絵・右に名前の横長のボタンを縦に並べる（車と同じ形。2026-11-06 まさゆきさん）
 function DistrictChoices({ conditions, onChange, side }: ChoiceProps & { side: boolean }) {
   return (
-    <ul className={`grid grid-cols-2 gap-3 ${side ? "lg:grid-cols-1 lg:gap-2" : "lg:grid-cols-4"}`} aria-label="住む地区">
-      {DISTRICTS.map(({ id, name }) => {
-        return (
-          <li key={id}>
-            <PictureChoiceCard
-              selected={conditions.district === id}
-              onSelect={() => onChange({ district: id })}
-              check="left"
-              pictureClassName="aspect-[16/9]"
-              picture={
-                <IllustPicture
-                  picture={DISTRICT_PICTURES[id]}
-                  sizes="(min-width: 1024px) 290px, (min-width: 640px) 280px, 50vw"
-                  decorative
-                  className="size-full object-cover"
-                />
-              }
-              label={name}
-              side={side}
-              sidePictureClassName={DISTRICT_SIDE_PICTURE}
-            />
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-2">
+      <ul className={`grid grid-cols-2 gap-3 ${side ? "lg:grid-cols-1 lg:gap-2" : "lg:grid-cols-4"}`} aria-label="住む地区">
+        {DISTRICTS.map(({ id, name }) => {
+          return (
+            <li key={id}>
+              <PictureChoiceCard
+                selected={conditions.district === id}
+                onSelect={() => onChange({ district: id })}
+                check="left"
+                pictureClassName="aspect-[16/9]"
+                picture={
+                  <IllustPicture
+                    picture={DISTRICT_PICTURES[id]}
+                    sizes="(min-width: 1024px) 290px, (min-width: 640px) 280px, 50vw"
+                    decorative
+                    className="size-full object-cover"
+                  />
+                }
+                label={name}
+                side={side}
+                sidePictureClassName={DISTRICT_SIDE_PICTURE}
+              />
+            </li>
+          );
+        })}
+      </ul>
+      <p className={`text-center text-xs text-ink-muted sm:text-sm ${side ? "lg:text-left" : ""}`}>{MORE_DISTRICTS_NOTE}</p>
+    </div>
   );
 }
 

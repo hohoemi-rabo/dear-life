@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IllustPicture } from "@/components/illust/IllustPicture";
-import { DISTRICTS } from "@/lib/conditions/labels";
+import { DISTRICTS, MORE_DISTRICTS_NOTE } from "@/lib/conditions/labels";
 import { DISTRICT_PICTURES } from "@/lib/illust/assets";
 import { erabuHrefFor } from "@/lib/top/links";
 import { Marker } from "./TopIcon";
@@ -42,6 +42,7 @@ export function TopDistricts() {
           </li>
         ))}
       </ul>
+      <p className="text-sm text-ink-muted">{MORE_DISTRICTS_NOTE}</p>
     </section>
   );
 }

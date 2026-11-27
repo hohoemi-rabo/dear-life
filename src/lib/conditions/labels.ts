@@ -29,6 +29,9 @@ export const DISTRICTS: readonly { id: DistrictId; name: string }[] = [
   { id: "chushin", name: "中心市街地" },
 ];
 
+// 4地区のほかの地区も足していく予定であることの一文。トップの地区のカードと、えらぶの地区の質問の下に出す（2026-11-27 まさゆきさん）
+export const MORE_DISTRICTS_NOTE = "ほかの地区も、今後追加する予定です。";
+
 export const DISTRICT_NAMES = Object.fromEntries(DISTRICTS.map(({ id, name }) => [id, name])) as Readonly<
   Record<DistrictId, string>
 >;
