@@ -13,11 +13,11 @@ const CAPTION = "風景は、地区の特徴をもとにしたイメージです
 export function TopHero() {
   return (
     // PC：大きな絵の右に草と花の飾りが絵と重ならずに並ぶので、右に飾りの幅だけ空ける。
-    // 左の列は見出しの2行目（飯田で暮らしたら。）が収まる幅にし、残りを絵にする
+    // 左の列は見出しの2行目（飯田で暮らしたら）が収まる幅にし、残りを絵にする
     <section className="relative grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[30rem_minmax(0,1fr)] lg:grid-rows-[1fr_auto_auto_1fr] lg:gap-x-8 lg:gap-y-5 lg:pr-16">
       <div className="flex flex-col items-center gap-4 text-center lg:col-start-1 lg:row-start-2 lg:items-start lg:gap-5 lg:pl-10 lg:text-left">
         {/* PC：「ゲーム感覚で…」は見出しの1行目（もしも、わが家が）の上の真ん中。
-            2行目は「。」と黄色い線のぶん長いので、幅に数えない（数えると真ん中が右にずれる）。スマホは全部真ん中ぞろえ */}
+            2行目は黄色い線のぶん長いので、幅に数えない（数えると真ん中が右にずれる）。スマホは全部真ん中ぞろえ */}
         <div className="flex w-fit flex-col gap-3 lg:gap-5">
           <p className="self-center text-sm font-extrabold text-primary md:text-base">
             <span aria-hidden="true">＼ </span>ゲーム感覚で、飯田の暮らしを体験<span aria-hidden="true"> ／</span>
@@ -25,7 +25,7 @@ export function TopHero() {
           <h1 className="text-[1.75rem] font-extrabold min-[360px]:text-[2rem] leading-snug sm:text-4xl md:text-5xl md:leading-snug">
             もしも、わが家が
             <span className="block lg:w-0 lg:whitespace-nowrap">
-              <Marker>飯田で暮らしたら。</Marker>
+              <Marker>飯田で暮らしたら</Marker>
             </span>
           </h1>
         </div>
